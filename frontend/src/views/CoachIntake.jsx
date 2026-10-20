@@ -60,6 +60,7 @@ export default function CoachIntake() {
   const S = useStore(s => s.S)
   const user = useStore(s => s.user)
   const config = useStore(s => s.config)
+  const storeReady = useStore(s => s.ready)
   const coachMode = useStore(s => s.coachLocal?.mode)
   const update = useStore(s => s.update)
   const toast = useUI(s => s.toast)
@@ -79,7 +80,12 @@ export default function CoachIntake() {
   }))
   const set = patch => setP(v => ({ ...v, ...patch }))
 
-  if (!coachAvailable(config, user, { demo: DEMO, mobile: MOBILE, coachMode })) { nav('/home', { replace: true }); return null }
+  const available = coachAvailable(config, user, { demo: DEMO, mobile: MOBILE, coachMode })
+  useEffect(() => {
+    if (storeReady && !available) nav('/home', { replace: true })
+  }, [storeReady, available, nav])
+
+  if (!storeReady || !available) return null
 
   const key = STEPS[step]
   const last = step === STEPS.length - 1

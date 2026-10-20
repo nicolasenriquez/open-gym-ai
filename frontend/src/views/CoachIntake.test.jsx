@@ -26,6 +26,7 @@ const mocks = vi.hoisted(() => {
     S: state.S,
     user: state.user,
     config: state.config,
+    ready: true,
     coachLocal: null,
     update: mut => mut(state.S),
   })
