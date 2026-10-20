@@ -37,6 +37,12 @@
       "skillPath": "skills/verify/create-verification-skill/SKILL.md",
       "computedHash": "7ed6e9514d3da392c77feb615cc7e79c7ab7390ac039417151f7101e567bffdc"
     },
+    "database-migrations": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/database-migrations/SKILL.md",
+      "computedHash": "7b41cfe3b19defa8d84f14e28c2d73af807842f7fd28c5155ea3666b395fc948"
+    },
     "design-system": {
       "source": "affaan-m/ECC",
       "sourceType": "github",
@@ -60,6 +66,12 @@
       "sourceType": "github",
       "skillPath": "skills/e2e-testing/SKILL.md",
       "computedHash": "ae1a9cb885532edccb80682df28f269ada8bda86deedd00b282a82b03e011b2e"
+    },
+    "fastapi-patterns": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/fastapi-patterns/SKILL.md",
+      "computedHash": "88b3727902263469db5fb9a4f170714ab9e6d5e49d4c959d98420d009fca3e30"
     },
     "frontend-a11y": {
       "source": "affaan-m/ECC",
@@ -204,6 +216,12 @@
       "sourceType": "github",
       "skillPath": "plugins/stitch-design/skills/extract-design-md/SKILL.md",
       "computedHash": "73cddd92063421923afbe00b423b0027aecd251a2c84bfda9c31bf992baf006b"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
+      "computedHash": "128fac78002d916c8ca908245d398e634f540d8bcf20915b2b2359aeb18eba59"
     },
     "tdd": {
       "source": "mattpocock/skills",
