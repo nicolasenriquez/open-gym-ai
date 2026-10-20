@@ -1,0 +1,10 @@
+# Keep scripts and container files LF in the working tree too.
+# core.autocrlf=true (the Windows default) rewrites them to CRLF on checkout, which breaks
+# a `#!/bin/sh` shebang inside a Linux image: the kernel looks for "/bin/sh\r" and the
+# container exits 127 before nginx starts (`web/05-check-base-path.sh`).
+* text=auto
+*.sh            text eol=lf
+*.template      text eol=lf
+Dockerfile      text eol=lf
+*.Dockerfile    text eol=lf
+docker-compose*.yml text eol=lf
