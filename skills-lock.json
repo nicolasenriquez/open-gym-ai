@@ -97,6 +97,18 @@
       "skillPath": "skills/verify/maintain-verification-skill/SKILL.md",
       "computedHash": "54b041e0c6245c3d1973fb917a0f8663af295c69fcc29422220c9acce4a3a85b"
     },
+    "plan-architecture": {
+      "source": "coleam00/skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/plan-architecture/SKILL.md",
+      "computedHash": "0fd144e2b46c0cfe450b06c5d9f4ce115de810dc70e749922ff50676cb99a457"
+    },
+    "plan-create-prd": {
+      "source": "coleam00/skills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/plan-create-prd/SKILL.md",
+      "computedHash": "f09fa3b3e309887bbbb870547c39ef69dfe666ffe93c3cc5aebe5b35135783b9"
+    },
     "ponytail": {
       "source": "DietrichGebert/ponytail",
       "sourceType": "github",
