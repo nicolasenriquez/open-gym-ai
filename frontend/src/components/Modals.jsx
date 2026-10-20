@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useUI } from '../store/useUI.js'
+import { t } from '../lib/i18n.js'
 import { keyboardOpen } from '../lib/viewport-guard.js'
 
 // Putting the page back after a sheet closes takes up to three goes (see the un-pin below): now,
@@ -42,6 +43,30 @@ const drainScrollRestore = close => {
   for (const fn of queue) {
     try { fn() } catch (e) { /* one caller must not keep the others waiting */ }
   }
+}
+
+function ModalFrame({ sheet, children }) {
+  const ref = useRef(null)
+  const closeSheet = useUI(s => s.closeSheet)
+  useLayoutEffect(() => {
+    const el = ref.current
+    const heading = el.querySelector('h1, h2, h3')
+    if (heading) {
+      if (!heading.id) heading.id = `sheet-${sheet.id}-title`
+      el.setAttribute('aria-labelledby', heading.id)
+    } else el.removeAttribute('aria-labelledby')
+  })
+  useLayoutEffect(() => {
+    const el = ref.current
+    el.showModal()
+    return () => { if (el.open) el.close() }
+  }, [])
+  return <dialog id={`sheet-${sheet.id}`} className="modal-frame" ref={ref}
+    aria-label={t(sheet.kind === 'viewer' ? 'Photos & videos' : 'Details')}
+    onCancel={e => {
+      e.preventDefault()
+      if (!sheet.locked) closeSheet(sheet.id)
+    }}>{children}</dialog>
 }
 
 // One bottom sheet (or centered dialog) with swipe-to-dismiss.
@@ -125,24 +150,24 @@ function Sheet({ sheet }) {
   // Full screen, on black: a photo or video opened from a workout (WorkoutMedia.jsx). No
   // backdrop to tap, no drag to dismiss — the viewer has its own close button, and back closes
   // it like any sheet.
-  if (sheet.kind === 'viewer') return <div>{sheet.render(close)}</div>
+  if (sheet.kind === 'viewer') return <ModalFrame sheet={sheet}>{sheet.render(close)}</ModalFrame>
   if (sheet.kind === 'center') {
     return (
-      <div>
+      <ModalFrame sheet={sheet}>
         <div className="mback" onClick={() => { if (!sheet.locked) close() }} />
         <div className="center">{sheet.render(close)}</div>
-      </div>
+      </ModalFrame>
     )
   }
   return (
-    <div>
+    <ModalFrame sheet={sheet}>
       <div className="mback" onClick={() => { if (!sheet.locked) close() }} />
       <div className="sheet" ref={ref} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
         onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}>
         <div className="grab" />
         {sheet.render(close)}
       </div>
-    </div>
+    </ModalFrame>
   )
 }
 
@@ -202,13 +227,6 @@ export default function Modals() {
     return () => window.removeEventListener('popstate', onPop)
   }, [sheets, closeSheet])
 
-  // lock the page behind any open sheet (iOS-safe)
-  useEffect(() => {
-    if (!sheets.length) return
-    const onKey = e => { if (e.key === 'Escape') { const top = useUI.getState().sheets[useUI.getState().sheets.length - 1]; if (top && !top.locked) useUI.getState().closeSheet(top.id) } }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [sheets.length])
   // A layout effect, not a passive one: the pin and, above all, the un-pin plus the scroll
   // restore have to land in the same frame as the sheet's own mount/unmount. Run after paint,
   // iOS showed a frame with the body un-pinned at scroll 0 — the page "jumped down and back" on

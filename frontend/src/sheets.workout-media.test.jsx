@@ -195,29 +195,18 @@ describe('a workout\'s photos and videos', () => {
     expect(withOne.textContent).toContain('Kept on this device only')
   })
 
-  it('the viewer takes focus, keeps Tab inside, and steps with the arrow keys (mirrored right to left)', () => {
+  it('the viewer steps with the arrow keys (mirrored right to left); ModalFrame owns focus', () => {
     useStore.setState(s => ({ S: { ...s.S, workouts: [workout({ media: [refOf(1), refOf(3), refOf(5)] })] } }))
-    const opener = document.createElement('button')
-    document.body.appendChild(opener)
-    opener.focus()
     openWorkoutMediaViewer(S().workouts[0], 0)
     const host = renderTop()
     const box = host.querySelector('.mviewer')
     const count = () => host.querySelector('.mviewer-count').textContent
-    expect(document.activeElement).toBe(host.querySelector('button[aria-label="Close"]'))
-    const key = (k, extra = {}) => act(() => { document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...extra })) })
+    const key = k => act(() => { box.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true })) })
     key('ArrowRight')
     expect(count()).toBe('2 / 3')
     key('ArrowLeft')
     key('ArrowLeft')
     expect(count()).toBe('3 / 3')
-    // Tab from the last control wraps to the first; Shift+Tab from the first to the last.
-    const buttons = [...box.querySelectorAll('button')]
-    buttons.at(-1).focus()
-    key('Tab')
-    expect(document.activeElement).toBe(buttons[0])
-    key('Tab', { shiftKey: true })
-    expect(document.activeElement).toBe(buttons.at(-1))
     document.documentElement.dir = 'rtl'
     try {
       key('ArrowRight')

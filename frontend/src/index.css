@@ -1486,6 +1486,12 @@ body.no-tabbar #timer.working{box-shadow:inset 0 var(--hair) 0 var(--acc),0 -10p
 }
 
 /* ---------------------------------------------------------------- modal -- */
+.modal-frame{
+  position:fixed;inset:0;margin:0;padding:0;border:0;
+  width:100%;height:100%;max-width:none;max-height:none;
+  background:transparent;color:inherit;overflow:visible;
+}
+.modal-frame::backdrop{background:transparent}
 #modal-root{position:fixed;inset:0;z-index:100;display:none}
 #modal-root.open{display:block}
 .mback{

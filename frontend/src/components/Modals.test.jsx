@@ -51,6 +51,10 @@ function installDom() {
   const parsed = parseHTML('<!doctype html><html><body><div id="root"></div></body></html>')
   dom = parsed.window
   dom.scrollTo = vi.fn()
+  // LinkeDOM has no native dialog implementation. Browser tests prove focus/inertness;
+  // these stubs only let history, cancel and scroll bookkeeping exercise the real wrapper.
+  dom.HTMLElement.prototype.showModal = function () { this.open = true }
+  dom.HTMLElement.prototype.close = function () { this.open = false }
   globalThis.window = dom
   globalThis.document = dom.document
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.navigator })
@@ -99,6 +103,26 @@ afterEach(async () => {
 })
 
 describe('Modals sheet history accounting', () => {
+  it('names the dialog from its visible heading and cancels only the top sheet', async () => {
+    await setSheets([sheet('one'), sheet('two', {render: () => <h3>Choose a value</h3>})])
+    const dialog = container.querySelector('#sheet-two')
+    expect(dialog.open).toBe(true)
+    expect(dialog.querySelector('h3').id).toBe(dialog.getAttribute('aria-labelledby'))
+    const cancel = new dom.Event('cancel', {cancelable:true})
+    await act(async () => { dialog.dispatchEvent(cancel) })
+    expect(cancel.defaultPrevented).toBe(true)
+    expect(mocks.state.sheets.map(s => s.id)).toEqual(['one'])
+    expect(historyMock.go).toHaveBeenLastCalledWith(-1)
+  })
+
+  it('prevents native cancellation while a sheet is locked', async () => {
+    await setSheets([sheet('locked', {locked:true})])
+    const cancel = new dom.Event('cancel', {cancelable:true})
+    await act(async () => { container.querySelector('dialog').dispatchEvent(cancel) })
+    expect(cancel.defaultPrevented).toBe(true)
+    expect(mocks.state.sheets).toHaveLength(1)
+    expect(historyMock.go).not.toHaveBeenCalled()
+  })
   it('does not rewind a real page after back spends a locked FinishSummary entry', async () => {
     const confirm = sheet('confirm')
     const summary = sheet('summary', { locked: true })

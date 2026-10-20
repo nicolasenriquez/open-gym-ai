@@ -116,25 +116,16 @@ export function openWorkoutMediaViewer(w, index = 0) {
   useUI.getState().openSheet(close => <WorkoutMediaViewer w={w} index={index} close={close} />, { kind: 'viewer' })
 }
 
-const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, video[controls], [tabindex]:not([tabindex="-1"])'
-
 export function WorkoutMediaViewer({ w, index = 0, close }) {
   const rec = useRecord(w)
   const update = useStore(s => s.update)
   const list = workoutMediaOf(rec)
   const [i, setI] = useState(index)
   const [asking, setAsking] = useState(false)
-  const box = useRef(null)
   const at = Math.min(i, list.length - 1)
   const m = at >= 0 ? list[at] : null
   // The last one removed here, or the workout deleted on another device: nothing left to show.
   useEffect(() => { if (!m) close() }, [!m])
-  // Focus moves in on open (onto Close) and back to what opened it on the way out.
-  useEffect(() => {
-    const before = document.activeElement
-    box.current?.querySelector('button')?.focus()
-    return () => { if (before && typeof before.focus === 'function' && before.isConnected) before.focus() }
-  }, [])
   if (!m) return null
   const go = d => { setAsking(false); setI((at + d + list.length) % list.length) }
   const remove = () => {
@@ -143,26 +134,16 @@ export function WorkoutMediaViewer({ w, index = 0, close }) {
     setAsking(false)
     if (removed && at >= list.length - 1) setI(Math.max(0, at - 1))
   }
-  // Tab stays inside the viewer (it covers the whole screen, and the page behind is not there to
-  // reach); left and right step through the list — mirrored where the language reads right to
-  // left, as the arrows on screen are. A video's own controls keep the arrows while focused.
+  // ModalFrame owns focus; arrows step through media, mirrored in right-to-left languages.
+  // A video's own controls keep the arrows while focused.
   const onKeyDown = e => {
-    if (e.key === 'Tab') {
-      const items = [...(box.current?.querySelectorAll(FOCUSABLE) || [])]
-      if (!items.length) return
-      const first = items[0], last = items.at(-1)
-      const inside = box.current.contains(document.activeElement)
-      if (e.shiftKey && (!inside || document.activeElement === first || document.activeElement === box.current)) { e.preventDefault(); last.focus() }
-      else if (!e.shiftKey && (!inside || document.activeElement === last)) { e.preventDefault(); first.focus() }
-      return
-    }
     if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || list.length < 2 || asking) return
     if (e.target?.tagName === 'VIDEO' || e.target?.tagName === 'INPUT') return
     const rtl = document.documentElement.dir === 'rtl'
     e.preventDefault()
     go((e.key === 'ArrowRight') !== rtl ? 1 : -1)
   }
-  return <div className="mviewer" role="dialog" aria-modal="true" aria-label={t('Photos & videos')} ref={box} tabIndex={-1} onKeyDown={onKeyDown}>
+  return <div className="mviewer" onKeyDown={onKeyDown}>
     <div className="mviewer-bar">
       <button type="button" className="iconbtn" aria-label={t('Close')} onClick={close}><Icon name="xmark" /></button>
       <span className="mviewer-count" dir="ltr">{at + 1} / {list.length}</span>
