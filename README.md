@@ -206,8 +206,9 @@ Details and build instructions: [docs/MOBILE.md](docs/MOBILE.md).
 </p>
 
 - **`frontend/`** is React 19 and Vite (React Router, Zustand), built to static files inside Docker.
-- **`api/`** is plain `node:http` with two dependencies: `@simplewebauthn/server` for passkeys and
-  `web-push` for notifications. Everything is stored as JSON under `./data`.
+- **`api/`** is plain `node:http`, with three direct runtime dependencies
+  (`@simplewebauthn/server`, `undici` and `web-push`) and an optional Claude Agent SDK dependency
+  for the Coach. Everything is stored as JSON under `./data`.
 - **`web/`** builds the frontend and serves it with nginx, proxying `/api` so the whole app sits on
   one origin, which passkeys require.
 
@@ -310,7 +311,8 @@ from the weeks in August and September 2026 when the project lived there.
 People have asked about this, so plainly: **openGym is developed with
 [Claude Code](https://claude.com/claude-code)**, Anthropic's coding agent. A large share of the
 code, tests and documentation is drafted in Claude Code sessions, and the repository carries a
-[`CLAUDE.md`](CLAUDE.md) with the project context those sessions start from.
+shared [`AGENTS.md`](AGENTS.md). [`CLAUDE.md`](CLAUDE.md) imports it so Claude Code starts with
+the same project context.
 
 What that does and doesn't mean:
 

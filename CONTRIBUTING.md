@@ -8,7 +8,7 @@ to keep it that way: easy to read, easy to self-host.
 ```
 frontend/  React + Vite app (src/views, src/components, src/store, src/lib). Builds to static files.
            android/ and ios/ are the Capacitor shells for the standalone app (docs/MOBILE.md).
-api/       Backend: server.js on plain node:http, two dependencies (@simplewebauthn/server, web-push).
+api/       Backend: server.js on plain node:http, with dependencies listed in api/package.json.
            coach/ is the optional AI coach; openapi.yaml documents every route.
 web/       Multi-stage Dockerfile (builds the frontend, serves it with nginx) and the nginx template.
 mcp/       Optional read-only MCP server for LLM clients (Claude Desktop, Cursor, ...). Not in the
@@ -59,10 +59,10 @@ cd mcp && npm test
 ## Using AI tools
 
 openGym itself is developed with Claude Code (see
-[How openGym is built](README.md#how-opengym-is-built)), and [`CLAUDE.md`](CLAUDE.md) holds the
-project context for it. You're welcome to use whatever tools you like for a pull request. The bar
-is the same either way: you understand the change, it's tested, and you can answer questions about
-it in review.
+[How openGym is built](README.md#how-opengym-is-built)), and [`AGENTS.md`](AGENTS.md) holds the
+shared project context. [`CLAUDE.md`](CLAUDE.md) imports it for Claude Code. You're welcome to use
+whatever tools you like for a pull request. The bar is the same either way: you understand the
+change, it's tested, and you can answer questions about it in review.
 
 ## What CI does with your pull request
 

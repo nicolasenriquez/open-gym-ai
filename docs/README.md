@@ -35,7 +35,7 @@ All settings live in `.env`; [`.env.example`](../.env.example) explains each one
 | Guide | Read it when |
 |---|---|
 | [Contributing](../CONTRIBUTING.md) | Before your first pull request: setup, guidelines, what CI checks |
-| [CLAUDE.md](../CLAUDE.md) | You want the architecture in one page (written for Claude Code, useful for people too) |
+| [AGENTS.md](../AGENTS.md) | You want the shared project architecture and working rules (also loaded by Claude Code) |
 | [HTTP API](API.md) | You're touching routes; the OpenAPI spec is the source of truth |
 | [Roadmap](../ROADMAP.md) | You want to know what's planned and where your idea fits |
 | [Changelog](../CHANGELOG.md) | You want to know what changed in a release |
