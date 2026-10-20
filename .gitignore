@@ -36,3 +36,5 @@ frontend/bundle-size.json
 docs/superpowers/plans/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+# Local Windows junction to the shared verification skill (keep one tracked source).
+.codex/skills/verify-opengym/
