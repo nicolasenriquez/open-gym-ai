@@ -17,6 +17,10 @@ node_modules/
 node_modules
 .claude/
 .agents/
+!.agents/
+.agents/*
+!.agents/skills/
+!.agents/skills/**
 .superpowers/
 
 # Nix build result symlinks
@@ -30,3 +34,5 @@ frontend/bundle-size.json
 
 # Local planning notes
 docs/superpowers/plans/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
