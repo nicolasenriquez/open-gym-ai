@@ -1,0 +1,9 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "isolated": true,
+    "contextOptions": { "viewport": { "width": 1440, "height": 900 } }
+  },
+  "outputDir": "docs/audit/opengym-v1.4.0-design-system/evidence",
+  "outputMode": "file"
+}

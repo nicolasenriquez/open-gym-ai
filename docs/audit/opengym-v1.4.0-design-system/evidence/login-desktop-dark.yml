@@ -1,0 +1,10 @@
+- generic [ref=e2]:
+  - generic [ref=e10]:
+    - heading "openGym" [level=1] [ref=e16]
+    - generic [ref=e17]: Tus entrenamientos. Tus pesos. Tu perfil.
+    - button "Iniciar sesión con passkey" [ref=e18] [cursor=pointer]
+    - button "Crear perfil nuevo" [ref=e27] [cursor=pointer]
+    - button "Usar un código de tu otro dispositivo" [ref=e33] [cursor=pointer]
+    - button "Continuar sin cuenta" [ref=e41] [cursor=pointer]
+    - generic [ref=e43]: Las passkeys usan tu huella, tu cara o tu PIN. Ninguna contraseña que recordar.Cada perfil guarda su propio plan, entrenamientos y peso corporal.
+  - status

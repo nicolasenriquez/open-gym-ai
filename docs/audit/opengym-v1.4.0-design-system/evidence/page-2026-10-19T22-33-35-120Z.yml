@@ -1,0 +1,361 @@
+- generic [ref=e2]:
+  - generic [ref=e1763]:
+    - generic [ref=e1764]:
+      - button "Plan" [ref=e1765] [cursor=pointer]
+      - textbox [ref=e1769]: AUDIT — disposable
+      - button "Elige un icono" [ref=e1770] [cursor=pointer]
+    - generic [ref=e1774]:
+      - button "Progresión Progresión lineal" [ref=e1775] [cursor=pointer]:
+        - generic [ref=e1779]: Progresión
+        - generic [ref=e1781]: Progresión lineal
+      - generic [ref=e1784]:
+        - generic [ref=e1789]:
+          - generic [ref=e1790]: Rutina de descarga
+          - generic [ref=e1791]: Sus entrenamientos no cuentan para la progresión. Siguen apareciendo en el historial y las estadísticas.
+        - switch [ref=e1792] [cursor=pointer]
+    - generic [ref=e1794]: Si completas todas las repeticiones de todas las series, sube el peso. Los fallos repetidos provocan una descarga. Se aplica a cada ejercicio de esta rutina que no defina su propia regla.
+    - generic [ref=e1795]:
+      - heading "Ejercicios" [level=4] [ref=e1796]
+      - button "Añadir ejercicio" [active] [ref=e1797] [cursor=pointer]
+    - generic [ref=e1801]: Aún no hay ejercicios. ¡Añade el primero!
+    - generic [ref=e1807]: Toca el botón de enlace en un ejercicio para hacer superserie con el de arriba. Los harás seguidos.
+    - button "Copiar rutina" [ref=e1811] [cursor=pointer]
+    - button "Imprimir / Guardar como PDF" [disabled]
+    - button "Eliminar rutina" [ref=e1815] [cursor=pointer]
+  - status [ref=e164]:
+    - 'button "Modo invitado: tus datos solo viven en este navegador. Iniciar sesión" [ref=e165] [cursor=pointer]':
+      - generic [ref=e169]: "Modo invitado: tus datos solo viven en este navegador."
+      - generic [ref=e170]: Iniciar sesión
+    - button "Cerrar" [ref=e171] [cursor=pointer]
+  - navigation [ref=e621]:
+    - button "Inicio" [ref=e622] [cursor=pointer]
+    - button "Plan" [ref=e627] [cursor=pointer]
+    - button "Empezar" [ref=e633] [cursor=pointer]
+    - button "Progreso" [ref=e638] [cursor=pointer]
+    - button "Ejercicios" [ref=e643] [cursor=pointer]
+  - generic [ref=e1819]:
+    - generic [ref=e1821]:
+      - heading "Añadir ejercicio" [level=3] [ref=e1822]
+      - button "Por músculo" [ref=e1823] [cursor=pointer]
+    - generic [ref=e1829]:
+      - textbox "Buscar entre 5632 ejercicios…" [ref=e1834]
+      - button "Tarjetas" [ref=e1835] [cursor=pointer]
+    - generic [ref=e1841]:
+      - button "Todo" [ref=e1842] [cursor=pointer]
+      - button "espalda" [ref=e1843] [cursor=pointer]
+      - button "cardio" [ref=e1844] [cursor=pointer]
+      - button "pecho" [ref=e1845] [cursor=pointer]
+      - button "cuerpo completo" [ref=e1846] [cursor=pointer]
+      - button "antebrazos" [ref=e1847] [cursor=pointer]
+      - button "pantorrillas" [ref=e1848] [cursor=pointer]
+      - button "cuello" [ref=e1849] [cursor=pointer]
+      - button "hombros" [ref=e1850] [cursor=pointer]
+      - button "brazos" [ref=e1851] [cursor=pointer]
+      - button "piernas" [ref=e1852] [cursor=pointer]
+      - button "abdomen" [ref=e1853] [cursor=pointer]
+    - generic [ref=e1854]:
+      - button "Cualquier tipo" [ref=e1855] [cursor=pointer]
+      - button "fuerza" [ref=e1856] [cursor=pointer]
+      - button "calistenia" [ref=e1857] [cursor=pointer]
+      - button "halterofilia" [ref=e1858] [cursor=pointer]
+      - button "pliometría" [ref=e1859] [cursor=pointer]
+      - button "isométrico" [ref=e1860] [cursor=pointer]
+      - button "cardio" [ref=e1861] [cursor=pointer]
+      - button "estiramientos" [ref=e1862] [cursor=pointer]
+      - button "movilidad" [ref=e1863] [cursor=pointer]
+      - button "yoga" [ref=e1864] [cursor=pointer]
+      - button "pilates" [ref=e1865] [cursor=pointer]
+      - button "combate" [ref=e1866] [cursor=pointer]
+      - button "rehabilitación" [ref=e1867] [cursor=pointer]
+    - generic [ref=e1868]:
+      - button "Cualquier equipo" [ref=e1869] [cursor=pointer]
+      - button "peso corporal" [ref=e1870] [cursor=pointer]
+      - button "mancuerna" [ref=e1871] [cursor=pointer]
+      - button "polea" [ref=e1872] [cursor=pointer]
+      - button "barra" [ref=e1873] [cursor=pointer]
+      - button "máquina de palanca" [ref=e1874] [cursor=pointer]
+      - button "banda" [ref=e1875] [cursor=pointer]
+      - button "kettlebell" [ref=e1876] [cursor=pointer]
+      - button "banda de resistencia" [ref=e1877] [cursor=pointer]
+      - button "con lastre" [ref=e1878] [cursor=pointer]
+      - button "entrenador de suspensión" [ref=e1879] [cursor=pointer]
+      - button "rodillo" [ref=e1880] [cursor=pointer]
+      - button "máquina Smith" [ref=e1881] [cursor=pointer]
+      - button "fitball" [ref=e1882] [cursor=pointer]
+      - button "barra EZ" [ref=e1883] [cursor=pointer]
+      - button "balón medicinal" [ref=e1884] [cursor=pointer]
+      - button "trineo" [ref=e1885] [cursor=pointer]
+      - button "disco de peso" [ref=e1886] [cursor=pointer]
+      - button "cuerda" [ref=e1887] [cursor=pointer]
+      - button "asistido" [ref=e1888] [cursor=pointer]
+      - button "landmine" [ref=e1889] [cursor=pointer]
+      - button "bosu" [ref=e1890] [cursor=pointer]
+      - button "saco de arena" [ref=e1891] [cursor=pointer]
+      - button "barra hexagonal" [ref=e1892] [cursor=pointer]
+      - button "barra olímpica" [ref=e1893] [cursor=pointer]
+      - button "elíptica" [ref=e1894] [cursor=pointer]
+      - button "bici estática" [ref=e1895] [cursor=pointer]
+      - button "rueda abdominal" [ref=e1896] [cursor=pointer]
+      - button "macebell" [ref=e1897] [cursor=pointer]
+      - button "neumático" [ref=e1898] [cursor=pointer]
+      - button "martillo" [ref=e1899] [cursor=pointer]
+      - button "SkiErg" [ref=e1900] [cursor=pointer]
+      - button "escaladora" [ref=e1901] [cursor=pointer]
+      - button "ergómetro de brazos" [ref=e1902] [cursor=pointer]
+    - generic [ref=e1903]:
+      - button "Crea tu propio ejercicio nombre + parte del cuerpo, y una foto o vídeo si quieres" [ref=e1904]:
+        - generic [ref=e1909]:
+          - generic [ref=e1910]: Crea tu propio ejercicio
+          - generic [ref=e1911]: nombre + parte del cuerpo, y una foto o vídeo si quieres
+      - button "ejercicio de agilidad 1 2 con palo (1 2 stick drill) sistema cardiovascular · peso corporal Añadir «ejercicio de agilidad 1 2 con palo (1 2 stick drill)»" [ref=e1914]:
+        - generic [ref=e1915]:
+          - generic [ref=e1916]: ejercicio de agilidad 1 2 con palo (1 2 stick drill)
+          - generic [ref=e1917]: sistema cardiovascular · peso corporal
+        - button "Añadir «ejercicio de agilidad 1 2 con palo (1 2 stick drill)»" [ref=e1918] [cursor=pointer]
+      - button "salto de cajón de 1 a 2 (1 to 2 jump box) cuádriceps · peso corporal Añadir «salto de cajón de 1 a 2 (1 to 2 jump box)»" [ref=e1921]:
+        - generic [ref=e1922]:
+          - generic [ref=e1923]: salto de cajón de 1 a 2 (1 to 2 jump box)
+          - generic [ref=e1924]: cuádriceps · peso corporal
+        - button "Añadir «salto de cajón de 1 a 2 (1 to 2 jump box)»" [ref=e1925] [cursor=pointer]
+      - button "ejercicio 123 hacia atrás (123 back drill) sistema cardiovascular · peso corporal Añadir «ejercicio 123 hacia atrás (123 back drill)»" [ref=e1928]:
+        - generic [ref=e1929]:
+          - generic [ref=e1930]: ejercicio 123 hacia atrás (123 back drill)
+          - generic [ref=e1931]: sistema cardiovascular · peso corporal
+        - button "Añadir «ejercicio 123 hacia atrás (123 back drill)»" [ref=e1932] [cursor=pointer]
+      - button "salto de cajón de 2 a 1 (2 to 1 jump box) cuádriceps · peso corporal Añadir «salto de cajón de 2 a 1 (2 to 1 jump box)»" [ref=e1935]:
+        - generic [ref=e1936]:
+          - generic [ref=e1937]: salto de cajón de 2 a 1 (2 to 1 jump box)
+          - generic [ref=e1938]: cuádriceps · peso corporal
+        - button "Añadir «salto de cajón de 2 a 1 (2 to 1 jump box)»" [ref=e1939] [cursor=pointer]
+      - button "chaturanga con tres piernas (3 leg chaturanga pose) Tríceps · peso corporal Añadir «chaturanga con tres piernas (3 leg chaturanga pose)»" [ref=e1942]:
+        - generic [ref=e1943]:
+          - generic [ref=e1944]: chaturanga con tres piernas (3 leg chaturanga pose)
+          - generic [ref=e1945]: Tríceps · peso corporal
+        - button "Añadir «chaturanga con tres piernas (3 leg chaturanga pose)»" [ref=e1946] [cursor=pointer]
+      - button "postura del perro con 3 patas (3 leg dog pose) isquiotibiales · peso corporal Añadir «postura del perro con 3 patas (3 leg dog pose)»" [ref=e1949]:
+        - generic [ref=e1950]:
+          - generic [ref=e1951]: postura del perro con 3 patas (3 leg dog pose)
+          - generic [ref=e1952]: isquiotibiales · peso corporal
+        - button "Añadir «postura del perro con 3 patas (3 leg dog pose)»" [ref=e1953] [cursor=pointer]
+      - button "abdominal 3/4 (3/4 sit-up) Abdominales · peso corporal Añadir «abdominal 3/4 (3/4 sit-up)»" [ref=e1956]:
+        - generic [ref=e1957]:
+          - generic [ref=e1958]: abdominal 3/4 (3/4 sit-up)
+          - generic [ref=e1959]: Abdominales · peso corporal
+        - button "Añadir «abdominal 3/4 (3/4 sit-up)»" [ref=e1960] [cursor=pointer]
+      - button "salto a una pierna en 4 direcciones (4 way single leg hop) Gemelos · peso corporal Añadir «salto a una pierna en 4 direcciones (4 way single leg hop)»" [ref=e1963]:
+        - generic [ref=e1964]:
+          - generic [ref=e1965]: salto a una pierna en 4 direcciones (4 way single leg hop)
+          - generic [ref=e1966]: Gemelos · peso corporal
+        - button "Añadir «salto a una pierna en 4 direcciones (4 way single leg hop)»" [ref=e1967] [cursor=pointer]
+      - button "salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2) cuádriceps · peso corporal Añadir «salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2)»" [ref=e1970]:
+        - generic [ref=e1971]:
+          - generic [ref=e1972]: salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2)
+          - generic [ref=e1973]: cuádriceps · peso corporal
+        - button "Añadir «salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2)»" [ref=e1974] [cursor=pointer]
+      - button "abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch) Abdominales · peso corporal Añadir «abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch)»" [ref=e1977]:
+        - generic [ref=e1978]:
+          - generic [ref=e1979]: abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch)
+          - generic [ref=e1980]: Abdominales · peso corporal
+        - button "Añadir «abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch)»" [ref=e1981] [cursor=pointer]
+      - button "extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused) glúteos · peso corporal Añadir «extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused)»" [ref=e1984]:
+        - generic [ref=e1985]:
+          - generic [ref=e1986]: extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused)
+          - generic [ref=e1987]: glúteos · peso corporal
+        - button "Añadir «extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused)»" [ref=e1988] [cursor=pointer]
+      - button "extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2) glúteos · peso corporal Añadir «extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2)»" [ref=e1991]:
+        - generic [ref=e1992]:
+          - generic [ref=e1993]: extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2)
+          - generic [ref=e1994]: glúteos · peso corporal
+        - button "Añadir «extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2)»" [ref=e1995] [cursor=pointer]
+      - button "hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest)) columna · peso corporal Añadir «hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest))»" [ref=e1998]:
+        - generic [ref=e1999]:
+          - generic [ref=e2000]: hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest))
+          - generic [ref=e2001]: columna · peso corporal
+        - button "Añadir «hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest))»" [ref=e2002] [cursor=pointer]
+      - button "hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov)) columna · peso corporal Añadir «hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov))»" [ref=e2005]:
+        - generic [ref=e2006]:
+          - generic [ref=e2007]: hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov))
+          - generic [ref=e2008]: columna · peso corporal
+        - button "Añadir «hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov))»" [ref=e2009] [cursor=pointer]
+      - button "hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest)) glúteos · peso corporal Añadir «hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest))»" [ref=e2012]:
+        - generic [ref=e2013]:
+          - generic [ref=e2014]: hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest))
+          - generic [ref=e2015]: glúteos · peso corporal
+        - button "Añadir «hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest))»" [ref=e2016] [cursor=pointer]
+      - button "hiperextensión a 45 grados con giro (45 degree twisting hyperextension) columna · peso corporal Añadir «hiperextensión a 45 grados con giro (45 degree twisting hyperextension)»" [ref=e2019]:
+        - generic [ref=e2020]:
+          - generic [ref=e2021]: hiperextensión a 45 grados con giro (45 degree twisting hyperextension)
+          - generic [ref=e2022]: columna · peso corporal
+        - button "Añadir «hiperextensión a 45 grados con giro (45 degree twisting hyperextension)»" [ref=e2023] [cursor=pointer]
+      - button "extensión de espalda a 45 grados (45 degrees back extension) columna · peso corporal Añadir «extensión de espalda a 45 grados (45 degrees back extension)»" [ref=e2026]:
+        - generic [ref=e2027]:
+          - generic [ref=e2028]: extensión de espalda a 45 grados (45 degrees back extension)
+          - generic [ref=e2029]: columna · peso corporal
+        - button "Añadir «extensión de espalda a 45 grados (45 degrees back extension)»" [ref=e2030] [cursor=pointer]
+      - button "aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction) columna · peso corporal Añadir «aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction)»" [ref=e2033]:
+        - generic [ref=e2034]:
+          - generic [ref=e2035]: aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction)
+          - generic [ref=e2036]: columna · peso corporal
+        - button "Añadir «aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction)»" [ref=e2037] [cursor=pointer]
+      - button "flexión lateral a 45 grados (45 degrees side bend) Abdominales · peso corporal Añadir «flexión lateral a 45 grados (45 degrees side bend)»" [ref=e2040]:
+        - generic [ref=e2041]:
+          - generic [ref=e2042]: flexión lateral a 45 grados (45 degrees side bend)
+          - generic [ref=e2043]: Abdominales · peso corporal
+        - button "Añadir «flexión lateral a 45 grados (45 degrees side bend)»" [ref=e2044] [cursor=pointer]
+      - button "flexión lateral a 45° (45° side bend) Abdominales · peso corporal Añadir «flexión lateral a 45° (45° side bend)»" [ref=e2047]:
+        - generic [ref=e2048]:
+          - generic [ref=e2049]: flexión lateral a 45° (45° side bend)
+          - generic [ref=e2050]: Abdominales · peso corporal
+        - button "Añadir «flexión lateral a 45° (45° side bend)»" [ref=e2051] [cursor=pointer]
+      - button "toque de talón a 90 grados (90 degree heel touch) Abdominales · peso corporal Añadir «toque de talón a 90 grados (90 degree heel touch)»" [ref=e2054]:
+        - generic [ref=e2055]:
+          - generic [ref=e2056]: toque de talón a 90 grados (90 degree heel touch)
+          - generic [ref=e2057]: Abdominales · peso corporal
+        - button "Añadir «toque de talón a 90 grados (90 degree heel touch)»" [ref=e2058] [cursor=pointer]
+      - button "toque de talón a 90 grados v. 2 (90 degree heel touch v. 2) Abdominales · peso corporal Añadir «toque de talón a 90 grados v. 2 (90 degree heel touch v. 2)»" [ref=e2061]:
+        - generic [ref=e2062]:
+          - generic [ref=e2063]: toque de talón a 90 grados v. 2 (90 degree heel touch v. 2)
+          - generic [ref=e2064]: Abdominales · peso corporal
+        - button "Añadir «toque de talón a 90 grados v. 2 (90 degree heel touch v. 2)»" [ref=e2065] [cursor=pointer]
+      - button "estiramiento con press a 90 y 90 (90 to 90 press stretch) glúteos · peso corporal Añadir «estiramiento con press a 90 y 90 (90 to 90 press stretch)»" [ref=e2068]:
+        - generic [ref=e2069]:
+          - generic [ref=e2070]: estiramiento con press a 90 y 90 (90 to 90 press stretch)
+          - generic [ref=e2071]: glúteos · peso corporal
+        - button "Añadir «estiramiento con press a 90 y 90 (90 to 90 press stretch)»" [ref=e2072] [cursor=pointer]
+      - button "estiramiento 90 a 90 (90 to 90 stretch) glúteos · peso corporal Añadir «estiramiento 90 a 90 (90 to 90 stretch)»" [ref=e2075]:
+        - generic [ref=e2076]:
+          - generic [ref=e2077]: estiramiento 90 a 90 (90 to 90 stretch)
+          - generic [ref=e2078]: glúteos · peso corporal
+        - button "Añadir «estiramiento 90 a 90 (90 to 90 stretch)»" [ref=e2079] [cursor=pointer]
+      - button "abdominal con colchoneta ab (ab mat sit up) Abdominales · peso corporal Añadir «abdominal con colchoneta ab (ab mat sit up)»" [ref=e2082]:
+        - generic [ref=e2083]:
+          - generic [ref=e2084]: abdominal con colchoneta ab (ab mat sit up)
+          - generic [ref=e2085]: Abdominales · peso corporal
+        - button "Añadir «abdominal con colchoneta ab (ab mat sit up)»" [ref=e2086] [cursor=pointer]
+      - button "abdominal con rueda abdominal (ab roller crunch) Abdominales · rueda abdominal Añadir «abdominal con rueda abdominal (ab roller crunch)»" [ref=e2089]:
+        - generic [ref=e2090]:
+          - generic [ref=e2091]: abdominal con rueda abdominal (ab roller crunch)
+          - generic [ref=e2092]: Abdominales · rueda abdominal
+        - button "Añadir «abdominal con rueda abdominal (ab roller crunch)»" [ref=e2093] [cursor=pointer]
+      - button "abdominal encogido en suelo (ab tuck) Abdominales · peso corporal Añadir «abdominal encogido en suelo (ab tuck)»" [ref=e2096]:
+        - generic [ref=e2097]:
+          - generic [ref=e2098]: abdominal encogido en suelo (ab tuck)
+          - generic [ref=e2099]: Abdominales · peso corporal
+        - button "Añadir «abdominal encogido en suelo (ab tuck)»" [ref=e2100] [cursor=pointer]
+      - button "abdominal en cuatro apoyos (abdominal 4 points) Abdominales · peso corporal Añadir «abdominal en cuatro apoyos (abdominal 4 points)»" [ref=e2103]:
+        - generic [ref=e2104]:
+          - generic [ref=e2105]: abdominal en cuatro apoyos (abdominal 4 points)
+          - generic [ref=e2106]: Abdominales · peso corporal
+        - button "Añadir «abdominal en cuatro apoyos (abdominal 4 points)»" [ref=e2107] [cursor=pointer]
+      - button "estiramiento abdominal (abdominal stretch) Abdominales · peso corporal Añadir «estiramiento abdominal (abdominal stretch)»" [ref=e2110]:
+        - generic [ref=e2111]:
+          - generic [ref=e2112]: estiramiento abdominal (abdominal stretch)
+          - generic [ref=e2113]: Abdominales · peso corporal
+        - button "Añadir «estiramiento abdominal (abdominal stretch)»" [ref=e2114] [cursor=pointer]
+      - button "estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch) Aductores · peso corporal Añadir «estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch)»" [ref=e2117]:
+        - generic [ref=e2118]:
+          - generic [ref=e2119]: estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch)
+          - generic [ref=e2120]: Aductores · peso corporal
+        - button "Añadir «estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch)»" [ref=e2121] [cursor=pointer]
+      - button "estiramiento de pecho sobre la cabeza (above head chest stretch) pectorales · peso corporal Añadir «estiramiento de pecho sobre la cabeza (above head chest stretch)»" [ref=e2124]:
+        - generic [ref=e2125]:
+          - generic [ref=e2126]: estiramiento de pecho sobre la cabeza (above head chest stretch)
+          - generic [ref=e2127]: pectorales · peso corporal
+        - button "Añadir «estiramiento de pecho sobre la cabeza (above head chest stretch)»" [ref=e2128] [cursor=pointer]
+      - button "estiramiento de hombro cruzando el pecho (across chest shoulder stretch) deltoides · peso corporal Añadir «estiramiento de hombro cruzando el pecho (across chest shoulder stretch)»" [ref=e2131]:
+        - generic [ref=e2132]:
+          - generic [ref=e2133]: estiramiento de hombro cruzando el pecho (across chest shoulder stretch)
+          - generic [ref=e2134]: deltoides · peso corporal
+        - button "Añadir «estiramiento de hombro cruzando el pecho (across chest shoulder stretch)»" [ref=e2135] [cursor=pointer]
+      - button "estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch) antebrazos · peso corporal Añadir «estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch)»" [ref=e2138]:
+        - generic [ref=e2139]:
+          - generic [ref=e2140]: estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch)
+          - generic [ref=e2141]: antebrazos · peso corporal
+        - button "Añadir «estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch)»" [ref=e2142] [cursor=pointer]
+      - button "estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch) deltoides · peso corporal Añadir «estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch)»" [ref=e2145]:
+        - generic [ref=e2146]:
+          - generic [ref=e2147]: estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch)
+          - generic [ref=e2148]: deltoides · peso corporal
+        - button "Añadir «estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch)»" [ref=e2149] [cursor=pointer]
+      - button "estiramiento de aductores (adductor stretch) Aductores · peso corporal Añadir «estiramiento de aductores (adductor stretch)»" [ref=e2152]:
+        - generic [ref=e2153]:
+          - generic [ref=e2154]: estiramiento de aductores (adductor stretch)
+          - generic [ref=e2155]: Aductores · peso corporal
+        - button "Añadir «estiramiento de aductores (adductor stretch)»" [ref=e2156] [cursor=pointer]
+      - button "ejercicio de agilidad con balón (agility ball drill) sistema cardiovascular · peso corporal Añadir «ejercicio de agilidad con balón (agility ball drill)»" [ref=e2159]:
+        - generic [ref=e2160]:
+          - generic [ref=e2161]: ejercicio de agilidad con balón (agility ball drill)
+          - generic [ref=e2162]: sistema cardiovascular · peso corporal
+        - button "Añadir «ejercicio de agilidad con balón (agility ball drill)»" [ref=e2163] [cursor=pointer]
+      - button "bicicleta en el aire (air bike) Abdominales · peso corporal Añadir «bicicleta en el aire (air bike)»" [ref=e2166]:
+        - generic [ref=e2167]:
+          - generic [ref=e2168]: bicicleta en el aire (air bike)
+          - generic [ref=e2169]: Abdominales · peso corporal
+        - button "Añadir «bicicleta en el aire (air bike)»" [ref=e2170] [cursor=pointer]
+      - button "bicicleta de aire v. 2 (air bike v. 2) Abdominales · peso corporal Añadir «bicicleta de aire v. 2 (air bike v. 2)»" [ref=e2173]:
+        - generic [ref=e2174]:
+          - generic [ref=e2175]: bicicleta de aire v. 2 (air bike v. 2)
+          - generic [ref=e2176]: Abdominales · peso corporal
+        - button "Añadir «bicicleta de aire v. 2 (air bike v. 2)»" [ref=e2177] [cursor=pointer]
+      - button "sentadilla al aire (air squat) cuádriceps · peso corporal Añadir «sentadilla al aire (air squat)»" [ref=e2180]:
+        - generic [ref=e2181]:
+          - generic [ref=e2182]: sentadilla al aire (air squat)
+          - generic [ref=e2183]: cuádriceps · peso corporal
+        - button "Añadir «sentadilla al aire (air squat)»" [ref=e2184] [cursor=pointer]
+      - button "sentadilla al aire (versión 2) (air squat (version 2)) cuádriceps · peso corporal Añadir «sentadilla al aire (versión 2) (air squat (version 2))»" [ref=e2187]:
+        - generic [ref=e2188]:
+          - generic [ref=e2189]: sentadilla al aire (versión 2) (air squat (version 2))
+          - generic [ref=e2190]: cuádriceps · peso corporal
+        - button "Añadir «sentadilla al aire (versión 2) (air squat (version 2))»" [ref=e2191] [cursor=pointer]
+      - button "abdominal con giro en el aire (air twisting crunch) Abdominales · peso corporal Añadir «abdominal con giro en el aire (air twisting crunch)»" [ref=e2194]:
+        - generic [ref=e2195]:
+          - generic [ref=e2196]: abdominal con giro en el aire (air twisting crunch)
+          - generic [ref=e2197]: Abdominales · peso corporal
+        - button "Añadir «abdominal con giro en el aire (air twisting crunch)»" [ref=e2198] [cursor=pointer]
+      - button "estiramiento en cuadrupedia (all fours squad stretch) cuádriceps · peso corporal Añadir «estiramiento en cuadrupedia (all fours squad stretch)»" [ref=e2201]:
+        - generic [ref=e2202]:
+          - generic [ref=e2203]: estiramiento en cuadrupedia (all fours squad stretch)
+          - generic [ref=e2204]: cuádriceps · peso corporal
+        - button "Añadir «estiramiento en cuadrupedia (all fours squad stretch)»" [ref=e2205] [cursor=pointer]
+      - button "sentadilla con toque alterno de talón y patada lateral (alternate heel touch side kick squat) cuádriceps · peso corporal Añadir «sentadilla con toque alterno de talón y patada lateral (alternate heel touch side kick squat)»" [ref=e2208]:
+        - generic [ref=e2209]:
+          - generic [ref=e2210]: sentadilla con toque alterno de talón y patada lateral (alternate heel touch side kick squat)
+          - generic [ref=e2211]: cuádriceps · peso corporal
+        - button "Añadir «sentadilla con toque alterno de talón y patada lateral (alternate heel touch side kick squat)»" [ref=e2212] [cursor=pointer]
+      - button "toque alterno de talones (alternate heel touchers) Abdominales · peso corporal Añadir «toque alterno de talones (alternate heel touchers)»" [ref=e2215]:
+        - generic [ref=e2216]:
+          - generic [ref=e2217]: toque alterno de talones (alternate heel touchers)
+          - generic [ref=e2218]: Abdominales · peso corporal
+        - button "Añadir «toque alterno de talones (alternate heel touchers)»" [ref=e2219] [cursor=pointer]
+      - button "salto alto alterno (alternate high hop) sistema cardiovascular · peso corporal Añadir «salto alto alterno (alternate high hop)»" [ref=e2222]:
+        - generic [ref=e2223]:
+          - generic [ref=e2224]: salto alto alterno (alternate high hop)
+          - generic [ref=e2225]: sistema cardiovascular · peso corporal
+        - button "Añadir «salto alto alterno (alternate high hop)»" [ref=e2226] [cursor=pointer]
+      - button "jalón lateral alternado (alternate lateral pulldown) dorsales · polea Añadir «jalón lateral alternado (alternate lateral pulldown)»" [ref=e2229]:
+        - generic [ref=e2230]:
+          - generic [ref=e2231]: jalón lateral alternado (alternate lateral pulldown)
+          - generic [ref=e2232]: dorsales · polea
+        - button "Añadir «jalón lateral alternado (alternate lateral pulldown)»" [ref=e2233] [cursor=pointer]
+      - button "elevación de piernas alterna (alternate leg raise) Abdominales · peso corporal Añadir «elevación de piernas alterna (alternate leg raise)»" [ref=e2236]:
+        - generic [ref=e2237]:
+          - generic [ref=e2238]: elevación de piernas alterna (alternate leg raise)
+          - generic [ref=e2239]: Abdominales · peso corporal
+        - button "Añadir «elevación de piernas alterna (alternate leg raise)»" [ref=e2240] [cursor=pointer]
+      - button "elevación alterna de piernas con cabeza arriba (alternate leg raise with head up) Abdominales · peso corporal Añadir «elevación alterna de piernas con cabeza arriba (alternate leg raise with head up)»" [ref=e2243]:
+        - generic [ref=e2244]:
+          - generic [ref=e2245]: elevación alterna de piernas con cabeza arriba (alternate leg raise with head up)
+          - generic [ref=e2246]: Abdominales · peso corporal
+        - button "Añadir «elevación alterna de piernas con cabeza arriba (alternate leg raise with head up)»" [ref=e2247] [cursor=pointer]
+      - button "elevación alterna de piernas acostado en el suelo (alternate lying floor leg raise) Abdominales · peso corporal Añadir «elevación alterna de piernas acostado en el suelo (alternate lying floor leg raise)»" [ref=e2250]:
+        - generic [ref=e2251]:
+          - generic [ref=e2252]: elevación alterna de piernas acostado en el suelo (alternate lying floor leg raise)
+          - generic [ref=e2253]: Abdominales · peso corporal
+        - button "Añadir «elevación alterna de piernas acostado en el suelo (alternate lying floor leg raise)»" [ref=e2254] [cursor=pointer]
+      - button "abdominal oblicuo alterno (alternate oblique crunch) Abdominales · peso corporal Añadir «abdominal oblicuo alterno (alternate oblique crunch)»" [ref=e2257]:
+        - generic [ref=e2258]:
+          - generic [ref=e2259]: abdominal oblicuo alterno (alternate oblique crunch)
+          - generic [ref=e2260]: Abdominales · peso corporal
+        - button "Añadir «abdominal oblicuo alterno (alternate oblique crunch)»" [ref=e2261] [cursor=pointer]
+    - button "Mostrar más" [ref=e2265] [cursor=pointer]
+  - status

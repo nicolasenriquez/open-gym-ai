@@ -1,0 +1,459 @@
+- generic [ref=e2]:
+  - generic [ref=e1763]:
+    - generic [ref=e1764]:
+      - button "Plan" [ref=e1765] [cursor=pointer]
+      - textbox [ref=e1769]: AUDIT — disposable
+      - button "Elige un icono" [ref=e1770] [cursor=pointer]
+    - generic [ref=e1774]:
+      - button "Progresión Progresión lineal" [ref=e1775] [cursor=pointer]:
+        - generic [ref=e1779]: Progresión
+        - generic [ref=e1781]: Progresión lineal
+      - generic [ref=e1784]:
+        - generic [ref=e1789]:
+          - generic [ref=e1790]: Rutina de descarga
+          - generic [ref=e1791]: Sus entrenamientos no cuentan para la progresión. Siguen apareciendo en el historial y las estadísticas.
+        - switch [ref=e1792] [cursor=pointer]
+    - generic [ref=e1794]: Si completas todas las repeticiones de todas las series, sube el peso. Los fallos repetidos provocan una descarga. Se aplica a cada ejercicio de esta rutina que no defina su propia regla.
+    - generic [ref=e1795]:
+      - heading "Ejercicios" [level=4] [ref=e1796]
+      - button "Añadir ejercicio" [ref=e1797] [cursor=pointer]
+    - generic [ref=e2621]:
+      - button [ref=e2622] [cursor=pointer]:
+        - generic [ref=e2623]: Quitar
+      - generic [ref=e2627]:
+        - button "sentadilla con barra (barbell squat) 3 × 10" [ref=e2636] [cursor=pointer]:
+          - generic [ref=e2637]: sentadilla con barra (barbell squat)
+          - generic [ref=e2638]: 3 × 10
+        - generic [ref=e2640]:
+          - button "Subir" [disabled] [ref=e2641] [cursor=pointer]
+          - button "Bajar" [disabled] [ref=e2644] [cursor=pointer]
+    - generic [ref=e2647]:
+      - heading "Qué trabaja esta sesión" [level=2] [ref=e2648]
+      - generic [ref=e2649]:
+        - img [ref=e2650]:
+          - generic "Trapecio" [ref=e2682]
+          - generic "Trapecio" [ref=e2683]
+          - generic "Hombros" [ref=e2684]
+          - generic "Hombros" [ref=e2685]
+          - generic "Pecho" [ref=e2686]
+          - generic "Pecho" [ref=e2687]
+          - generic "Serrato" [ref=e2688]
+          - generic "Serrato" [ref=e2689]
+          - generic "Serrato" [ref=e2690]
+          - generic "Serrato" [ref=e2691]
+          - generic "Serrato" [ref=e2692]
+          - generic "Serrato" [ref=e2693]
+          - generic "Bíceps" [ref=e2694]
+          - generic "Bíceps" [ref=e2695]
+          - generic "Tríceps" [ref=e2696]
+          - generic "Tríceps" [ref=e2697]
+          - generic "Antebrazos" [ref=e2698]
+          - generic "Antebrazos" [ref=e2699]
+          - generic "Antebrazos" [ref=e2700]
+          - generic "Antebrazos" [ref=e2701]
+          - generic "Antebrazos" [ref=e2702]
+          - generic "Antebrazos" [ref=e2703]
+          - generic "Abdominales" [ref=e2704]
+          - generic "Abdominales" [ref=e2705]
+          - generic "Abdominales" [ref=e2706]
+          - generic "Abdominales" [ref=e2707]
+          - generic "Abdominales" [ref=e2708]
+          - generic "Abdominales" [ref=e2709]
+          - generic "Abdominales" [ref=e2710]
+          - generic "Abdominales" [ref=e2711]
+          - generic "Oblicuos" [ref=e2712]
+          - generic "Oblicuos" [ref=e2713]
+          - generic "Oblicuos" [ref=e2714]
+          - generic "Oblicuos" [ref=e2715]
+          - generic "Oblicuos" [ref=e2716]
+          - generic "Oblicuos" [ref=e2717]
+          - generic "Oblicuos" [ref=e2718]
+          - generic "Oblicuos" [ref=e2719]
+          - generic "Oblicuos" [ref=e2720]
+          - generic "Oblicuos" [ref=e2721]
+          - generic "Oblicuos" [ref=e2722]
+          - generic "Oblicuos" [ref=e2723]
+          - generic "Oblicuos" [ref=e2724]
+          - generic "Oblicuos" [ref=e2725]
+          - generic "Oblicuos" [ref=e2726]
+          - generic "Oblicuos" [ref=e2727]
+          - generic "Cuádriceps" [ref=e2728]
+          - generic "Cuádriceps" [ref=e2729]
+          - generic "Cuádriceps" [ref=e2730]
+          - generic "Cuádriceps" [ref=e2731]
+          - generic "Cuádriceps" [ref=e2732]
+          - generic "Cuádriceps" [ref=e2733]
+          - generic "Aductores" [ref=e2734]
+          - generic "Aductores" [ref=e2735]
+          - generic "Aductores" [ref=e2736]
+          - generic "Aductores" [ref=e2737]
+          - generic "Aductores" [ref=e2738]
+          - generic "Aductores" [ref=e2739]
+          - generic "Flexores de cadera" [ref=e2740]
+          - generic "Flexores de cadera" [ref=e2741]
+          - generic "Gemelos" [ref=e2742]
+          - generic "Gemelos" [ref=e2743]
+          - generic "Gemelos" [ref=e2744]
+          - generic "Gemelos" [ref=e2745]
+          - generic "Tibiales" [ref=e2746]
+          - generic "Tibiales" [ref=e2747]
+        - img [ref=e2748]:
+          - generic "Trapecio" [ref=e2769]
+          - generic "Trapecio" [ref=e2770]
+          - generic "Hombros" [ref=e2771]
+          - generic "Hombros" [ref=e2772]
+          - generic "Espalda alta" [ref=e2773]
+          - generic "Espalda alta" [ref=e2774]
+          - generic "Espalda alta" [ref=e2775]
+          - generic "Espalda alta" [ref=e2776]
+          - generic "Espalda alta" [ref=e2777]
+          - generic "Espalda alta" [ref=e2778]
+          - generic "Tríceps" [ref=e2779]
+          - generic "Tríceps" [ref=e2780]
+          - generic "Tríceps" [ref=e2781]
+          - generic "Tríceps" [ref=e2782]
+          - generic "Tríceps" [ref=e2783]
+          - generic "Tríceps" [ref=e2784]
+          - generic "Antebrazos" [ref=e2785]
+          - generic "Antebrazos" [ref=e2786]
+          - generic "Antebrazos" [ref=e2787]
+          - generic "Antebrazos" [ref=e2788]
+          - generic "Antebrazos" [ref=e2789]
+          - generic "Antebrazos" [ref=e2790]
+          - generic "Antebrazos" [ref=e2791]
+          - generic "Antebrazos" [ref=e2792]
+          - generic "Espalda baja" [ref=e2793]
+          - generic "Espalda baja" [ref=e2794]
+          - generic "Espalda baja" [ref=e2795]
+          - generic "Espalda baja" [ref=e2796]
+          - generic "Glúteos" [ref=e2797]
+          - generic "Glúteos" [ref=e2798]
+          - generic "Glúteos" [ref=e2799]
+          - generic "Glúteos" [ref=e2800]
+          - generic "Isquiotibiales" [ref=e2801]
+          - generic "Isquiotibiales" [ref=e2802]
+          - generic "Isquiotibiales" [ref=e2803]
+          - generic "Isquiotibiales" [ref=e2804]
+          - generic "Isquiotibiales" [ref=e2805]
+          - generic "Isquiotibiales" [ref=e2806]
+          - generic "Isquiotibiales" [ref=e2807]
+          - generic "Isquiotibiales" [ref=e2808]
+          - generic "Aductores" [ref=e2809]
+          - generic "Aductores" [ref=e2810]
+          - generic "Gemelos" [ref=e2811]
+          - generic "Gemelos" [ref=e2812]
+          - generic "Gemelos" [ref=e2813]
+          - generic "Gemelos" [ref=e2814]
+          - generic "Gemelos" [ref=e2815]
+          - generic "Gemelos" [ref=e2816]
+          - generic "Gemelos" [ref=e2817]
+          - generic "Gemelos" [ref=e2818]
+      - generic [ref=e2819]:
+        - generic [ref=e2820]: Cuádriceps
+        - generic [ref=e2821]: Abdominales
+        - generic [ref=e2822]: Espalda baja
+        - generic [ref=e2823]: Glúteos
+        - generic [ref=e2824]: Isquiotibiales
+        - generic [ref=e2825]: Aductores
+    - generic [ref=e1807]: Toca el botón de enlace en un ejercicio para hacer superserie con el de arriba. Los harás seguidos.
+    - button "Copiar rutina" [ref=e1811] [cursor=pointer]
+    - button "Imprimir / Guardar como PDF" [ref=e2826] [cursor=pointer]
+    - button "Eliminar rutina" [ref=e1815] [cursor=pointer]
+  - status [ref=e164]:
+    - 'button "Modo invitado: tus datos solo viven en este navegador. Iniciar sesión" [ref=e165] [cursor=pointer]':
+      - generic [ref=e169]: "Modo invitado: tus datos solo viven en este navegador."
+      - generic [ref=e170]: Iniciar sesión
+    - button "Cerrar" [ref=e171] [cursor=pointer]
+  - navigation [ref=e621]:
+    - button "Inicio" [ref=e622] [cursor=pointer]
+    - button "Plan" [ref=e627] [cursor=pointer]
+    - button "Empezar" [ref=e633] [cursor=pointer]
+    - button "Progreso" [ref=e638] [cursor=pointer]
+    - button "Ejercicios" [ref=e643] [cursor=pointer]
+  - generic [ref=e1819]:
+    - generic [ref=e1821]:
+      - heading "Añadir ejercicio" [level=3] [ref=e1822]
+      - button "Por músculo" [ref=e1823] [cursor=pointer]
+    - generic [ref=e1829]:
+      - generic [ref=e1830]:
+        - textbox "Buscar entre 5632 ejercicios…" [ref=e1834]: barbell squat
+        - status "72 ejercicios": "72"
+        - button "Borrar" [ref=e2267] [cursor=pointer]
+      - button "Tarjetas" [ref=e1835] [cursor=pointer]
+    - generic [ref=e1841]:
+      - button "Elegidos (1)" [ref=e2828] [cursor=pointer]
+      - button "Todo" [ref=e1842] [cursor=pointer]
+      - button "espalda" [ref=e1843] [cursor=pointer]
+      - button "cardio" [ref=e1844] [cursor=pointer]
+      - button "pecho" [ref=e1845] [cursor=pointer]
+      - button "cuerpo completo" [ref=e1846] [cursor=pointer]
+      - button "antebrazos" [ref=e1847] [cursor=pointer]
+      - button "pantorrillas" [ref=e1848] [cursor=pointer]
+      - button "cuello" [ref=e1849] [cursor=pointer]
+      - button "hombros" [ref=e1850] [cursor=pointer]
+      - button "brazos" [ref=e1851] [cursor=pointer]
+      - button "piernas" [ref=e1852] [cursor=pointer]
+      - button "abdomen" [ref=e1853] [cursor=pointer]
+    - generic [ref=e1854]:
+      - button "Cualquier tipo" [ref=e1855] [cursor=pointer]
+      - button "fuerza" [ref=e1856] [cursor=pointer]
+      - button "halterofilia" [ref=e1858] [cursor=pointer]
+      - button "pliometría" [ref=e1859] [cursor=pointer]
+      - button "isométrico" [ref=e1860] [cursor=pointer]
+    - generic [ref=e1903]:
+      - button "Crea tu propio ejercicio nombre + parte del cuerpo, y una foto o vídeo si quieres" [ref=e1904]:
+        - generic [ref=e1909]:
+          - generic [ref=e1910]: Crea tu propio ejercicio
+          - generic [ref=e1911]: nombre + parte del cuerpo, y una foto o vídeo si quieres
+      - button "sentadilla con barra (barbell squat) cuádriceps · barra Añadir «sentadilla con barra (barbell squat)»" [ref=e2270]:
+        - generic [ref=e2271]:
+          - generic [ref=e2272]: sentadilla con barra (barbell squat)
+          - generic [ref=e2273]: cuádriceps · barra
+        - button "Añadir «sentadilla con barra (barbell squat)»" [active] [ref=e2274] [cursor=pointer]
+      - button "sentadilla con barra (barbell full squat) glúteos · barra Añadir «sentadilla con barra (barbell full squat)»" [ref=e2277]:
+        - generic [ref=e2278]:
+          - generic [ref=e2279]: sentadilla con barra (barbell full squat)
+          - generic [ref=e2280]: glúteos · barra
+        - button "Añadir «sentadilla con barra (barbell full squat)»" [ref=e2281] [cursor=pointer]
+      - button "sentadilla frontal con barra (barbell front squat) glúteos · barra Añadir «sentadilla frontal con barra (barbell front squat)»" [ref=e2284]:
+        - generic [ref=e2285]:
+          - generic [ref=e2286]: sentadilla frontal con barra (barbell front squat)
+          - generic [ref=e2287]: glúteos · barra
+        - button "Añadir «sentadilla frontal con barra (barbell front squat)»" [ref=e2288] [cursor=pointer]
+      - button "sentadilla hack con barra (barbell hack squat) glúteos · barra Añadir «sentadilla hack con barra (barbell hack squat)»" [ref=e2291]:
+        - generic [ref=e2292]:
+          - generic [ref=e2293]: sentadilla hack con barra (barbell hack squat)
+          - generic [ref=e2294]: glúteos · barra
+        - button "Añadir «sentadilla hack con barra (barbell hack squat)»" [ref=e2295] [cursor=pointer]
+      - button "sentadilla Jefferson con barra (barbell jefferson squat) glúteos · barra Añadir «sentadilla Jefferson con barra (barbell jefferson squat)»" [ref=e2298]:
+        - generic [ref=e2299]:
+          - generic [ref=e2300]: sentadilla Jefferson con barra (barbell jefferson squat)
+          - generic [ref=e2301]: glúteos · barra
+        - button "Añadir «sentadilla Jefferson con barra (barbell jefferson squat)»" [ref=e2302] [cursor=pointer]
+      - button "sentadilla rápida con barra (barbell speed squat) glúteos · barra Añadir «sentadilla rápida con barra (barbell speed squat)»" [ref=e2305]:
+        - generic [ref=e2306]:
+          - generic [ref=e2307]: sentadilla rápida con barra (barbell speed squat)
+          - generic [ref=e2308]: glúteos · barra
+        - button "Añadir «sentadilla rápida con barra (barbell speed squat)»" [ref=e2309] [cursor=pointer]
+      - button "sentadilla Zercher con barra (barbell zercher squat) glúteos · barra Añadir «sentadilla Zercher con barra (barbell zercher squat)»" [ref=e2312]:
+        - generic [ref=e2313]:
+          - generic [ref=e2314]: sentadilla Zercher con barra (barbell zercher squat)
+          - generic [ref=e2315]: glúteos · barra
+        - button "Añadir «sentadilla Zercher con barra (barbell zercher squat)»" [ref=e2316] [cursor=pointer]
+      - button "sentadilla anderson con barra (barbell anderson squat) cuádriceps · barra Añadir «sentadilla anderson con barra (barbell anderson squat)»" [ref=e2319]:
+        - generic [ref=e2320]:
+          - generic [ref=e2321]: sentadilla anderson con barra (barbell anderson squat)
+          - generic [ref=e2322]: cuádriceps · barra
+        - button "Añadir «sentadilla anderson con barra (barbell anderson squat)»" [ref=e2323] [cursor=pointer]
+      - button "sentadilla core con barra (barbell core squat) cuádriceps · barra Añadir «sentadilla core con barra (barbell core squat)»" [ref=e2326]:
+        - generic [ref=e2327]:
+          - generic [ref=e2328]: sentadilla core con barra (barbell core squat)
+          - generic [ref=e2329]: cuádriceps · barra
+        - button "Añadir «sentadilla core con barra (barbell core squat)»" [ref=e2330] [cursor=pointer]
+      - button "sentadilla olímpica con barra (barbell olympic squat) cuádriceps · barra Añadir «sentadilla olímpica con barra (barbell olympic squat)»" [ref=e2333]:
+        - generic [ref=e2334]:
+          - generic [ref=e2335]: sentadilla olímpica con barra (barbell olympic squat)
+          - generic [ref=e2336]: cuádriceps · barra
+        - button "Añadir «sentadilla olímpica con barra (barbell olympic squat)»" [ref=e2337] [cursor=pointer]
+      - button "sentadilla dividida con barra (barbell split squat) cuádriceps · barra Añadir «sentadilla dividida con barra (barbell split squat)»" [ref=e2340]:
+        - generic [ref=e2341]:
+          - generic [ref=e2342]: sentadilla dividida con barra (barbell split squat)
+          - generic [ref=e2343]: cuádriceps · barra
+        - button "Añadir «sentadilla dividida con barra (barbell split squat)»" [ref=e2344] [cursor=pointer]
+      - button "sentadilla sumo con barra (barbell sumo squat) glúteos · barra Añadir «sentadilla sumo con barra (barbell sumo squat)»" [ref=e2347]:
+        - generic [ref=e2348]:
+          - generic [ref=e2349]: sentadilla sumo con barra (barbell sumo squat)
+          - generic [ref=e2350]: glúteos · barra
+        - button "Añadir «sentadilla sumo con barra (barbell sumo squat)»" [ref=e2351] [cursor=pointer]
+      - button "sentadilla en banco con barra (barbell bench squat) cuádriceps · barra Añadir «sentadilla en banco con barra (barbell bench squat)»" [ref=e2354]:
+        - generic [ref=e2355]:
+          - generic [ref=e2356]: sentadilla en banco con barra (barbell bench squat)
+          - generic [ref=e2357]: cuádriceps · barra
+        - button "Añadir «sentadilla en banco con barra (barbell bench squat)»" [ref=e2358] [cursor=pointer]
+      - button "sentadilla con barra alta (barbell high bar squat) glúteos · barra Añadir «sentadilla con barra alta (barbell high bar squat)»" [ref=e2361]:
+        - generic [ref=e2362]:
+          - generic [ref=e2363]: sentadilla con barra alta (barbell high bar squat)
+          - generic [ref=e2364]: glúteos · barra
+        - button "Añadir «sentadilla con barra alta (barbell high bar squat)»" [ref=e2365] [cursor=pointer]
+      - button "sentadilla con barra baja (barbell low bar squat) glúteos · barra Añadir «sentadilla con barra baja (barbell low bar squat)»" [ref=e2368]:
+        - generic [ref=e2369]:
+          - generic [ref=e2370]: sentadilla con barra baja (barbell low bar squat)
+          - generic [ref=e2371]: glúteos · barra
+        - button "Añadir «sentadilla con barra baja (barbell low bar squat)»" [ref=e2372] [cursor=pointer]
+      - button "sentadilla lateral con barra (barbell side split squat) cuádriceps · barra Añadir «sentadilla lateral con barra (barbell side split squat)»" [ref=e2375]:
+        - generic [ref=e2376]:
+          - generic [ref=e2377]: sentadilla lateral con barra (barbell side split squat)
+          - generic [ref=e2378]: cuádriceps · barra
+        - button "Añadir «sentadilla lateral con barra (barbell side split squat)»" [ref=e2379] [cursor=pointer]
+      - button "sentadilla con salto y barra (barbell jump squat) glúteos · barra Añadir «sentadilla con salto y barra (barbell jump squat)»" [ref=e2382]:
+        - generic [ref=e2383]:
+          - generic [ref=e2384]: sentadilla con salto y barra (barbell jump squat)
+          - generic [ref=e2385]: glúteos · barra
+        - button "Añadir «sentadilla con salto y barra (barbell jump squat)»" [ref=e2386] [cursor=pointer]
+      - button "sentadilla con barra y bandas (barbell banded squat) cuádriceps · barra Añadir «sentadilla con barra y bandas (barbell banded squat)»" [ref=e2389]:
+        - generic [ref=e2390]:
+          - generic [ref=e2391]: sentadilla con barra y bandas (barbell banded squat)
+          - generic [ref=e2392]: cuádriceps · barra
+        - button "Añadir «sentadilla con barra y bandas (barbell banded squat)»" [ref=e2393] [cursor=pointer]
+      - button "sentadilla al cajón con barra (barbell box squat) glúteos · barra Añadir «sentadilla al cajón con barra (barbell box squat)»" [ref=e2396]:
+        - generic [ref=e2397]:
+          - generic [ref=e2398]: sentadilla al cajón con barra (barbell box squat)
+          - generic [ref=e2399]: glúteos · barra
+        - button "Añadir «sentadilla al cajón con barra (barbell box squat)»" [ref=e2400] [cursor=pointer]
+      - button "sentadilla con topes y barra (barbell pin squat) cuádriceps · barra Añadir «sentadilla con topes y barra (barbell pin squat)»" [ref=e2403]:
+        - generic [ref=e2404]:
+          - generic [ref=e2405]: sentadilla con topes y barra (barbell pin squat)
+          - generic [ref=e2406]: cuádriceps · barra
+        - button "Añadir «sentadilla con topes y barra (barbell pin squat)»" [ref=e2407] [cursor=pointer]
+      - button "cuarto de sentadilla con barra (barbell quarter squat) cuádriceps · barra Añadir «cuarto de sentadilla con barra (barbell quarter squat)»" [ref=e2410]:
+        - generic [ref=e2411]:
+          - generic [ref=e2412]: cuarto de sentadilla con barra (barbell quarter squat)
+          - generic [ref=e2413]: cuádriceps · barra
+        - button "Añadir «cuarto de sentadilla con barra (barbell quarter squat)»" [ref=e2414] [cursor=pointer]
+      - button "sentadilla Zercher completa con barra (barbell full zercher squat) glúteos · barra Añadir «sentadilla Zercher completa con barra (barbell full zercher squat)»" [ref=e2417]:
+        - generic [ref=e2418]:
+          - generic [ref=e2419]: sentadilla Zercher completa con barra (barbell full zercher squat)
+          - generic [ref=e2420]: glúteos · barra
+        - button "Añadir «sentadilla Zercher completa con barra (barbell full zercher squat)»" [ref=e2421] [cursor=pointer]
+      - button "sentadilla búlgara con barra (barbell single leg split squat) cuádriceps · barra Añadir «sentadilla búlgara con barra (barbell single leg split squat)»" [ref=e2424]:
+        - generic [ref=e2425]:
+          - generic [ref=e2426]: sentadilla búlgara con barra (barbell single leg split squat)
+          - generic [ref=e2427]: cuádriceps · barra
+        - button "Añadir «sentadilla búlgara con barra (barbell single leg split squat)»" [ref=e2428] [cursor=pointer]
+      - button "sentadilla con barra (de rodillas) (barbell squat (on knees)) cuádriceps · barra Añadir «sentadilla con barra (de rodillas) (barbell squat (on knees))»" [ref=e2431]:
+        - generic [ref=e2432]:
+          - generic [ref=e2433]: sentadilla con barra (de rodillas) (barbell squat (on knees))
+          - generic [ref=e2434]: cuádriceps · barra
+        - button "Añadir «sentadilla con barra (de rodillas) (barbell squat (on knees))»" [ref=e2435] [cursor=pointer]
+      - button "sentadilla con piernas abiertas y barra (barbell wide squat) cuádriceps · barra Añadir «sentadilla con piernas abiertas y barra (barbell wide squat)»" [ref=e2438]:
+        - generic [ref=e2439]:
+          - generic [ref=e2440]: sentadilla con piernas abiertas y barra (barbell wide squat)
+          - generic [ref=e2441]: cuádriceps · barra
+        - button "Añadir «sentadilla con piernas abiertas y barra (barbell wide squat)»" [ref=e2442] [cursor=pointer]
+      - button "sentadilla sobre la cabeza con barra (barbell overhead squat) cuádriceps · barra Añadir «sentadilla sobre la cabeza con barra (barbell overhead squat)»" [ref=e2445]:
+        - generic [ref=e2446]:
+          - generic [ref=e2447]: sentadilla sobre la cabeza con barra (barbell overhead squat)
+          - generic [ref=e2448]: cuádriceps · barra
+        - button "Añadir «sentadilla sobre la cabeza con barra (barbell overhead squat)»" [ref=e2449] [cursor=pointer]
+      - button "sentadilla dividida baja con barra (barbell low split squat) cuádriceps · barra Añadir «sentadilla dividida baja con barra (barbell low split squat)»" [ref=e2452]:
+        - generic [ref=e2453]:
+          - generic [ref=e2454]: sentadilla dividida baja con barra (barbell low split squat)
+          - generic [ref=e2455]: cuádriceps · barra
+        - button "Añadir «sentadilla dividida baja con barra (barbell low split squat)»" [ref=e2456] [cursor=pointer]
+      - button "sentadilla con cadenas y barra (barbell squat with chains) cuádriceps · barra Añadir «sentadilla con cadenas y barra (barbell squat with chains)»" [ref=e2459]:
+        - generic [ref=e2460]:
+          - generic [ref=e2461]: sentadilla con cadenas y barra (barbell squat with chains)
+          - generic [ref=e2462]: cuádriceps · barra
+        - button "Añadir «sentadilla con cadenas y barra (barbell squat with chains)»" [ref=e2463] [cursor=pointer]
+      - button "sentadilla frontal en banco con barra (barbell bench front squat) cuádriceps · barra Añadir «sentadilla frontal en banco con barra (barbell bench front squat)»" [ref=e2466]:
+        - generic [ref=e2467]:
+          - generic [ref=e2468]: sentadilla frontal en banco con barra (barbell bench front squat)
+          - generic [ref=e2469]: cuádriceps · barra
+        - button "Añadir «sentadilla frontal en banco con barra (barbell bench front squat)»" [ref=e2470] [cursor=pointer]
+      - button "sentadilla frontal al pecho con barra (barbell front chest squat) glúteos · barra Añadir «sentadilla frontal al pecho con barra (barbell front chest squat)»" [ref=e2473]:
+        - generic [ref=e2474]:
+          - generic [ref=e2475]: sentadilla frontal al pecho con barra (barbell front chest squat)
+          - generic [ref=e2476]: glúteos · barra
+        - button "Añadir «sentadilla frontal al pecho con barra (barbell front chest squat)»" [ref=e2477] [cursor=pointer]
+      - button "sentadilla con postura estrecha y barra (barbell narrow stance squat) glúteos · barra Añadir «sentadilla con postura estrecha y barra (barbell narrow stance squat)»" [ref=e2480]:
+        - generic [ref=e2481]:
+          - generic [ref=e2482]: sentadilla con postura estrecha y barra (barbell narrow stance squat)
+          - generic [ref=e2483]: glúteos · barra
+        - button "Añadir «sentadilla con postura estrecha y barra (barbell narrow stance squat)»" [ref=e2484] [cursor=pointer]
+      - button "sentadilla a una pierna con barra (barbell one leg squat) cuádriceps · barra Añadir «sentadilla a una pierna con barra (barbell one leg squat)»" [ref=e2487]:
+        - generic [ref=e2488]:
+          - generic [ref=e2489]: sentadilla a una pierna con barra (barbell one leg squat)
+          - generic [ref=e2490]: cuádriceps · barra
+        - button "Añadir «sentadilla a una pierna con barra (barbell one leg squat)»" [ref=e2491] [cursor=pointer]
+      - button "sentadilla con talones elevados y barra (barbell elevated heel squat) cuádriceps · barra Añadir «sentadilla con talones elevados y barra (barbell elevated heel squat)»" [ref=e2494]:
+        - generic [ref=e2495]:
+          - generic [ref=e2496]: sentadilla con talones elevados y barra (barbell elevated heel squat)
+          - generic [ref=e2497]: cuádriceps · barra
+        - button "Añadir «sentadilla con talones elevados y barra (barbell elevated heel squat)»" [ref=e2498] [cursor=pointer]
+      - button "sentadilla frontal en banco con barra (barbell front bench squat) cuádriceps · barra Añadir «sentadilla frontal en banco con barra (barbell front bench squat)»" [ref=e2501]:
+        - generic [ref=e2502]:
+          - generic [ref=e2503]: sentadilla frontal en banco con barra (barbell front bench squat)
+          - generic [ref=e2504]: cuádriceps · barra
+        - button "Añadir «sentadilla frontal en banco con barra (barbell front bench squat)»" [ref=e2505] [cursor=pointer]
+      - button "sentadilla frontal con topes y barra (barbell pin front squat) cuádriceps · barra Añadir «sentadilla frontal con topes y barra (barbell pin front squat)»" [ref=e2508]:
+        - generic [ref=e2509]:
+          - generic [ref=e2510]: sentadilla frontal con topes y barra (barbell pin front squat)
+          - generic [ref=e2511]: cuádriceps · barra
+        - button "Añadir «sentadilla frontal con topes y barra (barbell pin front squat)»" [ref=e2512] [cursor=pointer]
+      - button "sentadilla a una pierna con barra (barbell single leg squat) cuádriceps · barra Añadir «sentadilla a una pierna con barra (barbell single leg squat)»" [ref=e2515]:
+        - generic [ref=e2516]:
+          - generic [ref=e2517]: sentadilla a una pierna con barra (barbell single leg squat)
+          - generic [ref=e2518]: cuádriceps · barra
+        - button "Añadir «sentadilla a una pierna con barra (barbell single leg squat)»" [ref=e2519] [cursor=pointer]
+      - button "sentadilla búlgara zercher con barra (barbell zercher bulgarian split squat) cuádriceps · barra Añadir «sentadilla búlgara zercher con barra (barbell zercher bulgarian split squat)»" [ref=e2522]:
+        - generic [ref=e2523]:
+          - generic [ref=e2524]: sentadilla búlgara zercher con barra (barbell zercher bulgarian split squat)
+          - generic [ref=e2525]: cuádriceps · barra
+        - button "Añadir «sentadilla búlgara zercher con barra (barbell zercher bulgarian split squat)»" [ref=e2526] [cursor=pointer]
+      - button "sentadilla completa con barra (vista trasera) (barbell full squat (back pov)) glúteos · barra Añadir «sentadilla completa con barra (vista trasera) (barbell full squat (back pov))»" [ref=e2529]:
+        - generic [ref=e2530]:
+          - generic [ref=e2531]: sentadilla completa con barra (vista trasera) (barbell full squat (back pov))
+          - generic [ref=e2532]: glúteos · barra
+        - button "Añadir «sentadilla completa con barra (vista trasera) (barbell full squat (back pov))»" [ref=e2533] [cursor=pointer]
+      - button "sentadilla completa con barra (vista lateral) (barbell full squat (side pov)) glúteos · barra Añadir «sentadilla completa con barra (vista lateral) (barbell full squat (side pov))»" [ref=e2536]:
+        - generic [ref=e2537]:
+          - generic [ref=e2538]: sentadilla completa con barra (vista lateral) (barbell full squat (side pov))
+          - generic [ref=e2539]: glúteos · barra
+        - button "Añadir «sentadilla completa con barra (vista lateral) (barbell full squat (side pov))»" [ref=e2540] [cursor=pointer]
+      - button "sentadilla búlgara con barra v. 2 (barbell split squat v. 2) cuádriceps · barra Añadir «sentadilla búlgara con barra v. 2 (barbell split squat v. 2)»" [ref=e2543]:
+        - generic [ref=e2544]:
+          - generic [ref=e2545]: sentadilla búlgara con barra v. 2 (barbell split squat v. 2)
+          - generic [ref=e2546]: cuádriceps · barra
+        - button "Añadir «sentadilla búlgara con barra v. 2 (barbell split squat v. 2)»" [ref=e2547] [cursor=pointer]
+      - button "sostén de sentadilla zercher con barra (barbell zercher squat hold) cuádriceps · barra Añadir «sostén de sentadilla zercher con barra (barbell zercher squat hold)»" [ref=e2550]:
+        - generic [ref=e2551]:
+          - generic [ref=e2552]: sostén de sentadilla zercher con barra (barbell zercher squat hold)
+          - generic [ref=e2553]: cuádriceps · barra
+        - button "Añadir «sostén de sentadilla zercher con barra (barbell zercher squat hold)»" [ref=e2554] [cursor=pointer]
+      - button "sentadilla frontal con barra (desde bloques) (barbell front squat (from blocks)) cuádriceps · barra Añadir «sentadilla frontal con barra (desde bloques) (barbell front squat (from blocks))»" [ref=e2557]:
+        - generic [ref=e2558]:
+          - generic [ref=e2559]: sentadilla frontal con barra (desde bloques) (barbell front squat (from blocks))
+          - generic [ref=e2560]: cuádriceps · barra
+        - button "Añadir «sentadilla frontal con barra (desde bloques) (barbell front squat (from blocks))»" [ref=e2561] [cursor=pointer]
+      - button "sentadilla completa con barra (en rack) (barbell full squat (with rack)) cuádriceps · barra Añadir «sentadilla completa con barra (en rack) (barbell full squat (with rack))»" [ref=e2564]:
+        - generic [ref=e2565]:
+          - generic [ref=e2566]: sentadilla completa con barra (en rack) (barbell full squat (with rack))
+          - generic [ref=e2567]: cuádriceps · barra
+        - button "Añadir «sentadilla completa con barra (en rack) (barbell full squat (with rack))»" [ref=e2568] [cursor=pointer]
+      - button "sentadilla dividida con barra v. 3 (barbell split squat v. 3) cuádriceps · barra Añadir «sentadilla dividida con barra v. 3 (barbell split squat v. 3)»" [ref=e2571]:
+        - generic [ref=e2572]:
+          - generic [ref=e2573]: sentadilla dividida con barra v. 3 (barbell split squat v. 3)
+          - generic [ref=e2574]: cuádriceps · barra
+        - button "Añadir «sentadilla dividida con barra v. 3 (barbell split squat v. 3)»" [ref=e2575] [cursor=pointer]
+      - button "sentadilla lateral con barra v. 2 (barbell side split squat v. 2) cuádriceps · barra Añadir «sentadilla lateral con barra v. 2 (barbell side split squat v. 2)»" [ref=e2578]:
+        - generic [ref=e2579]:
+          - generic [ref=e2580]: sentadilla lateral con barra v. 2 (barbell side split squat v. 2)
+          - generic [ref=e2581]: cuádriceps · barra
+        - button "Añadir «sentadilla lateral con barra v. 2 (barbell side split squat v. 2)»" [ref=e2582] [cursor=pointer]
+      - button "sentadilla de preparación del envión con barra (barbell jerk dip squat) cuádriceps · barra Añadir «sentadilla de preparación del envión con barra (barbell jerk dip squat)»" [ref=e2585]:
+        - generic [ref=e2586]:
+          - generic [ref=e2587]: sentadilla de preparación del envión con barra (barbell jerk dip squat)
+          - generic [ref=e2588]: cuádriceps · barra
+        - button "Añadir «sentadilla de preparación del envión con barra (barbell jerk dip squat)»" [ref=e2589] [cursor=pointer]
+      - button "sentadilla en banco con barra y banda elástica (barbell banded bench squat) glúteos · barra Añadir «sentadilla en banco con barra y banda elástica (barbell banded bench squat)»" [ref=e2592]:
+        - generic [ref=e2593]:
+          - generic [ref=e2594]: sentadilla en banco con barra y banda elástica (barbell banded bench squat)
+          - generic [ref=e2595]: glúteos · barra
+        - button "Añadir «sentadilla en banco con barra y banda elástica (barbell banded bench squat)»" [ref=e2596] [cursor=pointer]
+      - button "sentadilla en banco con cadenas y barra (barbell bench squat (with chains)) cuádriceps · barra Añadir «sentadilla en banco con cadenas y barra (barbell bench squat (with chains))»" [ref=e2599]:
+        - generic [ref=e2600]:
+          - generic [ref=e2601]: sentadilla en banco con cadenas y barra (barbell bench squat (with chains))
+          - generic [ref=e2602]: cuádriceps · barra
+        - button "Añadir «sentadilla en banco con cadenas y barra (barbell bench squat (with chains))»" [ref=e2603] [cursor=pointer]
+      - button "sentadilla dividida con barra en posición frontal (barbell front rack split squat) cuádriceps · barra Añadir «sentadilla dividida con barra en posición frontal (barbell front rack split squat)»" [ref=e2606]:
+        - generic [ref=e2607]:
+          - generic [ref=e2608]: sentadilla dividida con barra en posición frontal (barbell front rack split squat)
+          - generic [ref=e2609]: cuádriceps · barra
+        - button "Añadir «sentadilla dividida con barra en posición frontal (barbell front rack split squat)»" [ref=e2610] [cursor=pointer]
+      - button "sentadilla con barra baja (con rack) (barbell low bar squat (with rack)) glúteos · barra Añadir «sentadilla con barra baja (con rack) (barbell low bar squat (with rack))»" [ref=e2613]:
+        - generic [ref=e2614]:
+          - generic [ref=e2615]: sentadilla con barra baja (con rack) (barbell low bar squat (with rack))
+          - generic [ref=e2616]: glúteos · barra
+        - button "Añadir «sentadilla con barra baja (con rack) (barbell low bar squat (with rack))»" [ref=e2617] [cursor=pointer]
+    - button "Mostrar más" [ref=e2265] [cursor=pointer]
+  - status: «Sentadilla Con Barra (Barbell Squat)» añadido a AUDIT — disposable

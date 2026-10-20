@@ -1,0 +1,24 @@
+- generic [ref=e2]:
+  - generic [ref=e2835]:
+    - generic [ref=e2837]:
+      - heading "Empezar entrenamiento" [level=1] [ref=e2838]
+      - generic [ref=e2839]: Lunes · día de descanso, pero nadie te lo impide
+    - heading "Otras rutinas" [level=4] [ref=e2840]
+    - generic [ref=e2842]:
+      - generic [ref=e2847]:
+        - generic [ref=e2848]: AUDIT — disposable
+        - generic [ref=e2849]: 1 ejercicio
+      - generic [ref=e2850]: Empezar
+    - button "Entrenamiento libre (elige sobre la marcha)" [ref=e2852] [cursor=pointer]
+  - status [ref=e164]:
+    - 'button "Modo invitado: tus datos solo viven en este navegador. Iniciar sesión" [ref=e165] [cursor=pointer]':
+      - generic [ref=e169]: "Modo invitado: tus datos solo viven en este navegador."
+      - generic [ref=e170]: Iniciar sesión
+    - button "Cerrar" [ref=e171] [cursor=pointer]
+  - navigation [ref=e621]:
+    - button "Inicio" [ref=e622] [cursor=pointer]
+    - button "Plan" [ref=e627] [cursor=pointer]
+    - button "Empezar" [ref=e633] [cursor=pointer]
+    - button "Progreso" [ref=e638] [cursor=pointer]
+    - button "Ejercicios" [ref=e643] [cursor=pointer]
+  - status

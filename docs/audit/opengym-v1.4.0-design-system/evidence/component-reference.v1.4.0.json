@@ -1,0 +1,568 @@
+[
+  {
+    "file": "frontend/src/components/BackupFolderRow.jsx",
+    "declarations": [
+      "14: export function useBackupFolder(enabled = true) {",
+      "31: export function autoBackupSubtitle(folder, keep) {",
+      "37: export default function BackupFolderRow() {"
+    ],
+    "consumers": [
+      "frontend/src/views/Settings.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/BodyMap.jsx",
+    "declarations": [
+      "17: function useBodyPaths() {",
+      "29: function View({ view, levels, onMuscle, selected }) {",
+      "64: export default function BodyMap({ load = {}, thresholds, body = 'male', onMuscle, selected, className = '' }) {",
+      "78: export function BodyMapLegend() {"
+    ],
+    "consumers": [
+      "frontend/src/components/MuscleExplorer.jsx",
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/RoutineEdit.jsx",
+      "frontend/src/views/Stats.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/CameraScan.jsx",
+    "declarations": [
+      "13: export default function CameraScan({ onFound, onCancel }) {"
+    ],
+    "consumers": [
+      "frontend/src/views/CheckIn.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/CustomMedia.jsx",
+    "declarations": [
+      "32: export function openExternal(url) {",
+      "44: export function useMediaUrl(file, { auto = true } = {}) {",
+      "97: export function CustomThumb({ ex }) {",
+      "113: export function LinkCard({ url, compact, mini }) {",
+      "134: export default function CustomMedia({ ex, id, compact, minimizable }) {",
+      "168: export function MediaView({ m, cls = 'exmedia', name = '', still = false }) {",
+      "182: function CustomImage({ m, id, cls, name, toggle }) {",
+      "196: function CustomGif({ m, id, cls, name, toggle, mini }) {",
+      "229: function CustomVideo({ m, id, cls, name, toggle, mini, still }) {"
+    ],
+    "consumers": [
+      "frontend/src/components/CustomMediaField.jsx",
+      "frontend/src/components/Media.jsx",
+      "frontend/src/components/WorkoutMedia.jsx",
+      "frontend/src/views/ProgressPhotos.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/CustomMediaField.jsx",
+    "declarations": [
+      "35: export function mediaErrorText(e) {",
+      "65: export function useMediaPicker() {",
+      "115: export default function CustomMediaField({ media, url, onChange }) {"
+    ],
+    "consumers": [
+      "frontend/src/components/WorkoutMedia.jsx",
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/ProgressPhotos.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/DurationWheel.jsx",
+    "declarations": [
+      "27: export const WHEEL_ITEM = 40",
+      "30: export const SETTLE_MS = 120",
+      "39: export function WheelColumn({ count, index, onPick, label, unit, format = String, valueText, disabledAt, step = 10, nonce = 0, rowRef }) {",
+      "205: export default function DurationWheel({ value, onChange, min = 0, max = REST_MAX, off = null, className = '', readRef }) {",
+      "235: function DurationSheet({ title, value, min, max, off, footer, onDone, close }) {",
+      "249: export function durationSheet({ title, value, min = 0, max = REST_MAX, off = null, footer = null, onDone }) {"
+    ],
+    "consumers": [
+      "frontend/src/components/RestTimer.jsx",
+      "frontend/src/components/WorkoutSettingsSheet.jsx",
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/Settings.jsx",
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Elapsed.jsx",
+    "declarations": [
+      "6: export default function Elapsed({ start }) {"
+    ],
+    "consumers": [
+      "frontend/src/components/TabBar.jsx",
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/ErrorBoundary.jsx",
+    "declarations": [
+      "15: export default class ErrorBoundary extends Component {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/ExerciseViewToggle.jsx",
+    "declarations": [
+      "9: export default function ExerciseViewToggle() {"
+    ],
+    "consumers": [
+      "frontend/src/components/MuscleExplorer.jsx",
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/Library.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Heatmap.jsx",
+    "declarations": [
+      "21: export default function Heatmap({ S, onDay, metric: selectedMetric, onMetricChange }) {"
+    ],
+    "consumers": [
+      "frontend/src/views/Stats.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Icon.jsx",
+    "declarations": [
+      "186: export const ICON_NAMES = Object.keys(P)",
+      "192: export default function Icon({ name, size, className = '', style, ...rest }) {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx",
+      "frontend/src/components/CustomMedia.jsx",
+      "frontend/src/components/CustomMediaField.jsx",
+      "frontend/src/components/ErrorBoundary.jsx",
+      "frontend/src/components/ExerciseViewToggle.jsx",
+      "frontend/src/components/Media.jsx",
+      "frontend/src/components/MuscleExplorer.jsx",
+      "frontend/src/components/QueueRow.jsx",
+      "frontend/src/components/RestTimer.jsx",
+      "frontend/src/components/SwipeRow.jsx",
+      "frontend/src/components/SyncBanner.jsx",
+      "frontend/src/components/TabBar.jsx",
+      "frontend/src/components/Toast.jsx",
+      "frontend/src/components/WorkoutChips.jsx",
+      "frontend/src/components/WorkoutMedia.jsx",
+      "frontend/src/components/WorkoutThumb.jsx",
+      "frontend/src/components/ui.jsx",
+      "frontend/src/lib/glyphs.js",
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/Admin.jsx",
+      "frontend/src/views/AdminCoach.jsx",
+      "frontend/src/views/CheckIn.jsx",
+      "frontend/src/views/CoachChat.jsx",
+      "frontend/src/views/CoachIntake.jsx",
+      "frontend/src/views/CoachSetup.jsx",
+      "frontend/src/views/FocusView.jsx",
+      "frontend/src/views/History.jsx",
+      "frontend/src/views/Home.jsx",
+      "frontend/src/views/Library.jsx",
+      "frontend/src/views/Login.jsx",
+      "frontend/src/views/Measurements.jsx",
+      "frontend/src/views/MobileOnboarding.jsx",
+      "frontend/src/views/Muscles.jsx",
+      "frontend/src/views/Plan.jsx",
+      "frontend/src/views/ProgressPhotos.jsx",
+      "frontend/src/views/RoutineEdit.jsx",
+      "frontend/src/views/Settings.jsx",
+      "frontend/src/views/Stats.jsx",
+      "frontend/src/views/StructuralBalance.jsx",
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/LineChart.jsx",
+    "declarations": [
+      "18: export default function LineChart({ points, h = 150, unit = '', color = 'var(--acc)', axes = true, goal = null, invert = false, series = null }) {"
+    ],
+    "consumers": [
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/CoachChat.jsx",
+      "frontend/src/views/Home.jsx",
+      "frontend/src/views/Measurements.jsx",
+      "frontend/src/views/Stats.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Media.jsx",
+    "declarations": [
+      "12: export default function Media(p) {",
+      "22: function BuiltinMedia({ ex, id, compact, minimizable }) {",
+      "69: export function autoplayMuted(el) {",
+      "82: export function Thumb(p) {",
+      "85: function BuiltinThumb({ ex }) {"
+    ],
+    "consumers": [
+      "frontend/src/components/MuscleExplorer.jsx",
+      "frontend/src/components/WorkoutThumb.jsx",
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/Library.jsx",
+      "frontend/src/views/RoutineEdit.jsx",
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Modals.jsx",
+    "declarations": [
+      "24: export function afterScrollRestore(fn) {",
+      "32: export const scrollRestorePending = () => restoreUntil - Date.now() > 0",
+      "48: function Sheet({ sheet }) {",
+      "149: export default function Modals() {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx",
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/MuscleExplorer.jsx",
+    "declarations": [
+      "20: export default function MuscleExplorer({ onPick, onDetail, onPlan }) {"
+    ],
+    "consumers": [
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/Muscles.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/NumField.jsx",
+    "declarations": [
+      "3: export { NumberField as default } from './ui.jsx'"
+    ],
+    "consumers": [],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Passkeys.jsx",
+    "declarations": [
+      "44: export function passkeyError(e) {",
+      "60: export function usePasskeys(on) {",
+      "73: export function PasskeysRow({ state, changed }) {",
+      "81: export function DeviceLinkRow({ state }) {",
+      "88: export function PasskeysSheet({ close, changed }) {",
+      "112: function PasskeySheet({ passkey, title, state, close, done }) {",
+      "147: function RemovePasskeySheet({ passkey, title, state, close, done }) {",
+      "171: function AddPasskeySheet({ state, close, done }) {",
+      "209: export function DeviceLinkSheet({ close }) {",
+      "263: export function DeviceLinkRedeemSheet({ close }) {",
+      "342: export const openDeviceLinkRedeem = () => ui().openSheet(close => <DeviceLinkRedeemSheet close={close} />)"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx",
+      "frontend/src/views/Login.jsx",
+      "frontend/src/views/Settings.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/PasswordAuth.jsx",
+    "declarations": [
+      "21: export const MIN_PASSWORD = 10",
+      "22: export const passwordOn = config => !!config?.password_login",
+      "25: export const foldEmail = s => String(s || '').normalize('NFKC').trim().toLowerCase()",
+      "29: export const looksLikeEmail = s => {",
+      "40: function fmtIn(sec) {",
+      "48: export function passwordError(e) {",
+      "88: export function PasswordSignInSheet({ close, onPasskey }) {",
+      "153: export const openPasswordSignIn = onPasskey => ui().openSheet(close => <PasswordSignInSheet close={close} onPasskey={onPasskey} />)",
+      "157: export function PasswordRegisterForm({ close, inviteOnly, name, setName, code, setCode }) {",
+      "212: function PasswordRegisterSheet({ close }) {",
+      "222: export const openPasswordRegister = () => ui().openSheet(close => <PasswordRegisterSheet close={close} />)",
+      "236: export function ProveOwner({ passkey, password, onProof, explain = passwordError, danger = false, submitText }) {",
+      "298: export const notReached = e => e?.status == null || e.status >= 500",
+      "299: export function useAgainOnceReached(unreached, load) {",
+      "311: export function PasswordRow({ version = 0 }) {",
+      "333: export function PasswordSheet({ status, close, done }) {",
+      "395: function RemovePasswordSheet({ status, close, done }) {",
+      "418: export function EmailRow({ status, done }) {",
+      "429: export function EmailSheet({ status, close, done }) {",
+      "475: function RemoveEmailSheet({ status, close, done }) {"
+    ],
+    "consumers": [
+      "frontend/src/components/Passkeys.jsx",
+      "frontend/src/components/ServerSync.jsx",
+      "frontend/src/views/Login.jsx",
+      "frontend/src/views/Settings.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/QrCanvas.jsx",
+    "declarations": [
+      "13: export default function QrCanvas({ value, size = 240, className = '' }) {"
+    ],
+    "consumers": [
+      "frontend/src/components/Passkeys.jsx",
+      "frontend/src/views/CheckIn.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/QueueRow.jsx",
+    "declarations": [
+      "15: export default function QueueRow({ S, today, onStart, managed }) {"
+    ],
+    "consumers": [
+      "frontend/src/views/Home.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/RestTimer.jsx",
+    "declarations": [
+      "16: export function adjustRestSheet() {",
+      "29: export function applyRestLeft(v, opened) {",
+      "52: function useSkipFits(actsRef, deps) {",
+      "78: export default function RestTimer() {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/ServerSync.jsx",
+    "declarations": [
+      "28: export const hostOf = base => {",
+      "35: export const isOnline = () => typeof navigator === 'undefined' || navigator.onLine !== false",
+      "37: export function useOnline() {",
+      "57: export function connectionView(sync, { mobile = MOBILE, online = isOnline() } = {}) {",
+      "107: export const actionLabel = view => (view.label !== undefined ? view.label : ({ retry: t('Try again'), pair: t('Pair again'), signin: t('Sign in'), connect: t('Connect') })[view.action] || null)",
+      "110: export async function syncNowWithToast() {",
+      "119: export function pairAgain() {",
+      "123: export function connectServer() {",
+      "131: export function signInAgain() {",
+      "135: export async function passkeySignIn() {",
+      "163: export async function leaveServer(kind, { exportBackup, exportBackupZip, done }) {",
+      "176: export function OwedSheet({ kind, count: count0, media: media0 = 0, exportBackup, exportBackupZip, done, close }) {",
+      "242: export function ServerSyncSection({ children }) {",
+      "287: export function KeptChangesRows() {"
+    ],
+    "consumers": [
+      "frontend/src/components/SyncBanner.jsx",
+      "frontend/src/views/Settings.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Stepper.jsx",
+    "declarations": [
+      "3: export { Stepper as default } from './ui.jsx'"
+    ],
+    "consumers": [
+      "frontend/src/sheets.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/SwipeCards.jsx",
+    "declarations": [
+      "26: export function cardAxis(dx, dy) {",
+      "38: export function cardCommits(dx, dy, v = 0) {",
+      "50: export default function SwipeCards({ children, renderPreview, onNavigate, index, count, revision, timerKey, workKey }) {"
+    ],
+    "consumers": [
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/SwipeRow.jsx",
+    "declarations": [
+      "22: const SwipeRow = forwardRef(function SwipeRow({",
+      "59: export default SwipeRow"
+    ],
+    "consumers": [
+      "frontend/src/views/Plan.jsx",
+      "frontend/src/views/RoutineEdit.jsx",
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/SyncBanner.jsx",
+    "declarations": [
+      "12: export const PENDING_GRACE_MS = 5000",
+      "29: function useConnection() {",
+      "54: export const showsConnection = S => S?.connStatus !== false",
+      "59: export const showsLocalLine = S => S?.connLocal !== false",
+      "66: export function useConnectionTrouble() {",
+      "72: export default function SyncBanner() {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx",
+      "frontend/src/components/TabBar.jsx",
+      "frontend/src/views/Home.jsx",
+      "frontend/src/views/Settings.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/TabBar.jsx",
+    "declarations": [
+      "14: function Tab({ active, icon, label, onClick, dot }) {",
+      "22: export default function TabBar({ onStart }) {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/TimerFlash.jsx",
+    "declarations": [
+      "7: export default function TimerFlash() {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/Toast.jsx",
+    "declarations": [
+      "6: export default function Toast() {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/WorkoutChips.jsx",
+    "declarations": [
+      "21: export default function WorkoutChips({ entries, cur, onPick }) {"
+    ],
+    "consumers": [
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/WorkoutMedia.jsx",
+    "declarations": [
+      "32: export const workoutMediaCount = w => workoutMediaOf(w).length",
+      "41: export const serverTakesWorkoutMedia = (user, config) => !user || !config || !config.media || !!config.media.workouts",
+      "49: export default function WorkoutMediaSection({ w, hint = false }) {",
+      "115: export function openWorkoutMediaViewer(w, index = 0) {",
+      "121: export function WorkoutMediaViewer({ w, index = 0, close }) {"
+    ],
+    "consumers": [
+      "frontend/src/sheets.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/WorkoutScrollAnchor.jsx",
+    "declarations": [
+      "5: export default class WorkoutScrollAnchor extends Component {"
+    ],
+    "consumers": [
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/WorkoutSettingsSheet.jsx",
+    "declarations": [
+      "20: export function WorkoutSettings({ close }) {",
+      "86: export function workoutSettingsSheet() {"
+    ],
+    "consumers": [
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/WorkoutThumb.jsx",
+    "declarations": [
+      "9: export const hasWorkoutMedia = ex => !!ex && (isCustomEx(ex) ? !!(mediaOf(ex) || cleanUrl(ex.url)) : !!ex.gif)",
+      "14: export default function WorkoutThumb({ ex, onExpand }) {"
+    ],
+    "consumers": [
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  },
+  {
+    "file": "frontend/src/components/ui.jsx",
+    "declarations": [
+      "26: export const numWidthCh = s => Math.max(1, [...s].reduce((n, c) => n + (c === '.' ? 0.5 : 1), 0))",
+      "35: export function NumberField({ value, onChange, decimal = true, nullable = false, fit = false, className = '', ...rest }) {",
+      "77: export const TextField = forwardRef(function TextField({ className = '', ...rest }, ref) {",
+      "81: export function TextArea({ className = '', ...rest }) {",
+      "85: export const SearchField = forwardRef(function SearchField({ value, onChange, onClear, ...rest }, ref) {",
+      "101: export function Switch({ checked, onChange, disabled, ...accessibility }) {",
+      "119: export function Segmented({ options, value, onChange, className = '' }) {",
+      "144: export function Stepper({ value, step = 1, min = 0, max = Infinity, onChange, decimal = true, className = '', label, unit, invalid = false, disabled = false, onStep, ariaLabel }) {",
+      "202: export const SLIDER_GRAB_PX = 22",
+      "203: export function Slider({ value, min = 0, max = 100, step = 1, onChange, className = '', disabled = false }) {",
+      "286: export function Check({ checked, onChange, className = '', size, label }) {",
+      "306: export function Section({ title, footer, children, className = '' }) {",
+      "316: export function Row({ icon, iconTint, title, subtitle, value, accessory = 'none', onClick, danger, children, className = '' }) {",
+      "339: export function SelectRow({ icon, iconTint, title, value, options, onChange, sheetTitle, stackedValue = false, search }) {",
+      "353: function SelectSheet({ title, value, options, onChange, search, close }) {",
+      "444: export function MultiSelectRow({ icon, iconTint, title, values, options, onToggle, sheetTitle, noneLabel, doneLabel }) {",
+      "457: function MultiSelectSheet({ values, options, onToggle, title, doneLabel, close }) {",
+      "487: export function bindUI(store) { _ui = store }",
+      "488: function require_ui() {",
+      "495: export function Button({ variant = 'plain', size, icon, trailingIcon, children, className = '', ...rest }) {"
+    ],
+    "consumers": [
+      "frontend/src/App.jsx",
+      "frontend/src/components/BackupFolderRow.jsx",
+      "frontend/src/components/CameraScan.jsx",
+      "frontend/src/components/CustomMediaField.jsx",
+      "frontend/src/components/DurationWheel.jsx",
+      "frontend/src/components/ErrorBoundary.jsx",
+      "frontend/src/components/Heatmap.jsx",
+      "frontend/src/components/MuscleExplorer.jsx",
+      "frontend/src/components/Passkeys.jsx",
+      "frontend/src/components/PasswordAuth.jsx",
+      "frontend/src/components/RestTimer.jsx",
+      "frontend/src/components/ServerSync.jsx",
+      "frontend/src/components/WorkoutMedia.jsx",
+      "frontend/src/components/WorkoutSettingsSheet.jsx",
+      "frontend/src/sheets.jsx",
+      "frontend/src/views/Admin.jsx",
+      "frontend/src/views/AdminCoach.jsx",
+      "frontend/src/views/CheckIn.jsx",
+      "frontend/src/views/CoachChat.jsx",
+      "frontend/src/views/CoachIntake.jsx",
+      "frontend/src/views/CoachSetup.jsx",
+      "frontend/src/views/FocusView.jsx",
+      "frontend/src/views/History.jsx",
+      "frontend/src/views/Home.jsx",
+      "frontend/src/views/Library.jsx",
+      "frontend/src/views/Login.jsx",
+      "frontend/src/views/Measurements.jsx",
+      "frontend/src/views/MobileOnboarding.jsx",
+      "frontend/src/views/Plan.jsx",
+      "frontend/src/views/ProgressPhotos.jsx",
+      "frontend/src/views/RoutineEdit.jsx",
+      "frontend/src/views/Settings.jsx",
+      "frontend/src/views/Stats.jsx",
+      "frontend/src/views/StructuralBalance.jsx",
+      "frontend/src/views/Workout.jsx"
+    ],
+    "status": "SOURCE_ONLY unless explicitly confirmed in 02-source-inventory.md"
+  }
+]

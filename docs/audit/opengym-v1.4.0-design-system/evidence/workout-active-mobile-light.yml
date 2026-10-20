@@ -1,0 +1,91 @@
+- generic [ref=e2]:
+  - generic [ref=e2857]:
+    - generic [ref=e2859]:
+      - button "Minimizar" [ref=e2860] [cursor=pointer]
+      - generic [ref=e2863]:
+        - generic [ref=e2864]: AUDIT — disposable
+        - generic [ref=e2865]: 0:10 · 0/3 series
+      - button "Opciones del entrenamiento" [ref=e2866] [cursor=pointer]
+      - button "Terminar" [ref=e2871] [cursor=pointer]
+    - navigation "Ejercicios de este entreno" [ref=e2873]:
+      - 'button "Ejercicio 1: Sentadilla Con Barra (Barbell Squat) (Sin empezar)" [ref=e2874] [cursor=pointer]':
+        - generic [ref=e2875]: "1"
+    - generic [ref=e2877]:
+      - generic [ref=e2878]:
+        - button "Ampliar" [ref=e2879] [cursor=pointer]
+        - generic [ref=e2883]: sentadilla con barra (barbell squat)
+        - button "Más" [ref=e2885] [cursor=pointer]
+      - generic [ref=e2890]:
+        - generic [ref=e2891]: cuádriceps
+        - generic [ref=e2892]: barra
+      - generic [ref=e2893]: "Plan: 3 × 10"
+      - button "Abrir ajustes del ejercicio" [ref=e2894] [cursor=pointer]:
+        - generic [ref=e2897]:
+          - strong [ref=e2898]: Progresión lineal
+          - text: · Aún no hay nada registrado, así que esta sesión marca el punto de partida.
+      - generic [ref=e2899]:
+        - generic [ref=e2900]:
+          - generic [ref=e2901]: Peso (kg)
+          - generic [ref=e2902]: Reps
+        - generic [ref=e2903]: "Opciones: copiar, quitar"
+        - generic [ref=e2905]:
+          - button [ref=e2906] [cursor=pointer]:
+            - generic [ref=e2907]: Copiar
+          - button [ref=e2912] [cursor=pointer]:
+            - generic [ref=e2913]: Eliminar
+          - generic [ref=e2920]:
+            - button "Serie 1" [ref=e2921] [cursor=pointer]: "1"
+            - generic [ref=e2922]:
+              - button "Disminuir" [ref=e2923] [cursor=pointer]
+              - textbox [ref=e2926]: "0"
+              - button "Aumentar" [ref=e2927] [cursor=pointer]
+            - generic [ref=e2930]:
+              - button "Disminuir" [ref=e2931] [cursor=pointer]
+              - textbox [ref=e2934]: "10"
+              - button "Aumentar" [ref=e2935] [cursor=pointer]
+            - checkbox "Serie 1 hecha" [ref=e2938] [cursor=pointer]
+        - generic [ref=e2942]:
+          - button [ref=e2943] [cursor=pointer]:
+            - generic [ref=e2944]: Copiar
+          - button [ref=e2949] [cursor=pointer]:
+            - generic [ref=e2950]: Eliminar
+          - generic [ref=e2957]:
+            - button "Serie 2" [ref=e2958] [cursor=pointer]: "2"
+            - generic [ref=e2959]:
+              - button "Disminuir" [ref=e2960] [cursor=pointer]
+              - textbox [ref=e2963]: "0"
+              - button "Aumentar" [ref=e2964] [cursor=pointer]
+            - generic [ref=e2967]:
+              - button "Disminuir" [ref=e2968] [cursor=pointer]
+              - textbox [ref=e2971]: "10"
+              - button "Aumentar" [ref=e2972] [cursor=pointer]
+            - checkbox "Serie 2 hecha" [ref=e2975] [cursor=pointer]
+        - generic [ref=e2979]:
+          - button [ref=e2980] [cursor=pointer]:
+            - generic [ref=e2981]: Copiar
+          - button [ref=e2986] [cursor=pointer]:
+            - generic [ref=e2987]: Eliminar
+          - generic [ref=e2994]:
+            - button "Serie 3" [ref=e2995] [cursor=pointer]: "3"
+            - generic [ref=e2996]:
+              - button "Disminuir" [ref=e2997] [cursor=pointer]
+              - textbox [ref=e3000]: "0"
+              - button "Aumentar" [ref=e3001] [cursor=pointer]
+            - generic [ref=e3004]:
+              - button "Disminuir" [ref=e3005] [cursor=pointer]
+              - textbox [ref=e3008]: "10"
+              - button "Aumentar" [ref=e3009] [cursor=pointer]
+            - checkbox "Serie 3 hecha" [ref=e3012] [cursor=pointer]
+        - button "Añadir serie" [ref=e3016] [cursor=pointer]
+    - generic [ref=e3021]:
+      - button "Anterior" [disabled]
+      - button "Siguiente" [disabled]
+    - button "Añadir ejercicio" [ref=e3023] [cursor=pointer]
+    - button "Añadir nota de la sesión" [ref=e3029] [cursor=pointer]
+    - button "Terminar antes · 0/1 ejercicios" [ref=e3034] [cursor=pointer]
+  - status [ref=e164]:
+    - 'button "Modo invitado: tus datos solo viven en este navegador. Iniciar sesión" [ref=e165] [cursor=pointer]':
+      - generic [ref=e169]: "Modo invitado: tus datos solo viven en este navegador."
+      - generic [ref=e170]: Iniciar sesión
+    - button "Cerrar" [ref=e171] [cursor=pointer]
+  - status

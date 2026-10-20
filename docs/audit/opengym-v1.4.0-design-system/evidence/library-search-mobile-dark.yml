@@ -1,0 +1,280 @@
+- generic [ref=e2]:
+  - generic [ref=e203]:
+    - generic [ref=e204]:
+      - heading "Ejercicios" [level=1] [ref=e206]
+      - button "Por músculo" [ref=e207] [cursor=pointer]
+      - generic [ref=e212]: 5632 ejercicios con animaciones
+    - generic [ref=e213]:
+      - generic [ref=e214]:
+        - textbox "Buscar…" [active] [ref=e218]: sentadilla
+        - status "431 ejercicios": "431"
+        - button "Borrar" [ref=e650] [cursor=pointer]
+      - button "Tarjetas" [ref=e219] [cursor=pointer]
+    - generic [ref=e225]:
+      - button "Todo" [ref=e226] [cursor=pointer]
+      - button "espalda" [ref=e227] [cursor=pointer]
+      - button "cardio" [ref=e228] [cursor=pointer]
+      - button "pecho" [ref=e229] [cursor=pointer]
+      - button "cuerpo completo" [ref=e230] [cursor=pointer]
+      - button "antebrazos" [ref=e231] [cursor=pointer]
+      - button "pantorrillas" [ref=e232] [cursor=pointer]
+      - button "cuello" [ref=e233] [cursor=pointer]
+      - button "hombros" [ref=e234] [cursor=pointer]
+      - button "brazos" [ref=e235] [cursor=pointer]
+      - button "piernas" [ref=e236] [cursor=pointer]
+      - button "abdomen" [ref=e237] [cursor=pointer]
+    - generic [ref=e238]:
+      - button "Cualquier tipo" [ref=e239] [cursor=pointer]
+      - button "fuerza" [ref=e240] [cursor=pointer]
+      - button "calistenia" [ref=e241] [cursor=pointer]
+      - button "halterofilia" [ref=e242] [cursor=pointer]
+      - button "pliometría" [ref=e243] [cursor=pointer]
+      - button "isométrico" [ref=e244] [cursor=pointer]
+      - button "cardio" [ref=e245] [cursor=pointer]
+      - button "estiramientos" [ref=e246] [cursor=pointer]
+      - button "movilidad" [ref=e247] [cursor=pointer]
+      - button "yoga" [ref=e248] [cursor=pointer]
+      - button "pilates" [ref=e249] [cursor=pointer]
+      - button "combate" [ref=e250] [cursor=pointer]
+    - generic [ref=e252]:
+      - button "Cualquier equipo" [ref=e253] [cursor=pointer]
+      - button "peso corporal" [ref=e254] [cursor=pointer]
+      - button "barra" [ref=e257] [cursor=pointer]
+      - button "mancuerna" [ref=e255] [cursor=pointer]
+      - button "kettlebell" [ref=e260] [cursor=pointer]
+      - button "máquina de palanca" [ref=e258] [cursor=pointer]
+      - button "máquina Smith" [ref=e265] [cursor=pointer]
+      - button "banda" [ref=e259] [cursor=pointer]
+      - button "banda de resistencia" [ref=e261] [cursor=pointer]
+      - button "con lastre" [ref=e262] [cursor=pointer]
+      - button "polea" [ref=e256] [cursor=pointer]
+      - button "entrenador de suspensión" [ref=e263] [cursor=pointer]
+      - button "trineo" [ref=e269] [cursor=pointer]
+      - button "landmine" [ref=e273] [cursor=pointer]
+      - button "bosu" [ref=e274] [cursor=pointer]
+      - button "disco de peso" [ref=e270] [cursor=pointer]
+      - button "balón medicinal" [ref=e268] [cursor=pointer]
+      - button "asistido" [ref=e272] [cursor=pointer]
+      - button "cuerda" [ref=e271] [cursor=pointer]
+      - button "fitball" [ref=e266] [cursor=pointer]
+      - button "barra hexagonal" [ref=e276] [cursor=pointer]
+      - button "macebell" [ref=e281] [cursor=pointer]
+      - button "saco de arena" [ref=e275] [cursor=pointer]
+    - generic [ref=e287]:
+      - button "Crea tu propio ejercicio nombre + parte del cuerpo, y una foto o vídeo si quieres" [ref=e288]:
+        - generic [ref=e293]:
+          - generic [ref=e294]: Crea tu propio ejercicio
+          - generic [ref=e295]: nombre + parte del cuerpo, y una foto o vídeo si quieres
+      - button "sentadilla (con banda elástica) (squat (with band)) cuádriceps · banda Plan" [ref=e653]:
+        - generic [ref=e654]:
+          - generic [ref=e655]: sentadilla (con banda elástica) (squat (with band))
+          - generic [ref=e656]: cuádriceps · banda
+        - button "Plan" [ref=e657] [cursor=pointer]
+      - button "sentadilla (brazos sobre la cabeza) (squat (arms overhead)) cuádriceps · peso corporal Plan" [ref=e661]:
+        - generic [ref=e662]:
+          - generic [ref=e663]: sentadilla (brazos sobre la cabeza) (squat (arms overhead))
+          - generic [ref=e664]: cuádriceps · peso corporal
+        - button "Plan" [ref=e665] [cursor=pointer]
+      - button "sentadilla (squat) cuádriceps · peso corporal Plan" [ref=e669]:
+        - generic [ref=e670]:
+          - generic [ref=e671]: sentadilla (squat)
+          - generic [ref=e672]: cuádriceps · peso corporal
+        - button "Plan" [ref=e673] [cursor=pointer]
+      - button "sentadilla curtsy (curtsey squat) glúteos · peso corporal Plan" [ref=e677]:
+        - generic [ref=e678]:
+          - generic [ref=e679]: sentadilla curtsy (curtsey squat)
+          - generic [ref=e680]: glúteos · peso corporal
+        - button "Plan" [ref=e681] [cursor=pointer]
+      - button "sentadilla sissy (sissy squat) cuádriceps · peso corporal Plan" [ref=e685]:
+        - generic [ref=e686]:
+          - generic [ref=e687]: sentadilla sissy (sissy squat)
+          - generic [ref=e688]: cuádriceps · peso corporal
+        - button "Plan" [ref=e689] [cursor=pointer]
+      - button "sentadilla con mancuernas (dumbbell squat) glúteos · mancuerna Plan" [ref=e693]:
+        - generic [ref=e694]:
+          - generic [ref=e695]: sentadilla con mancuernas (dumbbell squat)
+          - generic [ref=e696]: glúteos · mancuerna
+        - button "Plan" [ref=e697] [cursor=pointer]
+      - button "sentadilla hawaiana (hawaiian squat) cuádriceps · peso corporal Plan" [ref=e701]:
+        - generic [ref=e702]:
+          - generic [ref=e703]: sentadilla hawaiana (hawaiian squat)
+          - generic [ref=e704]: cuádriceps · peso corporal
+        - button "Plan" [ref=e705] [cursor=pointer]
+      - button "sentadilla shrimp (shrimp squat) cuádriceps · peso corporal Plan" [ref=e709]:
+        - generic [ref=e710]:
+          - generic [ref=e711]: sentadilla shrimp (shrimp squat)
+          - generic [ref=e712]: cuádriceps · peso corporal
+        - button "Plan" [ref=e713] [cursor=pointer]
+      - button "sentadilla lateral (side squat) cuádriceps · peso corporal Plan" [ref=e717]:
+        - generic [ref=e718]:
+          - generic [ref=e719]: sentadilla lateral (side squat)
+          - generic [ref=e720]: cuádriceps · peso corporal
+        - button "Plan" [ref=e721] [cursor=pointer]
+      - button "sentadilla sentado (sit squat) cuádriceps · peso corporal Plan" [ref=e725]:
+        - generic [ref=e726]:
+          - generic [ref=e727]: sentadilla sentado (sit squat)
+          - generic [ref=e728]: cuádriceps · peso corporal
+        - button "Plan" [ref=e729] [cursor=pointer]
+      - button "sentadilla patinador (skater squat) cuádriceps · peso corporal Plan" [ref=e733]:
+        - generic [ref=e734]:
+          - generic [ref=e735]: sentadilla patinador (skater squat)
+          - generic [ref=e736]: cuádriceps · peso corporal
+        - button "Plan" [ref=e737] [cursor=pointer]
+      - button "sentadilla dividida (split squat) cuádriceps · peso corporal Plan" [ref=e741]:
+        - generic [ref=e742]:
+          - generic [ref=e743]: sentadilla dividida (split squat)
+          - generic [ref=e744]: cuádriceps · peso corporal
+        - button "Plan" [ref=e745] [cursor=pointer]
+      - button "sentadilla sumo (sumo squat) glúteos · peso corporal Plan" [ref=e749]:
+        - generic [ref=e750]:
+          - generic [ref=e751]: sentadilla sumo (sumo squat)
+          - generic [ref=e752]: glúteos · peso corporal
+        - button "Plan" [ref=e753] [cursor=pointer]
+      - button "envión en sentadilla (squat jerk) cuádriceps · barra Plan" [ref=e757]:
+        - generic [ref=e758]:
+          - generic [ref=e759]: envión en sentadilla (squat jerk)
+          - generic [ref=e760]: cuádriceps · barra
+        - button "Plan" [ref=e761] [cursor=pointer]
+      - button "sentadilla en Smith (smith squat) glúteos · máquina Smith Plan" [ref=e765]:
+        - generic [ref=e766]:
+          - generic [ref=e767]: sentadilla en Smith (smith squat)
+          - generic [ref=e768]: glúteos · máquina Smith
+        - button "Plan" [ref=e769] [cursor=pointer]
+      - button "sentadilla isométrica (holding squat) cuádriceps · peso corporal Plan" [ref=e773]:
+        - generic [ref=e774]:
+          - generic [ref=e775]: sentadilla isométrica (holding squat)
+          - generic [ref=e776]: cuádriceps · peso corporal
+        - button "Plan" [ref=e777] [cursor=pointer]
+      - button "sentadilla pliométrica (plyo squat) cuádriceps · peso corporal Plan" [ref=e781]:
+        - generic [ref=e782]:
+          - generic [ref=e783]: sentadilla pliométrica (plyo squat)
+          - generic [ref=e784]: cuádriceps · peso corporal
+        - button "Plan" [ref=e785] [cursor=pointer]
+      - button "sentadilla con barra (barbell squat) cuádriceps · barra Plan" [ref=e789]:
+        - generic [ref=e790]:
+          - generic [ref=e791]: sentadilla con barra (barbell squat)
+          - generic [ref=e792]: cuádriceps · barra
+        - button "Plan" [ref=e793] [cursor=pointer]
+      - button "sentadilla con salto (jump squat) glúteos · peso corporal Plan" [ref=e797]:
+        - generic [ref=e798]:
+          - generic [ref=e799]: sentadilla con salto (jump squat)
+          - generic [ref=e800]: glúteos · peso corporal
+        - button "Plan" [ref=e801] [cursor=pointer]
+      - button "sentadilla con pausa (pause squat) cuádriceps · barra Plan" [ref=e805]:
+        - generic [ref=e806]:
+          - generic [ref=e807]: sentadilla con pausa (pause squat)
+          - generic [ref=e808]: cuádriceps · barra
+        - button "Plan" [ref=e809] [cursor=pointer]
+      - button "sentadilla con barra (barbell full squat) glúteos · barra Plan" [ref=e813]:
+        - generic [ref=e814]:
+          - generic [ref=e815]: sentadilla con barra (barbell full squat)
+          - generic [ref=e816]: glúteos · barra
+        - button "Plan" [ref=e817] [cursor=pointer]
+      - button "sentadilla Frankenstein con barra (frankenstein squat) glúteos · barra Plan" [ref=e821]:
+        - generic [ref=e822]:
+          - generic [ref=e823]: sentadilla Frankenstein con barra (frankenstein squat)
+          - generic [ref=e824]: glúteos · barra
+        - button "Plan" [ref=e825] [cursor=pointer]
+      - button "sentadilla jacks (squat jacks) sistema cardiovascular · peso corporal Plan" [ref=e829]:
+        - generic [ref=e830]:
+          - generic [ref=e831]: sentadilla jacks (squat jacks)
+          - generic [ref=e832]: sistema cardiovascular · peso corporal
+        - button "Plan" [ref=e833] [cursor=pointer]
+      - button "sentadilla al aire (air squat) cuádriceps · peso corporal Plan" [ref=e602]:
+        - generic [ref=e603]:
+          - generic [ref=e604]: sentadilla al aire (air squat)
+          - generic [ref=e605]: cuádriceps · peso corporal
+        - button "Plan" [ref=e606] [cursor=pointer]
+      - button "sentadilla del prisionero (prisoner squat) cuádriceps · peso corporal Plan" [ref=e837]:
+        - generic [ref=e838]:
+          - generic [ref=e839]: sentadilla del prisionero (prisoner squat)
+          - generic [ref=e840]: cuádriceps · peso corporal
+        - button "Plan" [ref=e841] [cursor=pointer]
+      - button "sentadilla de descenso (stepdown squat) cuádriceps · peso corporal Plan" [ref=e845]:
+        - generic [ref=e846]:
+          - generic [ref=e847]: sentadilla de descenso (stepdown squat)
+          - generic [ref=e848]: cuádriceps · peso corporal
+        - button "Plan" [ref=e849] [cursor=pointer]
+      - button "sentadilla con apoyo (supported squat) cuádriceps · peso corporal Plan" [ref=e853]:
+        - generic [ref=e854]:
+          - generic [ref=e855]: sentadilla con apoyo (supported squat)
+          - generic [ref=e856]: cuádriceps · peso corporal
+        - button "Plan" [ref=e857] [cursor=pointer]
+      - button "sentadilla con giro (twist squat) cuádriceps · peso corporal Plan" [ref=e861]:
+        - generic [ref=e862]:
+          - generic [ref=e863]: sentadilla con giro (twist squat)
+          - generic [ref=e864]: cuádriceps · peso corporal
+        - button "Plan" [ref=e865] [cursor=pointer]
+      - button "sentadilla con peso (weighted squat) glúteos · con lastre Plan" [ref=e869]:
+        - generic [ref=e870]:
+          - generic [ref=e871]: sentadilla con peso (weighted squat)
+          - generic [ref=e872]: glúteos · con lastre
+        - button "Plan" [ref=e873] [cursor=pointer]
+      - button "sentadilla profunda (potty squat) (potty squat) Abdominales · peso corporal Plan" [ref=e877]:
+        - generic [ref=e878]:
+          - generic [ref=e879]: sentadilla profunda (potty squat) (potty squat)
+          - generic [ref=e880]: Abdominales · peso corporal
+        - button "Plan" [ref=e881] [cursor=pointer]
+      - button "sentadilla con kettlebell (kettlebell squat) cuádriceps · kettlebell Plan" [ref=e885]:
+        - generic [ref=e886]:
+          - generic [ref=e887]: sentadilla con kettlebell (kettlebell squat)
+          - generic [ref=e888]: cuádriceps · kettlebell
+        - button "Plan" [ref=e889] [cursor=pointer]
+      - button "burpee con sentadilla (burpee squat) sistema cardiovascular · peso corporal Plan" [ref=e893]:
+        - generic [ref=e894]:
+          - generic [ref=e895]: burpee con sentadilla (burpee squat)
+          - generic [ref=e896]: sistema cardiovascular · peso corporal
+        - button "Plan" [ref=e897] [cursor=pointer]
+      - button "sentadilla de rana (frog squat) cuádriceps · peso corporal Plan" [ref=e901]:
+        - generic [ref=e902]:
+          - generic [ref=e903]: sentadilla de rana (frog squat)
+          - generic [ref=e904]: cuádriceps · peso corporal
+        - button "Plan" [ref=e905] [cursor=pointer]
+      - button "sentadilla isométrica (pared) (sit (wall)) cuádriceps · peso corporal Plan" [ref=e909]:
+        - generic [ref=e910]:
+          - generic [ref=e911]: sentadilla isométrica (pared) (sit (wall))
+          - generic [ref=e912]: cuádriceps · peso corporal
+        - button "Plan" [ref=e913] [cursor=pointer]
+      - button "sentadilla goblet reloj (clock goblet squat) cuádriceps · mancuerna Plan" [ref=e917]:
+        - generic [ref=e918]:
+          - generic [ref=e919]: sentadilla goblet reloj (clock goblet squat)
+          - generic [ref=e920]: cuádriceps · mancuerna
+        - button "Plan" [ref=e921] [cursor=pointer]
+      - button "sentadilla frontal con barra (barbell front squat) glúteos · barra Plan" [ref=e925]:
+        - generic [ref=e926]:
+          - generic [ref=e927]: sentadilla frontal con barra (barbell front squat)
+          - generic [ref=e928]: glúteos · barra
+        - button "Plan" [ref=e929] [cursor=pointer]
+      - button "sentadilla hack con barra (barbell hack squat) glúteos · barra Plan" [ref=e933]:
+        - generic [ref=e934]:
+          - generic [ref=e935]: sentadilla hack con barra (barbell hack squat)
+          - generic [ref=e936]: glúteos · barra
+        - button "Plan" [ref=e937] [cursor=pointer]
+      - button "sentadilla Jefferson con barra (barbell jefferson squat) glúteos · barra Plan" [ref=e941]:
+        - generic [ref=e942]:
+          - generic [ref=e943]: sentadilla Jefferson con barra (barbell jefferson squat)
+          - generic [ref=e944]: glúteos · barra
+        - button "Plan" [ref=e945] [cursor=pointer]
+      - button "sentadilla rápida con barra (barbell speed squat) glúteos · barra Plan" [ref=e949]:
+        - generic [ref=e950]:
+          - generic [ref=e951]: sentadilla rápida con barra (barbell speed squat)
+          - generic [ref=e952]: glúteos · barra
+        - button "Plan" [ref=e953] [cursor=pointer]
+      - button "sentadilla Zercher con barra (barbell zercher squat) glúteos · barra Plan" [ref=e957]:
+        - generic [ref=e958]:
+          - generic [ref=e959]: sentadilla Zercher con barra (barbell zercher squat)
+          - generic [ref=e960]: glúteos · barra
+        - button "Plan" [ref=e961] [cursor=pointer]
+    - button "Mostrar más" [ref=e619] [cursor=pointer]
+  - status [ref=e164]:
+    - 'button "Modo invitado: tus datos solo viven en este navegador. Iniciar sesión" [ref=e165] [cursor=pointer]':
+      - generic [ref=e169]: "Modo invitado: tus datos solo viven en este navegador."
+      - generic [ref=e170]: Iniciar sesión
+    - button "Cerrar" [ref=e171] [cursor=pointer]
+  - navigation [ref=e621]:
+    - button "Inicio" [ref=e622] [cursor=pointer]
+    - button "Plan" [ref=e627] [cursor=pointer]
+    - button "Empezar" [ref=e633] [cursor=pointer]
+    - button "Progreso" [ref=e638] [cursor=pointer]
+    - button "Ejercicios" [ref=e643] [cursor=pointer]
+  - status

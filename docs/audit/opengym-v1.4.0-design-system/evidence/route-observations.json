@@ -1,0 +1,968 @@
+[
+  {
+    "name": "home-desktop-dark",
+    "route": "http://localhost:8080/#/home",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- heading \"openGym\" [level=1]\n- text: lunes, 19 de octubre\n- button \"Ajustes\"\n- button \"Semana anterior\"\n- text: Esta semana\n- button \"Semana siguiente\"\n- button \"Lu 19\"\n- button \"Ma 20\"\n- button \"Mi 21\"\n- button \"Ju 22\"\n- button \"Vi 23\"\n- button \"Sá 24\"\n- button \"Do 25\"\n- button \"Hoy Día de descanso\"\n- button \"Elegir otro entrenamiento\"\n- button \"En el gimnasio Registrarse\"\n- text: ¡Bienvenido! Configura tu rutina semanal para arrancar, o carga un plan inicial ya hecho.\n- button \"Cargar plan inicial\"\n- button \"Crear mi propio plan\"\n- heading \"Peso corporal\" [level=2]\n- button \"Meta\"\n- button \"Registrar\"\n- text: Aún no hay pesajes. Apunta tu peso para empezar la curva.\n- button \"racha de 0 semanas 0 esta semana · 0 entrenamientos en total\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "library-desktop-dark",
+    "route": "http://localhost:8080/#/library",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- heading \"Ejercicios\" [level=1]\n- button \"Por músculo\"\n- text: 5632 ejercicios con animaciones\n- img\n- textbox \"Buscar…\"\n- button \"Tarjetas\"\n- button \"Todo\"\n- button \"espalda\"\n- button \"cardio\"\n- button \"pecho\"\n- button \"cuerpo completo\"\n- button \"antebrazos\"\n- button \"pantorrillas\"\n- button \"cuello\"\n- button \"hombros\"\n- button \"brazos\"\n- button \"piernas\"\n- button \"abdomen\"\n- button \"Cualquier tipo\"\n- button \"fuerza\"\n- button \"calistenia\"\n- button \"halterofilia\"\n- button \"pliometría\"\n- button \"isométrico\"\n- button \"cardio\"\n- button \"estiramientos\"\n- button \"movilidad\"\n- button \"yoga\"\n- button \"pilates\"\n- button \"combate\"\n- button \"rehabilitación\"\n- button \"Cualquier equipo\"\n- button \"peso corporal\"\n- button \"mancuerna\"\n- button \"polea\"\n- button \"barra\"\n- button \"máquina de palanca\"\n- button \"banda\"\n- button \"kettlebell\"\n- button \"banda de resistencia\"\n- button \"con lastre\"\n- button \"entrenador de suspensión\"\n- button \"rodillo\"\n- button \"máquina Smith\"\n- button \"fitball\"\n- button \"barra EZ\"\n- button \"balón medicinal\"\n- button \"trineo\"\n- button \"disco de peso\"\n- button \"cuerda\"\n- button \"asistido\"\n- button \"landmine\"\n- button \"bosu\"\n- button \"saco de arena\"\n- button \"barra hexagonal\"\n- button \"barra olímpica\"\n- button \"elíptica\"\n- button \"bici estática\"\n- button \"rueda abdominal\"\n- button \"macebell\"\n- button \"neumático\"\n- button \"martillo\"\n- button \"SkiErg\"\n- button \"escaladora\"\n- button \"ergómetro de brazos\"\n- button \"Crea tu propio ejercicio nombre + parte del cuerpo, y una foto o vídeo si quieres\"\n- button \"ejercicio de agilidad 1 2 con palo (1 2 stick drill) sistema cardiovascular · peso corporal Plan\":\n  - text: ejercicio de agilidad 1 2 con palo (1 2 stick drill) sistema cardiovascular · peso corporal\n  - button \"Plan\"\n- button \"salto de cajón de 1 a 2 (1 to 2 jump box) cuádriceps · peso corporal Plan\":\n  - text: salto de cajón de 1 a 2 (1 to 2 jump box) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"ejercicio 123 hacia atrás (123 back drill) sistema cardiovascular · peso corporal Plan\":\n  - text: ejercicio 123 hacia atrás (123 back drill) sistema cardiovascular · peso corporal\n  - button \"Plan\"\n- button \"salto de cajón de 2 a 1 (2 to 1 jump box) cuádriceps · peso corporal Plan\":\n  - text: salto de cajón de 2 a 1 (2 to 1 jump box) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"chaturanga con tres piernas (3 leg chaturanga pose) Tríceps · peso corporal Plan\":\n  - text: chaturanga con tres piernas (3 leg chaturanga pose) Tríceps · peso corporal\n  - button \"Plan\"\n- button \"postura del perro con 3 patas (3 leg dog pose) isquiotibiales · peso corporal Plan\":\n  - text: postura del perro con 3 patas (3 leg dog pose) isquiotibiales · peso corporal\n  - button \"Plan\"\n- button \"abdominal 3/4 (3/4 sit-up) Abdominales · peso corporal Plan\":\n  - text: abdominal 3/4 (3/4 sit-up) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"salto a una pierna en 4 direcciones (4 way single leg hop) Gemelos · peso corporal Plan\":\n  - text: salto a una pierna en 4 direcciones (4 way single leg hop) Gemelos · peso corporal\n  - button \"Plan\"\n- button \"salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2) cuádriceps · peso corporal Plan\":\n  - text: salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch) Abdominales · peso corporal Plan\":\n  - text: abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused) glúteos · peso corporal Plan\":\n  - text: extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused) glúteos · peso corporal\n  - button \"Plan\"\n- button \"extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2) glúteos · peso corporal Plan\":\n  - text: extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2) glúteos · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest)) columna · peso corporal Plan\":\n  - text: hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest)) columna · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov)) columna · peso corporal Plan\":\n  - text: hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov)) columna · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest)) glúteos · peso corporal Plan\":\n  - text: hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest)) glúteos · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados con giro (45 degree twisting hyperextension) columna · peso corporal Plan\":\n  - text: hiperextensión a 45 grados con giro (45 degree twisting hyperextension) columna · peso corporal\n  - button \"Plan\"\n- button \"extensión de espalda a 45 grados (45 degrees back extension) columna · peso corporal Plan\":\n  - text: extensión de espalda a 45 grados (45 degrees back extension) columna · peso corporal\n  - button \"Plan\"\n- button \"aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction) columna · peso corporal Plan\":\n  - text: aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction) columna · peso corporal\n  - button \"Plan\"\n- button \"flexión lateral a 45 grados (45 degrees side bend) Abdominales · peso corporal Plan\":\n  - text: flexión lateral a 45 grados (45 degrees side bend) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"flexión lateral a 45° (45° side bend) Abdominales · peso corporal Plan\":\n  - text: flexión lateral a 45° (45° side bend) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"toque de talón a 90 grados (90 degree heel touch) Abdominales · peso corporal Plan\":\n  - text: toque de talón a 90 grados (90 degree heel touch) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"toque de talón a 90 grados v. 2 (90 degree heel touch v. 2) Abdominales · peso corporal Plan\":\n  - text: toque de talón a 90 grados v. 2 (90 degree heel touch v. 2) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento con press a 90 y 90 (90 to 90 press stretch) glúteos · peso corporal Plan\":\n  - text: estiramiento con press a 90 y 90 (90 to 90 press stretch) glúteos · peso corporal\n  - button \"Plan\"\n- button \"estiramiento 90 a 90 (90 to 90 stretch) glúteos · peso corporal Plan\":\n  - text: estiramiento 90 a 90 (90 to 90 stretch) glúteos · peso corporal\n  - button \"Plan\"\n- button \"abdominal con colchoneta ab (ab mat sit up) Abdominales · peso corporal Plan\":\n  - text: abdominal con colchoneta ab (ab mat sit up) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"abdominal con rueda abdominal (ab roller crunch) Abdominales · rueda abdominal Plan\":\n  - text: abdominal con rueda abdominal (ab roller crunch) Abdominales · rueda abdominal\n  - button \"Plan\"\n- button \"abdominal encogido en suelo (ab tuck) Abdominales · peso corporal Plan\":\n  - text: abdominal encogido en suelo (ab tuck) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"abdominal en cuatro apoyos (abdominal 4 points) Abdominales · peso corporal Plan\":\n  - text: abdominal en cuatro apoyos (abdominal 4 points) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento abdominal (abdominal stretch) Abdominales · peso corporal Plan\":\n  - text: estiramiento abdominal (abdominal stretch) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch) Aductores · peso corporal Plan\":\n  - text: estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch) Aductores · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de pecho sobre la cabeza (above head chest stretch) pectorales · peso corporal Plan\":\n  - text: estiramiento de pecho sobre la cabeza (above head chest stretch) pectorales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de hombro cruzando el pecho (across chest shoulder stretch) deltoides · peso corporal Plan\":\n  - text: estiramiento de hombro cruzando el pecho (across chest shoulder stretch) deltoides · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch) antebrazos · peso corporal Plan\":\n  - text: estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch) antebrazos · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch) deltoides · peso corporal Plan\":\n  - text: estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch) deltoides · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de aductores (adductor stretch) Aductores · peso corporal Plan\":\n  - text: estiramiento de aductores (adductor stretch) Aductores · peso corporal\n  - button \"Plan\"\n- button \"ejercicio de agilidad con balón (agility ball drill) sistema cardiovascular · peso corporal Plan\":\n  - text: ejercicio de agilidad con balón (agility ball drill) sistema cardiovascular · peso corporal\n  - button \"Plan\"\n- button \"bicicleta en el aire (air bike) Abdominales · peso corporal Plan\":\n  - text: bicicleta en el aire (air bike) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"bicicleta de aire v. 2 (air bike v. 2) Abdominales · peso corporal Plan\":\n  - text: bicicleta de aire v. 2 (air bike v. 2) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"sentadilla al aire (air squat) cuádriceps · peso corporal Plan\":\n  - text: sentadilla al aire (air squat) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"sentadilla al aire (versión 2) (air squat (version 2)) cuádriceps · peso corporal Plan\":\n  - text: sentadilla al aire (versión 2) (air squat (version 2)) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"Mostrar más\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "plan-desktop-dark",
+    "route": "http://localhost:8080/#/plan",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- heading \"Plan\" [level=1]\n- text: Tu rutina semanal\n- button \"Opciones del plan\"\n- button \"Horario\" [pressed]\n- button \"Rutinas\"\n- text: Cómo entrenas\n- button \"Semana fija\" [pressed]\n- button \"Rotación\"\n- paragraph: Las mismas rutinas los mismos días, cada semana.\n- text: Aún no hay rutinas. Crea una o carga el plan inicial para empezar.\n- button \"Cargar plan inicial\"\n- heading \"Esta semana\" [level=4]\n- button \"Lunes\": Día de descanso Toca para planificar algo\n- button \"Martes\": Día de descanso Toca para planificar algo\n- button \"Miércoles\": Día de descanso Toca para planificar algo\n- button \"Jueves\": Día de descanso Toca para planificar algo\n- button \"Viernes\": Día de descanso Toca para planificar algo\n- button \"Sábado\": Día de descanso Toca para planificar algo\n- button \"Domingo\": Día de descanso Toca para planificar algo\n- paragraph: ¿Dos rutinas en un día? Toca el día y elige las dos.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "workout-desktop-dark",
+    "route": "http://localhost:8080/#/workout",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- heading \"Empezar entrenamiento\" [level=1]\n- text: Lunes · día de descanso, pero nadie te lo impide\n- button \"Entrenamiento libre (elige sobre la marcha)\"\n- button \"Crea primero un plan\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "history-desktop-dark",
+    "route": "http://localhost:8080/#/history",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Progreso\"\n- heading \"Historial\" [level=1]\n- text: 0 entrenamientos\n- button \"Registrar un entrenamiento pasado\"\n- text: Aún no hay entrenamientos. El primero aparecerá aquí.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "stats-desktop-dark",
+    "route": "http://localhost:8080/#/stats",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- heading \"Progreso\" [level=1]\n- text: Progreso e historial\n- button \"Historial\"\n- text: Entrenos 0 Este mes 0 Racha semanal 0 Peso 30 d –\n- heading \"Actividad (últimos 12 meses)\" [level=2]\n- button \"Tiempo\" [pressed]\n- button \"Volumen\"\n- text: Nov Dic Ene Feb Mar Abr May Jun Jul Ago Sep Oct Lun Mié Vie Menos Más\n- heading \"Medidas corporales\" [level=2]\n- text: Cintura, brazos, grasa corporal y lo que quieras medir, cada cosa con su propia curva.\n- button \"Abrir\"\n- heading \"Peso corporal\" [level=2]\n- button \"Meta\"\n- button \"Registrar\"\n- button \"1M\"\n- button \"3M\" [pressed]\n- button \"1Y\"\n- button \"Todo\"\n- text: Aún sin datos\n- heading \"Progreso por ejercicio\" [level=2]\n- text: Termina tu primer entrenamiento y aquí aparecerán tus curvas de progreso.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-desktop-dark",
+    "route": "http://localhost:8080/#/settings",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Inicio\"\n- heading \"Ajustes\" [level=1]\n- textbox \"Buscar en Ajustes\":\n  - /placeholder: Buscar…\n- button \"Invitado Tus datos están en este dispositivo. Inicia sesión para sincronizar.\"\n- button \"Entreno 1:30 de descanso · Tarjetas\"\n- button \"Avisos del temporizador Sonido · Vibración\"\n- button \"Plan y horario Semana fija · lun\"\n- button \"Unidades e idioma kg · Español\"\n- button \"Equipo Todo\"\n- button \"Aspecto e Inicio Oscuro · Verde\"\n- button \"Datos y copias\"\n- button \"Información y actualizaciones v1.4.1\"\n- text: openGym v1.4.1\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-look-desktop-dark",
+    "route": "http://localhost:8080/#/settings/look",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Aspecto e Inicio\" [level=1]\n- text: Tema\n- button \"Oscuro\" [pressed]\n- button \"Claro\"\n- button \"Sistema\"\n- text: Color de acento Verde\n- button \"Verde\"\n- button \"Azul\"\n- button \"Naranja\"\n- button \"Morado\"\n- button \"Rosa\"\n- button \"Rojo\"\n- button \"Turquesa\"\n- button \"Amarillo\"\n- textbox \"Elige tu propio color\": \"#30d158\"\n- text: Diagrama corporal\n- button \"Masculino\" [pressed]\n- button \"Femenino\"\n- text: Dibujos de ejercicios Qué figura muestra un ejercicio cuando está dibujado en las dos. Tus entrenamientos se quedan exactamente como están.\n- button \"Masculino\" [pressed]\n- button \"Femenino\"\n- heading \"En Inicio\" [level=2]\n- text: Check-in del gimnasio Muestra en Inicio una tarjeta con tus códigos QR de socio.\n- switch [checked]\n- text: Peso corporal Muestra la tarjeta de peso corporal en Inicio.\n- switch [checked]\n- text: \"Mostrar el estado de la conexión Desactivado: la barra de arriba se oculta. Un punto en Inicio sigue avisando cuando la sincronización se atasca.\"\n- switch [checked]\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-workout-desktop-dark",
+    "route": "http://localhost:8080/#/settings/workout",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Entreno\" [level=1]\n- heading \"Descanso\" [level=2]\n- button \"Temporizador de descanso 1:30\"\n- button \"Descanso rest-pause 15s\"\n- paragraph: Cada ejercicio también puede tener su propio descanso. Ajústalo en los ajustes del ejercicio dentro de una rutina.\n- heading \"Registro\" [level=2]\n- text: Esfuerzo por serie\n- button \"¿Qué son RIR y RPE?\"\n- button \"No\" [pressed]\n- button \"RIR\"\n- button \"RPE\"\n- button \"Debajo de cada ejercicio La última vez\"\n- text: Diseño\n- button \"Tarjetas\" [pressed]\n- button \"Lista\"\n- button \"Compacta\"\n- button \"Enfoque\"\n- text: Contraer ejercicios completados En Lista y Compacta, un ejercicio terminado se pliega en una sola línea.\n- switch \"Contraer ejercicios completados\"\n- heading \"Antes y durante\" [level=2]\n- text: Pesarse antes de entrenar Pide tu peso corporal al empezar un entrenamiento. Desactivado, la sesión empieza directamente.\n- switch\n- text: Mantener la pantalla encendida La pantalla se mantiene encendida mientras hay un entrenamiento en curso, así no tienes que desbloquear el móvil entre series.\n- switch [checked]\n- text: Animaciones de los ejercicios\n- button \"Completa\"\n- button \"Pequeña\" [pressed]\n- button \"Oculta\"\n- button \"Ajustes finos Botones, series por tiempo\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-advanced-desktop-dark",
+    "route": "http://localhost:8080/#/settings/advanced",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Entreno\"\n- heading \"Ajustes finos\" [level=1]\n- heading \"Sesiones y series por tiempo\" [level=2]\n- button \"Punto de partida de las sesiones planificadas Tu plan\"\n- text: Seguir contando después del objetivo Las series cronometradas continúan hasta 15 minutos extra. Toca «Listo» para registrar la duración real.\n- switch \"Seguir contando después del objetivo\"\n- heading \"Botones en la pantalla del entreno\" [level=2]\n- text: \"Botones +/− de peso y repeticiones Desactivado: toca el número y escríbelo\"\n- switch [checked]\n- text: Atajos de drop y ráfaga en cada serie\n- switch\n- text: \"Acciones al deslizar Series, rutinas y el bucle: izquierda quita, derecha copia\"\n- switch \"Acciones al deslizar\" [checked]\n- text: Chips de ejercicios arriba Un punto numerado por ejercicio que se llena sobre la marcha. Toca uno para saltar ahí.\n- switch \"Chips de ejercicios arriba\" [checked]\n- text: Botones de superserie en la cabecera del ejercicio\n- switch\n- text: Botones mover, cambiar y quitar debajo del ejercicio\n- switch\n- paragraph: \"Todo lo que ocultes aquí sigue a un toque: el botón ⋯ de un ejercicio y el número de una serie.\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-alerts-desktop-dark",
+    "route": "http://localhost:8080/#/settings/alerts",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Avisos del temporizador\" [level=1]\n- heading \"Cuando acaba un descanso\" [level=2]\n- text: Reproducir un sonido\n- switch [checked]\n- button \"Sonido Campanilla (más fuerte)\"\n- text: Vibración\n- switch [checked]\n- text: Hacer parpadear la pantalla\n- switch\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-plan-desktop-dark",
+    "route": "http://localhost:8080/#/settings/plan",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Plan y horario\" [level=1]\n- text: Cómo entrenas\n- button \"Semana fija\" [pressed]\n- button \"Rotación\"\n- text: La semana empieza el\n- button \"Lunes\" [pressed]\n- button \"Domingo\"\n- button \"Cargar plan inicial\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-units-desktop-dark",
+    "route": "http://localhost:8080/#/settings/units",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Unidades e idioma\" [level=1]\n- button \"Idioma Español\"\n- text: Nombres de ejercicios en inglés Muestra el nombre en inglés entre paréntesis junto al traducido.\n- switch [checked]\n- text: Solo nombres en inglés Reemplaza los nombres traducidos por los originales en inglés.\n- switch\n- text: Unidad de peso\n- button \"kg\" [pressed]\n- button \"lb\"\n- text: Decimales del peso Con qué precisión se muestran los pesos.\n- button \"0,5\" [pressed]\n- button \"0,25\"\n- text: Unidad de velocidad\n- button \"km/h\" [pressed]\n- button \"mph\"\n- button \"Fórmula de 1RM Epley\"\n- paragraph: Al cambiar la unidad se ofrece convertir todos los pesos guardados.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-equipment-desktop-dark",
+    "route": "http://localhost:8080/#/settings/equipment",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Equipo\" [level=1]\n- heading \"Equipo\" [level=2]\n- button \"Discos Juego estándar. Toca para contar los pares que tienes.\"\n- button \"Mancuernas Cualquier peso. Toca para apuntar los que tienes.\"\n- button \"Añadir perfil de equipo\"\n- paragraph: Filtra la biblioteca de ejercicios y el selector, y marca los ejercicios de las rutinas que necesitan algo que no tienes en el perfil activo.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-data-desktop-dark",
+    "route": "http://localhost:8080/#/settings/data",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Datos y copias\" [level=1]\n- heading \"Hacer copia\" [level=2]\n- button \"Exportar copia (JSON)\"\n- heading \"Traer datos\" [level=2]\n- button \"Importar copia\"\n- button \"Importar de otra app FitNotes, Strong, Hevy o peso corporal de Apple Health\"\n- button \"Importar desde Hevy Trae tu historial con una clave API de Hevy Pro\"\n- button \"Restablecer todo\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-about-desktop-dark",
+    "route": "http://localhost:8080/#/settings/about",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Información y actualizaciones\" [level=1]\n- text: Versión v1.4.1\n- button \"Descargar la app de Android Descarga el APK desde opengym.ch\"\n- paragraph: La app web se actualiza junto con tu servidor. La app de Android instala sus actualizaciones desde aquí.\n- heading \"Consejo\" [level=2]\n- text: \"En Safari: Compartir → Añadir a pantalla de inicio para instalar openGym como app a pantalla completa. Los datos de invitado se quedan en este dispositivo, ¡así que exporta una copia de vez en cuando! openGym v1.4.1 · gratis y de código abierto (AGPL v3)\"\n- link \"Código fuente\":\n  - /url: https://github.com/DuarteSantos8/openGym\n- text: Exercise media © Aliaksandr Makatserchyk,\n- link \"Gym visual\":\n  - /url: https://gymvisual.com/\n- text: \", gymvisual.com. Media licensed for use in openGym only; see\"\n- link \"NOTICE.md\":\n  - /url: https://github.com/DuarteSantos8/openGym/blob/main/NOTICE.md\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-account-desktop-dark",
+    "route": "http://localhost:8080/#/settings/account",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Cuenta\" [level=1]\n- heading \"Cuenta\" [level=2]\n- button \"Crear perfil con passkey Mantiene tus datos seguros y separados por persona.\"\n- button \"Iniciar sesión con passkey\"\n- button \"Usar un código de tu otro dispositivo\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "muscles-desktop-dark",
+    "route": "http://localhost:8080/#/muscles",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Ejercicios\"\n- heading \"Explorar músculos\" [level=1]\n- text: Elige un músculo para ver los ejercicios que lo entrenan.\n- group:\n  - button \"Trapecio\"\n  - button \"Trapecio\"\n  - button \"Hombros\"\n  - button \"Hombros\"\n  - button \"Pecho\"\n  - button \"Pecho\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Bíceps\"\n  - button \"Bíceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Flexores de cadera\"\n  - button \"Flexores de cadera\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Tibiales\"\n  - button \"Tibiales\"\n- group:\n  - button \"Trapecio\"\n  - button \"Trapecio\"\n  - button \"Hombros\"\n  - button \"Hombros\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Espalda baja\"\n  - button \"Espalda baja\"\n  - button \"Espalda baja\"\n  - button \"Espalda baja\"\n  - button \"Glúteos\"\n  - button \"Glúteos\"\n  - button \"Glúteos\"\n  - button \"Glúteos\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n- button \"Trapecio 525\"\n- button \"Hombros 2348\"\n- button \"Pecho 905\"\n- button \"Espalda alta 1197\"\n- button \"Serrato 35\"\n- button \"Bíceps 844\"\n- button \"Tríceps 1085\"\n- button \"Antebrazos 923\"\n- button \"Abdominales 2474\"\n- button \"Oblicuos 695\"\n- button \"Espalda baja 777\"\n- button \"Glúteos 2005\"\n- button \"Cuádriceps 1301\"\n- button \"Isquiotibiales 1540\"\n- button \"Aductores 410\"\n- button \"Flexores de cadera 783\"\n- button \"Gemelos 857\"\n- button \"Tibiales 72\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "structural-balance-desktop-dark",
+    "route": "http://localhost:8080/#/structural-balance",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Progreso\"\n- heading \"Balance estructural\" [level=1]\n- text: Compara tus levantamientos con una tabla de ratios publicada para encontrar el eslabón débil.\n- button \"Poliquin\" [pressed]\n- button \"Thibaudeau (Powerlifting)\"\n- button \"ATG\"\n- text: Press banca agarre cerrado (ancla) press de banca con agarre cerrado y barra (barbell close-grip bench press) Sin datos – / 100%\n- button \"Cambiar ejercicio\"\n- text: Press inclinado press de banca inclinado con barra (barbell incline bench press) Sin datos – / 91%\n- button \"Cambiar ejercicio\"\n- text: Fondos (peso corporal + carga) fondos para pecho (chest dip) Sin datos – / 117%\n- button \"Cambiar ejercicio\"\n- text: Dominadas supinas (peso corporal + carga) dominadas (pull-up) Sin datos – / 87%\n- button \"Cambiar ejercicio\"\n- text: Curl con barra de pie curl con barra (barbell curl) Sin datos – / 40%\n- button \"Cambiar ejercicio\"\n- text: Sentadilla con barra alta (ancla) sentadilla con barra alta (barbell high bar squat) Sin datos – / 100%\n- button \"Cambiar ejercicio\"\n- text: Sentadilla frontal sentadilla frontal con barra (barbell front squat) Sin datos – / 85%\n- button \"Cambiar ejercicio\"\n- text: Peso muerto peso muerto con barra (barbell deadlift) Sin datos – / 125%\n- button \"Cambiar ejercicio\"\n- text: Cargada de potencia power clean (cargada de potencia) (power clean) Sin datos – / 61%\n- button \"Cambiar ejercicio\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "progress-photos-desktop-dark",
+    "route": "http://localhost:8080/#/progress-photos",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Progreso\"\n- heading \"Fotos de progreso\" [level=1]\n- text: 0 fotos\n- button \"Registra el entrenamiento de hoy para añadir una foto\"\n- text: Aún no hay fotos de progreso. El botón de arriba añade una a hoy, en cuanto hoy tenga un entrenamiento registrado.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "measurements-desktop-dark",
+    "route": "http://localhost:8080/#/measurements",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Inicio\"\n- heading \"Medidas corporales\" [level=1]\n- text: Contornos y composición\n- button \"Elegir medidas\"\n- text: Cintura –\n- button \"Registrar\"\n- button \"Medida Cintura\"\n- button \"1M\"\n- button \"3M\" [pressed]\n- button \"1Y\"\n- button \"Todo\"\n- text: Aún sin datos\n- heading \"Historial de medidas\" [level=4]\n- button \"Campos\"\n- text: Aún no hay medidas\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "checkin-desktop-dark",
+    "route": "http://localhost:8080/#/checkin",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- button \"Inicio\"\n- heading \"Registrarse\" [level=1]\n- text: Añade tu tarjeta del gimnasio\n- button \"Añadir una tarjeta\"\n- text: Importa una foto de tu tarjeta de socio o escanéala con la cámara. No hace falta otra app en el gimnasio, solo abre esta pantalla.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "coach-desktop-dark",
+    "route": "http://localhost:8080/#/home",
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "snapshot": "- heading \"openGym\" [level=1]\n- text: lunes, 19 de octubre\n- button \"Ajustes\"\n- button \"Semana anterior\"\n- text: Esta semana\n- button \"Semana siguiente\"\n- button \"Lu 19\"\n- button \"Ma 20\"\n- button \"Mi 21\"\n- button \"Ju 22\"\n- button \"Vi 23\"\n- button \"Sá 24\"\n- button \"Do 25\"\n- button \"Hoy Día de descanso\"\n- button \"Elegir otro entrenamiento\"\n- button \"En el gimnasio Registrarse\"\n- text: ¡Bienvenido! Configura tu rutina semanal para arrancar, o carga un plan inicial ya hecho.\n- button \"Cargar plan inicial\"\n- button \"Crear mi propio plan\"\n- heading \"Peso corporal\" [level=2]\n- button \"Meta\"\n- button \"Registrar\"\n- text: Aún no hay pesajes. Apunta tu peso para empezar la curva.\n- button \"racha de 0 semanas 0 esta semana · 0 entrenamientos en total\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "appWidth": 1080,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "64px 16px 128px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "home-mobile-dark",
+    "route": "http://localhost:8080/#/home",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- heading \"openGym\" [level=1]\n- text: lunes, 19 de octubre\n- button \"Ajustes\"\n- button \"Semana anterior\"\n- text: Esta semana\n- button \"Semana siguiente\"\n- button \"Lu 19\"\n- button \"Ma 20\"\n- button \"Mi 21\"\n- button \"Ju 22\"\n- button \"Vi 23\"\n- button \"Sá 24\"\n- button \"Do 25\"\n- button \"Hoy Día de descanso\"\n- button \"Elegir otro entrenamiento\"\n- button \"En el gimnasio Registrarse\"\n- text: ¡Bienvenido! Configura tu rutina semanal para arrancar, o carga un plan inicial ya hecho.\n- button \"Cargar plan inicial\"\n- button \"Crear mi propio plan\"\n- heading \"Peso corporal\" [level=2]\n- button \"Meta\"\n- button \"Registrar\"\n- text: Aún no hay pesajes. Apunta tu peso para empezar la curva.\n- button \"racha de 0 semanas 0 esta semana · 0 entrenamientos en total\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "library-mobile-dark",
+    "route": "http://localhost:8080/#/library",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- heading \"Ejercicios\" [level=1]\n- button \"Por músculo\"\n- text: 5632 ejercicios con animaciones\n- img\n- textbox \"Buscar…\"\n- button \"Tarjetas\"\n- button \"Todo\"\n- button \"espalda\"\n- button \"cardio\"\n- button \"pecho\"\n- button \"cuerpo completo\"\n- button \"antebrazos\"\n- button \"pantorrillas\"\n- button \"cuello\"\n- button \"hombros\"\n- button \"brazos\"\n- button \"piernas\"\n- button \"abdomen\"\n- button \"Cualquier tipo\"\n- button \"fuerza\"\n- button \"calistenia\"\n- button \"halterofilia\"\n- button \"pliometría\"\n- button \"isométrico\"\n- button \"cardio\"\n- button \"estiramientos\"\n- button \"movilidad\"\n- button \"yoga\"\n- button \"pilates\"\n- button \"combate\"\n- button \"rehabilitación\"\n- button \"Cualquier equipo\"\n- button \"peso corporal\"\n- button \"mancuerna\"\n- button \"polea\"\n- button \"barra\"\n- button \"máquina de palanca\"\n- button \"banda\"\n- button \"kettlebell\"\n- button \"banda de resistencia\"\n- button \"con lastre\"\n- button \"entrenador de suspensión\"\n- button \"rodillo\"\n- button \"máquina Smith\"\n- button \"fitball\"\n- button \"barra EZ\"\n- button \"balón medicinal\"\n- button \"trineo\"\n- button \"disco de peso\"\n- button \"cuerda\"\n- button \"asistido\"\n- button \"landmine\"\n- button \"bosu\"\n- button \"saco de arena\"\n- button \"barra hexagonal\"\n- button \"barra olímpica\"\n- button \"elíptica\"\n- button \"bici estática\"\n- button \"rueda abdominal\"\n- button \"macebell\"\n- button \"neumático\"\n- button \"martillo\"\n- button \"SkiErg\"\n- button \"escaladora\"\n- button \"ergómetro de brazos\"\n- button \"Crea tu propio ejercicio nombre + parte del cuerpo, y una foto o vídeo si quieres\"\n- button \"ejercicio de agilidad 1 2 con palo (1 2 stick drill) sistema cardiovascular · peso corporal Plan\":\n  - text: ejercicio de agilidad 1 2 con palo (1 2 stick drill) sistema cardiovascular · peso corporal\n  - button \"Plan\"\n- button \"salto de cajón de 1 a 2 (1 to 2 jump box) cuádriceps · peso corporal Plan\":\n  - text: salto de cajón de 1 a 2 (1 to 2 jump box) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"ejercicio 123 hacia atrás (123 back drill) sistema cardiovascular · peso corporal Plan\":\n  - text: ejercicio 123 hacia atrás (123 back drill) sistema cardiovascular · peso corporal\n  - button \"Plan\"\n- button \"salto de cajón de 2 a 1 (2 to 1 jump box) cuádriceps · peso corporal Plan\":\n  - text: salto de cajón de 2 a 1 (2 to 1 jump box) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"chaturanga con tres piernas (3 leg chaturanga pose) Tríceps · peso corporal Plan\":\n  - text: chaturanga con tres piernas (3 leg chaturanga pose) Tríceps · peso corporal\n  - button \"Plan\"\n- button \"postura del perro con 3 patas (3 leg dog pose) isquiotibiales · peso corporal Plan\":\n  - text: postura del perro con 3 patas (3 leg dog pose) isquiotibiales · peso corporal\n  - button \"Plan\"\n- button \"abdominal 3/4 (3/4 sit-up) Abdominales · peso corporal Plan\":\n  - text: abdominal 3/4 (3/4 sit-up) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"salto a una pierna en 4 direcciones (4 way single leg hop) Gemelos · peso corporal Plan\":\n  - text: salto a una pierna en 4 direcciones (4 way single leg hop) Gemelos · peso corporal\n  - button \"Plan\"\n- button \"salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2) cuádriceps · peso corporal Plan\":\n  - text: salto a una pierna en 4 direcciones v. 2 (4 way single leg hop v. 2) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch) Abdominales · peso corporal Plan\":\n  - text: abdominal bicicleta con giro a 45 grados (45 degree bicycle twisting crunch) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused) glúteos · peso corporal Plan\":\n  - text: extensión de cadera a 45 grados enfocada en glúteos (45 degree hip extension glute focused) glúteos · peso corporal\n  - button \"Plan\"\n- button \"extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2) glúteos · peso corporal Plan\":\n  - text: extensión de cadera a 45 grados con énfasis en glúteo v. 2 (45 degree hip extension glute focused v. 2) glúteos · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest)) columna · peso corporal Plan\":\n  - text: hiperextensión a 45 grados (brazos frente al pecho) (45 degree hyperextension (arms in front of chest)) columna · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov)) columna · peso corporal Plan\":\n  - text: hiperextensión a 45 grados (brazos frente al pecho) (vista lateral) (45 degree hyperextension (arms in front of chest) (side pov)) columna · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest)) glúteos · peso corporal Plan\":\n  - text: hiperextensión a 45 grados a una pierna (brazos frente al pecho) (45 degree one leg hyperextension (arms in front of chest)) glúteos · peso corporal\n  - button \"Plan\"\n- button \"hiperextensión a 45 grados con giro (45 degree twisting hyperextension) columna · peso corporal Plan\":\n  - text: hiperextensión a 45 grados con giro (45 degree twisting hyperextension) columna · peso corporal\n  - button \"Plan\"\n- button \"extensión de espalda a 45 grados (45 degrees back extension) columna · peso corporal Plan\":\n  - text: extensión de espalda a 45 grados (45 degrees back extension) columna · peso corporal\n  - button \"Plan\"\n- button \"aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction) columna · peso corporal Plan\":\n  - text: aducción escapular en extensión de espalda a 45 grados (45 degrees back extension scapular adduction) columna · peso corporal\n  - button \"Plan\"\n- button \"flexión lateral a 45 grados (45 degrees side bend) Abdominales · peso corporal Plan\":\n  - text: flexión lateral a 45 grados (45 degrees side bend) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"flexión lateral a 45° (45° side bend) Abdominales · peso corporal Plan\":\n  - text: flexión lateral a 45° (45° side bend) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"toque de talón a 90 grados (90 degree heel touch) Abdominales · peso corporal Plan\":\n  - text: toque de talón a 90 grados (90 degree heel touch) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"toque de talón a 90 grados v. 2 (90 degree heel touch v. 2) Abdominales · peso corporal Plan\":\n  - text: toque de talón a 90 grados v. 2 (90 degree heel touch v. 2) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento con press a 90 y 90 (90 to 90 press stretch) glúteos · peso corporal Plan\":\n  - text: estiramiento con press a 90 y 90 (90 to 90 press stretch) glúteos · peso corporal\n  - button \"Plan\"\n- button \"estiramiento 90 a 90 (90 to 90 stretch) glúteos · peso corporal Plan\":\n  - text: estiramiento 90 a 90 (90 to 90 stretch) glúteos · peso corporal\n  - button \"Plan\"\n- button \"abdominal con colchoneta ab (ab mat sit up) Abdominales · peso corporal Plan\":\n  - text: abdominal con colchoneta ab (ab mat sit up) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"abdominal con rueda abdominal (ab roller crunch) Abdominales · rueda abdominal Plan\":\n  - text: abdominal con rueda abdominal (ab roller crunch) Abdominales · rueda abdominal\n  - button \"Plan\"\n- button \"abdominal encogido en suelo (ab tuck) Abdominales · peso corporal Plan\":\n  - text: abdominal encogido en suelo (ab tuck) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"abdominal en cuatro apoyos (abdominal 4 points) Abdominales · peso corporal Plan\":\n  - text: abdominal en cuatro apoyos (abdominal 4 points) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento abdominal (abdominal stretch) Abdominales · peso corporal Plan\":\n  - text: estiramiento abdominal (abdominal stretch) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch) Aductores · peso corporal Plan\":\n  - text: estiramiento de abducción de una pierna con flexión (abduction of one leg flexion stretch) Aductores · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de pecho sobre la cabeza (above head chest stretch) pectorales · peso corporal Plan\":\n  - text: estiramiento de pecho sobre la cabeza (above head chest stretch) pectorales · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de hombro cruzando el pecho (across chest shoulder stretch) deltoides · peso corporal Plan\":\n  - text: estiramiento de hombro cruzando el pecho (across chest shoulder stretch) deltoides · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch) antebrazos · peso corporal Plan\":\n  - text: estiramiento de aducción de mano con codo extendido (adduction hand with elbow extended stretch) antebrazos · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch) deltoides · peso corporal Plan\":\n  - text: estiramiento de aducción del brazo hacia la espalda (adduction of arm in back stretch) deltoides · peso corporal\n  - button \"Plan\"\n- button \"estiramiento de aductores (adductor stretch) Aductores · peso corporal Plan\":\n  - text: estiramiento de aductores (adductor stretch) Aductores · peso corporal\n  - button \"Plan\"\n- button \"ejercicio de agilidad con balón (agility ball drill) sistema cardiovascular · peso corporal Plan\":\n  - text: ejercicio de agilidad con balón (agility ball drill) sistema cardiovascular · peso corporal\n  - button \"Plan\"\n- button \"bicicleta en el aire (air bike) Abdominales · peso corporal Plan\":\n  - text: bicicleta en el aire (air bike) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"bicicleta de aire v. 2 (air bike v. 2) Abdominales · peso corporal Plan\":\n  - text: bicicleta de aire v. 2 (air bike v. 2) Abdominales · peso corporal\n  - button \"Plan\"\n- button \"sentadilla al aire (air squat) cuádriceps · peso corporal Plan\":\n  - text: sentadilla al aire (air squat) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"sentadilla al aire (versión 2) (air squat (version 2)) cuádriceps · peso corporal Plan\":\n  - text: sentadilla al aire (versión 2) (air squat (version 2)) cuádriceps · peso corporal\n  - button \"Plan\"\n- button \"Mostrar más\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "plan-mobile-dark",
+    "route": "http://localhost:8080/#/plan",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- heading \"Plan\" [level=1]\n- text: Tu rutina semanal\n- button \"Opciones del plan\"\n- button \"Horario\" [pressed]\n- button \"Rutinas\"\n- text: Cómo entrenas\n- button \"Semana fija\" [pressed]\n- button \"Rotación\"\n- paragraph: Las mismas rutinas los mismos días, cada semana.\n- text: Aún no hay rutinas. Crea una o carga el plan inicial para empezar.\n- button \"Cargar plan inicial\"\n- heading \"Esta semana\" [level=4]\n- button \"Lunes\": Día de descanso Toca para planificar algo\n- button \"Martes\": Día de descanso Toca para planificar algo\n- button \"Miércoles\": Día de descanso Toca para planificar algo\n- button \"Jueves\": Día de descanso Toca para planificar algo\n- button \"Viernes\": Día de descanso Toca para planificar algo\n- button \"Sábado\": Día de descanso Toca para planificar algo\n- button \"Domingo\": Día de descanso Toca para planificar algo\n- paragraph: ¿Dos rutinas en un día? Toca el día y elige las dos.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "workout-mobile-dark",
+    "route": "http://localhost:8080/#/workout",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- heading \"Empezar entrenamiento\" [level=1]\n- text: Lunes · día de descanso, pero nadie te lo impide\n- button \"Entrenamiento libre (elige sobre la marcha)\"\n- button \"Crea primero un plan\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "history-mobile-dark",
+    "route": "http://localhost:8080/#/history",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Progreso\"\n- heading \"Historial\" [level=1]\n- text: 0 entrenamientos\n- button \"Registrar un entrenamiento pasado\"\n- text: Aún no hay entrenamientos. El primero aparecerá aquí.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "stats-mobile-dark",
+    "route": "http://localhost:8080/#/stats",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- heading \"Progreso\" [level=1]\n- text: Progreso e historial\n- button \"Historial\"\n- text: Entrenos 0 Este mes 0 Racha semanal 0 Peso 30 d –\n- heading \"Actividad (últimos 12 meses)\" [level=2]\n- button \"Tiempo\" [pressed]\n- button \"Volumen\"\n- text: Nov Dic Ene Feb Mar Abr May Jun Jul Ago Sep Oct Lun Mié Vie Menos Más\n- heading \"Medidas corporales\" [level=2]\n- text: Cintura, brazos, grasa corporal y lo que quieras medir, cada cosa con su propia curva.\n- button \"Abrir\"\n- heading \"Peso corporal\" [level=2]\n- button \"Meta\"\n- button \"Registrar\"\n- button \"1M\"\n- button \"3M\" [pressed]\n- button \"1Y\"\n- button \"Todo\"\n- text: Aún sin datos\n- heading \"Progreso por ejercicio\" [level=2]\n- text: Termina tu primer entrenamiento y aquí aparecerán tus curvas de progreso.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-mobile-dark",
+    "route": "http://localhost:8080/#/settings",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Inicio\"\n- heading \"Ajustes\" [level=1]\n- textbox \"Buscar en Ajustes\":\n  - /placeholder: Buscar…\n- button \"Invitado Tus datos están en este dispositivo. Inicia sesión para sincronizar.\"\n- button \"Entreno 1:30 de descanso · Tarjetas\"\n- button \"Avisos del temporizador Sonido · Vibración\"\n- button \"Plan y horario Semana fija · lun\"\n- button \"Unidades e idioma kg · Español\"\n- button \"Equipo Todo\"\n- button \"Aspecto e Inicio Oscuro · Verde\"\n- button \"Datos y copias\"\n- button \"Información y actualizaciones v1.4.1\"\n- text: openGym v1.4.1\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-look-mobile-dark",
+    "route": "http://localhost:8080/#/settings/look",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Aspecto e Inicio\" [level=1]\n- text: Tema\n- button \"Oscuro\" [pressed]\n- button \"Claro\"\n- button \"Sistema\"\n- text: Color de acento Verde\n- button \"Verde\"\n- button \"Azul\"\n- button \"Naranja\"\n- button \"Morado\"\n- button \"Rosa\"\n- button \"Rojo\"\n- button \"Turquesa\"\n- button \"Amarillo\"\n- textbox \"Elige tu propio color\": \"#30d158\"\n- text: Diagrama corporal\n- button \"Masculino\" [pressed]\n- button \"Femenino\"\n- text: Dibujos de ejercicios Qué figura muestra un ejercicio cuando está dibujado en las dos. Tus entrenamientos se quedan exactamente como están.\n- button \"Masculino\" [pressed]\n- button \"Femenino\"\n- heading \"En Inicio\" [level=2]\n- text: Check-in del gimnasio Muestra en Inicio una tarjeta con tus códigos QR de socio.\n- switch [checked]\n- text: Peso corporal Muestra la tarjeta de peso corporal en Inicio.\n- switch [checked]\n- text: \"Mostrar el estado de la conexión Desactivado: la barra de arriba se oculta. Un punto en Inicio sigue avisando cuando la sincronización se atasca.\"\n- switch [checked]\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-workout-mobile-dark",
+    "route": "http://localhost:8080/#/settings/workout",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Entreno\" [level=1]\n- heading \"Descanso\" [level=2]\n- button \"Temporizador de descanso 1:30\"\n- button \"Descanso rest-pause 15s\"\n- paragraph: Cada ejercicio también puede tener su propio descanso. Ajústalo en los ajustes del ejercicio dentro de una rutina.\n- heading \"Registro\" [level=2]\n- text: Esfuerzo por serie\n- button \"¿Qué son RIR y RPE?\"\n- button \"No\" [pressed]\n- button \"RIR\"\n- button \"RPE\"\n- button \"Debajo de cada ejercicio La última vez\"\n- text: Diseño\n- button \"Tarjetas\" [pressed]\n- button \"Lista\"\n- button \"Compacta\"\n- button \"Enfoque\"\n- text: Contraer ejercicios completados En Lista y Compacta, un ejercicio terminado se pliega en una sola línea.\n- switch \"Contraer ejercicios completados\"\n- heading \"Antes y durante\" [level=2]\n- text: Pesarse antes de entrenar Pide tu peso corporal al empezar un entrenamiento. Desactivado, la sesión empieza directamente.\n- switch\n- text: Mantener la pantalla encendida La pantalla se mantiene encendida mientras hay un entrenamiento en curso, así no tienes que desbloquear el móvil entre series.\n- switch [checked]\n- text: Animaciones de los ejercicios\n- button \"Completa\"\n- button \"Pequeña\" [pressed]\n- button \"Oculta\"\n- button \"Ajustes finos Botones, series por tiempo\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-advanced-mobile-dark",
+    "route": "http://localhost:8080/#/settings/advanced",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Entreno\"\n- heading \"Ajustes finos\" [level=1]\n- heading \"Sesiones y series por tiempo\" [level=2]\n- button \"Punto de partida de las sesiones planificadas Tu plan\"\n- text: Seguir contando después del objetivo Las series cronometradas continúan hasta 15 minutos extra. Toca «Listo» para registrar la duración real.\n- switch \"Seguir contando después del objetivo\"\n- heading \"Botones en la pantalla del entreno\" [level=2]\n- text: \"Botones +/− de peso y repeticiones Desactivado: toca el número y escríbelo\"\n- switch [checked]\n- text: Atajos de drop y ráfaga en cada serie\n- switch\n- text: \"Acciones al deslizar Series, rutinas y el bucle: izquierda quita, derecha copia\"\n- switch \"Acciones al deslizar\" [checked]\n- text: Chips de ejercicios arriba Un punto numerado por ejercicio que se llena sobre la marcha. Toca uno para saltar ahí.\n- switch \"Chips de ejercicios arriba\" [checked]\n- text: Botones de superserie en la cabecera del ejercicio\n- switch\n- text: Botones mover, cambiar y quitar debajo del ejercicio\n- switch\n- paragraph: \"Todo lo que ocultes aquí sigue a un toque: el botón ⋯ de un ejercicio y el número de una serie.\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-alerts-mobile-dark",
+    "route": "http://localhost:8080/#/settings/alerts",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Avisos del temporizador\" [level=1]\n- heading \"Cuando acaba un descanso\" [level=2]\n- text: Reproducir un sonido\n- switch [checked]\n- button \"Sonido Campanilla (más fuerte)\"\n- text: Vibración\n- switch [checked]\n- text: Hacer parpadear la pantalla\n- switch\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-plan-mobile-dark",
+    "route": "http://localhost:8080/#/settings/plan",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Plan y horario\" [level=1]\n- text: Cómo entrenas\n- button \"Semana fija\" [pressed]\n- button \"Rotación\"\n- text: La semana empieza el\n- button \"Lunes\" [pressed]\n- button \"Domingo\"\n- button \"Cargar plan inicial\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-units-mobile-dark",
+    "route": "http://localhost:8080/#/settings/units",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Unidades e idioma\" [level=1]\n- button \"Idioma Español\"\n- text: Nombres de ejercicios en inglés Muestra el nombre en inglés entre paréntesis junto al traducido.\n- switch [checked]\n- text: Solo nombres en inglés Reemplaza los nombres traducidos por los originales en inglés.\n- switch\n- text: Unidad de peso\n- button \"kg\" [pressed]\n- button \"lb\"\n- text: Decimales del peso Con qué precisión se muestran los pesos.\n- button \"0,5\" [pressed]\n- button \"0,25\"\n- text: Unidad de velocidad\n- button \"km/h\" [pressed]\n- button \"mph\"\n- button \"Fórmula de 1RM Epley\"\n- paragraph: Al cambiar la unidad se ofrece convertir todos los pesos guardados.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-equipment-mobile-dark",
+    "route": "http://localhost:8080/#/settings/equipment",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Equipo\" [level=1]\n- heading \"Equipo\" [level=2]\n- button \"Discos Juego estándar. Toca para contar los pares que tienes.\"\n- button \"Mancuernas Cualquier peso. Toca para apuntar los que tienes.\"\n- button \"Añadir perfil de equipo\"\n- paragraph: Filtra la biblioteca de ejercicios y el selector, y marca los ejercicios de las rutinas que necesitan algo que no tienes en el perfil activo.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-data-mobile-dark",
+    "route": "http://localhost:8080/#/settings/data",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Datos y copias\" [level=1]\n- heading \"Hacer copia\" [level=2]\n- button \"Exportar copia (JSON)\"\n- heading \"Traer datos\" [level=2]\n- button \"Importar copia\"\n- button \"Importar de otra app FitNotes, Strong, Hevy o peso corporal de Apple Health\"\n- button \"Importar desde Hevy Trae tu historial con una clave API de Hevy Pro\"\n- button \"Restablecer todo\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-about-mobile-dark",
+    "route": "http://localhost:8080/#/settings/about",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Información y actualizaciones\" [level=1]\n- text: Versión v1.4.1\n- button \"Descargar la app de Android Descarga el APK desde opengym.ch\"\n- paragraph: La app web se actualiza junto con tu servidor. La app de Android instala sus actualizaciones desde aquí.\n- heading \"Consejo\" [level=2]\n- text: \"En Safari: Compartir → Añadir a pantalla de inicio para instalar openGym como app a pantalla completa. Los datos de invitado se quedan en este dispositivo, ¡así que exporta una copia de vez en cuando! openGym v1.4.1 · gratis y de código abierto (AGPL v3)\"\n- link \"Código fuente\":\n  - /url: https://github.com/DuarteSantos8/openGym\n- text: Exercise media © Aliaksandr Makatserchyk,\n- link \"Gym visual\":\n  - /url: https://gymvisual.com/\n- text: \", gymvisual.com. Media licensed for use in openGym only; see\"\n- link \"NOTICE.md\":\n  - /url: https://github.com/DuarteSantos8/openGym/blob/main/NOTICE.md\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "settings-account-mobile-dark",
+    "route": "http://localhost:8080/#/settings/account",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ajustes\"\n- heading \"Cuenta\" [level=1]\n- heading \"Cuenta\" [level=2]\n- button \"Crear perfil con passkey Mantiene tus datos seguros y separados por persona.\"\n- button \"Iniciar sesión con passkey\"\n- button \"Usar un código de tu otro dispositivo\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "muscles-mobile-dark",
+    "route": "http://localhost:8080/#/muscles",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Ejercicios\"\n- heading \"Explorar músculos\" [level=1]\n- text: Elige un músculo para ver los ejercicios que lo entrenan.\n- group:\n  - button \"Trapecio\"\n  - button \"Trapecio\"\n  - button \"Hombros\"\n  - button \"Hombros\"\n  - button \"Pecho\"\n  - button \"Pecho\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Serrato\"\n  - button \"Bíceps\"\n  - button \"Bíceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Abdominales\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Oblicuos\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Cuádriceps\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Flexores de cadera\"\n  - button \"Flexores de cadera\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Tibiales\"\n  - button \"Tibiales\"\n- group:\n  - button \"Trapecio\"\n  - button \"Trapecio\"\n  - button \"Hombros\"\n  - button \"Hombros\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Espalda alta\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Tríceps\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Antebrazos\"\n  - button \"Espalda baja\"\n  - button \"Espalda baja\"\n  - button \"Espalda baja\"\n  - button \"Espalda baja\"\n  - button \"Glúteos\"\n  - button \"Glúteos\"\n  - button \"Glúteos\"\n  - button \"Glúteos\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Isquiotibiales\"\n  - button \"Aductores\"\n  - button \"Aductores\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n  - button \"Gemelos\"\n- button \"Trapecio 525\"\n- button \"Hombros 2348\"\n- button \"Pecho 905\"\n- button \"Espalda alta 1197\"\n- button \"Serrato 35\"\n- button \"Bíceps 844\"\n- button \"Tríceps 1085\"\n- button \"Antebrazos 923\"\n- button \"Abdominales 2474\"\n- button \"Oblicuos 695\"\n- button \"Espalda baja 777\"\n- button \"Glúteos 2005\"\n- button \"Cuádriceps 1301\"\n- button \"Isquiotibiales 1540\"\n- button \"Aductores 410\"\n- button \"Flexores de cadera 783\"\n- button \"Gemelos 857\"\n- button \"Tibiales 72\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "structural-balance-mobile-dark",
+    "route": "http://localhost:8080/#/structural-balance",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Progreso\"\n- heading \"Balance estructural\" [level=1]\n- text: Compara tus levantamientos con una tabla de ratios publicada para encontrar el eslabón débil.\n- button \"Poliquin\" [pressed]\n- button \"Thibaudeau (Powerlifting)\"\n- button \"ATG\"\n- text: Press banca agarre cerrado (ancla) press de banca con agarre cerrado y barra (barbell close-grip bench press) Sin datos – / 100%\n- button \"Cambiar ejercicio\"\n- text: Press inclinado press de banca inclinado con barra (barbell incline bench press) Sin datos – / 91%\n- button \"Cambiar ejercicio\"\n- text: Fondos (peso corporal + carga) fondos para pecho (chest dip) Sin datos – / 117%\n- button \"Cambiar ejercicio\"\n- text: Dominadas supinas (peso corporal + carga) dominadas (pull-up) Sin datos – / 87%\n- button \"Cambiar ejercicio\"\n- text: Curl con barra de pie curl con barra (barbell curl) Sin datos – / 40%\n- button \"Cambiar ejercicio\"\n- text: Sentadilla con barra alta (ancla) sentadilla con barra alta (barbell high bar squat) Sin datos – / 100%\n- button \"Cambiar ejercicio\"\n- text: Sentadilla frontal sentadilla frontal con barra (barbell front squat) Sin datos – / 85%\n- button \"Cambiar ejercicio\"\n- text: Peso muerto peso muerto con barra (barbell deadlift) Sin datos – / 125%\n- button \"Cambiar ejercicio\"\n- text: Cargada de potencia power clean (cargada de potencia) (power clean) Sin datos – / 61%\n- button \"Cambiar ejercicio\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "progress-photos-mobile-dark",
+    "route": "http://localhost:8080/#/progress-photos",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Progreso\"\n- heading \"Fotos de progreso\" [level=1]\n- text: 0 fotos\n- button \"Registra el entrenamiento de hoy para añadir una foto\"\n- text: Aún no hay fotos de progreso. El botón de arriba añade una a hoy, en cuanto hoy tenga un entrenamiento registrado.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "measurements-mobile-dark",
+    "route": "http://localhost:8080/#/measurements",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Inicio\"\n- heading \"Medidas corporales\" [level=1]\n- text: Contornos y composición\n- button \"Elegir medidas\"\n- text: Cintura –\n- button \"Registrar\"\n- button \"Medida Cintura\"\n- button \"1M\"\n- button \"3M\" [pressed]\n- button \"1Y\"\n- button \"Todo\"\n- text: Aún sin datos\n- heading \"Historial de medidas\" [level=4]\n- button \"Campos\"\n- text: Aún no hay medidas\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "checkin-mobile-dark",
+    "route": "http://localhost:8080/#/checkin",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- button \"Inicio\"\n- heading \"Registrarse\" [level=1]\n- text: Añade tu tarjeta del gimnasio\n- button \"Añadir una tarjeta\"\n- text: Importa una foto de tu tarjeta de socio o escanéala con la cámara. No hace falta otra app en el gimnasio, solo abre esta pantalla.\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  },
+  {
+    "name": "coach-mobile-dark",
+    "route": "http://localhost:8080/#/home",
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "snapshot": "- heading \"openGym\" [level=1]\n- text: lunes, 19 de octubre\n- button \"Ajustes\"\n- button \"Semana anterior\"\n- text: Esta semana\n- button \"Semana siguiente\"\n- button \"Lu 19\"\n- button \"Ma 20\"\n- button \"Mi 21\"\n- button \"Ju 22\"\n- button \"Vi 23\"\n- button \"Sá 24\"\n- button \"Do 25\"\n- button \"Hoy Día de descanso\"\n- button \"Elegir otro entrenamiento\"\n- button \"En el gimnasio Registrarse\"\n- text: ¡Bienvenido! Configura tu rutina semanal para arrancar, o carga un plan inicial ya hecho.\n- button \"Cargar plan inicial\"\n- button \"Crear mi propio plan\"\n- heading \"Peso corporal\" [level=2]\n- button \"Meta\"\n- button \"Registrar\"\n- text: Aún no hay pesajes. Apunta tu peso para empezar la curva.\n- button \"racha de 0 semanas 0 esta semana · 0 entrenamientos en total\"\n- status:\n  - 'button \"Modo invitado: tus datos solo viven en este navegador. Iniciar sesión\"'\n  - button \"Cerrar\"\n- navigation:\n  - button \"Inicio\"\n  - button \"Plan\"\n  - button \"Empezar\"\n  - button \"Progreso\"\n  - button \"Ejercicios\"\n- status",
+    "metrics": {
+      "theme": "dark",
+      "accent": "lime",
+      "width": 390,
+      "scrollWidth": 390,
+      "appWidth": 390,
+      "bodyFont": "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"SF Pro Display\", \"Segoe UI\", Roboto, system-ui, sans-serif",
+      "bodySize": "17px",
+      "appPadding": "49px 16px 88px",
+      "dialogCount": 0
+    }
+  }
+]
