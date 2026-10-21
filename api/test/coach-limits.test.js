@@ -4,11 +4,14 @@
  * not read off the capped job log. A scheduled review covers a batch of workouts once, on the
  * workout's own clock rather than the phone's local date, and an answer the model was paid
  * for counts as that review even when it was unusable. */
-import test from 'node:test';
+import test, { after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { tempData, writeState, sampleState } from './helpers.mjs';
 
+// Keep the July fixtures inside the review window without freezing real timers.
+mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 6, 21, 12) });
+after(() => mock.timers.reset());
 const DIR = tempData();
 const cfg = await import('../coach/config.js');
 const jobs = await import('../coach/jobs.js');
@@ -22,8 +25,8 @@ const today = new Date().toISOString().slice(0, 10);
 const userFile = uid => `${DIR}/coach/${uid}.json`;
 
 async function settle(uid, ms = 15000) {
-  const until = Date.now() + ms;
-  while (Date.now() < until) {
+  const until = performance.now() + ms;
+  while (performance.now() < until) {
     const s = jobs.status(uid);
     if (!s.job) return s;
     await new Promise(r => setTimeout(r, 25));

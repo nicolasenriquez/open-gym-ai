@@ -5,11 +5,14 @@
    PR 1 stopped at transport and held its answer as `unvalidated`. This PR closes that seam, so
    the assertions below are about what now comes out the other end: a checked bundle, a checked
    change-set, and the two ways a job can fail the validator rather than the parser. */
-import test from 'node:test';
+import test, { after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { tempData, writeState, sampleState } from './helpers.mjs';
 
+// Keep the July fixtures inside the review window without freezing real timers.
+mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 6, 21, 12) });
+after(() => mock.timers.reset());
 const DIR = tempData();
 const cfg = await import('../coach/config.js');
 const jobs = await import('../coach/jobs.js');
@@ -28,8 +31,8 @@ forcePrivilegeVerdict({ ok: true, dropped: false, why: 'pinned by the test suite
 
 /** Jobs are async by design; the tests wait the way the client does — by polling status. */
 async function settle(uid, ms = 15000) {
-  const until = Date.now() + ms;
-  while (Date.now() < until) {
+  const until = performance.now() + ms;
+  while (performance.now() < until) {
     const s = jobs.status(uid);
     if (!s.job) return s;
     await new Promise(r => setTimeout(r, 25));
@@ -131,8 +134,8 @@ async function holdingProvider() {
   await new Promise(r => server.listen(0, '127.0.0.1', r));
   /** Exactly n requests parked with the provider — 0 means every caller has gone. */
   const until = async n => {
-    const t = Date.now() + 15000;
-    while (held.length !== n && Date.now() < t) await new Promise(r => setTimeout(r, 25));
+    const t = performance.now() + 15000;
+    while (held.length !== n && performance.now() < t) await new Promise(r => setTimeout(r, 25));
     assert.equal(held.length, n, `${n} request(s) with the provider`);
   };
   const answer = content => {
@@ -149,12 +152,12 @@ async function holdingProvider() {
 const NOCHANGE = '{"coach_contract":1,"nochange":true,"reading":"Steady."}';
 /** The job's own end, as opposed to status() going quiet: the instance log gains its line. */
 async function logged(n) {
-  const t = Date.now() + 15000;
-  while (cfg.load().log.length < n && Date.now() < t) await new Promise(r => setTimeout(r, 25));
+  const t = performance.now() + 15000;
+  while (cfg.load().log.length < n && performance.now() < t) await new Promise(r => setTimeout(r, 25));
   assert.equal(cfg.load().log.length, n);
 }
 
-test('forgetting a profile mid-job cancels the call and frees its slot at once', async () => {
+test('forgetting a profile mid-job cancels the call and frees its slot at once', { timeout: 20000 }, async () => {
   const p = await holdingProvider();
   const notified = [];
   jobs.setProposalHook(uid => notified.push(uid));
@@ -165,15 +168,16 @@ test('forgetting a profile mid-job cancels the call and frees its slot at once',
     jobs.enqueue(uid, { kind: 'review' });
     await p.until(1);
     assert.equal(jobs.status(uid).job.state, 'running');
+    await assert.rejects(settle(uid, 25), /job never finished/, 'polling still times out while Date is frozen');
 
     const before = cfg.load().log.length;
-    const t0 = Date.now();
+    const t0 = performance.now();
     jobs.clearUser(uid);
     assert.equal(jobs.status(uid).job, null);
     // The provider is never answered: the call goes with the record, so the job drains now
     // rather than when the provider gets round to it or the five-minute timeout does.
     await logged(before + 1);
-    assert.ok(Date.now() - t0 < 5000, `drained in ${Date.now() - t0} ms`);
+    assert.ok(performance.now() - t0 < 5000, `drained in ${performance.now() - t0} ms`);
     await p.until(0);
     assert.equal(cfg.load().log.at(-1).outcome, 'failed', 'the job ran and is counted');
     assert.equal(cfg.load().log.at(-1).errorClass, 'forgotten', 'the log names the cancellation, not a provider timeout');
@@ -208,7 +212,7 @@ test('a runtime that cannot be cancelled still has its late answer discarded aft
     jobs.clearUser(uid);
     // The line this job writes to the instance log, not the next line anyone writes there.
     const mine = () => cfg.load().log.find(e => e.uid === uid);
-    for (const t = Date.now() + 15000; !mine() && Date.now() < t;) await new Promise(r => setTimeout(r, 25));
+    for (const t = performance.now() + 15000; !mine() && performance.now() < t;) await new Promise(r => setTimeout(r, 25));
     assert.equal(mine()?.outcome, 'ready', 'the job ran to its answer and is counted');
     assert.deepEqual(jobs.readUser(uid).pending, null, 'the proposal is not held for someone who asked to be forgotten');
     assert.deepEqual(jobs.readUser(uid).history, []);

@@ -1,11 +1,14 @@
 /* The admin routes, driven with fake server helpers — the layer between the card and the
  * config store, which learned per-provider keys, a base URL, a model list and the "this
  * provider spawns nothing" report. The user routes are exercised through jobs.test.js. */
-import test from 'node:test';
+import test, { after, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { tempData } from './helpers.mjs';
 
+// Keep the July fixtures inside the review window without freezing real timers.
+mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 6, 21, 12) });
+after(() => mock.timers.reset());
 tempData();
 const cfg = await import('../coach/config.js');
 const { coachRoutes } = await import('../coach/routes.js');
@@ -192,8 +195,8 @@ test('a debrief is enqueued as its own kind, and the cohort routes gate on the a
   const r = await call('POST /api/coach/debrief', { workoutId: 'w1' });
   assert.equal(r.status, 202);
   assert.equal(jobs.status('admin-1').job.kind, 'debrief');
-  const until = Date.now() + 15000;
-  while (jobs.status('admin-1').job && Date.now() < until) await new Promise(res => setTimeout(res, 25));
+  const until = performance.now() + 15000;
+  while (jobs.status('admin-1').job && performance.now() < until) await new Promise(res => setTimeout(res, 25));
   const s = jobs.status('admin-1');
   assert.equal(s.pending.kind, 'debrief');
   assert.deepEqual(s.pending.workout, { id: 'w1', d: '2026-07-20', name: 'Full body A', minutes: 45, vol: 600, sets: 3, prs: 0 });
@@ -206,7 +209,7 @@ test('a debrief is enqueued as its own kind, and the cohort routes gate on the a
   jobs.resolvePending('admin-1', { accepted: ['debrief'] });
   writeState(process.env.DATA_DIR, 'admin-1', sampleState({ workouts: [] }));
   await call('POST /api/coach/debrief', {});
-  while (jobs.status('admin-1').job && Date.now() < until) await new Promise(res => setTimeout(res, 25));
+  while (jobs.status('admin-1').job && performance.now() < until) await new Promise(res => setTimeout(res, 25));
   assert.equal(jobs.status('admin-1').last.errorClass, 'noworkout');
 });
 
