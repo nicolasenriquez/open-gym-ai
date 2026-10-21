@@ -4,6 +4,7 @@
 # container exits 127 before nginx starts (`web/05-check-base-path.sh`).
 * text=auto
 *.sh            text eol=lf
+frontend/scripts/check-mobile-bundle.mjs text eol=lf
 *.template      text eol=lf
 Dockerfile      text eol=lf
 *.Dockerfile    text eol=lf
