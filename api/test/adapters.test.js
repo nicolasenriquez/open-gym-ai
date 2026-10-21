@@ -6,6 +6,10 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { tempData } from './helpers.mjs';
 
 tempData();
@@ -13,6 +17,17 @@ const { adapterFor, default: ADAPTERS } = await import('../coach/adapters/index.
 const { LOCKDOWN } = await import('../coach/adapters/claude.js');
 const { argvFor } = await import('../coach/adapters/codex.js');
 const cfg = await import('../coach/config.js');
+
+test('the fixture provider runs from a path containing spaces and a URL fragment character', async t => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gym fixture # '));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  fs.cpSync(new URL('../coach/', import.meta.url), path.join(dir, 'coach'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'package.json'), '{"type":"module"}');
+  const { adapterFor } = await import(pathToFileURL(path.join(dir, 'coach/adapters/index.js')));
+  const result = await adapterFor('fixture').invoke({ prompt: 'Return a small JSON object.', jobDir: dir, env: {}, timeoutMs: 5000 });
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(JSON.parse(result.text).ok, true);
+});
 
 test('every provider the config offers has an adapter, and vice versa', () => {
   assert.deepEqual(Object.keys(ADAPTERS).sort(), Object.keys(cfg.PROVIDERS).sort());
