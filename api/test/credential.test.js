@@ -92,14 +92,16 @@ test('per-profile mode never refuses for sharing — that is what it is for', ()
   assert.equal(b.ok, true, 'a stale boundUid from a previous instance-mode config must not leak in');
 });
 
-test('a profile credential lives in its own file, not in synced state', () => {
+test('a profile credential lives in its own file, not in synced state', async t => {
   cfg.reset();
   cfg.saveProfileAuth('alice', { type: 'cli-token', data: cfg.encrypt({ token: 'tok-alice' }) });
   const file = cfg.profileAuthFile('alice');
   assert.match(file, /coach-auth-alice\.json$/);
   assert.ok(!file.includes('state-'), 'must not ride along in the state blob the client syncs');
 
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  await t.test('POSIX permissions', { skip: process.platform === 'win32' && 'Windows does not expose POSIX permission modes' }, () => {
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  });
 });
 
 test('a profile id cannot escape the data directory', () => {

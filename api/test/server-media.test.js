@@ -398,12 +398,14 @@ test('folders are 0700 and files 0600, and an admin deleting the profile removes
   const a = M.jpeg();
   await h.put(a);
   await h.put(M.jpeg(), { uid: U2 });
-  const mode = p => fs.statSync(p).mode & 0o777;
-  assert.equal(mode(h.uploads), 0o700);
-  assert.equal(mode(path.join(h.uploads, U1)), 0o700);
-  assert.equal(mode(path.join(h.uploads, U1, '.tmp')), 0o700);
-  assert.equal(mode(path.join(h.uploads, U1, `${M.sha(a)}.jpg`)), 0o600);
-  assert.equal(mode(path.join(h.uploads, U1, '.gc.json')), 0o600);
+  await t.test('POSIX permissions', { skip: process.platform === 'win32' && 'Windows does not expose POSIX permission modes' }, () => {
+    const mode = p => fs.statSync(p).mode & 0o777;
+    assert.equal(mode(h.uploads), 0o700);
+    assert.equal(mode(path.join(h.uploads, U1)), 0o700);
+    assert.equal(mode(path.join(h.uploads, U1, '.tmp')), 0o700);
+    assert.equal(mode(path.join(h.uploads, U1, `${M.sha(a)}.jpg`)), 0o600);
+    assert.equal(mode(path.join(h.uploads, U1, '.gc.json')), 0o600);
+  });
 
   const del = await fetch(`${h.api}/api/admin/user/delete`, { method: 'POST', headers: { ...cookie(ADMIN), 'Content-Type': 'application/json' }, body: JSON.stringify({ id: U1 }) });
   assert.equal(del.status, 200);

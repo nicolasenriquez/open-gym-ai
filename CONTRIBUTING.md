@@ -45,6 +45,20 @@ cd frontend
 npm.cmd test
 ```
 
+API tests keep recovery, durable writes and profile deletion covered on Windows. POSIX mode
+assertions are separate subtests; chmod-denied scenarios are explicitly skipped on Windows
+and when running as root. Run those scenarios as a non-root Linux user as well (Ubuntu CI
+does this). Windows mode bits do not validate Windows ACLs.
+
+With API dependencies installed, this PowerShell command from the repository root runs the
+POSIX cases and fixture-path regression in a disposable Node 22 container. It mounts only
+API source read-only and writes a temporary copy; it never mounts the instance's `data/`:
+
+```powershell
+$apiSource = (Resolve-Path api).Path
+docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/source,readonly" --entrypoint sh node:22-alpine -c 'set -eu; test "$(id -u)" != 0; cp -R /source /tmp/api; cd /tmp/api; node --test --test-concurrency=2 --test-name-pattern="a profile credential lives|atomicWrite: bytes|db.json unreadable after a sign-up|a data directory the server cannot write|folders are 0700|an unwritable ./data|a push that was delivered|the fixture provider runs from" test/credential.test.js test/durable.test.js test/server-db-unreadable.test.js test/server-health-writable.test.js test/server-media.test.js test/server-push-prune-save.test.js test/adapters.test.js'
+```
+
 ## Guidelines
 
 - **Keep it dependency-light.** The frontend uses React, React Router and Zustand; `api/` has two

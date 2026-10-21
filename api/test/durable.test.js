@@ -9,7 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { atomicWrite } from '../durable.js';
 
-test('atomicWrite: bytes flushed, then the rename, then the directory', t => {
+test('atomicWrite: bytes flushed, then the rename, then the directory', async t => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'durable-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const file = path.join(dir, 'state-u1.json');
@@ -22,7 +22,9 @@ test('atomicWrite: bytes flushed, then the rename, then the directory', t => {
   atomicWrite(file, '{"_rev":1}', 0o600);
   assert.deepEqual(calls, [['fsync', file + '.tmp'], ['rename', file], ['fsync', dir]]);
   assert.equal(fs.readFileSync(file, 'utf8'), '{"_rev":1}');
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  await t.test('POSIX permissions', { skip: process.platform === 'win32' && 'Windows does not expose POSIX permission modes' }, () => {
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  });
 });
 
 test('server.js and media.js write through it', () => {

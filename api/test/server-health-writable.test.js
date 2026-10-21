@@ -53,8 +53,8 @@ test('a writable data directory answers 200, and says so', async t => {
 });
 
 test('a data directory the server cannot write to is 503, not healthy', async t => {
-  if (typeof process.getuid === 'function' && process.getuid() === 0) {
-    t.skip('running as root: a mode that denies writes does not deny them to root');
+  if (process.platform === 'win32' || (typeof process.getuid === 'function' && process.getuid() === 0)) {
+    t.skip('requires POSIX chmod and a non-root user to deny writes');
     return;
   }
   const dir = seedDir();
