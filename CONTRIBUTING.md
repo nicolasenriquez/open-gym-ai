@@ -32,6 +32,19 @@ cd api && npm test
 cd mcp && npm test
 ```
 
+The frontend suite runs the actual nginx entrypoint script and requires a POSIX `sh` on PATH.
+On Windows, Git for Windows supplies it. In PowerShell, expose it to this terminal before
+running the suite (no system PATH change):
+
+```powershell
+$gitRoot = Split-Path (Split-Path (Get-Command git.exe -ErrorAction Stop).Source)
+$gitBin = Join-Path $gitRoot 'bin'
+if (!(Test-Path (Join-Path $gitBin 'sh.exe'))) { throw 'Locate your Git for Windows sh.exe and add its directory to this terminal PATH.' }
+$env:PATH = "$gitBin;$env:PATH"
+cd frontend
+npm.cmd test
+```
+
 ## Guidelines
 
 - **Keep it dependency-light.** The frontend uses React, React Router and Zustand; `api/` has two

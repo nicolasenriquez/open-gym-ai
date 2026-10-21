@@ -226,7 +226,9 @@ describe('the web container refuses a BASE_PATH it cannot serve', () => {
   const check = value => {
     const env = { PATH: process.env.PATH }
     if (value !== undefined) env.BASE_PATH = value
-    return spawnSync('sh', [join(WEB, '05-check-base-path.sh')], { env, encoding: 'utf8' })
+    const result = spawnSync('sh', [join(WEB, '05-check-base-path.sh')], { env, encoding: 'utf8' })
+    if (result.error) throw new Error('Cannot run BASE_PATH checks: put a POSIX sh on PATH (see CONTRIBUTING.md).', { cause: result.error })
+    return result
   }
 
   it.each([[undefined], [''], ['/gym'], ['/a/b'], ['/g+ym']])('starts with BASE_PATH=%s', value => {
