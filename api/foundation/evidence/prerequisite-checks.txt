@@ -1,0 +1,14 @@
+$ node --test api/foundation/configuration.test.mjs api/foundation/environment.test.mjs
+✔ effective Compose config isolates Foundation despite inherited instance variables (273.471ms)
+✔ cleanup refuses a non-Foundation project before accessing Docker (61.107ms)
+✔ runner refuses a database target outside the synthetic service before connecting (55.7646ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 446.1244
+$ docker compose --env-file api/foundation/empty.env -f compose.foundation.yml -p opengym-foundation-test config --quiet
+PASS: quiet Compose config; no runtime resources created

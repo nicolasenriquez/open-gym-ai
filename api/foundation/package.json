@@ -1,0 +1,19 @@
+{
+  "name": "opengym-postgres-foundation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": "22.23.2",
+    "npm": "10.9.8"
+  },
+  "packageManager": "npm@10.9.8",
+  "scripts": {
+    "check:toolchain": "node check-toolchain.mjs"
+  },
+  "dependencies": {
+    "node-pg-migrate": "9.0.0",
+    "pg": "8.23.1"
+  }
+}

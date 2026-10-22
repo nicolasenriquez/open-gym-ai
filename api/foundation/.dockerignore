@@ -1,0 +1,6 @@
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!versions.json
+!*.mjs

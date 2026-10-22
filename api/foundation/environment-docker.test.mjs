@@ -1,0 +1,74 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import test from 'node:test';
+
+const cli = fileURLToPath(new URL('./environment.mjs', import.meta.url));
+const { nodeImage } = JSON.parse(readFileSync(new URL('./versions.json', import.meta.url)));
+const docker = (...args) => spawnSync('docker', args, { encoding: 'utf8', timeout: 30_000 });
+const ok = result => { assert.equal(result.status, 0, result.stderr); return result.stdout.trim(); };
+
+test('cleanup removes only the identified synthetic containers, volume and network', () => {
+  const project = `opengym-foundation-test-${randomBytes(8).toString('hex')}`;
+  const volume = `${project}_postgres-data`;
+  const network = `${project}_private`;
+  const sentinel = `${project}_unrelated`;
+  const labels = ['--label', `com.docker.compose.project=${project}`, '--label', 'org.opengym.foundation=synthetic'];
+  let container;
+  try {
+    ok(docker('volume', 'create', ...labels, volume));
+    ok(docker('volume', 'create', sentinel));
+    ok(docker('network', 'create', '--internal', ...labels, network));
+    container = ok(docker('create', ...labels, '--label', 'com.docker.compose.service=foundation-db',
+      '--network', network, '--mount', `type=volume,source=${volume},target=/scratch`, nodeImage, 'true'));
+    const result = spawnSync(process.execPath, [cli, 'cleanup', project], { encoding: 'utf8', timeout: 30_000 });
+    assert.equal(result.status, 0, result.stderr);
+    assert.notEqual(docker('volume', 'inspect', volume).status, 0, 'owned volume must be removed');
+    assert.notEqual(docker('network', 'inspect', network).status, 0, 'owned network must be removed');
+    assert.notEqual(docker('container', 'inspect', container).status, 0, 'owned container must be removed');
+    assert.equal(docker('volume', 'inspect', sentinel).status, 0, 'unrelated volume must survive');
+  } finally {
+    if (container) docker('container', 'rm', '--force', container);
+    docker('volume', 'rm', volume, sentinel);
+    docker('network', 'rm', network);
+  }
+});
+
+test('cleanup refuses mixed-ownership resources before deleting any of them', () => {
+  const project = `opengym-foundation-test-${randomBytes(8).toString('hex')}`;
+  const volume = `${project}_postgres-data`;
+  const network = `${project}_private`;
+  try {
+    ok(docker('volume', 'create', '--label', `com.docker.compose.project=${project}`,
+      '--label', 'org.opengym.foundation=synthetic', volume));
+    ok(docker('network', 'create', '--label', `com.docker.compose.project=${project}`, network));
+    const result = spawnSync(process.execPath, [cli, 'cleanup', project], { encoding: 'utf8', timeout: 30_000 });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Refusing unverified Foundation resource/);
+    assert.equal(docker('volume', 'inspect', volume).status, 0, 'validated resource must survive preflight rejection');
+    assert.equal(docker('network', 'inspect', network).status, 0, 'unverified resource must survive');
+  } finally {
+    docker('volume', 'rm', volume);
+    docker('network', 'rm', network);
+  }
+});
+
+test('run uses real PostgreSQL on Node 22 then removes its own runtime resources', { timeout: 240_000 }, () => {
+  const result = spawnSync(process.execPath, [cli, 'run', 'environment'], {
+    encoding: 'utf8', timeout: 230_000,
+    env: { ...process.env, COMPOSE_PROJECT_NAME: 'opengym', COMPOSE_FILE: 'docker-compose.yml',
+      PGHOST: 'real-database.example', DATABASE_URL: 'must-not-be-inherited' },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Foundation environment ready: Node 22\.23\.2; PostgreSQL 18\.6/);
+  assert.match(result.stdout, /Foundation cleanup complete/);
+  const project = result.stdout.match(/Foundation project: (opengym-foundation-test-[a-f0-9]{16})/)?.[1];
+  assert.ok(project);
+  for (const type of ['container', 'volume', 'network', 'image']) {
+    const args = [type, 'ls', '--quiet', '--filter', `label=com.docker.compose.project=${project}`];
+    if (type === 'container') args.push('--all');
+    assert.equal(ok(docker(...args)), '', `${type} must not remain after run`);
+  }
+});
