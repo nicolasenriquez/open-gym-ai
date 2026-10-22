@@ -13,7 +13,8 @@ API also passes its existing HTTP/JSON smoke without PostgreSQL. Tasks 2.1–2.3
 pool/transaction tests, implementation and the verified synthetic checkpoint.
 Tasks 3.1–3.3 deliver the isolated migrator and its synthetic verification checkpoint.
 Tasks 4.1–4.3 deliver synthetic RLS and its isolation verification checkpoint.
-Recovery and CI remain pending. No real instance configuration or data is
+Tasks 5.1–5.3 deliver fail-first tests, synthetic recovery implementation and its
+timed verification checkpoint. CI remains pending. No real instance configuration or data is
 mounted. G1 operational and all production gates remain unproven.
 
 ## Run the isolated environment (task 1.2)
@@ -29,7 +30,8 @@ The first build downloads the already locked dependencies with verified TLS and
 `npm ci --ignore-scripts --engine-strict`, then reruns `check:toolchain`. There is
 no host installation. The runner is read-only with a temporary `/tmp`, no Linux
 capabilities and no privilege escalation. The default group is `environment`;
-`pool`, `migrations` and `isolation` run their implemented behavioral tests. Unimplemented
+`pool`, `migrations` and `isolation` run their implemented behavioral tests;
+`recovery` runs the implemented encrypted backup/copy/restore tests. Unimplemented
 groups (including `all`) fail explicitly rather than pretend that later database
 proofs ran.
 
@@ -175,10 +177,10 @@ failures remain recorded; they are not a PostgreSQL regression or TDD proof.
 | 2: pool | `node api/foundation/environment.mjs run pool`: 2.1–2.3 complete, synthetic checkpoint PASS |
 | 3: migrations | `node api/foundation/environment.mjs run migrations`: 3.1–3.3 complete, synthetic checkpoint PASS |
 | 4: isolation | `node api/foundation/environment.mjs run isolation`: 4.1–4.3 complete, synthetic checkpoint PASS |
-| 5: recovery | Pending tasks 5.1–5.3; no runnable proof yet |
+| 5: recovery | `node api/foundation/environment.mjs run recovery`: 5.1–5.3 complete, 12/12 PASS; synthetic timed checkpoint verified |
 | 6: complete CI run | Pending tasks 6.1–6.3; no runnable proof yet |
 
-The `environment`, `pool`, `migrations` and `isolation` groups are passing. Other groups still fail explicitly; commands for later
+The `environment`, `pool`, `migrations`, `isolation` and `recovery` groups are passing. Other groups still fail explicitly; commands for later
 slices will be documented when delivered, not advertised as working.
 The shared prerequisite checkpoint is verified; this does not complete Foundation
 or establish operational G1.
@@ -617,6 +619,213 @@ implementation is unchanged; its migration regression is historical, not rerun h
 Full legacy suites/build/locales, encrypted recovery, CI and operational G1 remain
 pending. No real accounts, Training/Recovery schema, provider TLS, off-host backup,
 production RPO/RTO, commit, synchronization or archive is included.
+
+## Recovery fail-first contract (task 5.1)
+
+```bash
+node api/foundation/environment.mjs run recovery
+```
+
+The following records the **historical 5.1 RED baseline**, replaced by 5.2 below.
+At that checkpoint the group intentionally exited 1. `recovery.mjs` was a loadable connectivity-only
+baseline: it validates the fixed synthetic host/database/environment and argument
+shapes, connects to `foundation_test`, emits `recovery-baseline-connected` and
+closes. Exit 0 from that baseline never means a backup, transfer or restore happened.
+It reads/writes no artifact, runs no dump/restore and modifies no database. In
+particular, its permissive destination-name syntax is not a restore safety guard;
+the generated-target allowlist must be implemented before any restore in 5.2.
+
+The agreed CLI seam is concretized as follows, **inside the isolated runner only**:
+
+- `node recovery.mjs backup <bundle-dir> <key-file> <40-hex-application-revision>`
+- `node recovery.mjs copy <bundle-dir> <transfer-dir>`
+- `node recovery.mjs restore <transfer-dir> <key-file> <foundation_restore_16hex>`
+
+Paths belong to one test's `/tmp/foundation-recovery-*` directory: `backup/`,
+`transfer/`, and separate `keys/key.bin` or `keys/wrong.bin`. The key is 32 random
+bytes, mode 0600, never an argument value or part of the transferred bundle.
+The backup/transfer bundle contains exactly `backup.enc` and `manifest.json`.
+The AES-256-GCM binary contract is **12-byte nonce, 16-byte tag, ciphertext**;
+the raw UTF-8 manifest bytes are authenticated additional data. The manifest
+records formatVersion 1, applicationRevision, schemaVersion (history names),
+databaseVersion, pg_dump/pg_restore versions, sourceDatabase, owners, role names,
+cipher and dumpSha256. Tests declare a synthetic revision explicitly; it is not
+presented as the checkout's Git HEAD. Real callers must supply their actual revision.
+
+Tests reuse the real bootstrap/migration history and owner RLS fixture. Each
+creates only its own `foundation_restore_<16 hex>` database on the disposable
+cluster; it is distinct from the source, with cluster-shared roles already
+provisioned. Teardown closes clients, verifies generated target name/ownership,
+drops only that target and fixture schema, queries their absence, and removes
+its own tmpfs files. No actual instance or external destination is reachable.
+
+| Case | Retained contract | Observed RED |
+| --- | --- | --- |
+| Backup/copy/restore | Authenticated custom dump (PGDMP), manifest/hash/modes, transfer without key, semantic A/B data/history/ownership/policies/grants/database privileges, real runtime RLS after restore and unchanged source | Encrypted artifact absent |
+| Copy | Independent control bundle is copied byte-for-byte, exactly two files and no key | Transferred artifact absent |
+| Wrong key | Reject authentication with `Recovery verification failed`; empty target and source unchanged | Baseline exits 0 instead of rejecting |
+| Corruption | Reject modified ciphertext before applying content; target and source unchanged | Baseline exits 0 instead of rejecting |
+| Unsafe destination | Refuse `foundation_test` with `Refusing non-test restore target` before modification | Baseline exits 0 instead of refusing |
+
+Negative/copy cases use an independently sealed AES-GCM **authentication control**
+containing a synthetic payload, not valid pg_dump output. Its decryption is checked
+before tampering. This avoids missing-file or missing-backup setup failures; it
+does not prove real backup/restore. The main test retains those future branches,
+but currently stops at the missing encrypted artifact. No successful cryptographic
+rejection, actual transfer, dump, restore, role reprovisioning or restore duration
+is claimed. PostgreSQL 18 client tools are in the pinned PostgreSQL image; making
+them available to the recovery runner is still 5.2 work, not a RED prerequisite.
+
+Evidence: [first behavioral RED](evidence/recovery-5.1-first-red.txt),
+[five intended RED failures](evidence/recovery-5.1-red.txt),
+[harness 8/8 PASS](evidence/recovery-5.1-harness-regressions.txt),
+[source/log/cleanup audit](evidence/recovery-5.1-audit.txt). Runs use non-root
+Node 22.23.2/PostgreSQL 18.6, no skips/cancellations, expected exit 1 and cleanup.
+The harness additionally rejects external hosts/unsafe artifact paths before driver
+loading. Routine ponytail-review found no blocker for the RED-only scope. No
+dependencies were added; normal API, pool, roles and committed migrations are
+unchanged. 5.2–5.3/full suites/CI and operational G1 remain pending. A directory
+transfer on this host is not off-host backup, PITR or production RPO/RTO proof.
+
+## Synthetic recovery implementation (task 5.2)
+
+Run `node api/foundation/environment.mjs run recovery` from the repository root.
+The same approved CLI and binary bundle contract above are now implemented.
+The runner combines the already pinned PostgreSQL 18.6 image (including its client
+tools and libraries) with the pinned Node 22.23.2 binary/npm and locked dependency
+stage. It runs as UID 1000 with read-only root, private tmpfs and internal network.
+No new package, host installation, normal API image or dependency lock changes.
+
+Backup uses a read-only repeatable-read transaction, exports its PostgreSQL
+snapshot and supplies it to `pg_dump --format=custom --snapshot=...`. History and
+synthetic owner metadata come from that same snapshot. Bootstrap captures both
+owners despite RLS; it is never the application identity. The manifest records
+the caller-supplied revision (a declared synthetic value in tests), history,
+server/client versions, owners, roles, cipher and SHA-256 of the custom archive.
+AES-256-GCM authenticates the raw manifest as well as the archive. Only ciphertext
+and manifest are written; the random 32-byte key stays in a separate keys directory.
+
+Paths must be canonical, owned by the runner and private (no group/world bits);
+files must be regular and have one link. Empty destinations and exclusive writes
+prevent overwrite. Copy transfers exactly the encrypted artifact and manifest,
+never the key, to a different private directory. No filesystem or network URL is
+accepted. CLI/driver and libpq endpoints are fixed to the synthetic service;
+libpq gets a fresh allowlisted environment, finite timeouts, no service/DSN/options
+overrides and no password prompt. Subprocess stderr and SQL are never printed.
+
+Restore verifies GCM, authenticated metadata/hash and `pg_restore --list` before
+connecting to the destination. It accepts only `foundation_restore_<16 hex>`,
+owned by bootstrap, with untouched initial database ACLs and no user schemas,
+relations, routines or types. A session
+advisory lock serializes cooperating restores. `pg_restore --single-transaction
+--exit-on-error` preserves owners, grants and RLS; neither `--create` nor `--clean`
+is used. Database ACLs are set explicitly for the chosen target: public revoked,
+migrator CONNECT/CREATE, runtime and Training CONNECT only. They are set after the
+archive restore; an ACL failure returns failure and requires discarding this
+synthetic target. No failed target is promoted or used by the app.
+
+The existing bootstrap explicitly provisions migrator/runtime/Training; recovery
+verifies all three restricted login attributes and absence of memberships before
+dump/restore. Roles are global and shared by the two databases in this test cluster;
+the archive does **not** back up global roles or passwords. Provisioning a clean
+second cluster is not demonstrated. Dumps are buffered in memory with 32 MiB tool
+output and 20-second subprocess limits: this is a small synthetic rehearsal, not
+production backup tooling. Partial file writes are not presented as completed
+bundles and must be discarded with the owned test directory.
+
+Observed: **12/12 PASS**, no skips/cancellations, Node 22.23.2/non-root,
+PostgreSQL/client tools 18.6 and cleanup complete. The original five RED cases now
+pass, including real restored A/B data, history, owner, policy expressions, grants,
+runtime A/B/missing-context reads, denied TRUNCATE and unchanged source. Additional
+checks reject altered manifest, a target containing only a routine (observed
+behavioral RED then GREEN), public/symlinked keys, transfer overwrite, authenticated
+invalid archive, a target owned by another role and preexisting excess database
+grants (observed behavioral RED then GREEN). Original 5.1 evidence remains
+historical; no claim about its unexecuted branches is rewritten.
+
+Evidence: [baseline 5 RED repeated](evidence/recovery-5.2-baseline-red.txt),
+[initial 5 GREEN](evidence/recovery-5.2-initial-green.txt),
+[nonempty target RED](evidence/recovery-5.2-target-red.txt),
+[boundary checks 11 GREEN](evidence/recovery-5.2-boundary-green.txt),
+[excess destination privileges RED](evidence/recovery-5.2-acl-red.txt),
+[final 12 GREEN](evidence/recovery-5.2-green.txt),
+[pool 12/12](evidence/recovery-5.2-pool-regressions.txt),
+[migrations 7/7](evidence/recovery-5.2-migrations-regressions.txt),
+[isolation 20/20](evidence/recovery-5.2-isolation-regressions.txt),
+[harness 8/8](evidence/recovery-5.2-harness-regressions.txt),
+[source/log/cleanup audit and review](evidence/recovery-5.2-audit.txt).
+Those focused regressions were repeated because every group uses the changed
+runner image. No normal API/frontend/MCP suite, build or CI integration was run.
+At the 5.2 checkpoint, **5.3 remained pending** for dedicated complete/timed
+verification; its current results follow below. Directory transfer on the
+same host/restore in the same cluster proves no off-host backup, PITR, production
+RPO/RTO, provider compatibility or operational G1. No commit/sync/archive.
+
+Implementation references: [PostgreSQL 18 pg_dump](https://www.postgresql.org/docs/18/app-pgdump.html)
+(consistent snapshot/custom archive/global-role limits) and
+[PostgreSQL 18 pg_restore](https://www.postgresql.org/docs/18/app-pgrestore.html)
+(transactional restore and the source-name behavior of `--create`, deliberately omitted).
+
+## Recovery verification checkpoint (task 5.3)
+
+Reran `node api/foundation/environment.mjs run recovery` on pinned non-root
+Node 22.23.2/PostgreSQL 18.6/client tools 18.6: **12/12 PASS**, no skips or
+cancellations, natural exit 0 and cleanup complete. Only verification and docs
+changed; the recovery CLI, Docker image definition, dependency lock, bootstrap,
+pool, committed migration and RLS fixture are unchanged. This is positive
+characterization of existing behavior, not a new feature requiring artificial RED.
+
+The main test now compares schema/table ownership, RLS enabled/forced flags,
+policy roles/permissiveness/command/USING/WITH CHECK, history, A/B data, grants
+and database privileges. Literal source expectations prevent two equally wrong
+snapshots from passing. After restore, real runtime A/B logins through the shared
+runtime identity read only their own rows, perform own UPDATE/INSERT/DELETE,
+cannot modify/delete the other owner, and cannot insert a foreign owner or write
+without context. TRUNCATE fails. A real Training login still cannot read the
+fixture even with known owner context. Verification writes roll back; both the
+restored target and untouched source then match the original semantic snapshot.
+
+One sample, **two owner rows**, custom archive **7,125 bytes**, ciphertext bundle
+file **7,153 bytes** (manifest separate):
+
+| Measurement | Observed ms |
+| --- | ---: |
+| Backup CLI | 104.069 |
+| Copy CLI | 23.489 |
+| Restore CLI | 74.436 |
+| Semantic/runtime verification | 20.532 |
+| Restore through verification completion | 94.969 |
+| Backup through final verification, including intervening artifact checks | 227.922 |
+
+Monotonic `performance.now()` wraps real CLI processes, including process startup.
+Restore includes authentication/archive validation, pg_restore and database ACLs.
+Fixture preparation, Docker build/startup and cleanup are excluded. These numbers
+describe a tiny same-host tmpfs transfer and two databases sharing one disposable
+cluster, not production RPO/RTO or a performance benchmark. Roles were provisioned
+by the existing explicit bootstrap and are shared, not archived/reprovisioned in
+a second cluster. No real-instance data, external provider or off-host durability
+is exercised.
+
+Each of the **12** teardowns confirms its generated database/schema and tmpfs
+artifacts/key are absent after closing clients. Independent Docker queries confirm
+zero owned containers (including stopped), volume, network and runner image for
+both 5.3 runs. Wrong key, ciphertext/manifest corruption, invalid archive and unsafe
+destination tests still pass without changing source or rejected target state.
+
+Evidence: [complete timed run](evidence/recovery-5.3-run.txt),
+[source/log/cleanup audit and review](evidence/recovery-5.3-audit.txt),
+[initial verification assertion failure](evidence/recovery-5.3-verification-failure.txt).
+The first run failed in fixture verification because the driver returned SQL
+`name[]` as text; selecting role names as `text` produces a parsed `text[]`.
+That failed setup is preserved and receives no recovery/timing credit; it is not
+a behavioral RED. The corrected run passed all checks. No blocking review finding
+remains for this synthetic checkpoint.
+
+**Slice 5 is verified for isolated synthetic use.** Pool/migration/RLS/harness
+regressions from 5.2 remain historical (12/7/20/8 PASS), not rerun because runtime
+and configuration did not change. Tasks 6.1–6.3, full legacy suites/build/locales,
+CI and operational G1 remain pending. Existing buffering and post-archive database
+ACL failure/discard limits from 5.2 still apply. No commit/sync/archive/deploy.
 
 ## Pins and evidence
 

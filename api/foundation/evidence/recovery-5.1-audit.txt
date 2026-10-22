@@ -1,0 +1,18 @@
+Task 5.1 fail-first synthetic recovery audit
+Commands: node api/foundation/environment.mjs run recovery (expected exit 1); node --test api/foundation/{environment,configuration,environment-docker}.test.mjs (exit 0).
+Runtime: Node 22.23.2 non-root UID 1000 / PostgreSQL 18.6; host Node 24.14.0 orchestrates Docker.
+Scope: only 5.1. Connectivity-only CLI baseline; no dump/encryption/copy/restore implementation. Independent AES-GCM controls are not valid pg_dump archives.
+recovery-5.1-first-red.txt: 1 intended behavioral assertion failures, no setup/import/missing-file failures or secret/DSN matches. Independent cleanup PASS: zero owned containers including stopped, volumes, networks/images for opengym-foundation-test-510b1886f8e145fe
+recovery-5.1-red.txt: 5 intended behavioral assertion failures, no setup/import/missing-file failures or secret/DSN matches. Independent cleanup PASS: zero owned containers including stopped, volumes, networks/images for opengym-foundation-test-3ca111532613c3fc
+Harness 8/8 PASS including new recovery host/path guards. Its own Docker resource assertions passed. Diagnostic scanner positive controls PASS; PostgreSQL server logs not audited.
+4539e538888e29042fefd6772c8606ef59507e6b61c9df5a39ea0e50134dc528  api/foundation/recovery.mjs
+a1f31dae5f9696dde2179a8d76ec73ff1da7f1ab450a8c03623937d605326c8e  api/foundation/recovery.test.mjs
+653bda6050a172045f25cc93e5335559fb0a22879b2765443fbe331298a6e077  api/foundation/environment.mjs
+a836622634f64591375f9c8922134340ae835c6d79895dbfa3c6094569f3aa6c  api/foundation/run.mjs
+bcc59005a1354bdad9957eff12054ef5935e753d1adf63232db5aa68745a992e  api/foundation/environment.test.mjs
+Final checks PASS: OpenSpec strict, node syntax, tracked diff and explicit new source whitespace, four evidence links, 13/18 tasks; 5.2/5.3 unchecked. Raw Docker output retained verbatim including trailing whitespace.
+Preconditions reached: real migration history and A/B RLS fixture, source semantic snapshot, owned generated target DB and separate key/bundle directories. Negative tests check unchanged source and target relations/schemas/database ACL before the intended RED. Teardown checks target ownership/name and database/schema absence.
+Contract retained but not reached in main RED: real custom dump, authenticated manifest/version/hash/file modes, exact transfer without key, restored A/B data/history/table owner/policies/grants/database privileges, runtime RLS and source intact. No actual restoration or cryptographic rejection is credited.
+What this change does: prepares runnable fail-first recovery process tests and a safe no-op baseline, with independent authentication controls so negatives do not depend on a successful backup. Existing application, pool, role bootstrap, RLS and committed migrations remain unchanged.
+Review: exact 5.1 diff/new sources, approved CLI/SQL seams, artifact/key separation, synthetic revision declaration, control-bundle authentication, target ownership/name guards, teardown, runner callers and spec inspected for disposable local/CI use. No blocking finding for RED scope. Verdict: Ship task 5.1 only.
+Not checked: pg_dump/pg_restore execution or availability in Node runner (5.2 must integrate pinned PG18 tools), valid encrypted backup/copy/restore, global role reprovisioning, restore timing, full suites/CI/provider/operational G1. Same-cluster separate DB is not off-host backup/PITR/RPO/RTO proof. No dependency/host installation, commit/push/sync/archive.

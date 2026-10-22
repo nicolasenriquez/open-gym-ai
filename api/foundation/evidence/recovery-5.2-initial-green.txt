@@ -1,0 +1,186 @@
+Foundation project: opengym-foundation-test-10f4fcc999f36be5
+ Image opengym-foundation-test-10f4fcc999f36be5-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 964B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+#3 ...
+
+#4 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#4 DONE 1.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+#3 DONE 1.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context:
+#5 transferring context: 141B done
+#5 DONE 0.2s
+
+#6 [dependencies 1/5] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#6 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 10.32kB done
+#7 DONE 0.0s
+
+#8 [dependencies 2/5] WORKDIR /app
+#8 CACHED
+
+#9 [dependencies 3/5] RUN chown node:node /app
+#9 CACHED
+
+#10 [dependencies 4/5] COPY --chown=node:node package.json package-lock.json ./
+#10 CACHED
+
+#11 [dependencies 5/5] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#11 CACHED
+
+#12 [stage-1 1/9] FROM docker.io/library/postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+#12 resolve docker.io/library/postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6 0.0s done
+#12 DONE 0.4s
+
+#13 [stage-1 2/9] COPY --from=dependencies /usr/local/bin/node /usr/local/bin/node
+#13 DONE 0.1s
+
+#14 [stage-1 3/9] COPY --from=dependencies /usr/local/lib/node_modules /usr/local/lib/node_modules
+#14 DONE 0.2s
+
+#15 [stage-1 4/9] RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
+#15 DONE 0.2s
+
+#16 [stage-1 5/9] WORKDIR /app
+#16 DONE 0.0s
+
+#17 [stage-1 6/9] COPY --from=dependencies --chown=1000:1000 /app/ ./
+#17 DONE 0.1s
+
+#18 [stage-1 7/9] COPY --chown=1000:1000 *.mjs versions.json ./
+#18 DONE 0.1s
+
+#19 [stage-1 8/9] COPY --chown=1000:1000 migrations/ ./migrations/
+#19 DONE 0.0s
+
+#20 [stage-1 9/9] RUN npm run check:toolchain
+#20 0.352 
+#20 0.352 > opengym-postgres-foundation@0.0.0 check:toolchain
+#20 0.352 > node check-toolchain.mjs
+#20 0.352 
+#20 0.412 Node 22.23.2; npm 10.9.8; linux/x64
+#20 0.412 Lock SHA-256: dfa32b226d91be7bb3fae885073bae29f71054335ce0b3f33e1b39ed574e3027
+#20 0.412 Package	Version	License (metadata)	Node engine (metadata)
+#20 0.412 ansi-regex	6.4.0	MIT	>=12
+#20 0.413 ansi-styles	6.2.3	MIT	>=12
+#20 0.413 balanced-match	4.0.4	MIT	18 || 20 || >=22
+#20 0.413 brace-expansion	5.0.12	MIT	20 || >=22
+#20 0.413 cliui	9.0.1	ISC	>=20
+#20 0.413 emoji-regex	10.6.0	MIT	(not declared)
+#20 0.413 escalade	3.2.0	MIT	>=6
+#20 0.413 get-caller-file	2.0.5	ISC	6.* || 8.* || >= 10.*
+#20 0.414 get-east-asian-width	1.7.0	MIT	>=18
+#20 0.414 glob	13.0.6	BlueOak-1.0.0	18 || 20 || >=22
+#20 0.414 jiti	2.7.0	MIT	(not declared)
+#20 0.414 lru-cache	11.5.3	BlueOak-1.0.0	20 || >=22
+#20 0.414 minimatch	10.2.6	BlueOak-1.0.0	18 || 20 || >=22
+#20 0.414 minipass	7.1.3	BlueOak-1.0.0	>=16 || 14 >=14.17
+#20 0.414 node-pg-migrate	9.0.0	MIT	>=20.11.0
+#20 0.414 path-scurry	2.0.2	BlueOak-1.0.0	18 || 20 || >=22
+#20 0.414 pg	8.23.1	MIT	>= 16.0.0
+#20 0.414 pg-cloudflare	1.4.1	MIT	(not declared)
+#20 0.415 pg-connection-string	2.14.1	MIT	(not declared)
+#20 0.415 pg-int8	1.0.1	ISC	>=4.0.0
+#20 0.415 pg-pool	3.14.0	MIT	(not declared)
+#20 0.415 pg-protocol	1.16.1	MIT	(not declared)
+#20 0.415 pg-types	2.2.0	MIT	>=4
+#20 0.415 pgpass	1.0.5	MIT	(not declared)
+#20 0.415 postgres-array	2.0.0	MIT	>=4
+#20 0.415 postgres-bytea	1.0.1	MIT	>=0.10.0
+#20 0.415 postgres-date	1.0.7	MIT	>=0.10.0
+#20 0.415 postgres-interval	1.2.0	MIT	>=0.10.0
+#20 0.415 split2	4.2.0	ISC	>= 10.x
+#20 0.415 string-width	7.2.0	MIT	>=18
+#20 0.415 strip-ansi	7.2.0	MIT	>=12
+#20 0.415 wrap-ansi	9.0.2	MIT	>=18
+#20 0.415 xtend	4.0.2	MIT	>=0.4
+#20 0.415 y18n	5.0.8	ISC	>=10
+#20 0.415 yargs	18.0.0	MIT	^20.19.0 || ^22.12.0 || >=23
+#20 0.415 yargs-parser	22.0.0	ISC	^20.19.0 || ^22.12.0 || >=23
+#20 0.415 PASS: pinned runtime, lock/installed metadata, stable versions, integrity metadata and ESM exports.
+#20 0.415 Engine range compatibility is checked by npm ci --engine-strict, not by this script.
+#20 DONE 0.5s
+
+#21 exporting to image
+#21 exporting layers
+#21 exporting layers 2.7s done
+#21 exporting manifest sha256:fe53185b1bd3ad86547b4d5265dc4c5ab0cf2ce7f33a9310b4052041a9b36083 0.0s done
+#21 exporting config sha256:5260c02c176aed14ad44354a220e5541437d7e44da1c386a7ff9559b4ff66f66 0.0s done
+#21 exporting attestation manifest sha256:347b6a18341b61c7a0fbdc699bd56d40a079792d5f7929f07727b368642c5bc3 0.0s done
+#21 exporting manifest list sha256:ed024b9b5d9657808952481906dbc3416442fd0387749c14c83937d4a84841fc 0.0s done
+#21 naming to docker.io/library/opengym-foundation-test-10f4fcc999f36be5-foundation-test:latest done
+#21 unpacking to docker.io/library/opengym-foundation-test-10f4fcc999f36be5-foundation-test:latest
+#21 unpacking to docker.io/library/opengym-foundation-test-10f4fcc999f36be5-foundation-test:latest 0.8s done
+#21 DONE 3.6s
+
+#22 resolving provenance for metadata file
+#22 DONE 0.0s
+ Image opengym-foundation-test-10f4fcc999f36be5-foundation-test Built 
+ Network opengym-foundation-test-10f4fcc999f36be5_private Creating 
+ Network opengym-foundation-test-10f4fcc999f36be5_private Created 
+ Volume opengym-foundation-test-10f4fcc999f36be5_postgres-data Creating 
+ Volume opengym-foundation-test-10f4fcc999f36be5_postgres-data Created 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-db-1 Creating 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-db-1 Created 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-db-1 Starting 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-db-1 Started 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-db-1 Waiting 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-db-1 Healthy 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-test-run-480e5ff4b2a7 Creating 
+ Container opengym-foundation-test-10f4fcc999f36be5-foundation-test-run-480e5ff4b2a7 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: encrypted backup transfers and restores both owners, history, ownership, grants and RLS into another database
+ok 1 - encrypted backup transfers and restores both owners, history, ownership, grants and RLS into another database
+  ---
+  duration_ms: 482.689025
+  type: 'test'
+  ...
+# Subtest: copy transfers only the encrypted artifact and manifest to a distinct directory
+ok 2 - copy transfers only the encrypted artifact and manifest to a distinct directory
+  ---
+  duration_ms: 223.081075
+  type: 'test'
+  ...
+# Subtest: wrong key: restore rejects authentication before touching the isolated target
+ok 3 - wrong key: restore rejects authentication before touching the isolated target
+  ---
+  duration_ms: 281.971806
+  type: 'test'
+  ...
+# Subtest: corrupt artifact: restore rejects authentication before touching the isolated target
+ok 4 - corrupt artifact: restore rejects authentication before touching the isolated target
+  ---
+  duration_ms: 242.858704
+  type: 'test'
+  ...
+# Subtest: restore refuses the source database as an unsafe destination without modifying it
+ok 5 - restore refuses the source database as an unsafe destination without modifying it
+  ---
+  duration_ms: 225.013725
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1505.4814
+Foundation cleanup complete

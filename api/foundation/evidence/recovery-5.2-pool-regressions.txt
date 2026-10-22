@@ -1,0 +1,163 @@
+Foundation project: opengym-foundation-test-8f0b897dd85249ed
+ Image opengym-foundation-test-8f0b897dd85249ed-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 964B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context:
+#5 transferring context: 141B done
+#5 DONE 0.0s
+
+#6 [stage-1 1/9] FROM docker.io/library/postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+#6 resolve docker.io/library/postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6 0.0s done
+#6 DONE 0.0s
+
+#7 [dependencies 1/5] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#7 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#7 DONE 0.0s
+
+#8 [stage-1 6/9] COPY --from=dependencies --chown=1000:1000 /app/ ./
+#8 CACHED
+
+#9 [internal] load build context
+#9 transferring context: 113.75kB 0.0s done
+#9 DONE 0.0s
+
+#10 [stage-1 7/9] COPY --chown=1000:1000 *.mjs versions.json ./
+#10 DONE 0.0s
+
+#11 [stage-1 8/9] COPY --chown=1000:1000 migrations/ ./migrations/
+#11 DONE 0.0s
+
+#12 [stage-1 9/9] RUN npm run check:toolchain
+#12 0.388 wrap-ansi	9.0.2	MIT	>=18
+#12 0.388 xtend	4.0.2	MIT	>=0.4
+#12 0.388 y18n	5.0.8	ISC	>=10
+#12 0.388 yargs	18.0.0	MIT	^20.19.0 || ^22.12.0 || >=23
+#12 0.388 yargs-parser	22.0.0	ISC	^20.19.0 || ^22.12.0 || >=23
+#12 0.388 PASS: pinned runtime, lock/installed metadata, stable versions, integrity metadata and ESM exports.
+#12 0.388 Engine range compatibility is checked by npm ci --engine-strict, not by this script.
+#12 DONE 0.4s
+
+#13 exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:c9d3f1b4cb69fcdb12bbb71cae48669a1c114a934608b40314294e3eb4b0f1bf 0.0s done
+#13 exporting config sha256:31b0999376ce06c0a9078ee1c962e253b27da1fa0d17b7a5263a53b12624e645 0.0s done
+#13 exporting attestation manifest sha256:adf043ffec0a8229d15ffb9ff5f547a8644f2795fd92410bd3455a3a3eb697a5
+#13 exporting attestation manifest sha256:adf043ffec0a8229d15ffb9ff5f547a8644f2795fd92410bd3455a3a3eb697a5 0.0s done
+#13 exporting manifest list sha256:9466ad233af0009b56f7d8842bd0d5b7c4fd12ed1fcd2472bf5f44cb9c4057ed 0.0s done
+#13 naming to docker.io/library/opengym-foundation-test-8f0b897dd85249ed-foundation-test:latest done
+#13 unpacking to docker.io/library/opengym-foundation-test-8f0b897dd85249ed-foundation-test:latest
+#13 unpacking to docker.io/library/opengym-foundation-test-8f0b897dd85249ed-foundation-test:latest 0.5s done
+#13 DONE 0.7s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.1s
+ Image opengym-foundation-test-8f0b897dd85249ed-foundation-test Built 
+ Network opengym-foundation-test-8f0b897dd85249ed_private Creating 
+ Network opengym-foundation-test-8f0b897dd85249ed_private Created 
+ Volume opengym-foundation-test-8f0b897dd85249ed_postgres-data Creating 
+ Volume opengym-foundation-test-8f0b897dd85249ed_postgres-data Created 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-db-1 Creating 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-db-1 Created 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-db-1 Starting 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-db-1 Started 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-db-1 Waiting 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-db-1 Healthy 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-test-run-bf12b874dde9 Creating 
+ Container opengym-foundation-test-8f0b897dd85249ed-foundation-test-run-bf12b874dde9 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: configuration rejects unbounded limits and TLS verification bypasses before connecting
+ok 1 - configuration rejects unbounded limits and TLS verification bypasses before connecting
+  ---
+  duration_ms: 1.05723
+  type: 'test'
+  ...
+# Subtest: failed transaction rolls back its write before the same connection is reused
+ok 2 - failed transaction rolls back its write before the same connection is reused
+  ---
+  duration_ms: 26.423423
+  type: 'test'
+  ...
+# Subtest: transaction-local context lasts for the work and disappears after commit
+ok 3 - transaction-local context lasts for the work and disappears after commit
+  ---
+  duration_ms: 7.567624
+  type: 'test'
+  ...
+# Subtest: transaction-local context lasts for the work and disappears after failure
+ok 4 - transaction-local context lasts for the work and disappears after failure
+  ---
+  duration_ms: 6.239675
+  type: 'test'
+  ...
+# Subtest: saturated pool times out, recovers its capacity and closes
+ok 5 - saturated pool times out, recovers its capacity and closes
+  ---
+  duration_ms: 304.972323
+  type: 'test'
+  ...
+# Subtest: terminated transaction connection is rejected and replaced for the next operation
+ok 6 - terminated transaction connection is rejected and replaced for the next operation
+  ---
+  duration_ms: 11.628585
+  type: 'test'
+  ...
+# Subtest: explicit close releases connections and rejects later work
+ok 7 - explicit close releases connections and rejects later work
+  ---
+  duration_ms: 5.27596
+  type: 'test'
+  ...
+# Subtest: query and callback failures expose no server details, payloads or nested secrets
+ok 8 - query and callback failures expose no server details, payloads or nested secrets
+  ---
+  duration_ms: 11.151682
+  type: 'test'
+  ...
+# Subtest: a caught SQL failure cannot report a rolled-back transaction as committed
+ok 9 - a caught SQL failure cannot report a rolled-back transaction as committed
+  ---
+  duration_ms: 5.877367
+  type: 'test'
+  ...
+# Subtest: a transaction query handle cannot outlive its callback and reach the next borrower
+ok 10 - a transaction query handle cannot outlive its callback and reach the next borrower
+  ---
+  duration_ms: 5.259632
+  type: 'test'
+  ...
+# Subtest: default server limits are finite and statement cancellation leaves a reusable connection
+ok 11 - default server limits are finite and statement cancellation leaves a reusable connection
+  ---
+  duration_ms: 60.06716
+  type: 'test'
+  ...
+# Subtest: client query timeout discards uncertain transaction connection and recovers
+ok 12 - client query timeout discards uncertain transaction connection and recovers
+  ---
+  duration_ms: 155.384042
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 649.080795
+Foundation cleanup complete

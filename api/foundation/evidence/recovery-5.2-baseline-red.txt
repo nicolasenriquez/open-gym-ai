@@ -1,0 +1,192 @@
+Foundation project: opengym-foundation-test-672b646ba64ac819
+ Image opengym-foundation-test-672b646ba64ac819-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 555B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 141B done
+#4 DONE 0.0s
+
+#5 [1/8] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#5 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 693B done
+#6 DONE 0.0s
+
+#7 [2/8] WORKDIR /app
+#7 CACHED
+
+#8 [4/8] COPY --chown=node:node package.json package-lock.json ./
+#8 CACHED
+
+#9 [6/8] COPY --chown=node:node *.mjs versions.json ./
+#9 CACHED
+
+#10 [5/8] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#10 CACHED
+
+#11 [3/8] RUN chown node:node /app
+#11 CACHED
+
+#12 [7/8] COPY --chown=node:node migrations/ ./migrations/
+#12 CACHED
+
+#13 [8/8] RUN npm run check:toolchain
+#13 CACHED
+
+#14 exporting to image
+#14 exporting layers done
+#14 exporting manifest sha256:b180888ba2f7e00425b230960f8df48f85b3e799fc3823d279c79feaf8905e3b done
+#14 exporting config sha256:b13e8c296bb85ffe2eed7cd539b0350c2548b7980e6b33d3dc27afe46057cc3c done
+#14 exporting attestation manifest sha256:5770dc4e9ca26579a8fb7575edfd13eedf9b462a92835467b62759b2f2d3ff3f 0.0s done
+#14 exporting manifest list sha256:279b490904f6c58d2fb5da5a32232cefcbeea544067fcc34b17739e59a7dbd63 done
+#14 naming to docker.io/library/opengym-foundation-test-672b646ba64ac819-foundation-test:latest done
+#14 unpacking to docker.io/library/opengym-foundation-test-672b646ba64ac819-foundation-test:latest
+#14 unpacking to docker.io/library/opengym-foundation-test-672b646ba64ac819-foundation-test:latest 0.2s done
+#14 DONE 0.3s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image opengym-foundation-test-672b646ba64ac819-foundation-test Built 
+ Network opengym-foundation-test-672b646ba64ac819_private Creating 
+ Network opengym-foundation-test-672b646ba64ac819_private Created 
+ Volume opengym-foundation-test-672b646ba64ac819_postgres-data Creating 
+ Volume opengym-foundation-test-672b646ba64ac819_postgres-data Created 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-db-1 Creating 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-db-1 Created 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-db-1 Starting 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-db-1 Started 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-db-1 Waiting 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-db-1 Healthy 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-test-run-76393056a3a3 Creating 
+ Container opengym-foundation-test-672b646ba64ac819-foundation-test-run-76393056a3a3 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: encrypted backup transfers and restores both owners, history, ownership, grants and RLS into another database
+not ok 1 - encrypted backup transfers and restores both owners, history, ownership, grants and RLS into another database
+  ---
+  duration_ms: 324.56231
+  type: 'test'
+  location: '/app/recovery.test.mjs:97:1'
+  failureType: 'testCodeFailure'
+  error: 'backup must create an encrypted artifact, not merely connect'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///app/recovery.test.mjs:102:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: copy transfers only the encrypted artifact and manifest to a distinct directory
+not ok 2 - copy transfers only the encrypted artifact and manifest to a distinct directory
+  ---
+  duration_ms: 255.514097
+  type: 'test'
+  location: '/app/recovery.test.mjs:157:1'
+  failureType: 'testCodeFailure'
+  error: 'copy must create the transferred artifact'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///app/recovery.test.mjs:162:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: wrong key: restore rejects authentication before touching the isolated target
+not ok 3 - wrong key: restore rejects authentication before touching the isolated target
+  ---
+  duration_ms: 251.890226
+  type: 'test'
+  location: '/app/recovery.test.mjs:170:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    wrong key must be rejected, not reported as successful
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///app/recovery.test.mjs:183:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: corrupt artifact: restore rejects authentication before touching the isolated target
+not ok 4 - corrupt artifact: restore rejects authentication before touching the isolated target
+  ---
+  duration_ms: 234.582561
+  type: 'test'
+  location: '/app/recovery.test.mjs:170:3'
+  failureType: 'testCodeFailure'
+  error: |-
+    corrupt artifact must be rejected, not reported as successful
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///app/recovery.test.mjs:183:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: restore refuses the source database as an unsafe destination without modifying it
+not ok 5 - restore refuses the source database as an unsafe destination without modifying it
+  ---
+  duration_ms: 238.750605
+  type: 'test'
+  location: '/app/recovery.test.mjs:188:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    restore must explicitly reject a destination outside its generated test target
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///app/recovery.test.mjs:195:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1351.338237
+
+Foundation cleanup complete
+Docker compose failed
