@@ -1,8 +1,15 @@
+---
+type: PRD
+title: OpenGym Recovery — PRD
+description: Requisitos funcionales y validación de Recovery posteriores a la aceptación de plataforma.
+---
 # OpenGym Recovery — PRD
 
 **Estado:** aprobado formalmente por el usuario desde la perspectiva funcional y de producto. Product Discovery y elaboración del PRD cerrados. Este documento es la fuente de verdad de los requisitos funcionales; la aprobación no equivale a validación en uso real ni a aprobación de arquitectura.
 
 **Fuentes principales:** [discovery consolidado](dev/personal-recovery-discovery.md) y [glosario](../GLOSSARY.md). Este PRD traduce esas decisiones a intención de producto; no es un diseño técnico ni autoriza implementación.
+
+**Revisión de prioridad autorizada el 2026-10-22:** la implementación de Recovery comienza después de completar y aceptar la plataforma Python/FastAPI/PostgreSQL del [PRD Evolution](open-gym-evolution.prd.md), conforme a [arquitectura §12](open-gym-evolution.architecture.md#12-gates-y-experimentos-antes-de-producción). Se conservan los requisitos funcionales y escenarios A–D. La aprobación documental no acredita plataforma terminada ni inicia Recovery.
 
 **Revisión aprobada del alcance web:** la entrega actual es una web responsive. La aceptación deja de depender de Safari/iPhone; conserva las tres sesiones reales como evaluación de utilidad. Esta revisión documental no acredita pruebas visuales ejecutadas ni modifica los escenarios A–D.
 
@@ -12,7 +19,7 @@ OpenGym Recovery busca que una persona en rehabilitación pueda consultar sus in
 
 La apuesta es sustituir los registros paralelos mediante un recorrido sencillo: **capturar indicación → organizar ejercicios → iniciar sesión → guardar avances → completar sesión → consultar historial y evolución**. Se reutilizará OpenGym cuando permita cumplir el recorrido sin comprometer el historial ni Training.
 
-La validación se realizará durante las primeras tres sesiones reales de kinesiología, desde cualquier navegador y tamaño admitidos para la entrega web. Se considerará cuestionada la hipótesis si el usuario necesita seguir registrando en WhatsApp o Notas por lentitud, complejidad o falta de confianza. Garmin, voz avanzada, ampliación del coach y modernización tecnológica quedan fuera del MVP.
+La validación se realizará durante las primeras tres sesiones reales de kinesiología, desde cualquier navegador y tamaño admitidos para la entrega web, después de aceptar plataforma y verificar la experiencia Recovery completa. Se considerará cuestionada la hipótesis si el usuario necesita seguir registrando en WhatsApp o Notas por lentitud, complejidad o falta de confianza. Garmin, voz avanzada y ampliación del coach quedan fuera del MVP funcional. La modernización se entrega previamente con aceptación propia; las tres sesiones no evalúan la migración arquitectónica.
 
 ## 1. Problema
 
@@ -42,7 +49,7 @@ La evidencia corresponde a una sola persona y a una etapa inicial. No permite in
 
 ### Por qué ahora
 
-El usuario está comenzando su proceso de recuperación. Es una oportunidad para construir continuidad desde el inicio y validar con sesiones reales, en lugar de reconstruir un historial extenso o invertir primero en automatizaciones.
+El discovery original recoge el comienzo del proceso de recuperación y la oportunidad de construir continuidad con sesiones reales. La revisión de prioridad del 2026-10-22 antepone la plataforma antes de implementar Recovery; no presupone que la etapa personal siga siendo la misma al entregar la función ni inventa una fecha de validación. La oportunidad de producto y sus hipótesis se conservan.
 
 ### Por qué podría superar las alternativas actuales
 
@@ -185,11 +192,11 @@ Los tres últimos resultados son comprobaciones funcionales de requisitos confir
 - Ampliación del AI Coach para rehabilitación.
 - Desarrollo o distribución de apps nativas y publicación en tiendas. Las capacidades móviles existentes del proyecto base no forman parte de esta entrega.
 - Despliegue definitivo en VPS como condición de la primera validación.
-- Sustitución obligatoria del backend, base de datos, autenticación o frontend.
+- Implementación de la modernización dentro del alcance funcional Recovery: Python/FastAPI/PostgreSQL corresponde a la entrega previa Evolution. No implica sustituir el frontend o cambiar automáticamente la experiencia de autenticación.
 
 ### Roadmap de OpenGym Evolution
 
-Iniciativas posteriores independientes del MVP; no tienen orden ni fechas comprometidos, salvo validar localmente antes del VPS definitivo.
+Orden de entrega vigente: **plataforma Python/FastAPI/PostgreSQL completada y aceptada → Recovery → Garmin Connect → ampliaciones de IA**. La plataforma es una dependencia de implementación y tiene aceptación independiente; no demuestra por sí misma la utilidad de Recovery. Sin fechas comprometidas; voz, análisis y offline avanzado se evalúan por necesidad. Validar localmente no obliga a adelantar el VPS definitivo.
 
 | Iniciativa | Intención de producto futura |
 | --- | --- |
@@ -198,7 +205,7 @@ Iniciativas posteriores independientes del MVP; no tienen orden ni fechas compro
 | Voz | Evaluar transcripción propia si el dictado nativo no basta. |
 | AI Coach | Evaluar una ampliación con información pertinente de entrenamiento y recuperación, sin convertirla en prescripción autónoma. |
 | Análisis y offline | Evaluar mejoras según necesidades observadas, no como requisitos anticipados. |
-| Modernización arquitectónica | Investigar mejoras incrementales o iniciativas técnicas independientes que preserven lo útil de OpenGym. No es una condición para demostrar el valor de Recovery. |
+| Plataforma Evolution — previa | Completar y aceptar el [PRD Evolution](open-gym-evolution.prd.md) antes de implementar Recovery; preservar las capacidades actuales y operar/recuperar la instancia conforme a arquitectura. |
 
 ## 9. Preguntas abiertas y handoff
 
@@ -264,7 +271,7 @@ Son temas a investigar y decidir después de la aprobación del PRD, no decision
 - Entorno de verificación web local, compatibilidad de autenticación y transición posterior a dominio/VPS con HTTPS, origen y RP ID válidos.
 - Respaldo, restauración y protección de registros reales antes de la validación; trazabilidad sencilla no equivale a garantías clínicas.
 - Revisión de acceso, exportaciones y selección de datos del coach para evitar que incorporar Recovery extienda inadvertidamente el uso de información personal. Los límites y mecanismos se decidirán expresamente en arquitectura.
-- Evaluación independiente de FastAPI, PostgreSQL, Alembic, LangChain/LangGraph y pgvector cuando exista una necesidad concreta; ninguna alternativa es un requisito obligatorio de este producto.
+- Python/FastAPI/PostgreSQL es la dirección confirmada de la plataforma previa, no una nueva necesidad clínica ni un requisito de utilidad de Recovery. Arquitectura concreta herramientas auxiliares y condiciones de aceptación. LangChain/LangGraph y pgvector no son dependencias anticipadas.
 - Evaluación de prácticas de AI Tutor como referencia, sin importar automáticamente su dominio dental, estructura o topología de despliegue.
 
 Referencias de kinesiología y la mención previa a Mapbox siguen sin aclararse; no son dependencias del alcance confirmado y no autorizan incorporar protocolos clínicos ni mapas.
@@ -280,14 +287,14 @@ Referencias de kinesiología y la mención previa a Mapbox siguen sin aclararse;
 | Métricas orientadas a resultados | Cumple: consulta, ausencia de doble registro, comprensión y confianza; sin tiempos o porcentajes inventados. |
 | Supuestos visibles | Cumple: utilidad, cambio de hábito y experiencia web responsive siguen sin validarse. |
 | Ambigüedades de aceptación | Tres decisiones cerradas por el usuario y cuatro escenarios verificables en 9.1, distinguiendo el registro retrospectivo con y sin indicación identificable. No quedan ambigüedades funcionales críticas identificadas. |
-| Exclusiones y roadmap | Cumple: Evolution documentado sin dependencia automática del MVP. |
+| Exclusiones y roadmap | Plataforma previa con aceptación propia; luego Recovery, Garmin y ampliaciones de IA. La revisión de prioridad no amplía los requisitos funcionales del MVP. |
 | Separación producto/ingeniería | No se eligen librerías, versiones, relaciones de datos, estructura, mecanismos de seguridad, reintentos ni arquitectura de pruebas. Los temas técnicos se entregan, no se resuelven. |
 
 **Preparación:** revisión documental completada y aprobación final de producto recibida. Las tres precisiones funcionales están confirmadas y expresadas como requisitos y escenarios verificables. No se identifican contradicciones con el discovery o el glosario: los cambios automáticos siguen prohibidos y las correcciones explícitas son trazables; el contexto conocido se preserva y el desconocido no se inventa.
 
-El PRD aprobado fundamenta la [arquitectura ya aprobada](open-gym-evolution.architecture.md). No es una especificación lista para implementar ni una validación de viabilidad técnica. Las hipótesis de valor y usabilidad y los riesgos técnicos de 9.2 y 9.3 permanecen abiertos, sin nuevas decisiones funcionales que requieran otra ronda de discovery.
+El PRD aprobado conserva la autoridad funcional de Recovery dentro de la [arquitectura revisada](open-gym-evolution.architecture.md); el [PRD Evolution](open-gym-evolution.prd.md) gobierna la plataforma previa. No es una especificación lista para implementar ni una validación de viabilidad técnica. Las hipótesis de valor y usabilidad y los riesgos técnicos de 9.2 y 9.3 permanecen abiertos, sin nuevas decisiones funcionales que requieran otra ronda de discovery.
 
-**Handoff vigente:** la arquitectura aprobada traduce este PRD a contratos y gates; la entrega sintética completada se registra en [OpenSpec Foundation archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md), sin acreditar G1 operativo. Sus tareas no constituyen por sí solas la entrega funcional Recovery y deben preservar los requisitos y escenarios de este PRD. Cualquier nueva funcionalidad del MVP requiere justificación de producto y aprobación explícita; las preferencias tecnológicas no amplían el alcance.
+**Handoff vigente:** completar plataforma conforme al PRD Evolution y G0–G3/GP/GO antes de comenzar implementación Recovery. Después se aplican los contratos Recovery, G4/G5 y el recorrido completo de este PRD; solo entonces se realizan las tres sesiones reales para evaluar utilidad. La entrega Node sintética del [OpenSpec Foundation archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md) no demuestra Python, G1 operativo ni plataforma terminada. Cualquier nueva funcionalidad del MVP requiere justificación de producto y aprobación explícita; la revisión de prioridad no amplía el alcance funcional.
 
 La evolución debe preservar Training, su historial y el acceso a los datos existentes. La sustitución de la persistencia y las condiciones para cerrar su retirada técnica se definen en la [arquitectura, §§9, 11–12 y 14](open-gym-evolution.architecture.md); no constituyen criterios adicionales de utilidad o adopción de Recovery.
 

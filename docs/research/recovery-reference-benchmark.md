@@ -1,12 +1,19 @@
+---
+type: Research
+title: OpenGym Recovery — benchmark de referencias
+description: Benchmark histórico de referencias Recovery y límites de sus recomendaciones.
+---
 # OpenGym Recovery — benchmark de referencias
 
 **Revisión documental posterior aprobada:** E7 se alinea con la entrega web responsive del PRD y arquitectura §12.1. Se conservan las observaciones históricas y sus límites; esta revisión no ejecuta pruebas ni amplía el producto.
+
+**Revisión de prioridad del 2026-10-22:** el dictamen de esta investigación corresponde a la base documental anterior. La solicitud posterior del usuario establece [plataforma Python/FastAPI/PostgreSQL completada y aceptada](../open-gym-evolution.prd.md) antes de implementar Recovery, según [arquitectura §14](../open-gym-evolution.architecture.md#14-secuencia-conceptual-confirmada-de-futuras-openspecs-y-handoff). Se conservan los hallazgos funcionales; esta nota no los reejecuta ni convierte el benchmark en autoridad sobre la nueva secuencia.
 
 ## 1. Estado, autoridad y dictamen
 
 **Estado:** resultado del benchmark especializado aprobado por el usuario; documentado como referencia complementaria para las futuras OpenSpecs funcionales de Recovery.
 
-**Dictamen aprobado:** no es necesario modificar el [PRD](../open-gym-recovery.prd.md), la [arquitectura](../open-gym-evolution.architecture.md) ni el [glosario](../../GLOSSARY.md). Los hallazgos refuerzan decisiones existentes; no demuestran una omisión fundamental ni autorizan ampliar el MVP.
+**Dictamen aprobado de la investigación original:** no era necesario modificar el [PRD](../open-gym-recovery.prd.md), la [arquitectura](../open-gym-evolution.architecture.md) ni el [glosario](../../GLOSSARY.md) por estos hallazgos. Refuerzan decisiones funcionales existentes; no demuestran una omisión fundamental ni autorizan ampliar el MVP. La revisión posterior de prioridad procede del usuario, no de estos hallazgos.
 
 El PRD sigue siendo la fuente de verdad funcional y la arquitectura mantiene las decisiones técnicas aprobadas. Este benchmark no es una nueva especificación, un DDL aprobado ni una validación de utilidad clínica o adopción. Si existe una diferencia de interpretación, prevalecen los documentos aprobados, no las capacidades de las referencias externas.
 
@@ -202,7 +209,7 @@ El impacto del benchmark original fue **ninguno** para F1–F8/E1–E7. La revis
 
 ## 7. Handoff — `add-recovery-foundation`
 
-**Destino:** evidencia complementaria para la futura definición autorizada del cambio. No es su OpenSpec ni inicia implementación. Debe respetar la secuencia de arquitectura §14: Foundation PostgreSQL, migración de identidad/Training y compatibilidad antes del uso real Recovery. No adelantar su esquema funcional dentro de `add-postgres-foundation`.
+**Destino:** evidencia complementaria para la futura definición autorizada del cambio. No es su OpenSpec ni inicia implementación. Debe respetar la secuencia revisada de arquitectura §14: Foundation Python/PostgreSQL, port/migración/retirada y aceptación de plataforma antes de implementar Recovery. No adelantar su esquema funcional en la plataforma ni reabrir `add-postgres-foundation`, archivada como entrega sintética Node.
 
 ### Invariantes y modelo conceptual — F1/F5
 

@@ -266,7 +266,14 @@ The [documentation index](docs/README.md) sorts every guide by who it's for. The
 
 ## Roadmap
 
-A release roughly every two weeks, each small and themed. The full plan is in
+**Local OpenGym Evolution priority (2026-10-22):** complete and accept the
+[Python/FastAPI/PostgreSQL platform](docs/open-gym-evolution.prd.md) first, then Recovery,
+Garmin Connect and expanded AI capabilities. The [architecture](docs/open-gym-evolution.architecture.md)
+defines transition and acceptance; this is planning, not an implemented stack. See the
+[local delivery sequence](ROADMAP.md#opengym-evolution--local-delivery-priority).
+
+The release table and cadence below are retained upstream context, not local Evolution commitments.
+A release roughly every two weeks, each small and themed. The upstream plan is in
 [ROADMAP.md](ROADMAP.md), and the issues sit in the
 [GitHub milestones](https://github.com/DuarteSantos8/openGym/milestones). The next two releases
 finish the community wishes, then comes a new exercise database and a themed release every

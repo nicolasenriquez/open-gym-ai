@@ -1,6 +1,13 @@
+---
+type: Research
+title: OpenGym Recovery — discovery consolidado
+description: Evidencia histórica de necesidades, decisiones y límites del discovery de Recovery.
+---
 # OpenGym Recovery — discovery consolidado
 
 Estado: discovery cerrado tras confirmación final del usuario, conservado como antecedente del [PRD aprobado](../open-gym-recovery.prd.md) y la [arquitectura aprobada](../open-gym-evolution.architecture.md). No es una especificación implementable; el estado de entrega se sigue en OpenSpec.
+
+**Revisión de prioridad autorizada el 2026-10-22:** completar y aceptar primero la plataforma Python/FastAPI/PostgreSQL del [PRD Evolution](../open-gym-evolution.prd.md); después implementar Recovery, luego Garmin y ampliaciones de IA. Se conserva el testimonio original y el alcance funcional Recovery. Las preferencias técnicas inicialmente exploratorias quedan sustituidas por esta dirección; no se declara ninguna implementación o prueba nueva.
 
 **Revisión aprobada del alcance web:** este discovery incorpora la entrega web responsive y conserva su testimonio inicial como contexto histórico. El PRD y la arquitectura desarrollan esta revisión; no se requieren app nativa ni validación en un teléfono concreto.
 
@@ -108,7 +115,7 @@ La validación técnica web responsive comprueba interacción, revisión visual 
 - Dashboards y análisis avanzados.
 - Infraestructura offline avanzada para Recovery.
 - Desarrollo de apps nativas y distribución en tiendas para esta entrega; se conservan las capacidades existentes del proyecto base.
-- Refactorización completa de backend o base de datos como dependencia automática de Recovery.
+- Implementar la modernización dentro del alcance funcional Recovery: ahora corresponde a una entrega previa de plataforma con aceptación independiente. No añade funciones clínicas al MVP.
 
 ## 6. Riesgos y decisiones abiertas
 
@@ -136,7 +143,7 @@ Los detalles de interacción y diseño técnico restantes deben tratarse al espe
 
 ## 7. Roadmap posterior — OpenGym Evolution
 
-Son iniciativas futuras, sin orden ni fechas comprometidos salvo validar localmente antes de desplegar en VPS.
+Orden vigente de implementación: **plataforma Python/FastAPI/PostgreSQL completada y aceptada → Recovery → Garmin Connect → ampliaciones de IA**. La plataforma tiene aceptación técnica propia; las tres sesiones reales validan Recovery después de entregar su recorrido completo. Sin fechas comprometidas; acceso remoto, voz y análisis se concretarán cuando corresponda, preservando validación local antes del VPS definitivo.
 
 | Iniciativa | Intención y límites |
 | --- | --- |
@@ -144,7 +151,7 @@ Son iniciativas futuras, sin orden ni fechas comprometidos salvo validar localme
 | Garmin Connect | Explorar importación y sincronización de actividades y métricas; investigar autenticación, procedencia y duplicados. La exportación `.fit` existente no equivale a importación. |
 | Voz | Evaluar transcripción propia si el dictado nativo no resuelve la captura. |
 | AI Coach | Evaluar análisis con información de Training, Recovery y Garmin, con consentimiento, límites de datos y revisión humana. No autoriza tratamientos autónomos. |
-| Evolución arquitectónica | Investigar FastAPI, PostgreSQL, Alembic y LangChain/LangGraph; pgvector solo ante una necesidad concreta. Cambios incrementales o iniciativas técnicas independientes, no prerrequisito automático del MVP. |
+| Plataforma Evolution — previa | Python/FastAPI/PostgreSQL confirmado; completar paridad, migración y operación antes de implementar Recovery. Herramientas auxiliares y gates en arquitectura; LangChain/LangGraph y pgvector no se anticipan. |
 | Análisis y offline | Evaluar vistas avanzadas y soporte offline de Recovery según fricciones reales, no anticiparlas como requisitos. |
 
 ## 8. Referencias y evidencia técnica inicial
@@ -161,8 +168,8 @@ Son iniciativas futuras, sin orden ni fechas comprometidos salvo validar localme
 
 Este documento es el insumo de discovery para `plan-create-prd`: problema, evidencia, usuario, hipótesis, MVP, criterios de validación, exclusiones y preguntas abiertas. No generar requisitos adicionales como hechos ni convertir preferencias de stack en requisitos de producto.
 
-Handoff realizado: el PRD y la arquitectura enlazados arriba desarrollan las decisiones confirmadas. Distinguir evidencia aportada por el usuario de hipótesis aún no validadas; esta revisión conserva el dominio y actualiza el alcance web.
+Handoff realizado: el PRD Recovery conserva las decisiones funcionales; el PRD Evolution y la arquitectura revisada concretan la nueva prioridad de plataforma previa. Distinguir evidencia aportada por el usuario de hipótesis aún no validadas; esta revisión conserva el dominio y el alcance web.
 
-El PRD debe describir intención, alcance y resultados, sin decidir librerías, relaciones de datos ni estrategia de persistencia. Las preferencias y riesgos técnicos de este documento ya se entregaron a arquitectura y se concretan por cambios OpenSpec autorizados. No se exige modernización arquitectónica para validar Recovery.
+Los PRD describen intención, alcance y resultados; arquitectura desarrolla mecanismos y contratos. Python/FastAPI/PostgreSQL es una restricción estratégica del promotor y una dependencia de implementación de Recovery, sin demostrar su valor de producto. Las hipótesis de utilidad y las tres sesiones reales se conservan; no se confunden con pruebas de paridad o aceptación de plataforma.
 
-El PRD y la arquitectura ya fueron aprobados; Foundation tiene implementación parcial registrada en su tracker. Esta revisión solo actualiza documentación y no inicia Recovery ni valida su interfaz o viabilidad.
+Foundation Node completó su entrega sintética y fue archivada; su evidencia histórica no acredita el stack Python ni una migración real. El estado técnico vigente se consulta en [arquitectura §§12 y 14](../open-gym-evolution.architecture.md#12-gates-y-experimentos-antes-de-producción) y los trackers correspondientes. Esta revisión solo actualiza documentación y no inicia plataforma o Recovery ni valida sus gates.
