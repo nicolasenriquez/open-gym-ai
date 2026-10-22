@@ -14,7 +14,9 @@ pool/transaction tests, implementation and the verified synthetic checkpoint.
 Tasks 3.1–3.3 deliver the isolated migrator and its synthetic verification checkpoint.
 Tasks 4.1–4.3 deliver synthetic RLS and its isolation verification checkpoint.
 Tasks 5.1–5.3 deliver fail-first tests, synthetic recovery implementation and its
-timed verification checkpoint. CI remains pending. No real instance configuration or data is
+timed verification checkpoint. Task 6.1 integrates the complete runner in CI; its
+configuration and the same local entry are verified (remote Actions execution is not claimed).
+No real instance configuration or data is
 mounted. G1 operational and all production gates remain unproven.
 
 ## Run the isolated environment (task 1.2)
@@ -31,9 +33,42 @@ The first build downloads the already locked dependencies with verified TLS and
 no host installation. The runner is read-only with a temporary `/tmp`, no Linux
 capabilities and no privilege escalation. The default group is `environment`;
 `pool`, `migrations` and `isolation` run their implemented behavioral tests;
-`recovery` runs the implemented encrypted backup/copy/restore tests. Unimplemented
-groups (including `all`) fail explicitly rather than pretend that later database
-proofs ran.
+`recovery` runs the implemented encrypted backup/copy/restore tests. `all` runs
+environment guards, pool, migrations, isolation and recovery sequentially, stopping
+at the first failure. Unknown groups fail explicitly.
+
+## Integrated CI entry (task 6.1)
+
+From the repository root, local and `.github/workflows/test.yml` use exactly:
+
+```bash
+node api/foundation/environment.mjs run all
+node --test api/foundation/environment.test.mjs api/foundation/configuration.test.mjs api/foundation/environment-docker.test.mjs
+```
+
+The Foundation job uses Ubuntu and host Node 22.23.2; Compose executes pinned
+Node/PostgreSQL in the isolated environment described below. Both PR and push
+filters include `api/**`, `compose.foundation.yml`, this OpenSpec change and the
+workflow itself. There are no optional database skips or `continue-on-error`.
+The harness also runs the built runner without networking: unavailable PostgreSQL
+must return 1 before any proof is credited. CI branch protection is an external
+repository setting and was not changed. Existing jobs remain intact.
+
+Evidence: [behavioral RED](evidence/ci-6.1-red.txt),
+[complete local run: 55/55](evidence/ci-6.1-all.txt),
+[initial harness: 9/9](evidence/ci-6.1-harness.txt),
+[workflow validation](evidence/ci-6.1-workflow.txt) (actionlint exit 0; empty output).
+The complete run includes 4 guard, 12 pool, 7 migration, 20 isolation and 12 recovery
+tests, without skips. All five groups share only the disposable synthetic database.
+Migration/RLS/recovery fixtures retain their own teardown assertions.
+
+During verification, external edits staged files and removed parts of `all`.
+The user authorized restoring it. The intermediate failed recheck is retained in
+[ci-6.1-final-harness.txt](evidence/ci-6.1-final-harness.txt); it attempted an absent
+`all.test.mjs`, not a successful integrated proof. The restored implementation is
+checked separately in [ci-6.1-current-harness.txt](evidence/ci-6.1-current-harness.txt).
+Staging was preserved; the change was committed with the implementation and its
+evidence.
 
 The CLI supplies one absolute Compose file and the explicit empty env file,
 strips inherited `COMPOSE_*` overrides, and generates a new project name

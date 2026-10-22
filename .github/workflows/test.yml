@@ -8,6 +8,8 @@ on:
       - 'frontend/**'
       - 'api/**'
       - 'mcp/**'
+      - 'compose.foundation.yml'
+      - 'openspec/changes/add-postgres-foundation/**'
       - 'scripts/build-coach-assets.mjs'
       - 'scripts/build-coach-library.mjs'
       - 'scripts/build-api-docs.mjs'
@@ -20,6 +22,8 @@ on:
       - 'frontend/**'
       - 'api/**'
       - 'mcp/**'
+      - 'compose.foundation.yml'
+      - 'openspec/changes/add-postgres-foundation/**'
       - 'scripts/build-coach-assets.mjs'
       - 'scripts/build-coach-library.mjs'
       - 'scripts/build-api-docs.mjs'
@@ -36,6 +40,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22.23.2'
+      - name: Synthetic PostgreSQL proofs (same entry as local)
+        run: node api/foundation/environment.mjs run all
+      - name: Target, configuration, cleanup and unavailable-database regressions
+        run: node --test api/foundation/environment.test.mjs api/foundation/configuration.test.mjs api/foundation/environment-docker.test.mjs
+
   test:
     runs-on: ubuntu-latest
     steps:

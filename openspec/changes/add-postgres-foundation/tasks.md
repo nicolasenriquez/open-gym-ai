@@ -70,8 +70,9 @@ Checkpoint: recuperación reproducible y rechazo de contenido no verificado; ver
 
 ## 6. Comprobaciones finales: CI, compatibilidad y evidencia
 
-- [ ] 6.1 Integrar runner completo en CI con PostgreSQL real, trigger de archivos de Foundation y fallo obligatorio por BD ausente; comprobar configuración CI y ejecutar la misma entrada de local.
+- [x] 6.1 Integrar runner completo en CI con PostgreSQL real, trigger de archivos de Foundation y fallo obligatorio por BD ausente; comprobar configuración CI y ejecutar la misma entrada de local.
   Traceability: Real database CI and explicit gate evidence / Changed environment definition; Missing database or failed proof.
+  Notes: `node api/foundation/environment.mjs run all`: 55/55 PASS en cinco grupos, Node 22.23.2 UID 1000/PG 18.6; harness 9/9 PASS, incluido exit 1 sin BD y cleanup verificado. RED previo: all no implementado. Job Foundation usa la misma entrada; filtros push/PR cubren api/**, Compose y cambio OpenSpec; actionlint PASS. Evidencia api/foundation/evidence/ci-6.1-{red,all,harness,workflow}.txt. Configuración y ejecución local verificadas; no se ha ejecutado GitHub Actions remoto ni cambiado branch protection.
 - [ ] 6.2 Ejecutar suites/build/locales y loadable checks pertinentes de API/frontend/MCP, smoke de imagen normal sin BD y comprobaciones POSIX en Linux no root; resolver regresiones propias sin ampliar alcance.
   Traceability: Real database CI and explicit gate evidence / Synthetic success; Isolated synthetic environment / Independent foundation run.
 - [ ] 6.3 Documentar comandos/resultados/versiones/licencias, duración del restore, alcance sintético, fallos y estado G1 operativo pendiente; comprobar coherencia con arquitectura/PRD y validar OpenSpec estrictamente, sin archivar ni cortar persistencia.

@@ -10,6 +10,35 @@ const { nodeImage } = JSON.parse(readFileSync(new URL('./versions.json', import.
 const docker = (...args) => spawnSync('docker', args, { encoding: 'utf8', timeout: 30_000 });
 const ok = result => { assert.equal(result.status, 0, result.stderr); return result.stdout.trim(); };
 
+test('all fails explicitly without PostgreSQL instead of skipping proofs', { timeout: 240_000 }, () => {
+  const project = `opengym-foundation-test-${randomBytes(8).toString('hex')}`;
+  const image = `${project}-foundation-test:latest`;
+  try {
+    const built = spawnSync('docker', ['build', '--label', `com.docker.compose.project=${project}`,
+      '--label', 'com.docker.compose.service=foundation-test', '-t', image,
+      fileURLToPath(new URL('.', import.meta.url))], { encoding: 'utf8', timeout: 180_000 });
+    assert.equal(built.status, 0, built.stderr);
+    const result = docker('run', '--rm', '--network', 'none', '--read-only', '--user', '1000:1000',
+      '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--tmpfs', '/tmp',
+      '--label', `com.docker.compose.project=${project}`, '--label', 'org.opengym.foundation=synthetic',
+      '--label', 'com.docker.compose.service=foundation-test',
+      '-e', 'PGHOST=foundation-db', '-e', 'PGPORT=5432', '-e', 'PGDATABASE=foundation_test',
+      '-e', 'PGUSER=foundation_bootstrap', '-e', 'PGPASSWORD=synthetic-foundation-only', image, 'all');
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Foundation environment check failed/);
+    assert.doesNotMatch(result.stdout, /# pass|# skipped|Foundation environment ready/);
+    console.log('Unavailable database: explicit exit 1; no proofs skipped or credited');
+  } finally {
+    const cleaned = spawnSync(process.execPath, [cli, 'cleanup', project], { encoding: 'utf8', timeout: 30_000 });
+    assert.equal(cleaned.status, 0, cleaned.stderr);
+    for (const type of ['container', 'volume', 'network', 'image']) {
+      const args = [type, 'ls', '--quiet', '--filter', `label=com.docker.compose.project=${project}`];
+      if (type === 'container') args.push('--all');
+      assert.equal(ok(docker(...args)), '', `${type} must not remain after missing-database proof`);
+    }
+  }
+});
+
 test('cleanup removes only the identified synthetic containers, volume and network', () => {
   const project = `opengym-foundation-test-${randomBytes(8).toString('hex')}`;
   const volume = `${project}_postgres-data`;
@@ -55,14 +84,17 @@ test('cleanup refuses mixed-ownership resources before deleting any of them', ()
   }
 });
 
-test('run uses real PostgreSQL on Node 22 then removes its own runtime resources', { timeout: 240_000 }, () => {
-  const result = spawnSync(process.execPath, [cli, 'run', 'environment'], {
-    encoding: 'utf8', timeout: 230_000,
+test('all runs every required proof on real PostgreSQL then removes its own resources', { timeout: 300_000 }, () => {
+  const result = spawnSync(process.execPath, [cli, 'run', 'all'], {
+    encoding: 'utf8', timeout: 290_000,
     env: { ...process.env, COMPOSE_PROJECT_NAME: 'opengym', COMPOSE_FILE: 'docker-compose.yml',
       PGHOST: 'real-database.example', DATABASE_URL: 'must-not-be-inherited' },
   });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Foundation environment ready: Node 22\.23\.2; PostgreSQL 18\.6/);
+  for (const count of [4, 12, 7, 20]) assert.match(result.stdout, new RegExp(`# pass ${count}\\b`));
+  assert.equal((result.stdout.match(/# pass 12\b/g) ?? []).length, 2, 'pool and recovery must both run');
+  assert.doesNotMatch(result.stdout, /# (?:fail|skipped|cancelled) [1-9]/);
   assert.match(result.stdout, /Foundation cleanup complete/);
   const project = result.stdout.match(/Foundation project: (opengym-foundation-test-[a-f0-9]{16})/)?.[1];
   assert.ok(project);

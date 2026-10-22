@@ -1,0 +1,18 @@
+✔ effective Compose config isolates Foundation despite inherited instance variables (400.5447ms)
+Unavailable database: explicit exit 1; no proofs skipped or credited
+✔ all fails explicitly without PostgreSQL instead of skipping proofs (5595.4863ms)
+✔ cleanup removes only the identified synthetic containers, volume and network (5065.0408ms)
+✔ cleanup refuses mixed-ownership resources before deleting any of them (2698.1526ms)
+✔ all runs every required proof on real PostgreSQL then removes its own resources (20103.0086ms)
+✔ cleanup refuses a non-Foundation project before accessing Docker (49.1677ms)
+✔ recovery refuses external hosts and unsafe artifact paths before loading the driver (112.0714ms)
+✔ runner refuses a database target outside the synthetic service before connecting (51.7942ms)
+✔ migration process rejects external targets and invalid fixture arguments before connecting (297.5924ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33546.337
