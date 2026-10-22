@@ -93,32 +93,11 @@ export function beep(enabled, freq, dur, when) {
   try { tone(freq || 880, dur || 0.18, when || 0) } catch (e) { /* */ }
 }
 
-// The end of a rest or a hold (store/useUI.js). It used to be three of the beeps above and went
-// unheard under music (Discord: "Rest Timer Sound Notification too Quiet"): an exponential fade
-// from 0.35 is down to a tenth of that before the tone is half over. So this one
-//  - peaks at CHIME_PEAK instead of 0.35. The output clips above 1, and the notes are spaced so
-//    that each has stopped before the next starts, so they never add up past the peak;
-//  - holds that peak for most of each note instead of fading from the first millisecond;
-//  - uses the brighter timbre;
-//  - has a shape of its own, high, low, then high and long (E6 B5 E6), that neither the 3-2-1
-//    ticks before it (660 Hz), a set tick (1040 Hz) nor the rising finish fanfare has.
-// It does not turn other apps down. A web page cannot duck another app's audio: Android only
-// grants audio focus to native code, and on iOS the 'playback' session pauses the music (1. above).
-//
-// Some people preferred the original under music — quieter is not a defect for everyone, e.g.
-// headphones at the gym rather than a phone speaker next to a stereo. Settings → "Classic timer
-// sound" (S.classicChime) picks between the two without reviving the three separate beep() calls
-// this replaced: CLASSIC is the exact same three tones, just driven through the same tone() path
-// as the chime below, so both share one gating/try-catch and one sleepAfter bookkeeping.
-// The Android app plays this end tone natively while the app is in the background or the screen
-// is off (android/.../RestTone.java). Change the notes or the shape here, change them there too.
-//
-// Settings → Sound (#306) adds a few more to pick from. Each is notes of [freq, dur, when] (and a
-// frequency to glide to, for the whistle) played with one shape: a peak, a hold and a timbre.
-// Notes that overlap (the bell's ring, the soft one's) have peaks low enough that, decaying from
-// the first millisecond, they still stay under 1 when they add up. RestTone.java mirrors every
-// one of these, number for number. The table itself is lib/rest-sounds.js, which has no audio in
-// it, so the store and the native alarm can read the choice without this module.
+// Rest/hold sounds are defined in rest-sounds.js; Android's RestTone.java must mirror their
+// notes and envelopes. Sequential chime notes avoid clipping; overlapping sounds use lower peaks.
+// The web cannot duck other apps' audio. iOS playback sessions pause music (see wake above).
+// Android plays the end tone natively in the background or with the screen off.
+// Classic uses the same gated tone path, retaining sleepAfter bookkeeping.
 export { CHIME_PEAK, REST_SOUNDS, REST_SOUND_IDS, restSoundOf } from './rest-sounds.js'
 // `kind` is a REST_SOUNDS id; `true` (the old "classic" switch) still means the classic beeps.
 export function chime(enabled, kind) {
