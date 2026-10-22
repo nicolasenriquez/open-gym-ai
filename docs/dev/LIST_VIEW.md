@@ -36,7 +36,7 @@ steppers show inline. The lean default keeps them in each exercise's ⋯ menu; t
 ## Where it is set
 
 - **Saved default:** Settings → During a workout → **Workout view** (a 4-way `Segmented`).
-- **Per session:** the workout header's **⋮** button opens a `menuSheet` with the four
+- **Per session:** the workout header's **⋮ → Layout** opens a `menuSheet` with the four
   layouts; picking one writes `s.active.workoutView`.
 
 `beginWorkout` / `beginBackfill` (`frontend/src/sheets.jsx`) snapshot `S.workoutView` onto

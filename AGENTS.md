@@ -60,7 +60,7 @@ consulta los `package.json` para ver las dependencias actuales.
 - Los cambios que deciden qué levantar o que leen una sesión registrada pertenecen
   a helpers puros en `frontend/src/lib/` y necesitan un test junto al código.
 - Añade las nuevas cadenas de UI a todos los locales aplicables y verifica con
-  `node scripts/check-locales.mjs`.
+  `node frontend/scripts/check-locales.mjs` desde la raíz.
 - Antes de tocar autenticación, sesiones o notificaciones, lee
   `docs/SELF_HOSTING.md`; los despliegues dependen de su contrato de variables
   de entorno.

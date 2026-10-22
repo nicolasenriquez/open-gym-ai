@@ -251,9 +251,9 @@ archive.
 
 ## What actually leaves your server
 
-`api/coach/payload.js` is built as an allowlist: every field is copied in **by name**, nothing
+[`api/coach/core/payload.js`](../api/coach/core/payload.js) is built as an allowlist: every field is copied in **by name**, nothing
 is spread and nothing is passed through, so a field added to the state blob next year cannot
-ride along by accident. The five categories it can send — the same list the consent screen
+ride along by accident. The categories it can send — the same list the consent screen
 renders from, so the screen cannot drift from the payload — are:
 
 | Category | What it covers |
@@ -291,7 +291,7 @@ pins them against the originals over a table of configs, so the copies cannot dr
 
 ## What comes back, and what it is allowed to do
 
-The prompt asks for a shape and the model usually obliges. `api/coach/validate.js` is where
+The prompt asks for a shape and the model usually obliges. [`api/coach/core/validate.js`](../api/coach/core/validate.js) is where
 "usually" stops mattering, and it — not the prompt — is the security boundary. Nothing reaches
 you that has not:
 

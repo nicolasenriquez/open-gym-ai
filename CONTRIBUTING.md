@@ -61,8 +61,8 @@ docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/so
 
 ## Guidelines
 
-- **Keep it dependency-light.** The frontend uses React, React Router and Zustand; `api/` has two
-  dependencies. A new dependency on either side is a hard sell.
+- **Keep it dependency-light.** See `frontend/package.json` and `api/package.json` for current
+  dependencies, including mobile plugins and the optional coach SDK. Justify new dependencies.
 - **Match the style.** Small components, clear names, comments only where the *why* isn't obvious.
   State lives in the Zustand store (`src/store`), pure helpers in `src/lib`. There is no linter or
   formatter config, so follow the surrounding code.
@@ -79,7 +79,8 @@ docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/so
   to get subtly wrong and nearly impossible to check by clicking; the progression engine has had
   real bugs that only a test caught.
 - **New UI strings go into every locale** in `frontend/src/locales/`. English is the source
-  language and has no file. `node scripts/check-locales.mjs` (run in CI) flags a key that is
+  language and has no file. `node frontend/scripts/check-locales.mjs` (from the repository root;
+  also run in CI) flags a key that is
   missing, blank or has lost a `{n}` placeholder. Portuguese (Brazil) inherits from Portuguese
   (Portugal) and has its own guard test.
 

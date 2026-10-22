@@ -225,7 +225,7 @@ in openGym removes it there; turning it off with "remove" leaves no openGym reco
 
 ## Prerequisites
 
-- Node 20+
+- Node 22.12+ (CI uses Node 22; Vite's exact requirement is in `frontend/package-lock.json`)
 - **Android:** Android Studio (bundles the SDK). Java 21 for Gradle.
 - **iOS:** a Mac with Xcode 15+ and CocoaPods (`brew install cocoapods`). A free Apple ID
   is enough to run the app on your own iPhone (see below); paid membership is only needed
@@ -242,8 +242,11 @@ npx cap open android        # opens Android Studio → run on emulator or device
 npx cap open ios            # opens Xcode (Mac only) → set your signing team, then run
 ```
 
-`npm run build:mobile` bakes the CDN media base into the bundle and copies the web build
-into both native projects — re-run it after every web-code change before building natively.
+`npm run build:mobile` builds the mobile frontend, stages exercise media from
+`catalogue/media/` into `dist/exercise-media/`, syncs both native projects and checks the
+synced bundle. Release builds can supply larger animations through `APP_MEDIA_DIR`;
+see [the staging script](../scripts/catalogue/stage-media.mjs). Re-run after every
+web-code change before building natively.
 
 > **Heads-up:** after `build:mobile`, `frontend/dist` contains the *mobile* bundle.
 > Run a plain `npm run build` again before deploying `dist` to a server.
