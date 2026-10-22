@@ -44,9 +44,9 @@ Common backend roots: `backend/`, `server/`, `api/`, `app/` (FastAPI/Django), `s
 
 ### 2. Read Backend Documentation
 
-- Read CLAUDE.md or similar global rules file (for project-wide conventions)
+- Read AGENTS.md for shared project conventions
 - Read any README inside the backend root
-- Read `.claude/references/backend-api-best-practices.md` if it exists — it contains project-specific API conventions
+- Read `.agents/docs/backend-api-best-practices.md` if it exists — it contains project-specific API conventions
 
 ### 3. Identify Key Backend Files
 

@@ -1,6 +1,6 @@
 ---
 name: rules-create-global
-description: "Set up your project's global rules, a lean and well-structured root CLAUDE.md (plus a starter .claude/), following the course methodology. Greenfield: pass your PRD and/or architecture-spec path and it derives rules from your engineering decisions (a PRD alone is product context). Brownfield: leave it blank to derive from your primed codebase (run /prime-codebase first), or pass a codebase-analysis doc for a large repo. Use when initializing or re-deriving the AI Layer's rules, onboarding a codebase, or replacing a generic /init output. The customizable replacement for /init."
+description: "Set up your project's global rules, a lean and well-structured root AGENTS.md with references in .agents/docs/, following the course methodology. Greenfield: pass your PRD and/or architecture-spec path and it derives rules from your engineering decisions (a PRD alone is product context). Brownfield: leave it blank to derive from your primed codebase (run /prime-codebase first), or pass a codebase-analysis doc for a large repo. Use when initializing or re-deriving the AI Layer's rules, onboarding a codebase, or replacing a generic /init output. The customizable replacement for /init."
 argument-hint: "[prd-path] [architecture-path]  (greenfield; brownfield: blank + prime first, or pass a codebase-analysis)"
 arguments: [path1, path2]
 ---
@@ -27,7 +27,7 @@ This skill takes **up to two optional paths** and uses them to pick your lane. R
 
 ## What global rules are (30-second intro)
 
-Your global rules — **`CLAUDE.md`** (Claude-native) or **`AGENTS.md`** (the open cross-tool standard) — are the
+Your global rules — **`AGENTS.md`** (the shared repository convention) — are the
 **always-on steering document**, read on every task. Four kinds of content earn that always-on slot:
 1. **A map of the codebase** — the dirs/files that matter, each with a one-line *what it is + why it lives there*.
 2. **Ground rules** — the *specific conventions* this project follows (how you do type safety, your error
@@ -64,23 +64,23 @@ Global rules encode **technical** truth — so you derive them from technical de
 > `codebase-analysis.md`, and pass that path instead.) This skill packages the *derive → extract → seams → prune → check*
 > steps, not the exploration.
 
-> **Before you run this — protect any existing rules.** If the project already has a `CLAUDE.md` /
-> `AGENTS.md`, **copy or rename it first** (e.g. `CLAUDE.md.bak`) so this skill doesn't overwrite something
+> **Before you run this — protect any existing rules.** If the project already has an `AGENTS.md`, **copy or rename it first** (e.g. `AGENTS.md.bak`) so this skill doesn't overwrite something
 > you want to keep. Even better, **feed it in as input** — point the skill at it ("read my existing
-> `CLAUDE.md` first") so the derivation *builds on* what's already there instead of starting from scratch.
+> `AGENTS.md` first") so the derivation *builds on* what's already there instead of starting from scratch.
+
+## Repository contract
+
+In openGym, write common rules only to `AGENTS.md`, on-demand agent references to
+`.agents/docs/`, and skills to `.agents/skills/`.
+Preserve this contract when applying the general guidance below.
 
 ## Required reading (do this first) — and pick the file
 
-**First, which rules file does this project use?** Detect it, then read the matching guidance (don't rely on a snapshot):
-- **`CLAUDE.md`** (Claude Code's native file) → Anthropic memory + best practices:
-  https://code.claude.com/docs/en/memory · https://code.claude.com/docs/en/best-practices
-- **`AGENTS.md`** (the open cross-tool standard, read by dozens of agents) → the AGENTS.md spec: https://agents.md
-- **Both present?** Usually the shared content lives in **`AGENTS.md`** and `CLAUDE.md` is a single line —
-  `@AGENTS.md` — so Claude Code auto-loads AGENTS.md and there's one source of truth. In that case, write to AGENTS.md.
-- **Neither yet?** `CLAUDE.md` for a Claude-Code-only project; `AGENTS.md` if the team is multi-tool.
+Read the current official guidance before deriving rules:
+- Codex AGENTS.md discovery: https://developers.openai.com/codex/guides/agents-md
+- Shared format: https://agents.md
 
-Content + structure are ~90% identical either way — everything below is **"your rules file,"** not one vendor's.
-Use the structure laid out below (it works as an AGENTS.md just as well).
+In this repository, always edit AGENTS.md for shared rules.
 
 ## The methodology (bake this in)
 
@@ -93,7 +93,7 @@ Use the structure laid out below (it works as an AGENTS.md just as well).
 - **The four destinations** — sort every candidate line:
   - **Keep always-on** → map / ground rules.
   - **Push to on-demand** → a recurring but task-*type*-specific pattern → an on-demand reference
-    (`.claude/references/<topic>.md` on Claude Code; anywhere your tool looks — e.g. `.agent/` — it's just markdown) or a skill.
+    (`.agents/docs/<topic>.md` in this repository) or a skill.
   - **Move to a plan** → task-specific "what to build next" content → it was never a rule.
   - **Delete** → redundant, or a slogan the model already follows ("write clean code", "KISS/DRY").
 - **State the choice, not the slogan:** "derive types with `z.infer`", not "type safety is critical".
@@ -117,7 +117,7 @@ Use the structure laid out below (it works as an AGENTS.md just as well).
   backed up (see "protect any existing rules" above) so nothing you wrote by hand is lost.
 - Read the best-practices docs above. Follow the structure laid out in this skill.
 
-### 2. Derive the root `CLAUDE.md`
+### 2. Derive the root `AGENTS.md`
 Fill the template's sections, sourced from the input:
 - **What this is** — one paragraph + the stack in one line.
 - **Architecture map** — the tree of dirs/files that matter, one-line what/why each.
@@ -132,7 +132,7 @@ Fill the template's sections, sourced from the input:
 Don't dump the PRD or the analysis in. Link to them.
 
 ### 3. Extract on-demand context
-Pull recurring, task-type-specific patterns out into `.claude/references/<topic>.md` **stubs** (a paragraph
+Pull recurring, task-type-specific patterns out into `.agents/docs/<topic>.md` **stubs** (a paragraph
 each, not full docs). Test: *does it recur every time you touch that area?* → guide. One-off → leave in the
 source doc.
 
@@ -147,22 +147,22 @@ evidence. Apply the per-line test: *would removing this cause a mistake? If not,
 
 ### 6. Report
 - Files created/changed.
-- A 3–5 line summary of what went into `CLAUDE.md` and why.
+- A 3–5 line summary of what went into `AGENTS.md` and why.
 - What was pushed to on-demand context (and where).
 - Next step: the rules are ready — start the first PIV loop.
 
 ## Quality checks
 
-- ✅ Root `CLAUDE.md` is a **map + ground rules**, not documentation or a PRD/analysis copy.
+- ✅ Root `AGENTS.md` is a **map + ground rules**, not documentation or a PRD/analysis copy.
 - ✅ Every ground rule is a **specific choice** (brownfield: traceable to a file) — no slogans.
 - ✅ A **working-principles / agent-steering** section exists — *elicited from the user* (plan / clarify / scope
   posture + engineering primitives), lean and behavior-changing, not generic filler.
-- ✅ Recurring task-type detail lives in `.claude/references/`, not always-on.
+- ✅ Recurring task-type detail lives in `.agents/docs/`, not always-on.
 - ✅ Lean enough that nothing earns its slot without paying rent.
 
 ## Notes
 
-- Rules **evolve** — revisit `CLAUDE.md` as the project grows and after major model releases, and run
+- Rules **evolve** — revisit `AGENTS.md` as the project grows and after major model releases, and run
   `/rules-check-drift` before merges so the map never drifts.
 - Greenfield: run after you've settled the architecture with `plan-architecture` (and after `plan-create-prd`, if
   you wrote a PRD for the product); pass those paths in as `$path1` (PRD) and `$path2` (architecture). Brownfield: run after

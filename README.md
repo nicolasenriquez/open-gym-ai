@@ -318,8 +318,7 @@ from the weeks in August and September 2026 when the project lived there.
 People have asked about this, so plainly: **openGym is developed with
 [Claude Code](https://claude.com/claude-code)**, Anthropic's coding agent. A large share of the
 code, tests and documentation is drafted in Claude Code sessions, and the repository carries a
-shared [`AGENTS.md`](AGENTS.md). [`CLAUDE.md`](CLAUDE.md) imports it so Claude Code starts with
-the same project context.
+shared [`AGENTS.md`](AGENTS.md), the central entry point for project context across coding agents.
 
 What that does and doesn't mean:
 

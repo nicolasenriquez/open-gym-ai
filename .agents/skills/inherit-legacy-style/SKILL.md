@@ -1,6 +1,6 @@
 ---
 name: inherit-legacy-style
-description: Prevent AI style drift on legacy projects by scanning the codebase for implicit conventions, resolving conflicts with the operator one at a time, and writing an enforceable .ai-style-rules.md (Golden Files, naming rules, DONTs) plus an optional CLAUDE.md hook. Use when onboarding an AI agent onto a hand-written legacy codebase or extracting a project's unwritten coding rules.
+description: Prevent AI style drift on legacy projects by scanning the codebase for implicit conventions, resolving conflicts with the operator one at a time, and writing an enforceable .agents/docs/style-rules.md (Golden Files, naming rules, DONTs) plus an optional AGENTS.md hook. Use when onboarding an AI agent onto a hand-written legacy codebase or extracting a project's unwritten coding rules.
 metadata:
   origin: community
 allowed-tools: Read, Glob, Grep, Bash, Edit, Write, AskUserQuestion
@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Bash, Edit, Write, AskUserQuestion
 
 # Inherit Legacy Style
 
-Prevents AI code style drift in legacy projects by scanning the codebase for implicit conventions across 4 meta-architecture dimensions, resolving conflicts with the user one at a time, and crystallizing the consensus into an enforceable `.ai-style-rules.md`. Fully language- and framework-agnostic.
+Prevents AI code style drift in legacy projects by scanning the codebase for implicit conventions across 4 meta-architecture dimensions, resolving conflicts with the user one at a time, and crystallizing the consensus into an enforceable `.agents/docs/style-rules.md`. Fully language- and framework-agnostic.
 
 ## When to Activate
 
@@ -24,13 +24,13 @@ Use this skill when you need to preserve legacy project style and prevent AI-gen
 ## Prerequisites
 
 - Git (recommended; non-Git projects fall back to file timestamps for incremental mode)
-- Read/Write access to the project root (generates `.ai-style-rules.md` and optionally `CLAUDE.md`)
+- Read/Write access to the project root (generates `.agents/docs/style-rules.md` and optionally `AGENTS.md`)
 
 ## Workflow
 
 ### Step 0 — Auto-Detect Mode
 
-Silently check for `.ai-style-rules.md` at the project root:
+Silently check for `.agents/docs/style-rules.md` at the project root:
 
 | File exists? | Mode |
 |---|---|
@@ -78,7 +78,7 @@ For each strong-signal conflict, present exactly ONE question with 4 options:
 
 Suspend until the user answers, then proceed to the next conflict. Never stack questions.
 
-**5. Generate `.ai-style-rules.md`** with three mandatory sections:
+**5. Generate `.agents/docs/style-rules.md`** with three mandatory sections:
 - **[Golden Files]** — real exemplar paths annotated with what they demonstrate
 - **[Naming & State-Control Rules]** — concrete, checkable conventions
 - **[DONTs]** — anti-patterns that must not propagate
@@ -89,34 +89,34 @@ Ask the user for enforcement strength (use `AskUserQuestion`):
 
 | Option | Mechanism |
 |---|---|
-| **1** Soft hook (recommended) | Write `@.ai-style-rules.md` reference into project `CLAUDE.md` |
+| **1** Soft hook (recommended) | Write a task-conditioned pointer to `.agents/docs/style-rules.md` into project `AGENTS.md` |
 | **2** Hard hook | Soft hook + `PreToolUse[Write\|Edit\|MultiEdit]` Hook in `settings.json` |
 | **3** No hook | Keep the rules file; user references manually |
 
 ### Branch B — Incremental Sniff
 
-1. Read existing `.ai-style-rules.md`; if it has a commit fingerprint, `git diff <last_hash> HEAD --stat` to pinpoint delta
+1. Read existing `.agents/docs/style-rules.md`; if it has a commit fingerprint, `git diff <last_hash> HEAD --stat` to pinpoint delta
 2. Read recent Git changes (`git log -3 --stat` → inspect suspect files on demand)
 3. For oversized diffs (>hundreds of files): `--stat` summary only + sample the largest changes
 4. Compare new code against recorded rules → conflicts go through Grilling Protocol
-5. Append evolution log at the end of `.ai-style-rules.md` (never overwrite old rules)
+5. Append evolution log at the end of `.agents/docs/style-rules.md` (never overwrite old rules)
 
 ### Per-Turn Enforcement
 
-When `.ai-style-rules.md` is in context (loaded via CLAUDE.md), every code-writing task must open with a **compliance declaration** in the reasoning chain, naming the exemplar being followed and the DONTs being avoided.
+When `.agents/docs/style-rules.md` is in context (read when the AGENTS.md task pointer applies), every code-writing task must open with a **compliance declaration** in the reasoning chain, naming the exemplar being followed and the DONTs being avoided.
 
 ## How It Works
 
-This skill auto-detects whether it's a first-time or incremental run via `.ai-style-rules.md` presence:
+This skill auto-detects whether it's a first-time or incremental run via `.agents/docs/style-rules.md` presence:
 
-- **First-time (Branch A)** — Measures project scale, scans codebase across 4 meta-architecture dimensions (File Anatomy, State & Control Flow, Infrastructure, Error Handling), applies signal-threshold noise reduction to suppress weak conflicts, resolves strong-signal conflicts one-at-a-time with the user, generates `.ai-style-rules.md` with Golden Files / Naming Rules / DONTs, and offers optional enforcement hooks.
+- **First-time (Branch A)** — Measures project scale, scans codebase across 4 meta-architecture dimensions (File Anatomy, State & Control Flow, Infrastructure, Error Handling), applies signal-threshold noise reduction to suppress weak conflicts, resolves strong-signal conflicts one-at-a-time with the user, generates `.agents/docs/style-rules.md` with Golden Files / Naming Rules / DONTs, and offers optional enforcement hooks.
 - **Incremental (Branch B)** — Reads existing rules, checks recent Git diffs for new or conflicting patterns, runs the same one-at-a-time grilling protocol for any conflicts found, and appends evolution logs without overwriting existing rules.
-- **Per-Turn Enforcement** — When hooked via `CLAUDE.md`, every code-writing task opens with a compliance declaration naming the exemplar followed and the DONTs avoided.
+- **Per-Turn Enforcement** — When hooked via `AGENTS.md`, every code-writing task opens with a compliance declaration naming the exemplar followed and the DONTs avoided.
 
 ## Output Specification
 
-- `.ai-style-rules.md` at project root (with commit fingerprint + scale tier in header)
-- Optionally `CLAUDE.md` with `@.ai-style-rules.md` reference
+- `.agents/docs/style-rules.md` under .agents/docs/ (with commit fingerprint + scale tier in header)
+- Optionally `AGENTS.md` with a task-conditioned pointer to `.agents/docs/style-rules.md` reference
 - Evolution logs appended as `### [YYYY-MM-DD] Style Evolution Log` entries
 
 ## Anti-Patterns
@@ -134,11 +134,13 @@ This skill auto-detects whether it's a first-time or incremental run via `.ai-st
 - For large projects, read `--stat` summaries first, then targeted `Read` on suspect files
 - Let the signal threshold handle noise — a 843-vs-8 naming split should auto-resolve without user interruption
 - When in doubt about signal strength, lean toward asking
-- The CLAUDE.md soft hook (`@.ai-style-rules.md`) is usually sufficient; hard hook only if the user wants mechanical enforcement
+- The AGENTS.md soft hook (a task-conditioned pointer to `.agents/docs/style-rules.md`) is usually sufficient; hard hook only if the user wants mechanical enforcement
+
+AGENTS.md pointers are plain instructions to read the target for the relevant task, not automatic @ imports.
 
 ## Related Skills
 
-- `init` — initialize a new CLAUDE.md with codebase documentation
+- `init` — initialize a new AGENTS.md with codebase documentation
 - `code-review` — review diffs for correctness and style issues
 - `simplify` — review code for reuse and simplification opportunities
 
@@ -146,12 +148,12 @@ This skill auto-detects whether it's a first-time or incremental run via `.ai-st
 
 1. **First-time onboarding**
    - User: "Help me onboard AI to this older codebase without changing its style."
-   - Action: Run Branch A full-scan → measure scale → scan 4 dimensions → grill conflicts → generate `.ai-style-rules.md` → offer hook strength (soft/hard/none).
+   - Action: Run Branch A full-scan → measure scale → scan 4 dimensions → grill conflicts → generate `.agents/docs/style-rules.md` → offer hook strength (soft/hard/none).
 
 2. **Incremental update after team changes**
    - User: "We added a new module; keep existing style rules intact."
    - Action: Run Branch B incremental sniff → compare Git deltas to recorded rules → grill any new conflicts → append evolution log without overwriting.
 
-3. **Enforcing DONTs via CLAUDE.md**
+3. **Enforcing DONTs via AGENTS.md**
    - User: "Make sure all new code stays consistent with the project's rules."
-   - Action: Soft hook installed → `.ai-style-rules.md` auto-loaded every session → every code-writing task opens with compliance declaration, reusing exemplar patterns and avoiding DONTs.
+   - Action: Soft hook installed → `.agents/docs/style-rules.md` read when the AGENTS.md task pointer applies → every code-writing task opens with compliance declaration, reusing exemplar patterns and avoiding DONTs.

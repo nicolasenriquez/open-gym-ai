@@ -104,7 +104,7 @@ are met. A review verdict does not authorize release.
 Use an installed OpenSpec verification skill if available; otherwise explicitly
 review requirement-to-code-and-evidence coverage. Artifact validation is not a
 substitute. Consult `rules-check-drift` when changed structure or conventions may
-invalidate AGENTS.md/CLAUDE.md; edits require authorization.
+invalidate AGENTS.md; edits require authorization.
 
 Keep credentials and user data out of tracked evidence. Preserve evidence after
 cleanup; close only resources this run owns, following the verification harness.

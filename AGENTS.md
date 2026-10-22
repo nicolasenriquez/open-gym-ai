@@ -1,7 +1,7 @@
 # openGym — instrucciones para agentes
 
-Estas son las instrucciones compartidas del repositorio. Claude Code las carga
-a través de `CLAUDE.md`.
+Estas son las instrucciones compartidas del repositorio. La organización y el
+mantenimiento se describen en `.agents/README.md`.
 
 ## Proyecto
 
@@ -22,7 +22,7 @@ Licencia: AGPL-3.0-or-later.
 - `catalogue/`: catálogo de ejercicios y medios. `catalogue/media/` se incluye
   en la imagen web; no hay un servicio Compose separado que descargue estos medios.
 - `mcp/`: servidor MCP opcional, de solo lectura y por stdio; ver `mcp/README.md`.
-- `docs/`: guías indexadas en `docs/README.md` y notas de diseño en `docs/dev/`.
+- `docs/`: guías indexadas en `docs/index.md` y notas de diseño en `docs/dev/`.
 - `website/`: sitio estático del proyecto, desplegado por separado.
 - `kubernetes/`: manifiestos de ejemplo.
 
@@ -90,3 +90,23 @@ GitHub (`DuarteSantos8/openGym`) es el repositorio principal. El workflow
 merge manual allí. La CI de GitHub ejecuta las suites del frontend, API y MCP,
 las comprobaciones de locales y los builds de imágenes. GitLab CI produce los
 artefactos de release.
+
+## Skills y contexto por tarea
+
+- Mantén las reglas comunes en `AGENTS.md`, las referencias de agentes en
+  `.agents/docs/` y las skills en `.agents/skills/`. Conserva esta estructura al
+  generar reglas o incorporar skills.
+- Para especificar o implementar un cambio formalizado, consulta `openspec/` y sus
+  artefactos; los tickets locales de `.scratch/` enlazan esa especificación. Para
+  flujos locales de issues y triage, lee `.agents/docs/issue-tracker.md` y
+  `.agents/docs/triage-labels.md`.
+- Al explorar conceptos del dominio o registrar decisiones, lee
+  `.agents/docs/domain.md`: vocabulario en `GLOSSARY.md` y decisiones en `docs/adr/`.
+- Para modernización, Recovery o integraciones futuras, empieza en `docs/index.md`
+  y sigue el PRD Evolution y su arquitectura. El runtime actual sigue siendo
+  Node/JSON; Python/FastAPI/PostgreSQL es una dirección futura sujeta a aceptación.
+
+- Al crear, editar o reorganizar documentación, lee
+  `docs/operations/okf-authoring-guide.md` y ejecuta
+  `node scripts/docs/okf.mjs check`; el perfil está en
+  `docs/standards/okf-profile.md`.

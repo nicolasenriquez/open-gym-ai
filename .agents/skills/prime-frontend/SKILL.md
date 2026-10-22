@@ -44,9 +44,9 @@ Common frontend roots: `frontend/`, `client/`, `web/`, `src/` (when project is f
 
 ### 2. Read Frontend Documentation
 
-- Read CLAUDE.md or similar global rules file (for project-wide conventions)
+- Read AGENTS.md for shared project conventions
 - Read any README inside the frontend root
-- Read `.claude/references/frontend-component-best-practices.md` if it exists — it contains project-specific component conventions
+- Read `.agents/docs/frontend-component-best-practices.md` if it exists — it contains project-specific component conventions
 
 ### 3. Identify Key Frontend Files
 

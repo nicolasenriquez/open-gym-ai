@@ -11,7 +11,7 @@ frontend/  React + Vite app (src/views, src/components, src/store, src/lib). Bui
 api/       Backend: server.js on plain node:http, with dependencies listed in api/package.json.
            coach/ is the optional AI coach; openapi.yaml documents every route.
 web/       Multi-stage Dockerfile (builds the frontend, serves it with nginx) and the nginx template.
-mcp/       Optional read-only MCP server for LLM clients (Claude Desktop, Cursor, ...). Not in the
+mcp/       Optional read-only MCP server for compatible AI clients. Not in the
            Docker build; it only runs when a client spawns it. See mcp/README.md.
 website/   The static project site at opengym.ch.
 kubernetes/ Example manifests (docs/SELF_HOSTING_KUBERNETES.md).
@@ -85,11 +85,10 @@ docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/so
 
 ## Using AI tools
 
-openGym itself is developed with Claude Code (see
-[How openGym is built](README.md#how-opengym-is-built)), and [`AGENTS.md`](AGENTS.md) holds the
-shared project context. [`CLAUDE.md`](CLAUDE.md) imports it for Claude Code. You're welcome to use
-whatever tools you like for a pull request. The bar is the same either way: you understand the
-change, it's tested, and you can answer questions about it in review.
+[`AGENTS.md`](AGENTS.md) holds the shared project context. Agent conventions and
+skills are centralized in [`.agents/`](.agents/README.md). You are welcome to use
+whatever tools you like for a pull request. The bar is the same either way: you
+understand the change, it is tested, and you can answer questions about it in review.
 
 ## What CI does with your pull request
 

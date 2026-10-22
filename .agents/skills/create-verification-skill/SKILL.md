@@ -24,7 +24,7 @@ If the checkout doesn't build or start as-is, fix that first (or report it preci
 
 Write `.agents/skills/verify-<app>/SKILL.md` with YAML frontmatter (`name: verify-<app>` and a `description` that names the app, the surface, and when to reach for it — without frontmatter the skill never registers) and these sections,
 
-`.agents/skills/` is the shared project-level skills directory: Codex, Cursor, Cline, Copilot, Gemini CLI, Zed, Warp, OpenCode, and others read it directly. Harnesses that use their own directory need a symlink pointing at it — for Claude Code, `ln -s ../../.agents/skills/verify-<app> .claude/skills/verify-<app>`. Create that symlink for whichever harness you are running under.
+`.agents/skills/` is the shared project-level skills directory: Codex, Cursor, Cline, Copilot, Gemini CLI, Zed, Warp, OpenCode, and others read it directly. In openGym, install each skill only in `.agents/skills/` and use the shared entry point documented in `.agents/README.md`. Keep one maintained copy; do not generate tool-specific adapters.
 
 The sections: each grounded in what the interview actually found (no placeholders left):
 

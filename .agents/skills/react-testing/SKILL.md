@@ -244,7 +244,7 @@ Run axe in component tests for every interactive component. Catches:
 - Missing alt text on images
 - Heading order violations
 
-Cross-link: [skills/accessibility/SKILL.md](../accessibility/SKILL.md) for the broader a11y testing playbook.
+Cross-link: [frontend-a11y](../frontend-a11y/SKILL.md) for the broader a11y testing playbook.
 
 ## When NOT to Use Snapshot Tests
 
@@ -355,10 +355,10 @@ CI=true vitest run --coverage
 
 ## Related
 
-- Rules: [rules/react/testing.md](../../rules/react/testing.md)
-- Skills: [react-patterns](../react-patterns/SKILL.md), [accessibility](../accessibility/SKILL.md), [e2e-testing](../e2e-testing/SKILL.md), [tdd-workflow](../tdd-workflow/SKILL.md)
-- Agents: `react-reviewer` (reviews test quality during code review), `tdd-guide` (enforces TDD process)
-- Commands: `/react-test`, `/react-review`
+- Repository rules: read root `AGENTS.md`. The upstream `rules/react/testing.md` is not installed here.
+- Skills: [frontend-patterns](../frontend-patterns/SKILL.md), [frontend-a11y](../frontend-a11y/SKILL.md), [e2e-testing](../e2e-testing/SKILL.md), [tdd](../tdd/SKILL.md)
+- Optional upstream agents (not installed here): `react-reviewer`, `tdd-guide`.
+- Optional upstream commands (not installed here): `/react-test`, `/react-review`.
 
 ## Examples
 

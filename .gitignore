@@ -19,6 +19,9 @@ node_modules
 .agents/
 !.agents/
 .agents/*
+!.agents/README.md
+!.agents/docs/
+!.agents/docs/**
 !.agents/skills/
 !.agents/skills/**
 .superpowers/
