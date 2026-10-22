@@ -6,8 +6,9 @@ No ORM or new production persistence is introduced.
 
 All 18 synthetic tasks are complete. Results, fail-first history, failures,
 versions/licenses and restore measurements are consolidated in
-[OpenSpec design — evidence](../../openspec/changes/add-postgres-foundation/design.md#evidencia-consolidada-de-entrega);
-[task traceability](../../openspec/changes/add-postgres-foundation/tasks.md).
+[archived design — evidence](../../openspec/changes/archive/2026-10-22-add-postgres-foundation/design.md#evidencia-consolidada-de-entrega);
+[task traceability](../../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md).
+The current contract is [postgres-foundation](../../openspec/specs/postgres-foundation/spec.md).
 Raw execution logs were intentionally removed after consolidation. This is a
 summary of observed runs, not retained stdout/stderr or fresh runtime proof.
 **G1 operational and G0/G2–G5 remain unproven.** No authority cutover is authorized.

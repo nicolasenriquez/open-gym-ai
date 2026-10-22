@@ -416,7 +416,7 @@ G5 requiere este recorrido visible completo y las garantías de datos/restauraci
 
 ## 14. Secuencia conceptual confirmada de futuras OpenSpecs y handoff
 
-**Estado de la secuencia:** `add-postgres-foundation` ya está creado y en implementación autorizada por tareas. El [tracker OpenSpec](../openspec/changes/add-postgres-foundation/tasks.md) es la fuente de progreso. Los demás cambios enumerados siguen siendo handoffs conceptuales y requieren autorización para su elaboración e implementación:
+**Estado de la secuencia:** `add-postgres-foundation` completó sus 18 tareas sintéticas y quedó sincronizado y archivado el 2026-10-22. El [tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md) conserva la trazabilidad; el [contrato vigente](../openspec/specs/postgres-foundation/spec.md) recoge los requisitos. G1 operativo sigue pendiente. Los demás cambios enumerados siguen siendo handoffs conceptuales y requieren autorización para su elaboración e implementación:
 
 1. `add-postgres-foundation`: conectividad, roles, migraciones, pruebas reales y recuperación. Gate G1; incorpora decisiones operativas pendientes antes del uso real.
 2. `migrate-opengym-persistence`: identidad, Training JSONB, contratos y consumidores. Gates G0/G2/G3; debe cumplir el handoff de migración y retirada definido a continuación.
@@ -434,7 +434,7 @@ Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/lo
 
 ### 14.1 Handoff preparado: `add-postgres-foundation`
 
-**Estado:** [OpenSpec generado](../openspec/changes/add-postgres-foundation/proposal.md), con implementación parcial autorizada por tareas. El [tracker OpenSpec](../openspec/changes/add-postgres-foundation/tasks.md) es la fuente de progreso y evidencia por tarea. G1 operativo no está acreditado.
+**Estado:** [OpenSpec archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/proposal.md), con implementación sintética completada (18/18 tareas). El [tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md) y la [evidencia consolidada](../openspec/changes/archive/2026-10-22-add-postgres-foundation/design.md#evidencia-consolidada-de-entrega) registran resultados y límites. G1 operativo no está acreditado.
 
 **Objetivo del primer cambio:** establecer una base PostgreSQL verificable para la posterior migración de identidad/Training, sin convertirla aún en autoridad de los datos existentes. No incluir el corte ni la experiencia funcional Recovery en este cambio.
 
@@ -453,7 +453,7 @@ Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/lo
 - No es requisito completar G0 para ensayar Foundation; sí lo es antes del corte de persistencia, que pertenece a `migrate-opengym-persistence`.
 - No migrar usuarios ni Training, cambiar autenticación, adaptar consumidores como si el corte ya hubiera ocurrido, ni crear un esquema funcional Recovery por adelantado. Probar RLS con fixtures sintéticas; las políticas reales Recovery se verificarán también en G4.
 
-**Criterios de verificación concretados por el OpenSpec vigente; su cumplimiento se registra por tarea:**
+**Criterios concretados por el OpenSpec y verificados en el alcance sintético archivado; los aspectos operativos siguen pendientes:**
 
 | Área | Evidencia de aceptación esperada |
 | --- | --- |
@@ -471,7 +471,7 @@ Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/lo
 
 | Pendiente | Recomendación/criterio | Bloquea |
 | --- | --- | --- |
-| Versiones y pruebas del tooling seleccionado | `node-pg-migrate` + driver `pg` aprobados; releases estables exactas a verificar/fijar, con pruebas de compatibilidad, locking y recuperación | Validación de Foundation |
+| Validación del tooling en el proveedor objetivo | Ensayo sintético completado: pg 8.23.1/node-pg-migrate 9.0.0, Node 22.23.2/PG 18.6, compatibilidad/locking/recuperación verificados. Falta revalidar configuración y límites del proveedor | G1 operativo |
 | Proveedor/plan/major PostgreSQL | Verificar versión, límites, TLS, pooler, backups/PITR, costes y ubicación | Operación y despliegue objetivo |
 | RPO 6 h / RTO 24 h | Objetivos candidatos; aprobación operativa y restore medido | Uso real con garantías de recuperación |
 | Retención/cifrado/destino externo | Acordar ubicación, acceso, claves y alertas | Respaldo operativo |
@@ -483,4 +483,4 @@ Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/lo
 
 **Cierre registrado:** el usuario aprobó formalmente esta arquitectura y autorizó el cierre documental de `plan-architecture`, manteniendo los pendientes anteriores sujetos a sus gates. Product Discovery/PRD y arquitectura quedan cerrados; los experimentos y gates técnicos siguen pendientes de ejecución y evidencia. No se reabren decisiones aprobadas sin nueva evidencia técnica que demuestre un problema.
 
-**Siguiente punto de autorización:** continuar las tareas pendientes de `add-postgres-foundation` según su tracker y una solicitud explícita. Esta revisión documental no autoriza tareas PostgreSQL adicionales, corte de persistencia, despliegue, sincronización ni archivo de OpenSpec.
+**Siguiente punto de autorización:** resolver los pendientes operativos de G1 y preparar `migrate-opengym-persistence` conforme a su handoff y G0 mediante una solicitud explícita. Foundation sintética está cerrada; su sync/archive no autoriza tareas PostgreSQL adicionales, corte de persistencia ni despliegue.

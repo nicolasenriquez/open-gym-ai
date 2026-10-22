@@ -86,7 +86,7 @@ Checkpoint: recuperación reproducible y rechazo de contenido no verificado; no 
   Notes: Linux UID 1000/Node 22.23.2: API 601, frontend 5069, MCP 95 PASS; build/locales/strings/probes/loadable/assets/docs PASS. Imagen normal sin BD/red PASS. Staging website/LF corregido solo en tmpfs. Scripts puntuales eliminados posteriormente por petición del usuario; resultado histórico y límites en design, slice 6.
 - [x] 6.3 Documentar comandos/resultados/versiones/licencias, duración del restore, alcance sintético, fallos y estado G1 operativo pendiente; comprobar coherencia con arquitectura/PRD y validar OpenSpec estrictamente, sin archivar ni cortar persistencia.
   Traceability: Real database CI and explicit gate evidence / Synthetic success; Verifiable isolated backup and restore / Restore and verify.
-  Notes: Evidencia consolidada en design y README operativo; OpenSpec estricto/whitespace PASS al cerrar entrega, review sin bloqueantes. BD/restore no repetidos en 6.2–6.3. Coherencia arquitectura/PRD comprobada; G1 operativo y G0/G2–G5 no acreditados. Sin sync/archive/corte/despliegue.
+  Notes: Evidencia consolidada en design y README operativo; OpenSpec estricto/whitespace PASS al cerrar entrega, review sin bloqueantes. BD/restore no repetidos en 6.2–6.3. Coherencia arquitectura/PRD comprobada; G1 operativo y G0/G2–G5 no acreditados. Sin corte/despliegue; sync/archive autorizados posteriormente como cierre documental.
 
 Checkpoint: evidencia sintética completa, sin regresión observada y límites explícitos.
 
@@ -101,4 +101,5 @@ Comprobaciones finales: 6.1 → 6.2 → 6.3.
 
 Dependencias: conexiones usa entorno; migraciones usa conexiones; aislamiento usa
 roles/transacciones; recuperación usa fixtures/historial; CI reúne los recorridos.
-Tracker completado, no autorización de acciones adicionales de cierre.
+Tracker completado. Cierre sync/archive autorizado por el usuario el 2026-10-22;
+no autoriza commit/push/despliegue ni migración de datos.

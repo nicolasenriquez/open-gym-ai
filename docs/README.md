@@ -34,7 +34,7 @@ All settings live in `.env`; [`.env.example`](../.env.example) explains each one
 
 Recovery planning: [PRD](open-gym-recovery.prd.md), [architecture](open-gym-evolution.architecture.md) and its [responsive web verification matrix](open-gym-evolution.architecture.md#121-validación-web-responsive). The current Recovery delivery targets the web; the phone guides above describe existing project capabilities.
 
-Reading order: PRD → architecture → [Foundation](../openspec/changes/add-postgres-foundation/proposal.md) → persistence migration and retirement → Recovery. The architecture's §14 describes the future migration handoff; Foundation evidence does not establish that the existing persistence has been replaced.
+Reading order: PRD → architecture → [Foundation (archived synthetic delivery)](../openspec/changes/archive/2026-10-22-add-postgres-foundation/proposal.md) → persistence migration and retirement → Recovery. The architecture's §14 describes the future migration handoff; Foundation evidence does not establish that the existing persistence has been replaced.
 
 | Guide | Read it when |
 |---|---|
