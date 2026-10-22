@@ -1,0 +1,204 @@
+Foundation project: opengym-foundation-test-6799b5cc1f6cbca4
+ Image opengym-foundation-test-6799b5cc1f6cbca4-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 555B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 141B done
+#4 DONE 0.0s
+
+#5 [1/8] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#5 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 29.65kB done
+#6 DONE 0.0s
+
+#7 [3/8] RUN chown node:node /app
+#7 CACHED
+
+#8 [2/8] WORKDIR /app
+#8 CACHED
+
+#9 [4/8] COPY --chown=node:node package.json package-lock.json ./
+#9 CACHED
+
+#10 [5/8] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#10 CACHED
+
+#11 [6/8] COPY --chown=node:node *.mjs versions.json ./
+#11 DONE 0.0s
+
+#12 [7/8] COPY --chown=node:node migrations/ ./migrations/
+#12 DONE 0.0s
+
+#13 [8/8] RUN npm run check:toolchain
+#13 0.236 
+#13 0.236 > opengym-postgres-foundation@0.0.0 check:toolchain
+#13 0.236 > node check-toolchain.mjs
+#13 0.236 
+#13 0.294 Node 22.23.2; npm 10.9.8; linux/x64
+#13 0.294 Lock SHA-256: dfa32b226d91be7bb3fae885073bae29f71054335ce0b3f33e1b39ed574e3027
+#13 0.294 Package	Version	License (metadata)	Node engine (metadata)
+#13 0.294 ansi-regex	6.4.0	MIT	>=12
+#13 0.294 ansi-styles	6.2.3	MIT	>=12
+#13 0.295 balanced-match	4.0.4	MIT	18 || 20 || >=22
+#13 0.295 brace-expansion	5.0.12	MIT	20 || >=22
+#13 0.295 cliui	9.0.1	ISC	>=20
+#13 0.295 emoji-regex	10.6.0	MIT	(not declared)
+#13 0.295 escalade	3.2.0	MIT	>=6
+#13 0.295 get-caller-file	2.0.5	ISC	6.* || 8.* || >= 10.*
+#13 0.296 get-east-asian-width	1.7.0	MIT	>=18
+#13 0.296 glob	13.0.6	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.296 jiti	2.7.0	MIT	(not declared)
+#13 0.296 lru-cache	11.5.3	BlueOak-1.0.0	20 || >=22
+#13 0.296 minimatch	10.2.6	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.297 minipass	7.1.3	BlueOak-1.0.0	>=16 || 14 >=14.17
+#13 0.297 node-pg-migrate	9.0.0	MIT	>=20.11.0
+#13 0.297 path-scurry	2.0.2	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.297 pg	8.23.1	MIT	>= 16.0.0
+#13 0.297 pg-cloudflare	1.4.1	MIT	(not declared)
+#13 0.297 pg-connection-string	2.14.1	MIT	(not declared)
+#13 0.297 pg-int8	1.0.1	ISC	>=4.0.0
+#13 0.298 pg-pool	3.14.0	MIT	(not declared)
+#13 0.298 pg-protocol	1.16.1	MIT	(not declared)
+#13 0.298 pg-types	2.2.0	MIT	>=4
+#13 0.298 pgpass	1.0.5	MIT	(not declared)
+#13 0.298 postgres-array	2.0.0	MIT	>=4
+#13 0.298 postgres-bytea	1.0.1	MIT	>=0.10.0
+#13 0.298 postgres-date	1.0.7	MIT	>=0.10.0
+#13 0.298 postgres-interval	1.2.0	MIT	>=0.10.0
+#13 0.298 split2	4.2.0	ISC	>= 10.x
+#13 0.299 string-width	7.2.0	MIT	>=18
+#13 0.299 strip-ansi	7.2.0	MIT	>=12
+#13 0.299 wrap-ansi	9.0.2	MIT	>=18
+#13 0.299 xtend	4.0.2	MIT	>=0.4
+#13 0.299 y18n	5.0.8	ISC	>=10
+#13 0.299 yargs	18.0.0	MIT	^20.19.0 || ^22.12.0 || >=23
+#13 0.300 yargs-parser	22.0.0	ISC	^20.19.0 || ^22.12.0 || >=23
+#13 0.300 PASS: pinned runtime, lock/installed metadata, stable versions, integrity metadata and ESM exports.
+#13 0.300 Engine range compatibility is checked by npm ci --engine-strict, not by this script.
+#13 DONE 0.3s
+
+#14 exporting to image
+#14 exporting layers 0.1s done
+#14 exporting manifest sha256:d4ba2e6aef1600c095af96fa3258d8fb82ecf73876a4ad319f67c990dbe6ba60 done
+#14 exporting config sha256:36e092f83baae715f068b6719f419a863db12d7165ba773dcfe6d43598e3d68b done
+#14 exporting attestation manifest sha256:8bfc009eb37461ccf71c276ee516bb417f2d42331db33d8c3627f965fa975f8e 0.0s done
+#14 exporting manifest list sha256:617bc3195e808e0c715c7eb0e6a39473612b5aa5ee56f4b19669886a3be64a02 done
+#14 naming to docker.io/library/opengym-foundation-test-6799b5cc1f6cbca4-foundation-test:latest done
+#14 unpacking to docker.io/library/opengym-foundation-test-6799b5cc1f6cbca4-foundation-test:latest
+#14 unpacking to docker.io/library/opengym-foundation-test-6799b5cc1f6cbca4-foundation-test:latest 0.2s done
+#14 DONE 0.4s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image opengym-foundation-test-6799b5cc1f6cbca4-foundation-test Built 
+ Network opengym-foundation-test-6799b5cc1f6cbca4_private Creating 
+ Network opengym-foundation-test-6799b5cc1f6cbca4_private Created 
+ Volume opengym-foundation-test-6799b5cc1f6cbca4_postgres-data Creating 
+ Volume opengym-foundation-test-6799b5cc1f6cbca4_postgres-data Created 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-db-1 Creating 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-db-1 Created 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-db-1 Starting 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-db-1 Started 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-db-1 Waiting 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-db-1 Healthy 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-test-run-03b133a7b048 Creating 
+ Container opengym-foundation-test-6799b5cc1f6cbca4-foundation-test-run-03b133a7b048 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: A: reads are scoped by the database without an application WHERE filter
+ok 1 - A: reads are scoped by the database without an application WHERE filter
+  ---
+  duration_ms: 84.508771
+  type: 'test'
+  ...
+# Subtest: A: cross-owner UPDATE and DELETE affect no rows
+ok 2 - A: cross-owner UPDATE and DELETE affect no rows
+  ---
+  duration_ms: 63.132024
+  type: 'test'
+  ...
+# Subtest: B: reads are scoped by the database without an application WHERE filter
+ok 3 - B: reads are scoped by the database without an application WHERE filter
+  ---
+  duration_ms: 60.539782
+  type: 'test'
+  ...
+# Subtest: B: cross-owner UPDATE and DELETE affect no rows
+ok 4 - B: cross-owner UPDATE and DELETE affect no rows
+  ---
+  duration_ms: 62.227669
+  type: 'test'
+  ...
+# Subtest: missing context: reads are scoped by the database without an application WHERE filter
+ok 5 - missing context: reads are scoped by the database without an application WHERE filter
+  ---
+  duration_ms: 60.690916
+  type: 'test'
+  ...
+# Subtest: missing context: cross-owner UPDATE and DELETE affect no rows
+ok 6 - missing context: cross-owner UPDATE and DELETE affect no rows
+  ---
+  duration_ms: 59.885021
+  type: 'test'
+  ...
+# Subtest: owner-a: INSERT cannot claim owner B
+ok 7 - owner-a: INSERT cannot claim owner B
+  ---
+  duration_ms: 60.999659
+  type: 'test'
+  ...
+# Subtest: missing context: INSERT cannot claim owner B
+ok 8 - missing context: INSERT cannot claim owner B
+  ---
+  duration_ms: 60.748362
+  type: 'test'
+  ...
+# Subtest: same runtime connection after commit: B and missing context inherit no A access
+ok 9 - same runtime connection after commit: B and missing context inherit no A access
+  ---
+  duration_ms: 66.881519
+  type: 'test'
+  ...
+# Subtest: same runtime connection after rollback: B and missing context inherit no A access
+ok 10 - same runtime connection after rollback: B and missing context inherit no A access
+  ---
+  duration_ms: 64.540944
+  type: 'test'
+  ...
+# Subtest: same runtime connection after SQL error: B and missing context inherit no A access
+ok 11 - same runtime connection after SQL error: B and missing context inherit no A access
+  ---
+  duration_ms: 63.503549
+  type: 'test'
+  ...
+# Subtest: Training-only login cannot access the owner fixture even with a known owner context
+ok 12 - Training-only login cannot access the owner fixture even with a known owner context
+  ---
+  duration_ms: 70.859177
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 824.388143
+Foundation cleanup complete

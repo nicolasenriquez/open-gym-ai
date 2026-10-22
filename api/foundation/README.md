@@ -12,7 +12,8 @@ PostgreSQL and verifies connectivity/version, not domain persistence. The legacy
 API also passes its existing HTTP/JSON smoke without PostgreSQL. Tasks 2.1–2.3 add
 pool/transaction tests, implementation and the verified synthetic checkpoint.
 Tasks 3.1–3.3 deliver the isolated migrator and its synthetic verification checkpoint.
-RLS, recovery and CI remain pending. No real instance configuration or data is
+Tasks 4.1–4.3 deliver synthetic RLS and its isolation verification checkpoint.
+Recovery and CI remain pending. No real instance configuration or data is
 mounted. G1 operational and all production gates remain unproven.
 
 ## Run the isolated environment (task 1.2)
@@ -28,7 +29,7 @@ The first build downloads the already locked dependencies with verified TLS and
 `npm ci --ignore-scripts --engine-strict`, then reruns `check:toolchain`. There is
 no host installation. The runner is read-only with a temporary `/tmp`, no Linux
 capabilities and no privilege escalation. The default group is `environment`;
-`pool` and `migrations` run their implemented behavioral tests. Unimplemented
+`pool`, `migrations` and `isolation` run their implemented behavioral tests. Unimplemented
 groups (including `all`) fail explicitly rather than pretend that later database
 proofs ran.
 
@@ -173,11 +174,11 @@ failures remain recorded; they are not a PostgreSQL regression or TDD proof.
 | 1: environment | `node api/foundation/environment.mjs run environment`; config/guard and no-DB smoke commands above |
 | 2: pool | `node api/foundation/environment.mjs run pool`: 2.1–2.3 complete, synthetic checkpoint PASS |
 | 3: migrations | `node api/foundation/environment.mjs run migrations`: 3.1–3.3 complete, synthetic checkpoint PASS |
-| 4: isolation | Pending tasks 4.1–4.3; no runnable proof yet |
+| 4: isolation | `node api/foundation/environment.mjs run isolation`: 4.1–4.3 complete, synthetic checkpoint PASS |
 | 5: recovery | Pending tasks 5.1–5.3; no runnable proof yet |
 | 6: complete CI run | Pending tasks 6.1–6.3; no runnable proof yet |
 
-The `environment`, `pool` and `migrations` groups are passing. Other groups still fail explicitly; commands for later
+The `environment`, `pool`, `migrations` and `isolation` groups are passing. Other groups still fail explicitly; commands for later
 slices will be documented when delivered, not advertised as working.
 The shared prerequisite checkpoint is verified; this does not complete Foundation
 or establish operational G1.
@@ -478,6 +479,144 @@ The 3.2 pool/harness regressions remain historical evidence, not rerun results f
 RLS, restore and CI remain in later tasks. PostgreSQL server logs, provider TLS,
 production recovery and operational G1 remain unverified. Slice 3 is verified only
 for the isolated synthetic environment; Foundation is not complete.
+
+## Isolation fail-first contract (task 4.1)
+
+```bash
+node api/foundation/environment.mjs run isolation
+```
+
+The following records the **historical 4.1 RED baseline**, replaced by 4.2 below.
+At that checkpoint the group exited 1; its fixture baseline created only
+a generated `foundation_isolation_<16 hex>` schema, a small `owner_probe` table,
+two synthetic owners and runtime CRUD grants. **No RLS policy is implemented**:
+that belongs to 4.2. `isolation-fixture.mjs` keeps this setup outside committed
+migrations and validates schema names before interpolating SQL. The existing
+Docker allowlist copies both new `.mjs` files; no dependency/topology change.
+
+The approved seam is real fixture SQL through `createDatabase().transaction()`.
+A/B are the two synthetic **data owners**, not separate application database
+logins: both requests use the actual restricted `foundation_runtime` login and
+`app.owner_id` transaction-local context set by trusted test work. This follows
+the shared runtime/pool design and makes same-connection reuse observable.
+`foundation_migrator` owns the fixture; bootstrap only provisions the existing
+roles. Every test verifies the runtime login/target, non-owner table identity and
+absence of superuser/BYPASSRLS before testing access. No mocks or user data.
+
+| Test cases | Expected future behavior | Observed RED baseline |
+| --- | --- | --- |
+| A/B/missing-context reads (3) | Unfiltered SELECT returns only the current owner's rows, or none without context | Both owners are visible |
+| A/B/missing-context UPDATE/DELETE (3) | Unauthorized target affects zero rows | Each operation affects one foreign row |
+| Foreign-owner/missing-context INSERT (2) | Reject insertion claiming owner B | Insert succeeds; expected rejection is absent |
+| Reuse after commit/rollback/SQL error (3) | Same PID serves A, B, then no context; no A access leaks, context-free read returns none | Context/PID/persistence checks pass first, then visibility assertion exposes foreign rows |
+
+The reuse cases exercise a real authorized A write, assert commit persistence or
+rollback absence, and verify local context clears before B and context-free work.
+The pool is capped at **1**, with a finite idle timeout and explicit closure.
+Assertions about visibility stay outside the transaction callback so pool error
+sanitization cannot disguise an assertion failure as the intended RED. Tests drop
+only their own schema after closing the runtime pool; outer cleanup still runs
+on the expected nonzero exit.
+
+Evidence: [first A-read RED](evidence/isolation-4.1-first-red.txt),
+[11 intended behavioral failures](evidence/isolation-4.1-red.txt),
+[harness regressions 7/7 PASS](evidence/isolation-4.1-harness-regressions.txt),
+[source/log/cleanup audit](evidence/isolation-4.1-audit.txt).
+Observed runtime: pinned non-root Node 22.23.2/PostgreSQL 18.6; **0 passes, 11
+failures, 0 skips/cancellations**, exit 1, cleanup complete. No missing module,
+syntax, role, table or connection error is counted as a RED.
+
+Routine ponytail-review mapped both owner-isolation scenarios to these tests and
+found no blocker for retaining the isolated RED baseline. This does **not** prove
+RLS effective or finish the full CRUD/privilege matrix. Policies USING/WITH CHECK,
+the restricted Training-only role and TRUNCATE/elevation checks remain in 4.2–4.3.
+Pool, bootstrap, committed migrations and normal API are unchanged; their earlier
+checks are historical, not rerun here. Full suites, restore, CI and operational G1
+remained pending at the 4.1 checkpoint. Current implementation follows below.
+
+## Synthetic RLS implementation (task 4.2)
+
+`node api/foundation/environment.mjs run isolation` now exits **0**, with **13/13
+PASS**, no skips/cancellations, pinned non-root Node 22.23.2/PostgreSQL 18.6 and
+cleanup complete. The previous eleven tests are unchanged apart from including
+the new synthetic credential in the bootstrap diagnostic scanner.
+
+`isolation-fixture.mjs` enables and forces RLS on the generated table after seeding.
+A policy scoped to `foundation_runtime` uses the same owner comparison in both
+`USING` and `WITH CHECK`: `owner_id = nullif(current_setting('app.owner_id', true), '')`.
+Missing/empty context cannot match a row. Trusted transaction work still installs
+context locally through the existing pool; the fixtures are not application
+authentication or production Recovery policies. Runtime receives schema USAGE
+and table SELECT/INSERT/UPDATE/DELETE only, with no TRUNCATE, ownership or role
+membership. No new committed domain migration or normal API integration.
+
+The disposable bootstrap additionally provisions **foundation_training** with a
+public synthetic password, CONNECT only, no CREATE/TEMP, no superuser/BYPASSRLS,
+role/database creation, replication, inheritance or memberships. It receives no
+fixture schema/table grants. This represents a restricted consumer, not an
+implementation of Training persistence. Its real login can execute SELECT 42;
+fixture CRUD fails with SQLSTATE **42501** even with a known owner context, and
+SET ROLE to runtime/migrator/bootstrap is denied.
+
+A focused runtime check first updates its own row successfully, then rejects
+owner reassignment, TRUNCATE, SET LOCAL ROLE to migrator/bootstrap, enabling
+BYPASSRLS and granting migrator membership. Both owners' data remain intact.
+These existing privilege boundaries use passing characterization; no artificial
+RED is claimed for permissions already denied in 3.2–3.3.
+
+Evidence: [original 11 RED repeated](evidence/isolation-4.2-red.txt),
+[RLS GREEN, 11/11](evidence/isolation-4.2-rls-green.txt),
+[Training provisioning RED](evidence/isolation-4.2-training-red.txt),
+[Training GREEN, 12/12](evidence/isolation-4.2-training-green.txt),
+[final 13/13](evidence/isolation-4.2-green.txt),
+[migration regressions 7/7 PASS](evidence/isolation-4.2-migration-regressions.txt),
+[source/log/cleanup audit](evidence/isolation-4.2-audit.txt).
+The Training RED is an absent-role behavioral assertion before login; it does not
+pretend a connection failure proves isolation. Only after provisioning do its
+actual login/ACL branches pass. The migration scanner now also covers the new
+synthetic password marker. No dependency or host installation was added.
+
+Routine ponytail-review found no blocker for this isolated implementation. At the
+4.2 checkpoint the dedicated CRUD/owner/context/privilege and cleanup verification
+remained pending; its results follow below. Pool/harness evidence from earlier tasks
+was not rerun or presented as fresh; the changed bootstrap's migration regressions
+were rerun. Full suites, restore, CI and operational G1 remain pending.
+
+## Owner isolation verification checkpoint (task 4.3)
+
+`node api/foundation/environment.mjs run isolation` passed **20/20**, with no
+skips/cancellations, Node 22.23.2/non-root and PostgreSQL 18.6, in about 1.4 seconds
+of test execution. The test process exited naturally with status 0; cleanup completed.
+Only verification and documentation changed. The pool, RLS fixture, bootstrap,
+dependencies and normal application remain as delivered in 4.2. These tests
+characterize existing behavior; no artificial RED or new runtime feature is claimed.
+
+| Scenario | Current proof |
+| --- | --- |
+| Authorized CRUD | A and B each INSERT, read without an application owner filter, UPDATE, reread committed values, DELETE and verify the remaining seed row; same runtime PID and cleared local context |
+| Cross-owner / no context | A/B see only their rows; foreign UPDATE/DELETE affect zero rows. Missing and explicitly empty context expose none, modify none and cannot INSERT |
+| Owner forgery | A→B and B→A INSERT/reassignment are rejected; existing ownership/data survive |
+| Connection reuse | Pool max 1; A commit, explicit rollback and SQL error preserve expected data semantics; the same PID subsequently serves B and no context without A access |
+| Runtime privileges | Real runtime login, migrator-owned schema/table, no superuser/BYPASSRLS/create-role/create-db/replication/inheritance/memberships; CONNECT and schema USAGE, table CRUD only among tested privileges; CREATE/TEMP, schema CREATE, TRUNCATE/TRIGGER/REFERENCES absent; DDL/elevation attempts rejected |
+| Training-only | Real login and SELECT 42 succeed, but known-owner fixture CRUD and role elevation fail with 42501; no fixture grants or elevating memberships |
+| Fixture retirement | All 20 teardowns close the pool, DROP only their generated schema, query its absence and verify the runtime PID has disappeared before closing the migrator connection |
+
+Each teardown emits `Fixture cleanup PASS: schema absent; runtime connection closed`
+only after its SQL assertions. The final audit also independently checks no owned
+Docker container (including stopped), volume, network or runner image remains.
+The effective context is set only by trusted test work inside transactions; this
+is not proof of HTTP authentication or production Recovery policy correctness.
+
+Evidence: [complete run](evidence/isolation-4.3-run.txt) and
+[source/log/cleanup audit](evidence/isolation-4.3-audit.txt). Routine ponytail-review
+mapped all three owner-isolation scenarios to this matrix and found no blocking
+finding for the sequential synthetic workload. Source hashes confirm the 4.2
+implementation is unchanged; its migration regression is historical, not rerun here.
+
+**Slice 4 is verified for isolated synthetic use.** No other task was advanced.
+Full legacy suites/build/locales, encrypted recovery, CI and operational G1 remain
+pending. No real accounts, Training/Recovery schema, provider TLS, off-host backup,
+production RPO/RTO, commit, synchronization or archive is included.
 
 ## Pins and evidence
 

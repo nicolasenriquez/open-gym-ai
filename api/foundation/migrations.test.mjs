@@ -31,7 +31,7 @@ function launch(t, args, hold = false) {
     child.once('error', reject);
     child.once('close', (code, signal) => resolve({ code, signal, output, messages }));
   }).then(result => {
-    if (/synthetic-(?:foundation|migrator|runtime)-only|postgres(?:ql)?:\/\//i.test(result.output)) {
+    if (/synthetic-(?:foundation|migrator|runtime|training)-only|postgres(?:ql)?:\/\//i.test(result.output)) {
       throw new Error('Unsafe migration diagnostics');
     }
     return result;

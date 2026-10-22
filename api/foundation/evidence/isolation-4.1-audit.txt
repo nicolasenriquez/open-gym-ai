@@ -1,0 +1,18 @@
+Task 4.1 fail-first owner isolation audit
+Command: node api/foundation/environment.mjs run isolation (expected exit 1); node --test api/foundation/{environment,configuration,environment-docker}.test.mjs (exit 0).
+Runtime: Node 22.23.2 non-root UID 1000 / PostgreSQL 18.6 in isolated Docker; host Node 24.14.0 only orchestrates.
+Scope: only 4.1; real restricted runtime login with synthetic data owners A/B and transaction-local context, shared pool max=1. No RLS implementation or domain migration.
+isolation-4.1-first-red.txt: 1 intended behavioral assertion failure(s), no setup/import failures or secret/DSN matches. Independent cleanup: zero containers (including stopped), volumes, networks/images for opengym-foundation-test-4b307cfc5adf0017
+isolation-4.1-red.txt: 11 intended behavioral assertion failure(s), no setup/import failures or secret/DSN matches. Independent cleanup: zero containers (including stopped), volumes, networks/images for opengym-foundation-test-53def7ea43408a92
+Harness regressions 7/7 PASS; config isolation, unsafe target rejection, owned-only cleanup and real environment run retained. These tests independently check their own runtime resources.
+Diagnostic scanner positive controls PASS; captured output contains only synthetic owner IDs and assertion differences, no credentials/DSNs. PostgreSQL server logs not audited.
+0ddd57912a7c16b7242dfe70caf6e5a731c05bcd4901be23327a74a827eef21b  api/foundation/isolation.test.mjs
+04b3fc4bc4366d8e2ac4bff19449574eaeff8ad377d65f33651a7b2a66a148f0  api/foundation/isolation-fixture.mjs
+8d645ec691f3624d84d37b350eaf615a6e28e465eb2df379cbf016a1c5b0ab78  api/foundation/environment.mjs
+ea66851ba5b0311b6f71f903d7cc7c8d8af15f069a87bc0446b45bd4eaee1a60  api/foundation/run.mjs
+Existing pool/bootstrap/committed migrations/packaging/dependencies/normal API unchanged from HEAD. Runner changes only add the isolation allowlist entry.
+OpenSpec strict/node syntax/current tracked diff whitespace PASS; new source whitespace checked explicitly; 4 evidence links; tracker 10/18, only 4.1 advanced, 4.2/4.3 unchecked. Raw Docker logs retained verbatim, including their original trailing whitespace.
+Requirement mapping: Cross owner/missing context -> A/B/no-context SELECT and UPDATE/DELETE plus INSERT owner forgery; Reuse after commit/rollback/error -> same PID and cleared context/data commit/rollback pass before final unauthorized visibility RED.
+What this change does: retains a runnable unsafe synthetic fixture baseline and failing public-seam tests for the later RLS implementation. It does not enable data access in the normal app.
+Review: exact 4.1 diff/new files, pool transaction caller, fixture role/ownership/setup/teardown, runner/config and approved spec inspected for sequential local/CI work. No blocker for fail-first task. Verdict: Ship task 4.1 RED only.
+Not checked: effective RLS policies, complete CRUD/role privilege matrix, Training-only restrictions, full suites/build/locales, restore/CI/provider/operational G1. No commit/push/sync/archive.

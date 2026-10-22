@@ -34,13 +34,18 @@ try {
           IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'foundation_runtime') THEN
             CREATE ROLE foundation_runtime LOGIN PASSWORD 'synthetic-runtime-only';
           END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'foundation_training') THEN
+            CREATE ROLE foundation_training LOGIN PASSWORD 'synthetic-training-only';
+          END IF;
         END $$;
         ALTER ROLE foundation_migrator NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
         ALTER ROLE foundation_runtime NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
+        ALTER ROLE foundation_training NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
         REVOKE ALL ON DATABASE foundation_test FROM PUBLIC;
         REVOKE ALL ON SCHEMA public FROM PUBLIC;
         GRANT CONNECT, CREATE ON DATABASE foundation_test TO foundation_migrator;
         GRANT CONNECT ON DATABASE foundation_test TO foundation_runtime;
+        GRANT CONNECT ON DATABASE foundation_test TO foundation_training;
         COMMIT;`);
       console.log(JSON.stringify({ event: 'bootstrap-complete' }));
     } else {

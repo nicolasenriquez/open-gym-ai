@@ -1,0 +1,15 @@
+✔ effective Compose config isolates Foundation despite inherited instance variables (418.9872ms)
+✔ cleanup removes only the identified synthetic containers, volume and network (5582.107ms)
+✔ cleanup refuses mixed-ownership resources before deleting any of them (3063.8283ms)
+✔ run uses real PostgreSQL on Node 22 then removes its own runtime resources (11021.2399ms)
+✔ cleanup refuses a non-Foundation project before accessing Docker (43.7918ms)
+✔ runner refuses a database target outside the synthetic service before connecting (39.5985ms)
+✔ migration process rejects external targets and invalid fixture arguments before connecting (199.9703ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19799.9365

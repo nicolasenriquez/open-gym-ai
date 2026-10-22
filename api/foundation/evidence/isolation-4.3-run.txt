@@ -1,0 +1,273 @@
+Foundation project: opengym-foundation-test-dbb3ce72ca0d483b
+ Image opengym-foundation-test-dbb3ce72ca0d483b-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 555B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#3 DONE 1.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context:
+#4 transferring context: 141B done
+#4 DONE 0.2s
+
+#5 [internal] load build context
+#5 DONE 0.0s
+
+#6 [1/8] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#6 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#6 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 15.77kB done
+#5 DONE 0.0s
+
+#7 [3/8] RUN chown node:node /app
+#7 CACHED
+
+#8 [4/8] COPY --chown=node:node package.json package-lock.json ./
+#8 CACHED
+
+#9 [2/8] WORKDIR /app
+#9 CACHED
+
+#10 [5/8] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#10 CACHED
+
+#11 [6/8] COPY --chown=node:node *.mjs versions.json ./
+#11 DONE 0.2s
+
+#12 [7/8] COPY --chown=node:node migrations/ ./migrations/
+#12 DONE 0.0s
+
+#13 [8/8] RUN npm run check:toolchain
+#13 0.448 
+#13 0.448 > opengym-postgres-foundation@0.0.0 check:toolchain
+#13 0.448 > node check-toolchain.mjs
+#13 0.448 
+#13 0.532 Node 22.23.2; npm 10.9.8; linux/x64
+#13 0.532 Lock SHA-256: dfa32b226d91be7bb3fae885073bae29f71054335ce0b3f33e1b39ed574e3027
+#13 0.532 Package	Version	License (metadata)	Node engine (metadata)
+#13 0.533 ansi-regex	6.4.0	MIT	>=12
+#13 0.533 ansi-styles	6.2.3	MIT	>=12
+#13 0.534 balanced-match	4.0.4	MIT	18 || 20 || >=22
+#13 0.534 brace-expansion	5.0.12	MIT	20 || >=22
+#13 0.534 cliui	9.0.1	ISC	>=20
+#13 0.535 emoji-regex	10.6.0	MIT	(not declared)
+#13 0.535 escalade	3.2.0	MIT	>=6
+#13 0.536 get-caller-file	2.0.5	ISC	6.* || 8.* || >= 10.*
+#13 0.536 get-east-asian-width	1.7.0	MIT	>=18
+#13 0.536 glob	13.0.6	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.537 jiti	2.7.0	MIT	(not declared)
+#13 0.537 lru-cache	11.5.3	BlueOak-1.0.0	20 || >=22
+#13 0.538 minimatch	10.2.6	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.538 minipass	7.1.3	BlueOak-1.0.0	>=16 || 14 >=14.17
+#13 0.538 node-pg-migrate	9.0.0	MIT	>=20.11.0
+#13 0.538 path-scurry	2.0.2	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.538 pg	8.23.1	MIT	>= 16.0.0
+#13 0.539 pg-cloudflare	1.4.1	MIT	(not declared)
+#13 0.539 pg-connection-string	2.14.1	MIT	(not declared)
+#13 0.539 pg-int8	1.0.1	ISC	>=4.0.0
+#13 0.539 pg-pool	3.14.0	MIT	(not declared)
+#13 0.539 pg-protocol	1.16.1	MIT	(not declared)
+#13 0.539 pg-types	2.2.0	MIT	>=4
+#13 0.540 pgpass	1.0.5	MIT	(not declared)
+#13 0.540 postgres-array	2.0.0	MIT	>=4
+#13 0.540 postgres-bytea	1.0.1	MIT	>=0.10.0
+#13 0.540 postgres-date	1.0.7	MIT	>=0.10.0
+#13 0.540 postgres-interval	1.2.0	MIT	>=0.10.0
+#13 0.540 split2	4.2.0	ISC	>= 10.x
+#13 0.541 string-width	7.2.0	MIT	>=18
+#13 0.541 strip-ansi	7.2.0	MIT	>=12
+#13 0.541 wrap-ansi	9.0.2	MIT	>=18
+#13 0.542 xtend	4.0.2	MIT	>=0.4
+#13 0.542 y18n	5.0.8	ISC	>=10
+#13 0.543 yargs	18.0.0	MIT	^20.19.0 || ^22.12.0 || >=23
+#13 0.543 yargs-parser	22.0.0	ISC	^20.19.0 || ^22.12.0 || >=23
+#13 0.543 PASS: pinned runtime, lock/installed metadata, stable versions, integrity metadata and ESM exports.
+#13 0.543 Engine range compatibility is checked by npm ci --engine-strict, not by this script.
+#13 DONE 0.6s
+
+#14 exporting to image
+#14 exporting layers 0.1s done
+#14 exporting manifest sha256:bfe489cb3109795c4481bc5969c81bef0b081ad44ef4be4560b9f3a92e2320c9 0.0s done
+#14 exporting config sha256:a3b409fdda6dc242d52318fea1d69f0f823899510f4f48aad4286a287c8da4ea 0.0s done
+#14 exporting attestation manifest sha256:b1a339e2bef65701855fdf7fc2a718df280fe25af6c390b796fc5edef8e7f7e3 0.0s done
+#14 exporting manifest list sha256:2525f939541dadfe0186d92adcb27ce04dc17936b2171b27460eb4c337d4be76 0.0s done
+#14 naming to docker.io/library/opengym-foundation-test-dbb3ce72ca0d483b-foundation-test:latest done
+#14 unpacking to docker.io/library/opengym-foundation-test-dbb3ce72ca0d483b-foundation-test:latest
+#14 unpacking to docker.io/library/opengym-foundation-test-dbb3ce72ca0d483b-foundation-test:latest 0.2s done
+#14 DONE 0.4s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image opengym-foundation-test-dbb3ce72ca0d483b-foundation-test Built 
+ Network opengym-foundation-test-dbb3ce72ca0d483b_private Creating 
+ Network opengym-foundation-test-dbb3ce72ca0d483b_private Created 
+ Volume opengym-foundation-test-dbb3ce72ca0d483b_postgres-data Creating 
+ Volume opengym-foundation-test-dbb3ce72ca0d483b_postgres-data Created 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-db-1 Creating 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-db-1 Created 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-db-1 Starting 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-db-1 Started 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-db-1 Waiting 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-db-1 Healthy 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-test-run-ce765ce9e074 Creating 
+ Container opengym-foundation-test-dbb3ce72ca0d483b-foundation-test-run-ce765ce9e074 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: A: reads are scoped by the database without an application WHERE filter
+ok 1 - A: reads are scoped by the database without an application WHERE filter
+  ---
+  duration_ms: 89.151607
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: A: cross-owner UPDATE and DELETE affect no rows
+ok 2 - A: cross-owner UPDATE and DELETE affect no rows
+  ---
+  duration_ms: 65.333212
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: B: reads are scoped by the database without an application WHERE filter
+ok 3 - B: reads are scoped by the database without an application WHERE filter
+  ---
+  duration_ms: 62.644219
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: B: cross-owner UPDATE and DELETE affect no rows
+ok 4 - B: cross-owner UPDATE and DELETE affect no rows
+  ---
+  duration_ms: 65.883907
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: missing context: reads are scoped by the database without an application WHERE filter
+ok 5 - missing context: reads are scoped by the database without an application WHERE filter
+  ---
+  duration_ms: 65.995954
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: missing context: cross-owner UPDATE and DELETE affect no rows
+ok 6 - missing context: cross-owner UPDATE and DELETE affect no rows
+  ---
+  duration_ms: 61.370849
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: empty context: reads are scoped by the database without an application WHERE filter
+ok 7 - empty context: reads are scoped by the database without an application WHERE filter
+  ---
+  duration_ms: 62.630215
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: empty context: cross-owner UPDATE and DELETE affect no rows
+ok 8 - empty context: cross-owner UPDATE and DELETE affect no rows
+  ---
+  duration_ms: 61.936457
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: owner-a: INSERT cannot claim owner B
+ok 9 - owner-a: INSERT cannot claim owner B
+  ---
+  duration_ms: 64.458847
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: missing context: INSERT cannot claim owner B
+ok 10 - missing context: INSERT cannot claim owner B
+  ---
+  duration_ms: 66.204976
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: : INSERT cannot claim owner B
+ok 11 - : INSERT cannot claim owner B
+  ---
+  duration_ms: 64.643424
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: same runtime connection after commit: B and missing context inherit no A access
+ok 12 - same runtime connection after commit: B and missing context inherit no A access
+  ---
+  duration_ms: 114.36075
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: same runtime connection after rollback: B and missing context inherit no A access
+ok 13 - same runtime connection after rollback: B and missing context inherit no A access
+  ---
+  duration_ms: 69.481275
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: same runtime connection after SQL error: B and missing context inherit no A access
+ok 14 - same runtime connection after SQL error: B and missing context inherit no A access
+  ---
+  duration_ms: 67.877479
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: Training-only login cannot access the owner fixture even with a known owner context
+ok 15 - Training-only login cannot access the owner fixture even with a known owner context
+  ---
+  duration_ms: 73.644187
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: runtime may update its own row but cannot reassign ownership, TRUNCATE or elevate privileges
+ok 16 - runtime may update its own row but cannot reassign ownership, TRUNCATE or elevate privileges
+  ---
+  duration_ms: 70.573186
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: owner-a: authorized CRUD persists on the same runtime connection
+ok 17 - owner-a: authorized CRUD persists on the same runtime connection
+  ---
+  duration_ms: 69.789216
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: owner-b: authorized CRUD persists on the same runtime connection
+ok 18 - owner-b: authorized CRUD persists on the same runtime connection
+  ---
+  duration_ms: 69.681062
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: owner B cannot INSERT as A or reassign its existing row to A
+ok 19 - owner B cannot INSERT as A or reassign its existing row to A
+  ---
+  duration_ms: 64.523933
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+# Subtest: runtime owns no fixture objects and has only the required data privileges
+ok 20 - runtime owns no fixture objects and has only the required data privileges
+  ---
+  duration_ms: 64.794129
+  type: 'test'
+  ...
+# Fixture cleanup PASS: schema absent; runtime connection closed
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1444.572447
+Foundation cleanup complete

@@ -1,0 +1,19 @@
+Task 4.3 synthetic owner-isolation checkpoint audit
+Command: node api/foundation/environment.mjs run isolation; observed natural test/orchestrator exit 0.
+Runtime: pinned Node 22.23.2 non-root UID 1000 / PostgreSQL 18.6; host Node 24.14.0 orchestrates only.
+PASS: 20/20, no failed/skipped/cancelled tests; 20 SQL-asserted teardown diagnostics (schema absent, runtime PID gone).
+Independent Docker cleanup PASS: zero owned containers including stopped, volumes, networks and labeled runner images for opengym-foundation-test-dbb3ce72ca0d483b
+Captured stdout/stderr scanner PASS with positive controls for all four synthetic credentials and DSNs; PostgreSQL server logs not audited.
+83c15890b1964ffd691cab99425bbf9251f4d554030f2d5e7ecdf9dc6d329ee3  api/foundation/isolation-fixture.mjs (unchanged from 4.2)
+34283177f7391dbd339bd5b243896e37377362e7bb8695ff4d6cb2bc1df7f951  api/foundation/migrate.mjs (unchanged from 4.2)
+6f4a4ced84ce32fbb3993eb717b0f9464fc64c10285bba67d1c1d49b9470226c  api/foundation/migrations.test.mjs (unchanged from 4.2)
+8d645ec691f3624d84d37b350eaf615a6e28e465eb2df379cbf016a1c5b0ab78  api/foundation/environment.mjs (unchanged from 4.2)
+ea66851ba5b0311b6f71f903d7cc7c8d8af15f069a87bc0446b45bd4eaee1a60  api/foundation/run.mjs (unchanged from 4.2)
+be288637f78ec21e778b6efebffedce7b39f3d9790650006bba0c0e972701381  api/foundation/isolation.test.mjs
+Final checks PASS: OpenSpec strict, node syntax, current tracked diff and explicit source/doc whitespace; two evidence links, 12/18 tasks and 5.1 unchecked. Raw Docker evidence retained verbatim including trailing whitespace.
+Requirement mapping - Cross owner/missing context: A/B positive committed CRUD; crossed A/B SELECT/UPDATE/DELETE, missing/empty context SELECT/UPDATE/DELETE/INSERT, A-to-B and B-to-A forged INSERT and owner reassignment rejected.
+Requirement mapping - Reuse: pool max 1, same runtime PID, cleared local context and correct committed/rolled-back data after commit, explicit rollback and SQL error; subsequent B/context-free access isolated.
+Requirement mapping - Restricted consumer/non-row privileges: real runtime ownership/role attributes/memberships/database/schema/table privileges; runtime DDL/TRUNCATE/elevation denial; real Training login and known-owner CRUD/SET ROLE denied with 42501.
+What this change does: completes the dedicated synthetic owner-isolation verification matrix and asserts fixture retirement. It changes tests and documentation only, preserving the 4.2 implementation and normal application.
+Review: exact 4.3 diff/new evidence, shared fixture test helper/teardown, unchanged pool/RLS/bootstrap and approved scenarios inspected for sequential local/CI workload. No blocking finding. Verdict: Ship task 4.3 only. Passing characterization, no manufactured RED.
+Not checked: full API/frontend/MCP suites/build/locales; encrypted recovery, CI and provider/production G1. Prior pool/migration/harness results are historical, not rerun. No commit/push/sync/archive; prior work preserved.
