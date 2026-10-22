@@ -1,0 +1,16 @@
+Task 2.3 verification: PASS
+Command: node api/foundation/environment.mjs run pool
+Runtime: pinned Node 22.23.2 non-root / PostgreSQL 18.6; 12/12 PASS, no skips/cancellations.
+Orchestrator exit code: 0; elapsed ms: 13985
+Process returned naturally after explicit pool close; no forced exit added to test/runner.
+Existing assertions: saturation acquisition <2000 ms; statement cancellation <2000 ms; client query timeout/recovery <1000 ms.
+Captured combined stdout/stderr scan: PASS, no PostgreSQL DSN, synthetic password or private payload markers; scanner positive controls PASS.
+Cleanup independently checked: opengym-foundation-test-7934f2734437a437; zero labeled containers/volumes/networks/images remain.
+Coverage: rollback/write, same-client context commit/abort, saturation/recovery, broken backend replacement, close, safe errors, TLS guards, aborted commit, expired handle, statement/client timeouts.
+Review: isolated local/CI load; no blocking finding in pool/test/runner/callers against the bounded-lifecycle requirement.
+Not claimed: PostgreSQL server logs, provider TLS/pooler, production sizing, arbitrary JavaScript callback deadlines, RLS/migrations/restore, full legacy suites or operational G1.
+SHA256 pool.mjs: 74dea5ccf624d9fdf1e44696cc0aa74b61e478728bb1a671a71463fcb3a500d2
+SHA256 pool.test.mjs: 0f521fe378af481187f92a24263bd82dc5550561b538ad4ea61daea68d393b7a
+SHA256 run.mjs: 18484f0d4ca5511973546dc2215ea10487d7de026d48b71c9a8fd50d7bf572b2
+SHA256 environment.mjs: d00a3b794473e2b291b7c5ac81354ab894720a8992abb580f08461eeec61fbe0
+SHA256 versions.json: 82c3d0db0c5ce76a660c3445c8058a607ec9f626e0f93851fa2406db0f252385

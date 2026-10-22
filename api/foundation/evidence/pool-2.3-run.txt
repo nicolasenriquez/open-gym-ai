@@ -1,0 +1,155 @@
+Foundation project: opengym-foundation-test-7934f2734437a437
+ Image opengym-foundation-test-7934f2734437a437-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 506B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 110B done
+#4 DONE 0.0s
+
+#5 [1/7] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#5 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 395B done
+#6 DONE 0.0s
+
+#7 [5/7] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#7 CACHED
+
+#8 [2/7] WORKDIR /app
+#8 CACHED
+
+#9 [3/7] RUN chown node:node /app
+#9 CACHED
+
+#10 [4/7] COPY --chown=node:node package.json package-lock.json ./
+#10 CACHED
+
+#11 [6/7] COPY --chown=node:node *.mjs versions.json ./
+#11 CACHED
+
+#12 [7/7] RUN npm run check:toolchain
+#12 CACHED
+
+#13 exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:66564636e22eedb258a53e373b6c5d6f357fe3deb34aab0796b74e10c6bf0891 0.0s done
+#13 exporting config sha256:9c7aa997ceb4a86df2587920b5cd81bda7978c1e6dff4d8ef3eb23b652fe9fad 0.0s done
+#13 exporting attestation manifest sha256:4ffab78cc0d2875f9c130e1e3db22939abc2eea6c25bde15f775ae3682ab2760 0.0s done
+#13 exporting manifest list sha256:04e3aaced96f8b93f883070bd09aa57f0856744599370b092e9e686df88fe8e5
+#13 exporting manifest list sha256:04e3aaced96f8b93f883070bd09aa57f0856744599370b092e9e686df88fe8e5 0.0s done
+#13 naming to docker.io/library/opengym-foundation-test-7934f2734437a437-foundation-test:latest done
+#13 unpacking to docker.io/library/opengym-foundation-test-7934f2734437a437-foundation-test:latest
+#13 unpacking to docker.io/library/opengym-foundation-test-7934f2734437a437-foundation-test:latest 0.3s done
+#13 DONE 0.4s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.0s
+ Image opengym-foundation-test-7934f2734437a437-foundation-test Built 
+ Network opengym-foundation-test-7934f2734437a437_private Creating 
+ Network opengym-foundation-test-7934f2734437a437_private Created 
+ Volume opengym-foundation-test-7934f2734437a437_postgres-data Creating 
+ Volume opengym-foundation-test-7934f2734437a437_postgres-data Created 
+ Container opengym-foundation-test-7934f2734437a437-foundation-db-1 Creating 
+ Container opengym-foundation-test-7934f2734437a437-foundation-db-1 Created 
+ Container opengym-foundation-test-7934f2734437a437-foundation-db-1 Starting 
+ Container opengym-foundation-test-7934f2734437a437-foundation-db-1 Started 
+ Container opengym-foundation-test-7934f2734437a437-foundation-db-1 Waiting 
+ Container opengym-foundation-test-7934f2734437a437-foundation-db-1 Healthy 
+ Container opengym-foundation-test-7934f2734437a437-foundation-test-run-a616dd97f232 Creating 
+ Container opengym-foundation-test-7934f2734437a437-foundation-test-run-a616dd97f232 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: configuration rejects unbounded limits and TLS verification bypasses before connecting
+ok 1 - configuration rejects unbounded limits and TLS verification bypasses before connecting
+  ---
+  duration_ms: 0.901139
+  type: 'test'
+  ...
+# Subtest: failed transaction rolls back its write before the same connection is reused
+ok 2 - failed transaction rolls back its write before the same connection is reused
+  ---
+  duration_ms: 41.870582
+  type: 'test'
+  ...
+# Subtest: transaction-local context lasts for the work and disappears after commit
+ok 3 - transaction-local context lasts for the work and disappears after commit
+  ---
+  duration_ms: 11.42735
+  type: 'test'
+  ...
+# Subtest: transaction-local context lasts for the work and disappears after failure
+ok 4 - transaction-local context lasts for the work and disappears after failure
+  ---
+  duration_ms: 11.302095
+  type: 'test'
+  ...
+# Subtest: saturated pool times out, recovers its capacity and closes
+ok 5 - saturated pool times out, recovers its capacity and closes
+  ---
+  duration_ms: 310.076301
+  type: 'test'
+  ...
+# Subtest: terminated transaction connection is rejected and replaced for the next operation
+ok 6 - terminated transaction connection is rejected and replaced for the next operation
+  ---
+  duration_ms: 30.095464
+  type: 'test'
+  ...
+# Subtest: explicit close releases connections and rejects later work
+ok 7 - explicit close releases connections and rejects later work
+  ---
+  duration_ms: 9.289965
+  type: 'test'
+  ...
+# Subtest: query and callback failures expose no server details, payloads or nested secrets
+ok 8 - query and callback failures expose no server details, payloads or nested secrets
+  ---
+  duration_ms: 18.704037
+  type: 'test'
+  ...
+# Subtest: a caught SQL failure cannot report a rolled-back transaction as committed
+ok 9 - a caught SQL failure cannot report a rolled-back transaction as committed
+  ---
+  duration_ms: 8.89893
+  type: 'test'
+  ...
+# Subtest: a transaction query handle cannot outlive its callback and reach the next borrower
+ok 10 - a transaction query handle cannot outlive its callback and reach the next borrower
+  ---
+  duration_ms: 8.399308
+  type: 'test'
+  ...
+# Subtest: default server limits are finite and statement cancellation leaves a reusable connection
+ok 11 - default server limits are finite and statement cancellation leaves a reusable connection
+  ---
+  duration_ms: 65.264583
+  type: 'test'
+  ...
+# Subtest: client query timeout discards uncertain transaction connection and recovers
+ok 12 - client query timeout discards uncertain transaction connection and recovers
+  ---
+  duration_ms: 127.135437
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 714.459043
+Foundation cleanup complete
+Orchestrator exit code: 0; elapsed ms: 13985

@@ -1,4 +1,4 @@
-# PostgreSQL Foundation — isolated toolchain and environment (tasks 1.1–1.3)
+# PostgreSQL Foundation — isolated toolchain, environment and pool
 
 Isolated dependency resolution for `add-postgres-foundation`. This package is **not**
 imported by `api/server.js`, installed by `api/Dockerfile`, or part of the normal
@@ -9,8 +9,9 @@ slice establishes another boundary.
 
 Tasks **1.1–1.3** are delivered here. The environment runner starts only synthetic
 PostgreSQL and verifies connectivity/version, not domain persistence. The legacy
-API also passes its existing HTTP/JSON smoke without PostgreSQL. Pool, migrations,
-RLS, recovery and CI remain pending. No real instance configuration or data is
+API also passes its existing HTTP/JSON smoke without PostgreSQL. Tasks 2.1–2.3 add
+pool/transaction tests, implementation and the verified synthetic checkpoint.
+Migrations, RLS, recovery and CI remain pending. No real instance configuration or data is
 mounted. G1 operational and all production gates remain unproven.
 
 ## Run the isolated environment (task 1.2)
@@ -26,8 +27,9 @@ The first build downloads the already locked dependencies with verified TLS and
 `npm ci --ignore-scripts --engine-strict`, then reruns `check:toolchain`. There is
 no host installation. The runner is read-only with a temporary `/tmp`, no Linux
 capabilities and no privilege escalation. The default group is `environment`;
-unimplemented groups (including `all`) fail explicitly rather than pretend that
-later database proofs ran.
+`pool` runs task 2.1's intentionally failing behavioral tests. Unimplemented
+groups (including `all`) fail explicitly rather than pretend that later database
+proofs ran.
 
 The CLI supplies one absolute Compose file and the explicit empty env file,
 strips inherited `COMPOSE_*` overrides, and generates a new project name
@@ -168,16 +170,153 @@ failures remain recorded; they are not a PostgreSQL regression or TDD proof.
 | Slice | Reproducible entry/status |
 | --- | --- |
 | 1: environment | `node api/foundation/environment.mjs run environment`; config/guard and no-DB smoke commands above |
-| 2: pool | Pending tasks 2.1–2.3; no runnable proof yet |
+| 2: pool | `node api/foundation/environment.mjs run pool`: 2.1–2.3 complete, synthetic checkpoint PASS |
 | 3: migrations | Pending tasks 3.1–3.3; no runnable proof yet |
 | 4: isolation | Pending tasks 4.1–4.3; no runnable proof yet |
 | 5: recovery | Pending tasks 5.1–5.3; no runnable proof yet |
 | 6: complete CI run | Pending tasks 6.1–6.3; no runnable proof yet |
 
-Only `environment` is implemented. Other groups still fail explicitly; commands
-for later slices will be documented when delivered, not advertised as working.
+The `environment` and `pool` groups are passing. Other groups still fail explicitly; commands for later
+slices will be documented when delivered, not advertised as working.
 The shared prerequisite checkpoint is verified; this does not complete Foundation
 or establish operational G1.
+
+## Pool and transaction fail-first contract (task 2.1)
+
+```bash
+node api/foundation/environment.mjs run pool
+```
+
+This command now exits **0** after task 2.2. The existing guarded runner
+validates the target, Node 22.23.2/non-root runtime and PostgreSQL 18.6 before
+launching `pool.test.mjs` through node:test. The existing cleanup runs even when
+tests fail; no extra Compose topology or dependency is introduced. Existing
+`environment` behavior is unchanged.
+
+The public seam is `createDatabase(options)` returning `query(text, values)`,
+`transaction(work)` and `close()`. The transaction callback receives only a query
+interface. The original task 2.1 baseline only leased/released a pg client; task
+2.2 now implements transaction control and safe errors. This module remains
+isolated from the normal API and its image; no existing data uses PostgreSQL.
+
+Six tests use real SQL through this public interface with a one-connection pool:
+write then throw leaves no persisted row; local context across commit and failure;
+saturation with bounded acquisition and capacity recovery; connection termination
+followed by recovery; and explicit close rejecting subsequent work. Assertions
+ensure the callback reached its intended failure, so a setup/assertion failure
+cannot masquerade as successful rollback. Only the test's own backend is
+terminated; the table fixture lives in the disposable database. No migration or
+RLS policy is introduced.
+
+Historical task 2.1 result: **4 behavioral failures, 2 passes, 0 skipped/cancelled**.
+The expected REDs show a persisted `must-roll-back` row, missing transaction-local
+context on both paths, and failure of the next operation after termination.
+Saturation/capacity recovery and explicit close already pass via pg. Import,
+syntax, runtime prerequisites and database connectivity succeeded. The child
+exited and owned resources were cleaned; this is not a missing-method or missing
+database RED. Full output: [`evidence/pool-red.txt`](evidence/pool-red.txt).
+
+The six existing CLI/configuration/cleanup/environment regressions still pass:
+[`evidence/pool-harness-regressions.txt`](evidence/pool-harness-regressions.txt).
+That evidence records the tests-only boundary of task 2.1. No full legacy suite,
+TLS handshake/privilege/RLS proof, CI integration or operational G1 was claimed. Self-review at the approved public
+seam found no blocker for retaining this isolated RED contract; normal API
+callers/manifests/Dockerfile and repository rules are unchanged.
+
+## Pool implementation (task 2.2)
+
+`createDatabase(options)` accepts explicit `host`, `port`, `database`, `user`,
+`password`, `ssl` and the six limits below. Unknown options, including
+`connectionString`, are rejected: DSN SSL parameters must not replace verified
+TLS settings. TLS defaults to enabled with certificate verification; the private
+synthetic network explicitly uses `ssl: false`. TLS objects accept only `ca`,
+`cert`, `key` and `rejectUnauthorized`; verification is forced on. Custom identity
+callbacks, `rejectUnauthorized: false` and `NODE_TLS_REJECT_UNAUTHORIZED=0` fail
+before a connection is opened. No provider TLS handshake is claimed.
+
+| Limit | Default |
+| --- | --- |
+| max | 4 connections |
+| connectionTimeoutMillis | 5,000 ms |
+| idleTimeoutMillis | 10,000 ms |
+| statement_timeout | 5,000 ms |
+| query_timeout | 6,000 ms |
+| lock_timeout | 2,000 ms |
+
+Overrides must be positive safe integers within signed 32-bit range. These are
+synthetic defaults, not production sizing. Transactions lease one client and run
+BEGIN/work/COMMIT or ROLLBACK; failed rollback or a connection error discards the
+client. A COMMIT response reporting ROLLBACK rejects. Callback handles expire when
+work ends. Trusted work must await its queries and install owner context with
+`set_config('app.owner_id', value, true)` inside the transaction; do not issue
+session-scoped context or transaction control through this interface. RLS and
+trusted owner derivation remain slice 4 work. `close()` drains active work then
+ends the pool; SQL timeouts do not impose a deadline on arbitrary JavaScript work.
+
+Query, acquisition, callback and close errors expose a fresh generic Error without
+driver fields, raw message or cause. Timeouts retain only a safe timeout label.
+Idle connection errors are consumed without logging raw diagnostics; pg removes
+those clients. The wrapper does not log credentials, SQL or payloads.
+
+Implementation checks: **12/12 PASS**, no skips/cancellations, pinned non-root
+Node 22.23.2/PostgreSQL 18.6, exit 0 and cleanup complete in
+[`evidence/pool-2.2-green.txt`](evidence/pool-2.2-green.txt). Coverage includes the
+original six cases, configuration/TLS guards, sanitized errors, aborted commit,
+expired callback handles, default server limits, statement cancellation and client
+timeout recovery. **6/6 harness regressions PASS** in
+[`evidence/pool-2.2-regressions.txt`](evidence/pool-2.2-regressions.txt).
+
+The current-tree baseline was rerun (`pool-2.2-baseline.txt`, 4 intended failures).
+Incremental `pool-2.2-*-red.txt` evidence records behavioral failures before fixes
+for configuration, diagnostics, aborted commit and expired handles; each following
+GREEN includes relevant existing tests. The intermediate `pool-2.2-transactions.txt`
+failure exposed the leased connection error event and was resolved before advancing.
+Timeout checks additionally characterize the configured pg behavior through the
+same approved seam. No dependency was added or installed on the host.
+
+Routine ponytail-review of the exact 2.2 delta, callers and OpenSpec contract found
+no remaining blocker for this isolated implementation. The following task 2.3
+checkpoint verifies the current tree separately. Full suites, CI integration,
+privileges/RLS/restore and operational G1 remain pending.
+
+## Pool verification checkpoint (task 2.3)
+
+Reran `node api/foundation/environment.mjs run pool` without changing runtime,
+tests, dependencies or the existing harness. This is verification of the delivered
+implementation, not a new behavior requiring an artificial RED. The pinned,
+non-root Node 22.23.2/PostgreSQL 18.6 run passed **12/12**, with no skipped or
+cancelled tests. The test process returned naturally after pool closure; the
+orchestrator returned **0 in 13,985 ms**, including Compose/build and cleanup.
+Full combined stdout/stderr: [`evidence/pool-2.3-run.txt`](evidence/pool-2.3-run.txt).
+
+The existing behavioral assertions verify acquisition saturation below 2 seconds,
+statement cancellation below 2 seconds, and client timeout/recovery below 1 second;
+the configured test timeouts are 300, 50 and 50 ms respectively. Recovery and
+same-connection/context assertions also passed. The captured output was scanned
+for PostgreSQL DSNs and synthetic password/private-payload markers: no matches.
+Positive scanner controls were checked without printing their contents. This
+audits runner/test diagnostics, not PostgreSQL server logs or historical RED logs.
+
+Independent read-only Docker queries found zero containers, volumes, networks or
+images labeled with this run's exact project after cleanup. The audit records
+source SHA-256 values, process result, bounds, coverage and limits:
+[`evidence/pool-2.3-audit.txt`](evidence/pool-2.3-audit.txt).
+
+Requirement mapping: **Failure and reuse** is covered by rollback/write and
+same-client local context commit/abort tests; **Pool saturation and shutdown** by
+bounded acquisition/capacity recovery, explicit close and natural process exit;
+**Connection loss and safe diagnostics** by backend termination/replacement,
+sanitized error inspection, TLS configuration guards and the captured-log audit.
+Routine ponytail-review inspected the pool, tests, runner, cleanup and their
+callers against these scenarios; no blocking finding remains for the synthetic
+slice. No normal API caller imports this package. No additional harness regression
+run was needed: this task changes only documentation/evidence and reruns the
+existing 12 pool checks; the six harness regressions passed in 2.2.
+
+**Slice 2 is verified for local synthetic use.** Provider TLS/pooler, production
+sizing, roles/RLS, migration/restore, full legacy suites and operational G1 remain
+unverified. SQL timeouts do not bound arbitrary JavaScript callbacks. This does
+not complete Foundation or authorize task 3.1, commit, synchronization or archive.
 
 ## Pins and evidence
 
@@ -293,11 +432,11 @@ remain cached; do not prune unrelated Docker resources.
 Requirement coverage for this task: stable, exact candidate/lock/engine evidence
 supports **Controlled migration history and privilege separation**; image pins
 prepare **Isolated synthetic environment**. Neither requirement is fully delivered
-until their remaining scenarios are verified. Task 1.2 now adds guarded synthetic
+until their remaining scenarios are verified. Task 1.2 adds guarded synthetic
 startup/connectivity and bounded cleanup evidence. Task 1.3 adds no-PostgreSQL
 legacy API compatibility and repeats config/target checks. No migration,
-transaction/pool, locking, TLS handshake, privilege, RLS or backup/restore proof
-is claimed here.
+locking, TLS handshake, privilege, RLS or backup/restore proof is claimed by tasks
+1.1–1.3. Pool implementation evidence and its remaining checkpoint are above.
 
 Routine `ponytail-review` self-review inspected this directory, including every new
 file, Compose definition, CLI/runner/tests and task Notes against the

@@ -1,0 +1,183 @@
+Foundation project: opengym-foundation-test-fec992d79f6fba57
+ Image opengym-foundation-test-fec992d79f6fba57-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 506B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#3 DONE 1.3s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 110B done
+#4 DONE 0.0s
+
+#5 [1/7] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#5 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 6.31kB done
+#6 DONE 0.0s
+
+#7 [2/7] WORKDIR /app
+#7 CACHED
+
+#8 [3/7] RUN chown node:node /app
+#8 CACHED
+
+#9 [4/7] COPY --chown=node:node package.json package-lock.json ./
+#9 CACHED
+
+#10 [5/7] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#10 CACHED
+
+#11 [6/7] COPY --chown=node:node *.mjs versions.json ./
+#11 DONE 0.0s
+
+#12 [7/7] RUN npm run check:toolchain
+#12 0.290 
+#12 0.290 > opengym-postgres-foundation@0.0.0 check:toolchain
+#12 0.290 > node check-toolchain.mjs
+#12 0.290 
+#12 0.372 Node 22.23.2; npm 10.9.8; linux/x64
+#12 0.373 Lock SHA-256: dfa32b226d91be7bb3fae885073bae29f71054335ce0b3f33e1b39ed574e3027
+#12 0.373 Package	Version	License (metadata)	Node engine (metadata)
+#12 0.374 ansi-regex	6.4.0	MIT	>=12
+#12 0.374 ansi-styles	6.2.3	MIT	>=12
+#12 0.374 balanced-match	4.0.4	MIT	18 || 20 || >=22
+#12 0.375 brace-expansion	5.0.12	MIT	20 || >=22
+#12 0.375 cliui	9.0.1	ISC	>=20
+#12 0.376 emoji-regex	10.6.0	MIT	(not declared)
+#12 0.376 escalade	3.2.0	MIT	>=6
+#12 0.377 get-caller-file	2.0.5	ISC	6.* || 8.* || >= 10.*
+#12 0.377 get-east-asian-width	1.7.0	MIT	>=18
+#12 0.377 glob	13.0.6	BlueOak-1.0.0	18 || 20 || >=22
+#12 0.377 jiti	2.7.0	MIT	(not declared)
+#12 0.377 lru-cache	11.5.3	BlueOak-1.0.0	20 || >=22
+#12 0.378 minimatch	10.2.6	BlueOak-1.0.0	18 || 20 || >=22
+#12 0.378 minipass	7.1.3	BlueOak-1.0.0	>=16 || 14 >=14.17
+#12 0.378 node-pg-migrate	9.0.0	MIT	>=20.11.0
+#12 0.378 path-scurry	2.0.2	BlueOak-1.0.0	18 || 20 || >=22
+#12 0.379 pg	8.23.1	MIT	>= 16.0.0
+#12 0.379 pg-cloudflare	1.4.1	MIT	(not declared)
+#12 0.379 pg-connection-string	2.14.1	MIT	(not declared)
+#12 0.379 pg-int8	1.0.1	ISC	>=4.0.0
+#12 0.379 pg-pool	3.14.0	MIT	(not declared)
+#12 0.379 pg-protocol	1.16.1	MIT	(not declared)
+#12 0.379 pg-types	2.2.0	MIT	>=4
+#12 0.379 pgpass	1.0.5	MIT	(not declared)
+#12 0.379 postgres-array	2.0.0	MIT	>=4
+#12 0.379 postgres-bytea	1.0.1	MIT	>=0.10.0
+#12 0.379 postgres-date	1.0.7	MIT	>=0.10.0
+#12 0.380 postgres-interval	1.2.0	MIT	>=0.10.0
+#12 0.380 split2	4.2.0	ISC	>= 10.x
+#12 0.380 string-width	7.2.0	MIT	>=18
+#12 0.380 strip-ansi	7.2.0	MIT	>=12
+#12 0.380 wrap-ansi	9.0.2	MIT	>=18
+#12 0.380 xtend	4.0.2	MIT	>=0.4
+#12 0.380 y18n	5.0.8	ISC	>=10
+#12 0.380 yargs	18.0.0	MIT	^20.19.0 || ^22.12.0 || >=23
+#12 0.381 yargs-parser	22.0.0	ISC	^20.19.0 || ^22.12.0 || >=23
+#12 0.381 PASS: pinned runtime, lock/installed metadata, stable versions, integrity metadata and ESM exports.
+#12 0.381 Engine range compatibility is checked by npm ci --engine-strict, not by this script.
+#12 DONE 0.4s
+
+#13 exporting to image
+#13 exporting layers 0.1s done
+#13 exporting manifest sha256:2e406e676719710d5a5bfe7274ec280276308d0536b41604d16e5fa7d28c56ad 0.0s done
+#13 exporting config sha256:9b78b98f22c6221d95a683578c01f3d5281676bf3860ffa2cbb9ee71b9519649 0.0s done
+#13 exporting attestation manifest sha256:b13161e67b0cf5a2e202402778390d12d8483df5ba5872621c65fac5c8b737e6 0.0s done
+#13 exporting manifest list sha256:623a3550552112036448b93426e13e6941fef62e0f3421063f6caa24f460de08 0.0s done
+#13 naming to docker.io/library/opengym-foundation-test-fec992d79f6fba57-foundation-test:latest done
+#13 unpacking to docker.io/library/opengym-foundation-test-fec992d79f6fba57-foundation-test:latest
+#13 unpacking to docker.io/library/opengym-foundation-test-fec992d79f6fba57-foundation-test:latest 0.3s done
+#13 DONE 0.6s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.0s
+ Image opengym-foundation-test-fec992d79f6fba57-foundation-test Built 
+ Network opengym-foundation-test-fec992d79f6fba57_private Creating 
+ Network opengym-foundation-test-fec992d79f6fba57_private Created 
+ Volume opengym-foundation-test-fec992d79f6fba57_postgres-data Creating 
+ Volume opengym-foundation-test-fec992d79f6fba57_postgres-data Created 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-db-1 Creating 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-db-1 Created 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-db-1 Starting 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-db-1 Started 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-db-1 Waiting 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-db-1 Healthy 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-test-run-0fbfec4b2cd6 Creating 
+ Container opengym-foundation-test-fec992d79f6fba57-foundation-test-run-0fbfec4b2cd6 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: configuration rejects unbounded limits and TLS verification bypasses before connecting
+not ok 1 - configuration rejects unbounded limits and TLS verification bypasses before connecting
+  ---
+  duration_ms: 1.21129
+  type: 'test'
+  location: '/app/pool.test.mjs:16:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (file:///app/pool.test.mjs:25:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: failed transaction rolls back its write before the same connection is reused
+ok 2 - failed transaction rolls back its write before the same connection is reused
+  ---
+  duration_ms: 46.024354
+  type: 'test'
+  ...
+# Subtest: transaction-local context lasts for the work and disappears after commit
+ok 3 - transaction-local context lasts for the work and disappears after commit
+  ---
+  duration_ms: 11.348679
+  type: 'test'
+  ...
+# Subtest: transaction-local context lasts for the work and disappears after failure
+ok 4 - transaction-local context lasts for the work and disappears after failure
+  ---
+  duration_ms: 10.065116
+  type: 'test'
+  ...
+# Subtest: saturated pool times out, recovers its capacity and closes
+ok 5 - saturated pool times out, recovers its capacity and closes
+  ---
+  duration_ms: 309.695044
+  type: 'test'
+  ...
+# Subtest: terminated transaction connection is rejected and replaced for the next operation
+ok 6 - terminated transaction connection is rejected and replaced for the next operation
+  ---
+  duration_ms: 27.893864
+  type: 'test'
+  ...
+# Subtest: explicit close releases connections and rejects later work
+ok 7 - explicit close releases connections and rejects later work
+  ---
+  duration_ms: 12.645536
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 6
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 495.383097
+
+Foundation cleanup complete
+Docker compose failed

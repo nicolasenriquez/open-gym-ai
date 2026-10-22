@@ -70,6 +70,8 @@ Fuentes primarias:
 
 Estado: los cinco seams aprobados expresamente durante la conversación. La aprobación cubre esos límites para futura entrega; no autoriza implementar. Cambios materiales de seam requieren reconfirmación.
 
+Concreción del seam de pool en 2.1–2.2: `createDatabase(options)` expone `query(text, values)`, `transaction(work)` y `close()`; el callback recibe una interfaz query, sin acceso a internals del pool. Pruebas mediante SQL real y pool máximo 1; PID/contexto se observan por esa misma interfaz. `node api/foundation/environment.mjs run pool` conserva target guards/cleanup y ejecuta las pruebas con Node 22 fijado. Tras autorización explícita de 2.2, `api/foundation/pool.mjs` implementa BEGIN/COMMIT/ROLLBACK, descarte, cierre y errores genéricos sin cause/detalles driver. Acepta configuración explícita con límites positivos finitos y TLS verificable; rechaza DSN/opciones desconocidas para impedir overrides TLS. Defaults de ensayo: max 4, adquisición 5 s, idle 10 s, statement 5 s, query 6 s, lock 2 s. El contexto local se instala mediante SQL de trabajo confiable; la interfaz del callback caduca al terminar. SQL timeouts no cancelan JavaScript arbitrario; close drena el trabajo activo. No está integrado en la API. Implementación 2.2 y checkpoint 2.3: 12 pruebas PASS en el árbol actual, salida natural 0, timeouts acotados y diagnóstico stdout/stderr sin marcadores DSN/contraseña/payload; recursos del proyecto ausentes tras limpieza. Evidencia: api/foundation/evidence/pool-2.3-{run,audit}.txt. No acredita logs del servidor, proveedor TLS, RLS ni G1 operativo.
+
 ## Risks / Trade-offs
 
 - [Pruebas sintéticas confundidas con producción] → informe separado: evidencia sintética por área y G1 operativo pendiente; G0/G2–G5 no acreditados.
