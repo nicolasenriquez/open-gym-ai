@@ -39,7 +39,7 @@ Use fresh snapshot refs or the scoped selectors in the map. Scope tab buttons to
 
 The helper prints a log path under .playwright-cli/verify-opengym-<run>.log. The JSON result includes per-case ARIA snapshots, completion status, API health and errors; screenshots and a synthetic backup use timestamped .playwright-cli/opengym-* paths. The PowerShell helper fails unless completed:true, screenshots exist, and the downloaded JSON contains the created workout, routine, weight and measurement.
 
-Proof means the action plus its resulting state, a reload or second user-facing view for persistence, and an observed export for stored data. A toast or screenshot alone does not prove a save. Do not seed through localStorage setters, app stores, mocks or hidden endpoints. Keep credentials, cookies and storage-state dumps out of tracked evidence. Copy only reviewed synthetic artifacts into a dated docs/audit folder when delivering an audit. Report unexecuted paths as pending; route rendering is not full feature coverage.
+Proof means the action plus its resulting state, a reload or second user-facing view for persistence, and an observed export for stored data. A toast or screenshot alone does not prove a save. Do not seed through localStorage setters, app stores, mocks or hidden endpoints. Keep credentials, cookies and storage-state dumps out of tracked evidence. Keep run artifacts in ignored .playwright-cli/ or CI artifacts, not in docs/. Put the verification result in the PR; integrate only reusable knowledge into its owning document. Report unexecuted paths as pending; route rendering is not full feature coverage.
 
 ## Cleanup
 
@@ -52,5 +52,6 @@ If this run alone started a disposable Compose stack, `docker compose stop` stop
 - `helpers/run.ps1`: launch, execute, validate downloaded synthetic JSON, cleanup, verify evidence survives; invoke as shown above.
 - `helpers/guest-smoke.js`: UI journey called by run-code; requires a fresh named browser at the fixed local origin.
 - [Feature map](features/README.md): additional entry points and pending cases.
-- [Audit and test cases](../../../docs/audit/opengym-e2e-2026-10-20/README.md): observed limits and regressions.
+- [Test cases](features/test-cases.md): reusable scenarios and prerequisites; results belong to each run.
+- [UI regression guide](../../../docs/dev/ui-accessibility-fixes.md): Coach routing, routine keyboard activation and modal focus checks.
 

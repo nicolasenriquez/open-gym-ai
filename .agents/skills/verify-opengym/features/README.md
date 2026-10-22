@@ -12,7 +12,7 @@ Run from repository root. Spanish UI, kg units, fresh ephemeral named browser at
 
 ## Coverage contract
 
-The run.ps1 helper proves one connected journey across these files. It does not prove every listed sub-feature. Detailed IDs, expected outcomes and current statuses live in docs/audit/opengym-e2e-2026-10-20/test-cases.md. A feature with several entry points needs each entry checked; success through Home does not verify the Start tab or exercise-to-plan shortcut.
+The run.ps1 helper proves one connected journey across these files. It does not prove every listed sub-feature. [Test cases](test-cases.md) defines reusable IDs, prerequisites and expected outcomes. Record pass/fail/pending against the actual build in each run, not as permanent statuses in the map. A feature with several entry points needs each entry checked; success through Home does not verify the Start tab or exercise-to-plan shortcut.
 
 Each proof records case ID, preconditions, actions, ARIA/screenshot, resulting state and persistence check. Never mark conditional account/mobile/permission scenarios passed from a guest screenshot. Evidence survives browser teardown. All named sessions must have one driver.
 

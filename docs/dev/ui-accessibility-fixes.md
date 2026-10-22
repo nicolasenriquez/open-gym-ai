@@ -1,11 +1,14 @@
 ---
 type: Reference
-title: UI accessibility fixes — 2026-10-20
-description: Recorded accessibility fixes and checks from 2026-10-20.
+title: UI accessibility contracts and regression checks
+description: Coach routing, routine keyboard activation and shared modal behavior with repeatable browser checks.
 ---
-# UI accessibility fixes — 2026-10-20
+# UI accessibility contracts and regression checks
 
-Three isolated fixes address the guest audit findings:
+## Implemented behavior
+
+The current implementation and its regression helpers cover these contracts; run the
+checks against the served checkout before claiming a result:
 
 1. Coach intake redirects in an effect after store readiness. Real-router tests cover cold guest access, disabled Coach and delayed initialization.
 2. Other routines use native non-submit buttons. Browser verification reaches them with Tab and starts a real routine with Enter and Space.
@@ -54,12 +57,19 @@ Native dialogs may yield focus to browser chrome. The test accepts that only whe
 
 Screenshots, synthetic media and console output survive cleanup under `.playwright-cli/ui-fixes-*`. The 390px run is viewport emulation, not a physical Android/iOS or Safari test. Native WebView, soft-keyboard and assistive-technology checks remain device-level follow-up work.
 
-## Validation recorded
+## Sources and verification limits
 
-- 94 directed Vitest tests passed across eight files, including existing modal history/scroll/gesture tests and new real-router, routine-button, cancel-lock and toast-portal regressions.
-- The 13 browser checkpoints passed in Edge against the checkout; no uncaught runtime errors were observed in the isolated scenarios.
-- The existing guest journey passed 17 checkpoints against port 4174. Its real exported JSON contained one completed three-set workout, bodyweight 72.5, waist 85 and no active workout.
-- Production build passed. Locale check passed: 18 locales, 2258 keys each.
-- Full frontend run: 401 files passed, 3 files failed; 5051 tests passed, 10 failed. The same failures were reproduced using a separate archived copy of the pre-fix commit `666d9080` with the same dependencies/runtime: nine shell-spawn tests in `api-base.test.js`, one calendar-note assertion in `sheets.day-note.test.jsx`, and a parse failure loading `check-mobile-bundle.test.mjs`. They were not changed as part of these fixes. Logs: `.playwright-cli/frontend-regressions.log` and `.playwright-cli/baseline-failures.log`.
+- [`Modals.jsx`](../../frontend/src/components/Modals.jsx) owns dialog lifecycle,
+  stacking and dismissal; [`Toast.jsx`](../../frontend/src/components/Toast.jsx)
+  routes feedback into the active dialog.
+- [`CoachIntake.jsx`](../../frontend/src/views/CoachIntake.jsx) owns the guarded
+  redirect; [`Workout.jsx`](../../frontend/src/views/Workout.jsx) owns routine selection.
+- [`verify-ui-fixes.js`](../../frontend/scripts/verify-ui-fixes.js) owns browser
+  assertions; the [guest verification skill](../../.agents/skills/verify-opengym/SKILL.md)
+  covers the separate connected persistence journey.
 
-Vitest's LinkeDOM modal tests stub only `showModal`/`close` lifecycle calls; they do not claim to simulate browser focus or inertness. Those assertions belong to the real-browser helper. The media component test now checks arrow navigation; the nested browser viewer test owns its focus regression.
+Vitest's LinkeDOM modal tests stub only `showModal`/`close` lifecycle calls; they do
+not simulate browser focus or inertness. Those assertions belong to the real-browser
+helper. Media component tests cover arrow navigation; the nested browser viewer
+check owns focus regression. Store results with the tested revision and environment
+in run artifacts or the PR, not as accumulating test totals in this reference.

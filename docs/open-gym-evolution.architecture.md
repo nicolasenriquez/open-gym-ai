@@ -7,7 +7,7 @@ description: Contratos, transición y gates de la plataforma objetivo Python/Fas
 
 ## Estado y alcance del documento
 
-**Estado:** dirección y cleanup documental autorizados el 2026-10-22. Esta arquitectura sustituye la dirección Node inicial por la prioridad del promotor descrita en el [PRD Evolution](open-gym-evolution.prd.md); los [antecedentes](audit/opengym-architecture-rebaseline-2026-10-22.md) conservan su motivo y evidencia. No acredita implementación ni gates satisfechos.
+**Estado:** dirección y cleanup documental autorizados el 2026-10-22. Esta arquitectura sustituye la dirección Node inicial por la prioridad estratégica del promotor descrita en el [PRD Evolution](open-gym-evolution.prd.md), no por un fallo demostrado de Node. Las alternativas y el motivo se mantienen en §3. No acredita implementación ni gates satisfechos.
 
 **Alcance:** documentación de dirección, contratos y aceptación; no ejecuta código, OpenSpecs, instalaciones, migraciones o despliegues. Una modificación futura debe identificar la decisión que sustituye y su motivo.
 
@@ -29,15 +29,15 @@ Completar la transición de la aplicación servidor a un monolito modular Python
 
 ### 2.1 OpenGym
 
-As-Is de la revisión `2cc7ee1f`: Node/archivos, frontend/API `1.4.1`, Compose `api` + `web`; Foundation Node sintética archivada, sin corte ni backend Python. La [evidencia histórica completa](audit/evolution-architecture-evidence-2026-10-22.md#21-opengym) conserva checkouts, digests, comparación de archivos y límites de las observaciones. Esta edición documental no aporta pruebas nuevas.
+As-Is de la revisión `2cc7ee1f`: Node/archivos, frontend/API `1.4.1`, Compose `api` + `web`; Foundation Node sintética archivada, sin corte ni backend Python. La [evidencia histórica completa](research/evolution-architecture-evidence.md#21-opengym) conserva checkouts, digests, comparación de archivos y límites de las observaciones. Esta edición documental no aporta pruebas nuevas.
 
 ### 2.2 Datos locales de clientes
 
-G0 exige inventario y backups comprobados por origen/perfil, cuenta/invitado, sesión activa, pendientes y medios antes del corte. Los límites del export y la [observación original](audit/evolution-architecture-evidence-2026-10-22.md#22-datos-locales-de-clientes) siguen aplicando; preservar almacenamiento local hasta resolverlos.
+G0 exige inventario y backups comprobados por origen/perfil, cuenta/invitado, sesión activa, pendientes y medios antes del corte. Los límites del export y la [observación original](research/evolution-architecture-evidence.md#22-datos-locales-de-clientes) siguen aplicando; preservar almacenamiento local hasta resolverlos.
 
 ### 2.3 AI Tutor como referencia
 
-La [comparación histórica](audit/evolution-architecture-evidence-2026-10-22.md#23-ai-tutor-como-referencia) conserva revisión y fuentes. Adoptar lifecycle/pool, transacciones, repositorios, lockfiles y referencias por tarea; adaptar auth, despliegue y pruebas al contrato OpenGym. Los contratos objetivo se definen aquí y en las referencias, no en el código o artículos de otro producto.
+La [comparación histórica](research/evolution-architecture-evidence.md#23-ai-tutor-como-referencia) conserva revisión y fuentes. Adoptar lifecycle/pool, transacciones, repositorios, lockfiles y referencias por tarea; adaptar auth, despliegue y pruebas al contrato OpenGym. Los contratos objetivo se definen aquí y en las referencias, no en el código o artículos de otro producto.
 
 ## 3. Decisiones y alternativas consideradas
 

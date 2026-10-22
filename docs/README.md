@@ -1,7 +1,7 @@
 ---
 type: Guide
 title: openGym documentation
-description: Documentation entry point and ownership of current guidance, plans and evidence.
+description: Documentation entry point and ownership of guidance, requirements and supporting research.
 ---
 # openGym documentation
 
@@ -34,15 +34,18 @@ For documentation changes, follow the [authoring guide](operations/okf-authoring
 | Platform outcomes and priority | [Evolution PRD](open-gym-evolution.prd.md) |
 | Transition, mechanisms and technical gates | [Architecture](open-gym-evolution.architecture.md) and its linked references |
 | Recovery functional requirements | [Recovery PRD](open-gym-recovery.prd.md) |
-| Product evidence and historical findings | [Discovery](dev/personal-recovery-discovery.md), [research](research/index.md) and [audits](audit/index.md), within their dated scope |
+| Product evidence and decision sources | [Discovery](dev/personal-recovery-discovery.md) and [research](research/index.md), only within their stated scope |
 | A selected change and its tasks | [OpenSpec artifacts](../openspec/changes/); archives preserve their original scope |
 | Documentation rules and maintenance | [Local OKF profile](standards/okf-profile.md) and [authoring guide](operations/okf-authoring-guide.md) |
 
 Current runtime remains Node/JSON. The Evolution PRD governs the order of future
 delivery; reformatting these documents does not satisfy platform acceptance.
 The [roadmap](../ROADMAP.md) summarizes direction and preserves upstream context;
-it does not override the PRDs or architecture. Historical reports are evidence,
-not current implementation instructions.
+it does not override the PRDs or architecture. Research supports decisions; it is not current implementation guidance or proof of acceptance.
+
+Keep reusable knowledge in its owning page. Git/PRs preserve change history;
+execution logs and screenshots remain temporary artifacts. Follow the
+[retention policy](operations/okf-authoring-guide.md#qué-pertenece-a-docs) before adding or retiring a document.
 
 ## Still stuck?
 

@@ -31,7 +31,7 @@ La necesidad inmediata es conservar una herramienta utilizable y contar con una 
 | Identidad y Training servidor almacenados en archivos; consumidores adicionales leen esos datos | `api/server.js`, `api/coach/jobs.js` y `mcp/src/state.js`, inspeccionados en la revisión. Es evidencia de acoplamiento, no de pérdida de datos. |
 | Cliente con persistencia local, sincronización y sesión activa propias | `frontend/src/store/useStore.js`; conservar pantallas no basta para preservar comportamiento. |
 | PostgreSQL Foundation completada como ensayo separado en Node | [Tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md) y [README Foundation](../api/foundation/README.md). No sustituye la aplicación ni demuestra el backend Python. |
-| AI Tutor ofrece patrones de desarrollo y operación pertinentes | [Fuentes y límites](audit/evolution-architecture-evidence-2026-10-22.md#23-ai-tutor-como-referencia); no acredita que su topología o dominio deban copiarse. |
+| AI Tutor ofrece patrones de desarrollo y operación pertinentes | [Fuentes y límites](research/evolution-architecture-evidence.md#23-ai-tutor-como-referencia); no acredita que su topología o dominio deban copiarse. |
 
 **Hipótesis:** una plataforma modular y reproducible facilitará las ampliaciones posteriores. La aceptación inicial solo puede demostrar continuidad funcional, recuperación y operabilidad; una mejora de productividad exige observación posterior. No se presenta como demanda comercial validada.
 

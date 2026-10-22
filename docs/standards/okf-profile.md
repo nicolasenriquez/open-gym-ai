@@ -34,11 +34,11 @@ No añadir fechas, `sources`, `generated` o `verified` por rutina. Registrar ún
 
 Las fuentes de verdad están en [la entrada documental](../README.md#documentation-authority). El perfil no modifica requisitos de plataforma ni autoriza trabajo de producto.
 
-Los cuerpos protegidos están identificados en [el manifiesto histórico](../../scripts/docs/historical-bodies.json), con SHA-256 calculado antes de la conversión. El hash excluye únicamente el frontmatter; incluye saltos de línea y todo el cuerpo. También se conservan los recursos asociados. Para corregir una conclusión histórica, crear una nota nueva y enlazarla desde documentación vigente. No actualizar un hash para ocultar una reescritura. Los enlaces obsoletos de esos cuerpos se reportan como avisos; no se arreglan retroactivamente.
+Los cuerpos protegidos están identificados en [el manifiesto histórico](../../scripts/docs/historical-bodies.json). El hash excluye únicamente el frontmatter; incluye saltos de línea y todo el cuerpo. Mientras una entrada permanezca en el manifiesto, su ausencia o alteración bloquea la comprobación. Para corregir una conclusión histórica, publicar una nota separada y enlazarla desde documentación vigente; nunca actualizar un hash para ocultar una reescritura. Los enlaces obsoletos de esos cuerpos se reportan como avisos.
+
+Protección no implica retención indefinida. Una retirada revisada debe identificar consumidores, preservar requisitos, decisiones y evidencia todavía necesarios en su fuente propietaria, y actualizar enlaces, índices, configuración y manifiesto en el mismo cambio. Los recursos se conservan solo si tienen una finalidad vigente; los resultados de ejecuciones no se archivan por rutina. En un traslado sin cambio de cuerpo, trasladar la entrada conservando su hash. La justificación queda en el diff/PR, no en otra auditoría. El criterio editorial se mantiene en la [guía de autoría](../operations/okf-authoring-guide.md#qué-pertenece-a-docs).
 
 Las reglas documentales de `.gitattributes` mantienen LF en esas superficies, que ya usaban LF antes de migrar. Así los hashes conservan su significado después de un checkout en Windows o Linux. Las demás guías mantienen sus finales de línea actuales.
-
-El plan original de migración está protegido como registro de intención. El [informe de ejecución](../audit/okf-migration-2026-10-22.md) indica el resultado; sus tiempos verbales no convierten el plan original en un runbook vigente.
 
 ## Comprobación y límites
 

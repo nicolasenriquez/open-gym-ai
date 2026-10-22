@@ -92,6 +92,31 @@ test('historical metadata insertion retains protected body; mutation and deletio
   assert(f.check().findings.some(x => x.rule === 'historical-missing'))
 })
 
+test('reviewed retirement requires explicit manifest update and index regeneration', t => {
+  const body = '# History\n'
+  const f = fixture(t, { 'docs/a.md': concept(body) }, { 'docs/a.md': sha(body) })
+  applyPlan(f.root, createPlan(f.root))
+  fs.unlinkSync(path.join(f.root, 'docs/a.md'))
+  assert.throws(() => createPlan(f.root), /historical-missing/)
+  f.write('scripts/docs/historical-bodies.json', '{}')
+  assert(f.check().findings.some(x => x.rule === 'link-target'))
+  applyPlan(f.root, createPlan(f.root))
+  assert.deepEqual(f.check().findings, [])
+  assert.deepEqual(createPlan(f.root).changes, [])
+})
+
+test('reviewed relocation preserves the historical hash and still detects mutation', t => {
+  const body = '# History\n'
+  const f = fixture(t, { 'docs/a.md': concept(body) }, { 'docs/a.md': sha(body) })
+  applyPlan(f.root, createPlan(f.root))
+  fs.renameSync(path.join(f.root, 'docs/a.md'), path.join(f.root, 'docs/b.md'))
+  f.write('scripts/docs/historical-bodies.json', JSON.stringify({ 'docs/b.md': sha(body) }))
+  applyPlan(f.root, createPlan(f.root))
+  assert.deepEqual(f.check().findings, [])
+  f.write('docs/b.md', concept('# Rewritten\n'))
+  assert(f.check().findings.some(x => x.rule === 'historical-body'))
+})
+
 test('unknown types and extension fields are accepted, optional absent fields are not required', t => {
   const f = fixture(t, { 'docs/a.md': '---\ntype: Unknown Future Type\ntitle: A\ndescription: B\ncustom: value\n---\n# A\n' })
   applyPlan(f.root, createPlan(f.root))

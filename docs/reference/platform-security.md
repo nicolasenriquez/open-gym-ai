@@ -63,4 +63,4 @@ GP antes del corte y G3 después de retirada deben demostrar:
 
 Registrar revisión, entorno, fixtures, resultados y limitaciones. Una prueba de autenticación correcta no demuestra autorización; mocks o SQL como superusuario no prueban RLS efectivo.
 
-Referencias: [OWASP Authorization](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html), [OWASP Logging](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html). Los patrones pertinentes de AI Tutor y sus límites están en la [evidencia histórica](../audit/evolution-architecture-evidence-2026-10-22.md#23-ai-tutor-como-referencia).
+Referencias: [OWASP Authorization](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html), [OWASP Logging](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html). Los patrones pertinentes de AI Tutor y sus límites están en la [evidencia histórica](../research/evolution-architecture-evidence.md#23-ai-tutor-como-referencia).

@@ -17,37 +17,12 @@
   "directories": {
     "docs": {
       "title": "Documentación OpenGym",
-      "description": "Guías actuales, evolución y evidencias.",
-      "owned": true
-    },
-    "docs/audit": {
-      "title": "Auditorías y evidencia",
-      "description": "Informes fechados; sus cuerpos históricos están preservados.",
-      "owned": true
-    },
-    "docs/audit/opengym-e2e-2026-10-20": {
-      "title": "Verificación E2E del 2026-10-20",
-      "description": "Resultados y casos de verificación históricos.",
-      "owned": true
-    },
-    "docs/audit/opengym-v1.4.0-design-system": {
-      "title": "Revisión de diseño v1.4.0",
-      "description": "Inventario, evaluación visual y propuestas históricas.",
-      "owned": true
-    },
-    "docs/audit/opengym-v1.4.0-design-system/evidence": {
-      "title": "Evidencia de diseño",
-      "description": "Registros de capturas y evaluación independiente.",
+      "description": "Guías actuales, contratos y evolución del proyecto.",
       "owned": true
     },
     "docs/dev": {
-      "title": "Notas de desarrollo y discovery",
-      "description": "Diseño de funciones actuales y evidencia de producto.",
-      "owned": true
-    },
-    "docs/plans": {
-      "title": "Planes documentales",
-      "description": "Secuencias propuestas y criterios de aceptación.",
+      "title": "Referencias de desarrollo",
+      "description": "Comportamiento, invariantes y verificación de las funciones; contexto de producto cuando sigue siendo necesario.",
       "owned": true
     },
     "docs/reference": {
@@ -57,7 +32,7 @@
     },
     "docs/research": {
       "title": "Investigación",
-      "description": "Comparaciones de referencia con límites de evidencia explícitos.",
+      "description": "Fuentes que sustentan decisiones vigentes, con sus límites de evidencia.",
       "owned": true
     },
     "docs/standards": {

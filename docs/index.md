@@ -5,7 +5,7 @@ okf_version: "0.2"
 
 ## Entrada
 
-- [openGym documentation](README.md) - Documentation entry point and ownership of current guidance, plans and evidence.
+- [openGym documentation](README.md) - Documentation entry point and ownership of guidance, requirements and supporting research.
 
 ## Uso actual
 
@@ -34,10 +34,8 @@ okf_version: "0.2"
 ## Carpetas
 
 - [Rutas heredadas de agentes](agents/index.md) - Compatibilidad de enlaces; las reglas vigentes viven en .agents/docs/.
-- [Auditorías y evidencia](audit/index.md) - Informes fechados; sus cuerpos históricos están preservados.
-- [Notas de desarrollo y discovery](dev/index.md) - Diseño de funciones actuales y evidencia de producto.
+- [Referencias de desarrollo](dev/index.md) - Comportamiento, invariantes y verificación de las funciones; contexto de producto cuando sigue siendo necesario.
 - [Mantenimiento documental](operations/index.md) - Autoría, comprobación y recuperación.
-- [Planes documentales](plans/index.md) - Secuencias propuestas y criterios de aceptación.
 - [Contratos de referencia](reference/index.md) - Seguridad, observabilidad y contratos posteriores de Recovery.
-- [Investigación](research/index.md) - Comparaciones de referencia con límites de evidencia explícitos.
+- [Investigación](research/index.md) - Fuentes que sustentan decisiones vigentes, con sus límites de evidencia.
 - [Estándares documentales](standards/index.md) - Perfil OKF local y su relación con la especificación.

@@ -1,10 +1,10 @@
-# Notas de desarrollo y discovery
+# Referencias de desarrollo
 
 ## Documentos
 
-- [Combine routines — do more than one routine in a session](COMBINE_ROUTINES.md) - Design of combining more than one routine in a workout session.
-- [Fatigue model v2: sets-based, per-muscle half-life (rationale for PR)](FATIGUE_SETS_MODEL.md) - Rationale for the sets-based fatigue model and per-muscle recovery.
+- [Combine routines — session model and compatibility](COMBINE_ROUTINES.md) - Ordered routine composition, progression exclusion and compatible planner and history readers.
+- [Training fatigue — model rationale and invariants](FATIGUE_SETS_MODEL.md) - Sets-based fatigue, effort provenance and history-dependent recovery invariants.
 - [Workout view — cards / list / compact / focus](LIST_VIEW.md) - Design notes for workout cards, list, compact and focus views.
-- [Set types: drop sets and rest-pause](SET_TYPES.md) - Drop-set and rest-pause representation and counting rules.
+- [Set types: drop sets, rest-pause and failure](SET_TYPES.md) - Set representation, intensifier planning, counting rules and compatibility limits.
 - [OpenGym Recovery — discovery consolidado](personal-recovery-discovery.md) - Evidencia histórica de necesidades, decisiones y límites del discovery de Recovery.
-- [UI accessibility fixes — 2026-10-20](ui-accessibility-fixes.md) - Recorded accessibility fixes and checks from 2026-10-20.
+- [UI accessibility contracts and regression checks](ui-accessibility-fixes.md) - Coach routing, routine keyboard activation and shared modal behavior with repeatable browser checks.

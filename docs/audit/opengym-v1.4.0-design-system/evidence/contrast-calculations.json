@@ -1,8 +1,0 @@
-{
-  "method": "WCAG 2 sRGB relative luminance. Tinted color composited over light page background; not a pixel/whole-app conformance scan.",
-  "greenOnWhite": 2.219958526330265,
-  "greenOnLightPage": 1.9894403010044424,
-  "greenOnTintedLightPage": 1.7692434420745997,
-  "whiteOnLightGreen": 2.219958526330265,
-  "blackOnLightGreen": 9.459636182804893
-}
