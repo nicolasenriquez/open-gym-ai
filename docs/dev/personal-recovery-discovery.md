@@ -1,6 +1,8 @@
 # OpenGym Recovery — discovery consolidado
 
-Estado: discovery cerrado tras confirmación final del usuario; listo como insumo para `plan-create-prd`. No es un PRD aprobado, diseño de arquitectura ni plan de implementación. No quedan decisiones funcionales críticas abiertas para consolidar el PRD.
+Estado: discovery cerrado tras confirmación final del usuario, conservado como antecedente del [PRD aprobado](../open-gym-recovery.prd.md) y la [arquitectura aprobada](../open-gym-evolution.architecture.md). No es una especificación implementable; el estado de entrega se sigue en OpenSpec.
+
+**Revisión aprobada del alcance web:** este discovery incorpora la entrega web responsive y conserva su testimonio inicial como contexto histórico. El PRD y la arquitectura desarrollan esta revisión; no se requieren app nativa ni validación en un teléfono concreto.
 
 ## 1. Problema, evidencia y usuario objetivo
 
@@ -10,13 +12,13 @@ La primera versión es de uso personal: el usuario registra las indicaciones rec
 
 El proceso está comenzando; se busca construir un historial continuo desde el preoperatorio al postoperatorio y el retorno progresivo a actividades deportivas. No se ha demostrado aún que Recovery sustituya los registros informales: esa es la hipótesis a validar.
 
-OpenGym debe mantener su utilidad para el entrenamiento convencional, incluido el acceso rápido a rutinas y ejercicios. Recovery debe ser sencillo y cómodo desde iPhone, sin exigir un dashboard complejo.
+OpenGym debe mantener su utilidad para el entrenamiento convencional, incluido el acceso rápido a rutinas y ejercicios. Recovery debe ser sencillo y cómodo en la web, desde escritorio y pantallas pequeñas, sin exigir un dashboard complejo.
 
 ## 2. Flujo principal
 
 **Capturar indicación → Organizar ejercicios → Iniciar sesión → Guardar avances → Completar sesión → Consultar historial y evolución.**
 
-- Capturar información escrita personalmente, pegada desde otra fuente o mediante el dictado nativo del iPhone.
+- Capturar información escrita personalmente, pegada desde otra fuente o mediante el dictado opcional del sistema o dispositivo.
 - Organizar los ejercicios e indicaciones vigentes usando el catálogo de OpenGym o ejercicios personales cuando no exista uno adecuado.
 - Registrar lo efectivamente realizado: ejercicios, series, repeticiones, cargas o tiempos, incluidos isométricos, aprovechando las capacidades de Training.
 - Consultar las indicaciones actuales, la última sesión, resultados anteriores y cambios de indicación con sus fechas de vigencia.
@@ -72,14 +74,14 @@ La captura precede a la organización de ejercicios; no exige iniciar una sesió
 - No mostrar éxito sin confirmación de guardado. Ante fallos, comunicar claramente que el guardado no está confirmado.
 - Conservar temporalmente el contenido en edición es deseable si puede reutilizarse una capacidad existente sin complejidad significativa. No se ha prometido supervivencia ante recarga, cierre o reinicio.
 - Mantener las capacidades actuales del AI Coach, sin ampliarlo para rehabilitación inicialmente.
-- Validar Recovery localmente antes del despliegue posterior en VPS. La validación inicial incluye uso real desde iPhone mediante un entorno HTTPS accesible: Safari, autenticación, navegación, registro de sesiones y consulta del historial.
-- No es necesario adelantar el VPS definitivo ni sustituir la autenticación existente. El objetivo posterior es acceso web seguro desde iPhone sin App Store.
+- Validar el recorrido web responsive completo antes de usar datos reales: captura, organización, autenticación, navegación, guardado, continuación e historial. La matriz y evidencia técnica se concretan en [arquitectura §12.1](../open-gym-evolution.architecture.md#121-validación-web-responsive).
+- No es necesario adelantar el VPS definitivo ni sustituir la autenticación existente. El objetivo posterior es publicar una web responsive con HTTPS y origen/RP ID compatibles; las verificaciones locales pueden usar localhost cuando proceda.
 
 ## 4. Hipótesis y validación
 
 Creemos que centralizar indicaciones y sesiones en OpenGym permitirá al usuario registrar y consultar su rehabilitación sin recurrir a aplicaciones paralelas, manteniendo una experiencia sencilla y confiable.
 
-**Ventana:** primeras tres sesiones reales de kinesiología.
+**Ventana:** primeras tres sesiones reales de kinesiología, desde cualquier navegador y tamaño admitidos.
 
 **Señales de éxito:**
 
@@ -92,7 +94,7 @@ El indicador principal es que Recovery se convierta en la herramienta habitual p
 
 **Señal de fracaso o necesidad de revisión:** seguir necesitando WhatsApp o Notas porque Recovery resulta lento, complejo o poco confiable. Un fallo de guardado o la confusión entre indicaciones y resultados exige revisar el flujo aunque las otras tareas se completen.
 
-La validación funcional local incluye comodidad y confiabilidad real en iPhone, no solo pruebas desde computador. Preparar un entorno HTTPS accesible desde el teléfono es una tarea técnica previa a esas pruebas; no exige el VPS definitivo.
+La validación técnica web responsive comprueba interacción, revisión visual y persistencia antes del uso real. Las tres sesiones evalúan utilidad y fricciones; las pruebas técnicas no sustituyen esa evaluación de adopción. No se exige un dispositivo físico concreto ni el VPS definitivo.
 
 ## 5. Exclusiones del MVP
 
@@ -105,7 +107,7 @@ La validación funcional local incluye comodidad y confiabilidad real en iPhone,
 - Ampliación del AI Coach para rehabilitación.
 - Dashboards y análisis avanzados.
 - Infraestructura offline avanzada para Recovery.
-- Distribución nativa por App Store.
+- Desarrollo de apps nativas y distribución en tiendas para esta entrega; se conservan las capacidades existentes del proyecto base.
 - Refactorización completa de backend o base de datos como dependencia automática de Recovery.
 
 ## 6. Riesgos y decisiones abiertas
@@ -118,7 +120,7 @@ Las tres decisiones funcionales pendientes quedaron confirmadas: guardado explí
 - Correcciones trazables y contexto histórico son compatibles: corregir una indicación no reescribe automáticamente sesiones anteriores.
 - Historial cronológico e hitos no implican dashboard avanzado ni motor de fases.
 - Un proceso activo no implica eliminar procesos finalizados ni limitar el dominio exclusivamente al LCA.
-- Validar localmente desde iPhone mediante HTTPS no implica desplegar ya el VPS.
+- Validar la web responsive localmente no implica desplegar ya el VPS; publicación y autenticación conservan sus requisitos de HTTPS y origen.
 
 Los detalles de interacción y diseño técnico restantes deben tratarse al especificar y validar la solución; no justifican prolongar el discovery.
 
@@ -127,8 +129,8 @@ Los detalles de interacción y diseño técnico restantes deben tratarse al espe
 - Evitar pérdidas y duplicados cuando una solicitud se guarda en servidor pero se pierde la respuesta. Resolver en el diseño sin exigir una cola offline.
 - Examinar el acoplamiento entre persistencia, sincronización y registrador de Training antes de reutilizarlos para Recovery.
 - Revisar que notas y datos de Recovery no se incorporen inadvertidamente al coach, exportaciones compartidas o superficies de acceso no previstas. Conservar el coach actual no significa autorizar nuevos datos en sus payloads.
-- Probar la experiencia real en Safari/iPhone mediante HTTPS; decidir el entorno de prueba local antes de las tres sesiones.
-- Verificar advertencias de cambios sin guardar en los flujos de navegación y las limitaciones reales de Safari. No prometer recuperación de contenido no guardado tras cierre forzado, recarga o reinicio.
+- Verificar el recorrido web completo con la matriz acordada de Playwright CLI; preparar cobertura dedicada de autenticación y Recovery antes de las tres sesiones reales.
+- Verificar advertencias de cambios sin guardar en los flujos de navegación y las limitaciones de los navegadores admitidos. No prometer recuperación de contenido no guardado tras cierre forzado, recarga o reinicio.
 - Planificar respaldo y restauración antes de guardar información real relevante; no confundir historial sencillo con cifrado o garantías clínicas.
 - Referencias de kinesiología aún no aportadas; aclarar la mención previa a Mapbox si sigue siendo pertinente. No bloquean por sí solas el recorte actual.
 
@@ -138,7 +140,7 @@ Son iniciativas futuras, sin orden ni fechas comprometidos salvo validar localme
 
 | Iniciativa | Intención y límites |
 | --- | --- |
-| Acceso remoto seguro | VPS, dominio HTTPS y experiencia web iPhone; preservar acceso a datos y planificar la transición de passkeys. |
+| Acceso remoto seguro | VPS, dominio HTTPS y experiencia web responsive; preservar acceso a datos y planificar la transición de passkeys. |
 | Garmin Connect | Explorar importación y sincronización de actividades y métricas; investigar autenticación, procedencia y duplicados. La exportación `.fit` existente no equivale a importación. |
 | Voz | Evaluar transcripción propia si el dictado nativo no resuelve la captura. |
 | AI Coach | Evaluar análisis con información de Training, Recovery y Garmin, con consentimiento, límites de datos y revisión humana. No autoriza tratamientos autónomos. |
@@ -159,8 +161,8 @@ Son iniciativas futuras, sin orden ni fechas comprometidos salvo validar localme
 
 Este documento es el insumo de discovery para `plan-create-prd`: problema, evidencia, usuario, hipótesis, MVP, criterios de validación, exclusiones y preguntas abiertas. No generar requisitos adicionales como hechos ni convertir preferencias de stack en requisitos de producto.
 
-Handoff listo: usar este documento y `GLOSSARY.md` como insumos de la skill `plan-create-prd`, conservando las decisiones confirmadas sin reabrir la entrevista ni inventar métricas o requisitos. Distinguir evidencia aportada por el usuario de la hipótesis aún no validada.
+Handoff realizado: el PRD y la arquitectura enlazados arriba desarrollan las decisiones confirmadas. Distinguir evidencia aportada por el usuario de hipótesis aún no validadas; esta revisión conserva el dominio y actualiza el alcance web.
 
-El PRD debe describir intención, alcance y resultados, sin decidir librerías, relaciones de datos ni estrategia de persistencia. Las preferencias y riesgos técnicos de este documento se entregarán a `plan-architecture` y posteriormente a OpenSpec. No se exige modernización arquitectónica para validar Recovery.
+El PRD debe describir intención, alcance y resultados, sin decidir librerías, relaciones de datos ni estrategia de persistencia. Las preferencias y riesgos técnicos de este documento ya se entregaron a arquitectura y se concretan por cambios OpenSpec autorizados. No se exige modernización arquitectónica para validar Recovery.
 
-Por instrucción del usuario, no se ha generado todavía el PRD ni iniciado implementación. La revisión realizada es de coherencia documental y alcance, no una auditoría completa del código ni validación técnica de viabilidad.
+El PRD y la arquitectura ya fueron aprobados; Foundation tiene implementación parcial registrada en su tracker. Esta revisión solo actualiza documentación y no inicia Recovery ni valida su interfaz o viabilidad.

@@ -4,13 +4,15 @@
 
 **Fuentes principales:** [discovery consolidado](dev/personal-recovery-discovery.md) y [glosario](../GLOSSARY.md). Este PRD traduce esas decisiones a intención de producto; no es un diseño técnico ni autoriza implementación.
 
+**Revisión aprobada del alcance web:** la entrega actual es una web responsive. La aceptación deja de depender de Safari/iPhone; conserva las tres sesiones reales como evaluación de utilidad. Esta revisión documental no acredita pruebas visuales ejecutadas ni modifica los escenarios A–D.
+
 ## Resumen ejecutivo
 
 OpenGym Recovery busca que una persona en rehabilitación pueda consultar sus indicaciones y registrar lo realizado sin mantener información dispersa en otras aplicaciones. El primer caso es una recuperación personal de LCA, sin restringir el producto a esa lesión.
 
 La apuesta es sustituir los registros paralelos mediante un recorrido sencillo: **capturar indicación → organizar ejercicios → iniciar sesión → guardar avances → completar sesión → consultar historial y evolución**. Se reutilizará OpenGym cuando permita cumplir el recorrido sin comprometer el historial ni Training.
 
-La validación se realizará durante las primeras tres sesiones reales de kinesiología, incluyendo uso desde iPhone. Se considerará cuestionada la hipótesis si el usuario necesita seguir registrando en WhatsApp o Notas por lentitud, complejidad o falta de confianza. Garmin, voz avanzada, ampliación del coach y modernización tecnológica quedan fuera del MVP.
+La validación se realizará durante las primeras tres sesiones reales de kinesiología, desde cualquier navegador y tamaño admitidos para la entrega web. Se considerará cuestionada la hipótesis si el usuario necesita seguir registrando en WhatsApp o Notas por lentitud, complejidad o falta de confianza. Garmin, voz avanzada, ampliación del coach y modernización tecnológica quedan fuera del MVP.
 
 ## 1. Problema
 
@@ -28,11 +30,11 @@ La necesidad es disponer de continuidad y confianza en el registro personal, sin
 | Necesidad de consultar indicaciones actuales, última sesión y evolución | Prioridades expresamente confirmadas por el usuario. |
 | Necesidad de distinguir indicaciones, resultados y correcciones | Confirmada, incluidos vigencia, contexto histórico y valores anterior/nuevo de una corrección. |
 | Necesidad de guardar una sesión y continuarla | Confirmación final: una sesión puede interrumpirse o realizarse en distintos momentos. |
-| Preferencia por simplicidad, reutilización de OpenGym y uso desde iPhone | Confirmada a lo largo del discovery. |
+| Preferencia por simplicidad, reutilización de OpenGym y uso web responsive | Confirmada en el discovery y en la revisión posterior del alcance web. |
 | Primer proceso de recuperación de LCA, desde preoperatorio hasta eventual retorno deportivo | Contexto aportado por el usuario; no constituye un protocolo de tratamiento. |
 | Existencia de Training, catálogo, coach y documentación de acceso web | Referencias del repositorio recogidas en el discovery; la aptitud concreta para reutilización requiere evaluación técnica. |
 
-**Hipótesis, no hechos demostrados:** una experiencia integrada será suficientemente cómoda para sustituir los registros paralelos; el recorrido funcionará bien en Safari/iPhone; la reutilización de OpenGym permitirá preservar Training sin un registrador paralelo.
+**Hipótesis, no hechos demostrados:** una experiencia integrada será suficientemente cómoda para sustituir los registros paralelos; el recorrido funcionará bien en navegadores de escritorio y pantallas pequeñas; la reutilización de OpenGym permitirá preservar Training sin un registrador paralelo.
 
 La evidencia corresponde a una sola persona y a una etapa inicial. No permite inferir demanda comercial, utilidad para profesionales ni resultados clínicos.
 
@@ -50,7 +52,7 @@ La diferenciación se comprobará si el usuario puede consultar y registrar en u
 
 ### Visión
 
-Una herramienta personal de entrenamiento y recuperación que permita saber qué estaba indicado, qué se hizo y cómo cambió el recorrido, de forma sencilla y confiable desde el teléfono.
+Una herramienta personal de entrenamiento y recuperación que permita saber qué estaba indicado, qué se hizo y cómo cambió el recorrido, de forma sencilla y confiable en la web, tanto en escritorio como en pantallas pequeñas.
 
 ## 4. Hipótesis falsable
 
@@ -66,7 +68,7 @@ Tres sesiones proporcionan una señal inicial, no una prueba de hábito sostenid
 
 ### Usuario principal
 
-Una persona que registra por sí misma las indicaciones recibidas de su profesional tratante, realiza entrenamiento y rehabilitación, y consulta principalmente desde iPhone. El primer usuario y evaluador es el propio promotor del proyecto.
+Una persona que registra por sí misma las indicaciones recibidas de su profesional tratante, realiza entrenamiento y rehabilitación, y consulta desde un navegador web en escritorio o pantallas pequeñas. El primer usuario y evaluador es el propio promotor del proyecto.
 
 ### Jobs to Be Done
 
@@ -87,7 +89,7 @@ Los siguientes requisitos están confirmados en el discovery y sus precisiones p
 
 ### 6.1 Capturar y organizar indicaciones
 
-- Registrar texto personal, pegado o introducido mediante el dictado nativo del iPhone. La captura no exige iniciar una sesión ni organizar inmediatamente todos los ejercicios.
+- Registrar texto personal, pegado o introducido mediante el dictado opcional proporcionado por el sistema o dispositivo. La captura no exige iniciar una sesión ni organizar inmediatamente todos los ejercicios.
 - Identificar que una indicación fue recibida del profesional y transcrita por el usuario: no implica que el profesional haya validado el registro.
 - Separar las indicaciones de notas u observaciones personales.
 - Organizar ejercicios del catálogo existente; permitir ejercicios personales con nombre e instrucciones cuando no exista uno adecuado.
@@ -129,7 +131,7 @@ Los siguientes requisitos están confirmados en el discovery y sus precisiones p
 - Registrar acontecimientos como preoperatorio, cirugía y postoperatorio como hitos cronológicos, sin motor de fases ni progresión automática.
 - El primer caso es LCA, pero el concepto no depende exclusivamente de esa lesión.
 
-### 6.5 Preservar OpenGym y priorizar iPhone
+### 6.5 Preservar OpenGym y ofrecer una experiencia web responsive
 
 - Reutilizar las capacidades existentes cuando encajen con los requisitos, evitando módulos paralelos innecesarios. No se prescribe qué componentes concretos reutilizar.
 - Preservar Training, su acceso rápido a rutinas y ejercicios y su funcionamiento offline existente.
@@ -137,7 +139,8 @@ Los siguientes requisitos están confirmados en el discovery y sus precisiones p
 - Mantener el AI Coach actual sin ampliar sus flujos para rehabilitación.
 - Recovery puede requerir conexión para guardar. No exige autosave avanzado ni sincronización offline.
 - La conservación temporal del contenido en edición es deseable si puede aprovechar capacidades existentes sin complejidad significativa; no es una garantía de recuperación tras cierre.
-- Validar localmente con uso real desde iPhone mediante HTTPS: Safari, autenticación, navegación, sesiones e historial. No exige VPS definitivo ni reemplazar la autenticación.
+- Validar el recorrido web completo en escritorio y pantallas pequeñas: captura, organización, autenticación, navegación, guardado, continuación e historial. Los controles deben ser accesibles y operables, sin recortes que impidan completar el recorrido; lo guardado debe conservarse tras recarga. La matriz técnica se concreta en [arquitectura §12.1](open-gym-evolution.architecture.md#121-validación-web-responsive).
+- La publicación y autenticación deben preservar HTTPS y la compatibilidad de origen/passkeys. La verificación local puede usar localhost cuando sea compatible; no exige adelantar el VPS definitivo.
 
 ### 6.6 Límite del experimento y decisiones difíciles de revertir
 
@@ -147,7 +150,7 @@ La pérdida de datos y la alteración del historial son consecuencias costosas o
 
 ## 7. Criterios de éxito y fracaso
 
-**Período:** primeras tres sesiones reales de kinesiología. **Método:** uso real desde iPhone y revisión de fricciones con el usuario, sin exigir instrumentación analítica ni tiempos arbitrarios.
+**Período:** primeras tres sesiones reales de kinesiología. **Método:** uso real desde cualquier navegador y tamaño admitidos, con revisión de fricciones junto al usuario, sin exigir instrumentación analítica ni tiempos arbitrarios.
 
 | Resultado | Objetivo acordado | Cómo se comprobará |
 | --- | --- | --- |
@@ -158,6 +161,8 @@ La pérdida de datos y la alteración del historial son consecuencias costosas o
 | Continuar con confianza | Retomar una sesión con sus avances explícitamente guardados | Comprobar una interrupción y continuación; puede usarse un escenario controlado si no ocurre naturalmente. |
 | Conservar el contexto | Cambios posteriores no reescriben una sesión anterior | Comparar una sesión antes y después de cambiar indicación o ejercicio en un escenario controlado. |
 | Mantener Training | No perjudicar sus recorridos actuales, incluido el offline existente | Verificar los recorridos relevantes antes de considerar satisfactoria la validación; el método técnico se definirá después. |
+
+La validación técnica del recorrido web y su persistencia es un requisito previo al uso de datos reales; capturas y pruebas técnicas no demuestran adopción ni sustituyen estas tres sesiones.
 
 Los tres últimos resultados son comprobaciones funcionales de requisitos confirmados, no métricas nuevas de adopción.
 
@@ -178,7 +183,8 @@ Los tres últimos resultados son comprobaciones funcionales de requisitos confir
 - Colas offline, resolución de conflictos, autosave avanzado y almacenamiento offline avanzado para Recovery.
 - Sincronización Garmin Connect y servicio propio de transcripción.
 - Ampliación del AI Coach para rehabilitación.
-- Distribución por App Store y despliegue definitivo en VPS como condición de la primera validación.
+- Desarrollo o distribución de apps nativas y publicación en tiendas. Las capacidades móviles existentes del proyecto base no forman parte de esta entrega.
+- Despliegue definitivo en VPS como condición de la primera validación.
 - Sustitución obligatoria del backend, base de datos, autenticación o frontend.
 
 ### Roadmap de OpenGym Evolution
@@ -187,7 +193,7 @@ Iniciativas posteriores independientes del MVP; no tienen orden ni fechas compro
 
 | Iniciativa | Intención de producto futura |
 | --- | --- |
-| Acceso remoto seguro | Usar la aplicación desde iPhone fuera del entorno local mediante despliegue web en VPS, sin App Store. |
+| Acceso remoto seguro | Publicar la web responsive fuera del entorno local mediante VPS y dominio HTTPS, preservando datos y acceso. |
 | Garmin Connect | Explorar sincronización de actividades, frecuencia cardíaca, sueño y otras métricas deportivas. La exportación `.fit` actual no equivale a esta capacidad. |
 | Voz | Evaluar transcripción propia si el dictado nativo no basta. |
 | AI Coach | Evaluar una ampliación con información pertinente de entrenamiento y recuperación, sin convertirla en prescripción autónoma. |
@@ -243,9 +249,9 @@ Estos escenarios son comprobaciones de aceptación; no agregan métricas de adop
 ### 9.2 Hipótesis pendientes de validación
 
 - La integración compensará el esfuerzo inicial de organizar indicaciones y desplazará los registros paralelos.
-- La experiencia desde iPhone será suficientemente cómoda y confiable.
+- La experiencia web responsive será suficientemente cómoda y confiable en los tamaños admitidos.
 - Tres sesiones darán información suficiente para decidir la siguiente iteración, aunque no prueben hábito sostenido.
-- El dictado nativo y una nota opcional bastarán para la captura inicial y las observaciones.
+- La entrada de texto, el dictado opcional del sistema y una nota opcional bastarán para la captura inicial y las observaciones.
 
 ### 9.3 Riesgos y decisiones que se entregan a arquitectura
 
@@ -254,8 +260,8 @@ Son temas a investigar y decidir después de la aprobación del PRD, no decision
 - Reutilización real del registrador y catálogo, acoplamiento de persistencia y sincronización, preservación de Training y aislamiento de sus progresiones.
 - Estrategia para conservar contexto histórico, correcciones y procesos finalizados sin reescrituras retrospectivas.
 - Confirmación de guardado ante interrupciones de conexión y prevención de duplicados al repetir una operación; no se prescribe manejo de errores, protocolo ni reintentos.
-- Alcance viable de protección del contenido no guardado y advertencias en Safari, incluidas las limitaciones del cierre forzado.
-- Entorno local HTTPS accesible desde iPhone, compatibilidad de autenticación y transición posterior a dominio/VPS.
+- Alcance viable de protección del contenido no guardado y advertencias en los navegadores admitidos, incluidas las limitaciones del cierre forzado.
+- Entorno de verificación web local, compatibilidad de autenticación y transición posterior a dominio/VPS con HTTPS, origen y RP ID válidos.
 - Respaldo, restauración y protección de registros reales antes de la validación; trazabilidad sencilla no equivale a garantías clínicas.
 - Revisión de acceso, exportaciones y selección de datos del coach para evitar que incorporar Recovery extienda inadvertidamente el uso de información personal. Los límites y mecanismos se decidirán expresamente en arquitectura.
 - Evaluación independiente de FastAPI, PostgreSQL, Alembic, LangChain/LangGraph y pgvector cuando exista una necesidad concreta; ninguna alternativa es un requisito obligatorio de este producto.
@@ -269,18 +275,18 @@ Referencias de kinesiología y la mención previa a Mapbox siguen sin aclararse;
 | --- | --- |
 | Problema respaldado por evidencia | Cumple: testimonio personal identificado; no se presenta como demanda de mercado ni resultado clínico. |
 | Hipótesis con éxito y fracaso separados | Cumple: ventana de tres sesiones y condiciones explícitas de revisión. |
-| Requisitos confirmados cubiertos | Sin omisiones identificadas en la revisión documental: captura, ejercicios personales, fechas, correcciones, sesiones, contexto, proceso, hitos, iPhone y preservación de Training; incorporadas las tres precisiones posteriores. |
+| Requisitos confirmados cubiertos | Sin omisiones identificadas en la revisión documental: captura, ejercicios personales, fechas, correcciones, sesiones, contexto, proceso, hitos, web responsive y preservación de Training; incorporadas las tres precisiones posteriores. |
 | Coherencia del alcance | Guardado explícito online permite continuación; cambiar de prescripción requiere nueva sesión; completar no exige ejecutar todo; corrección explícita no equivale a reescritura automática; una indicación desconocida no impide registrar trabajo real. |
 | Métricas orientadas a resultados | Cumple: consulta, ausencia de doble registro, comprensión y confianza; sin tiempos o porcentajes inventados. |
-| Supuestos visibles | Cumple: utilidad, cambio de hábito y experiencia móvil siguen sin validarse. |
+| Supuestos visibles | Cumple: utilidad, cambio de hábito y experiencia web responsive siguen sin validarse. |
 | Ambigüedades de aceptación | Tres decisiones cerradas por el usuario y cuatro escenarios verificables en 9.1, distinguiendo el registro retrospectivo con y sin indicación identificable. No quedan ambigüedades funcionales críticas identificadas. |
 | Exclusiones y roadmap | Cumple: Evolution documentado sin dependencia automática del MVP. |
 | Separación producto/ingeniería | No se eligen librerías, versiones, relaciones de datos, estructura, mecanismos de seguridad, reintentos ni arquitectura de pruebas. Los temas técnicos se entregan, no se resuelven. |
 
 **Preparación:** revisión documental completada y aprobación final de producto recibida. Las tres precisiones funcionales están confirmadas y expresadas como requisitos y escenarios verificables. No se identifican contradicciones con el discovery o el glosario: los cambios automáticos siguen prohibidos y las correcciones explícitas son trazables; el contexto conocido se preserva y el desconocido no se inventa.
 
-El PRD aprobado ofrece una base suficiente para Architecture Discovery & Design, que comenzará solo cuando el usuario lo solicite. No es una especificación lista para implementar ni una validación de viabilidad técnica. Las hipótesis de valor y usabilidad y los riesgos técnicos de 9.2 y 9.3 permanecen abiertos, sin nuevas decisiones funcionales que requieran otra ronda de discovery.
+El PRD aprobado fundamenta la [arquitectura ya aprobada](open-gym-evolution.architecture.md). No es una especificación lista para implementar ni una validación de viabilidad técnica. Las hipótesis de valor y usabilidad y los riesgos técnicos de 9.2 y 9.3 permanecen abiertos, sin nuevas decisiones funcionales que requieran otra ronda de discovery.
 
-**Handoff:** la siguiente etapa será Architecture Discovery & Design mediante `plan-architecture`, evaluando el codebase actual de OpenGym y AI Tutor como referencia. Sus decisiones deben preservar los requisitos y escenarios de este PRD. Cualquier nueva funcionalidad del MVP requiere justificación de producto y aprobación explícita; las preferencias tecnológicas no amplían el alcance.
+**Handoff vigente:** la arquitectura aprobada traduce este PRD a contratos y gates; el progreso técnico se sigue en [OpenSpec Foundation](../openspec/changes/add-postgres-foundation/tasks.md). Sus tareas no constituyen por sí solas la entrega funcional Recovery y deben preservar los requisitos y escenarios de este PRD. Cualquier nueva funcionalidad del MVP requiere justificación de producto y aprobación explícita; las preferencias tecnológicas no amplían el alcance.
 
-No iniciar automáticamente la siguiente etapa. OpenSpec queda reservado para después de aprobar la arquitectura, cuando sus decisiones se traduzcan en cambios técnicos y tareas implementables. El cierre de este PRD no genera tickets, tareas de implementación ni cambios de código.
+Cada cambio OpenSpec y su implementación requieren autorización propia. Esta revisión del PRD no inicia tareas técnicas, modifica código ni acredita pruebas de Recovery.

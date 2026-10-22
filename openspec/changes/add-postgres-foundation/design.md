@@ -90,7 +90,7 @@ No hay migración de autoridad. Implementación futura: entorno aislado → pool
 
 No quedan decisiones materiales abiertas para el alcance sintético: el usuario aprobó entorno, seams, recuperación y comprensión compartida. Los detalles técnicos recomendados anteriores concretan esas decisiones y deberán verificarse, sin presentar resultados anticipados.
 
-Pin exacto Node 22/imagen PostgreSQL y tooling resuelto: metadata verificada; compatibilidad práctica e inventario transitivo se demostrarán en la implementación y son condición para su checkpoint, no resultado de esta especificación. El proveedor, TLS/pooler operativo, backup off-host real, retención, RPO/RTO, G0, HTTPS iPhone y corte permanecen pendientes de sus fases, sin bloquear el alcance sintético acordado.
+Pin exacto Node 22/imagen PostgreSQL y tooling resuelto: metadata verificada; compatibilidad práctica e inventario transitivo se demostrarán en la implementación y son condición para su checkpoint, no resultado de esta especificación. El proveedor, TLS/pooler operativo, backup off-host real, retención, RPO/RTO, G0, validación web responsive/HTTPS de publicación y corte permanecen pendientes de sus fases, sin bloquear el alcance sintético acordado.
 
 ## Verification Commands
 

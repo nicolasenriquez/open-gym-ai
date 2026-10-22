@@ -1,5 +1,7 @@
 # OpenGym Recovery — benchmark de referencias
 
+**Revisión documental posterior aprobada:** E7 se alinea con la entrega web responsive del PRD y arquitectura §12.1. Se conservan las observaciones históricas y sus límites; esta revisión no ejecuta pruebas ni amplía el producto.
+
 ## 1. Estado, autoridad y dictamen
 
 **Estado:** resultado del benchmark especializado aprobado por el usuario; documentado como referencia complementaria para las futuras OpenSpecs funcionales de Recovery.
@@ -8,7 +10,7 @@
 
 El PRD sigue siendo la fuente de verdad funcional y la arquitectura mantiene las decisiones técnicas aprobadas. Este benchmark no es una nueva especificación, un DDL aprobado ni una validación de utilidad clínica o adopción. Si existe una diferencia de interpretación, prevalecen los documentos aprobados, no las capacidades de las referencias externas.
 
-**Autorización de esta etapa:** guardar y verificar esta investigación. No generar OpenSpecs de Recovery, implementar, instalar dependencias ni modificar código, PRD, arquitectura o glosario. Las recomendaciones de interacción no se convierten en requisitos obligatorios sin aprobación adicional.
+**Autorización de la investigación original:** guardar y verificar esta investigación. No generar OpenSpecs de Recovery, implementar, instalar dependencias ni modificar código, PRD, arquitectura o glosario. Las recomendaciones de interacción no se convierten en requisitos obligatorios sin aprobación adicional.
 
 **Independencia:** el benchmark no añade una dependencia ni un bloqueo a `add-postgres-foundation`. Esa iniciativa conserva su autorización independiente y el handoff de arquitectura §14.1; esta investigación no la inicia ni la autoriza por sí misma.
 
@@ -176,7 +178,7 @@ Las observaciones internas corresponden al checkout inspeccionado, no prueban qu
 
 ## 6. Matriz de recomendaciones y requisitos aprobados
 
-Todas las recomendaciones identificadas como F1–F8 y E1–E7 se trazan aquí. **No se requiere un cambio documental** en PRD/arquitectura/glosario. Las precisiones de pruebas concretan contratos existentes; las alternativas de interacción siguen siendo opcionales.
+Todas las recomendaciones identificadas como F1–F8 y E1–E7 se trazan aquí. El benchmark original no requirió cambios normativos. La revisión posterior aprobada de entrega web actualiza E7 y sus referencias al PRD/arquitectura; las alternativas de interacción siguen siendo opcionales. La evidencia de terceros conserva su alcance y fecha originales.
 
 | ID | Recomendación | Evidencia de contraste | Requisito PRD ya aprobado | Apoyo arquitectónico / carácter |
 | --- | --- | --- | --- | --- |
@@ -194,9 +196,9 @@ Todas las recomendaciones identificadas como F1–F8 y E1–E7 se trazan aquí. 
 | E4 | Facilitar revisar orden/contenido e identificar indicado frente a realizado. | PB1, PG1 | §§6.1–6.3 | §§5–6; revisión como paso/pantalla es opcional. |
 | E5 | Mostrar guardado confirmado, cambios pendientes, continuación y errores sin falso éxito. | PB3 no lo demuestra; OG3/OG4 no son sustitutos | §6.2 | §7; requisito existente, copy/controles opcionales. |
 | E6 | Consultar historial cronológico, contexto anterior/desconocido, correcciones e hitos sin análisis clínico. | FM3, PG3 | §§6.3–6.4; §9.1 A–D | §6; requisito existente, visualización opcional. |
-| E7 | Mantener edición móvil sencilla, controles adecuados y acceso rápido Training; validar Safari/iPhone HTTPS. | OG1; límites de inspección pública PB1 | §§6.5, 7 | §§5, 10, 12/G5; requisito existente, diseño concreto opcional. |
+| E7 | Mantener edición web responsive sencilla, controles adecuados y acceso rápido Training; validar la matriz de arquitectura §12.1. | OG1; límites de inspección pública PB1 | §§6.5, 7 | §§5, 10, 12/G5; requisito existente, diseño concreto opcional. |
 
-La clasificación de impacto documental es: **ninguno** para F1–F8/E1–E7; no se proponen precisiones funcionales o arquitectónicas normativas nuevas. Las investigaciones posteriores de §5 son **futuro**, no requisitos. Un diseño que añada obligatoriedad o funcionalidad fuera de estos contratos necesitará aprobación adicional.
+El impacto del benchmark original fue **ninguno** para F1–F8/E1–E7. La revisión web posterior propaga el ajuste aprobado de E7 al PRD y arquitectura, sin alterar los contratos de dominio F1–F8. Las investigaciones posteriores de §5 son **futuro**, no requisitos. Un diseño que añada obligatoriedad o funcionalidad fuera de estos contratos necesitará aprobación adicional.
 
 ## 7. Handoff — `add-recovery-foundation`
 
@@ -239,7 +241,7 @@ La clasificación de impacto documental es: **ninguno** para F1–F8/E1–E7; no
 - **Revisión — E4:** distinguir indicado/realizado y contexto anterior/vigente. Propuesta opcional: revisión fácil de contenido/orden sin exigir pantalla adicional, casilla de aprobación profesional o un paso de confirmación nuevo.
 - **Guardado — E5:** cumplir confirmación explícita, advertencia de cambios sin guardar y continuación de versión guardada. El diseño no debe prometer autosave, cola offline o recuperación tras cierre forzado. Copy y disposición de controles quedan por diseñar; un recibo no limpia ediciones posteriores al envío.
 - **Historial — E6:** conservar fecha efectiva y registro posterior visibles, contexto anterior/desconocido, correcciones e hitos simples. No confundir evolución registrada con mejoría clínica ni añadir dashboards por imitación.
-- **Móvil — E7:** evaluar controles compartidos por su encaje, no reutilizar íntegros `Workout`, cierre/edición Training o temporizadores acoplados. Probar Safari/iPhone sobre HTTPS confiable con autenticación, navegación, guardado, continuación e historial, preservando acceso rápido y offline Training.
+- **Web responsive — E7:** evaluar controles compartidos por su encaje, no reutilizar íntegros `Workout`, cierre/edición Training o temporizadores acoplados. Verificar con Playwright CLI el recorrido completo, autenticación, navegación, guardado, continuación e historial según [arquitectura §12.1](../open-gym-evolution.architecture.md#121-validación-web-responsive), preservando acceso rápido y offline Training. HTTPS y origen/RP ID siguen siendo requisitos de publicación/autenticación.
 
 No son nuevos requisitos obligatorios: asistente multipaso, nueva pantalla de revisión, favoritos, plantillas, reordenamiento específico, disposición visual determinada o interacción concreta para crear ejercicios. Cualquier ampliación normativa requiere aprobación adicional. La validación de valor sigue siendo la del PRD: primeras tres sesiones reales y revisión de la necesidad de mantener WhatsApp/Notas por fricción, sin atribuir eficacia clínica.
 
@@ -249,9 +251,9 @@ No se incorpora gestión de pacientes, acceso hospitalario compartido, prescripc
 
 Pendientes de evidencia, no de redefinición automática del producto:
 
-- Usabilidad y confiabilidad reales en Safari/iPhone y en el recorrido completo.
+- Usabilidad y confiabilidad de la web responsive en el recorrido completo; evidencia técnica y tres sesiones reales de utilidad según PRD.
 - Integridad, concurrencia, RLS, recuperación y ausencia de filtraciones en la implementación futura.
 - Capacidades autenticadas actuales de PhysioBuddy, si alguna pregunta posterior justifica investigarlas con permiso.
 - Necesidad real de favoritos/plantillas adicionales; no se presume por existir en otra aplicación.
 
-**Cierre:** benchmark aprobado y disponible como referencia complementaria para `add-recovery-foundation` y `add-recovery-experience`. No se requieren cambios al PRD, arquitectura o glosario. La evidencia externa no certifica gates, utilidad clínica ni adopción; las recomendaciones UX no amplían el MVP. No se generan OpenSpecs ni se inicia implementación. Este documento no bloquea el inicio independiente, debidamente autorizado, de `add-postgres-foundation`.
+**Cierre:** benchmark aprobado y disponible como referencia complementaria para `add-recovery-foundation` y `add-recovery-experience`. El benchmark original no exigió cambios al PRD, arquitectura o glosario; la revisión web posterior, aprobada por separado, actualiza las referencias normativas de E7 sin reescribir la evidencia original. La evidencia externa no certifica gates, utilidad clínica ni adopción; las recomendaciones UX no amplían el MVP. No se generan OpenSpecs ni se inicia implementación. Este documento no bloquea el inicio independiente, debidamente autorizado, de `add-postgres-foundation`.

@@ -17,11 +17,13 @@
 - **Recomendado:** orientación técnica dentro de la arquitectura aprobada; no equivale a detalle de implementación o validación operativa.
 - **Pendiente/hipótesis:** no demostrado o necesita información del usuario/proveedor.
 
+**Revisión aprobada del alcance web:** Recovery se entregará como web responsive; se sustituye la aceptación obligatoria en Safari/iPhone por la matriz de §12.1. Las guías móviles y observaciones As-Is conservan su contexto histórico y no amplían esta entrega. La revisión documental no acredita nuevas pruebas ni gates.
+
 ## 1. Objetivo y límites
 
 Incorporar Recovery como primera entrega funcional de OpenGym Evolution, con indicaciones, sesiones, contexto histórico, correcciones y guardado confiable. Preservar Training, su sincronización y offline, así como catálogo, autenticación y capacidades actuales del coach. Converger hacia PostgreSQL sin reemplazar simultáneamente frontend y backend.
 
-**Recovery MVP:** Node, PostgreSQL, identidad preservada, Training compatible, dominio Recovery aislado, respaldo/restauración, pruebas reales y uso desde iPhone por HTTPS.
+**Recovery MVP:** Node, PostgreSQL, identidad preservada, Training compatible, dominio Recovery aislado, respaldo/restauración, pruebas reales y recorrido web responsive completo, con HTTPS para publicación y autenticación.
 
 **Evolution posterior:** Garmin mediante Python cuando se justifique; ampliación de agentes; trabajos duraderos; normalización adicional de Training solo por necesidad. FastAPI, LangChain/LangGraph, pgvector y Kubernetes no son dependencias del MVP. No habilitar extensiones por anticipación.
 
@@ -80,7 +82,7 @@ Repositorio disponible: `C:/Users/nenri/OneDrive/Desktop/proyectos/pry-ai-evalua
 | SQL explícito | Sin ORM obligatorio ni normalización completa de Training. |
 | Training en JSONB | Documento compatible, revisiones, linaje, stamps, sync y offline existentes. |
 | Recovery relacional + JSONB selectivo | Relaciones/invariantes y snapshots históricos sin normalización excesiva. |
-| Identidad y Training antes de Recovery | Inventario, foundation, corte controlado, validación de compatibilidad, Recovery y iPhone. |
+| Identidad y Training antes de Recovery | Inventario, foundation, corte controlado, validación de compatibilidad y experiencia web responsive Recovery. |
 | RLS para Recovery, condicionada | Debe pasar pruebas reales de propietario, transacciones y pool; no se puede declarar efectiva antes. |
 | Frontend y experiencia actuales | React/Vite/Zustand, componentes, catálogo, acceso rápido y PWA. |
 | Una autoridad por dominio | Sin dual-write permanente, espejos autoritativos ni fallback silencioso a archivos. |
@@ -288,11 +290,11 @@ Pool acotado, timeouts y transacciones cortas. Proveedor, major PostgreSQL, lím
 
 Secretos fuera de Git/frontend/logs, credenciales migrador/runtime separadas y procedimiento de rotación. Preservar el secreto de firma de sesiones y el requerido por credenciales cifradas del coach. No registrar URLs con contraseñas.
 
-### HTTPS e iPhone
+### HTTPS y acceso web
 
-La configuración observada localhost/HTTP no sirve como prueba de HTTPS desde el teléfono. Elegir origen estable accesible desde Safari, certificado confiable, RP ID y origen compatibles y proxy de mismo origen. Cambiar hostname puede requerir nuevas passkeys; preservación de credenciales no elimina esta restricción.
+La publicación y la autenticación requieren un origen estable, HTTPS con certificado confiable, RP ID compatible y proxy de mismo origen. Cambiar hostname puede requerir nuevas passkeys; preservar credenciales no elimina esta restricción. La verificación local puede usar localhost/HTTP cuando el contrato del navegador y WebAuthn lo permita; esto no acredita HTTPS del despliegue público.
 
-Pendientes: método de HTTPS local, DNS/acceso desde el teléfono, certificados y transición a dominio futuro. No exige App Store, Kubernetes, nueva autenticación ni VPS definitivo para validar.
+Pendientes: dominio/origen de publicación, certificados y transición de passkeys. La validación responsive de §12.1 no exige acceso desde un teléfono físico, apps nativas ni VPS definitivo.
 
 ### Observabilidad
 
@@ -335,7 +337,7 @@ PostgreSQL JSONB reordena claves y cambia representación. Validar equivalencia 
 | G2: corte identidad/Training | Importación equivalente, consumidores adaptados, autoridad única y reversión ensayada | Rollback antes de escrituras; luego recuperación explícita sin pérdida silenciosa |
 | G3: compatibilidad | Auth, sync, offline, medios, coach, MCP y administración sin regresión | No comenzar datos reales Recovery; resolver contrato |
 | G4: dominio Recovery | Escenarios A-D del PRD, atomicidad, idempotencia, snapshots y aislamiento demostrados | Mantener Recovery no disponible y preservar Training |
-| G5: iPhone/datos reales | Safari/HTTPS, guardado/continuación/historial y restauración operables | No iniciar validación real si hay riesgo de pérdida; corregir primero |
+| G5: experiencia web responsive/datos reales | Recorrido visible completo de captura, organización, sesión, guardado, continuación e historial; autenticación, persistencia, matriz §12.1 y restauración operables | No iniciar las tres sesiones reales si falta evidencia del recorrido o hay riesgo de pérdida; corregir primero |
 
 Pruebas obligatorias:
 
@@ -351,7 +353,7 @@ Pruebas obligatorias:
 - No filtración a coach, MCP, export/admin Training, sincronización global, cachés o logs.
 - Medios: caída de BD no equivale a referencias vacías ni dispara GC destructivo.
 - Restauración completa medida, con autenticación, archivos externos, generación y clientes antiguos.
-- Suites frontend/API/MCP, locales/builds pertinentes y uso real Safari/iPhone, no solo escritorio.
+- Suites frontend/API/MCP, locales/builds pertinentes y verificación web responsive según §12.1, separada de las tres sesiones reales de adopción.
 
 Experimentos propuestos, no ejecutados ni autorizados como implementación:
 
@@ -363,6 +365,30 @@ Experimentos propuestos, no ejecutados ni autorizados como implementación:
 | Restore operativo | Ensayo completo y medición con conjunto representativo | Confirmar RPO/RTO solo con evidencia y proveedor; ajustar plan/coste si no cumple |
 
 Cada experimento debe acordar su timebox al autorizarlo. Nada de lo anterior se ejecutó sobre datos reales en esta etapa de arquitectura.
+
+### 12.1 Validación web responsive
+
+La entrega actual se acepta como web responsive mediante **Playwright CLI con Edge/Chromium**. La matriz mínima usa viewports genéricos, sin perfiles de dispositivos:
+
+| Vista | Viewport (ancho × alto, píxeles CSS) |
+| --- | --- |
+| Escritorio | 1440×900 |
+| Intermedia | 768×1024 |
+| Pequeña | 390×844 |
+| Estrecha | 320×740 |
+
+En cada tamaño, recorrer captura → organización → inicio de sesión de entrenamiento → guardado de avances → continuación → completado → historial. Verificar también autenticación y los escenarios A–D del PRD. Registrar caso, revisión probada, navegador, viewport, acciones, resultado y rutas de evidencia; los datos técnicos serán sintéticos y las sesiones de navegador aisladas.
+
+- Conducir la interfaz con Playwright CLI, fijar el tamaño con `resize`, obtener snapshots y capturas y revisar visualmente las pantallas y estados relevantes. Una captura existente sin revisión no acredita aceptación visual.
+- Comprobar controles etiquetados, acceso por teclado y foco visible, textos legibles y ausencia de solapamientos o recortes que impidan operar. El recorrido debe poder completarse en los cuatro tamaños.
+- Para cada guardado, comprobar el resultado, recargar y continuar o consultar desde otra vista. Una confirmación visual aislada no acredita persistencia. El historial debe conservar resultados y contexto, sin prometer recuperación de ediciones no guardadas.
+- Revisar consola y solicitudes fallidas; conservar evidencia sin credenciales, cookies ni datos personales. Cerrar únicamente las sesiones de navegador creadas para la prueba.
+
+Reutilizar [verify-opengym](../.agents/skills/verify-opengym/SKILL.md) para los recorridos invitados que ya cubre. Su helper actual no constituye una matriz responsive ni prueba autenticación o Recovery: estos recorridos necesitan casos dedicados cuando se implementen. Esta revisión no amplía ni modifica el harness. Playwright CLI es la superficie interactiva; no se presupone una suite Playwright Test nueva.
+
+G5 requiere este recorrido visible completo y las garantías de datos/restauración de los gates anteriores antes de iniciar las tres sesiones reales. Estas últimas evalúan utilidad y fricciones desde cualquier navegador/tamaño admitido; las pruebas técnicas no prueban adopción. No se exige teléfono físico, emulación de dispositivo, apps nativas ni otros motores de navegador en esta entrega. HTTPS/origen/RP ID se verifican para publicación y autenticación según §10; localhost compatible puede utilizarse durante el ensayo local.
+
+**Estado:** protocolo acordado, pendiente de ejecución para Recovery. Esta revisión documental no presenta capturas, pruebas visuales ni G5 como aprobados.
 
 ## 13. Riesgos y mitigaciones
 
@@ -381,12 +407,12 @@ Cada experimento debe acordar su timebox al autorizarlo. Nada de lo anterior se 
 
 ## 14. Secuencia conceptual confirmada de futuras OpenSpecs y handoff
 
-**No se crearon OpenSpecs ni tickets.** La secuencia conceptual queda confirmada por la aprobación arquitectónica; su elaboración e implementación requieren autorización posterior:
+**Estado de la secuencia:** `add-postgres-foundation` ya está creado y en implementación autorizada por tareas; tiene 6/18 completadas (1.1–2.3). El [tracker OpenSpec](../openspec/changes/add-postgres-foundation/tasks.md) es la fuente de progreso. Los demás cambios enumerados siguen siendo handoffs conceptuales y requieren autorización para su elaboración e implementación:
 
 1. `add-postgres-foundation`: conectividad, roles, migraciones, pruebas reales y recuperación. Gate G1; incorpora decisiones operativas pendientes antes del uso real.
 2. `migrate-opengym-persistence`: identidad, Training JSONB, contratos y consumidores. Gates G0/G2/G3; debe incluir inventario y reversión, no solo importación.
 3. `add-recovery-foundation`: procesos, indicaciones, sesiones, correcciones, recibos y contexto histórico. Gate G4.
-4. `add-recovery-experience`: captura, ejercicios, guardado, historial cronológico sencillo y validación iPhone. Gate G5 y validación funcional del PRD.
+4. `add-recovery-experience`: captura, ejercicios, guardado, continuación, historial cronológico sencillo y validación web responsive de §12.1. Gate G5 y validación funcional del PRD.
 5. `add-garmin-connector`: iniciativa posterior independiente, tras validar Recovery y definir producto/proveedor/autenticación. Python, import incremental, reintentos y deduplicación por identidad externa; sin escribir archivos ni sesiones Recovery implícitamente.
 
 Foundation y experiencia Recovery no constituyen entregas de producto independientes incompletas: el experimento funcional requiere el recorrido completo del PRD. No iniciar validación de adopción solo por disponer del backend.
@@ -395,7 +421,7 @@ Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/lo
 
 ### 14.1 Handoff preparado: `add-postgres-foundation`
 
-**Estado:** preparado documentalmente para iniciar su definición en OpenSpec cuando el usuario lo autorice; todavía no generado ni iniciado. La arquitectura está cerrada, pero especificar el cambio e implementarlo son autorizaciones posteriores distintas.
+**Estado:** [OpenSpec generado](../openspec/changes/add-postgres-foundation/proposal.md), con implementación parcial autorizada: 6/18 tareas completadas, hasta 2.3. Entorno y pool tienen evidencia sintética; migraciones, roles/RLS, recuperación y CI siguen pendientes. G1 operativo no está acreditado. El tracker prevalece sobre este corte de estado.
 
 **Objetivo del primer cambio:** establecer una base PostgreSQL verificable para la posterior migración de identidad/Training, sin convertirla aún en autoridad de los datos existentes. No incluir el corte ni la experiencia funcional Recovery en este cambio.
 
@@ -414,7 +440,7 @@ Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/lo
 - No es requisito completar G0 para ensayar Foundation; sí lo es antes del corte de persistencia, que pertenece a `migrate-opengym-persistence`.
 - No migrar usuarios ni Training, cambiar autenticación, adaptar consumidores como si el corte ya hubiera ocurrido, ni crear un esquema funcional Recovery por adelantado. Probar RLS con fixtures sintéticas; las políticas reales Recovery se verificarán también en G4.
 
-**Criterios de verificación que deberá concretar el futuro OpenSpec:**
+**Criterios de verificación concretados por el OpenSpec vigente; su cumplimiento se registra por tarea:**
 
 | Área | Evidencia de aceptación esperada |
 | --- | --- |
@@ -438,10 +464,10 @@ Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/lo
 | Retención/cifrado/destino externo | Acordar ubicación, acceso, claves y alertas | Respaldo operativo |
 | Inventario de clientes | Identificar navegadores, perfiles, orígenes, teléfonos y datos pendientes | Corte de persistencia |
 | Procedencia frontend desplegado | Artefacto/revisión reproducibles; hoy etiquetas `dev` y sin dist local | Corte verificado |
-| HTTPS local iPhone | Origen/RP ID/certificado confiable y transición futura | Validación móvil |
+| Acceso web publicado | HTTPS, origen/RP ID/certificado confiable y transición de passkeys; localhost compatible para ensayo local | Publicación/autenticación; no obliga a un dispositivo concreto |
 | Contrato MCP y persistencia residual coach | Seleccionar lectura restringida y delimitar autoridad/salida de cada almacén | Retirada de lectores JSON y convergencia |
 | Ventana de mantenimiento/rollback | Pausa de todos los escritores y autorización del procedimiento | Corte definitivo |
 
 **Cierre registrado:** el usuario aprobó formalmente esta arquitectura y autorizó el cierre documental de `plan-architecture`, manteniendo los pendientes anteriores sujetos a sus gates. Product Discovery/PRD y arquitectura quedan cerrados; los experimentos y gates técnicos siguen pendientes de ejecución y evidencia. No se reabren decisiones aprobadas sin nueva evidencia técnica que demuestre un problema.
 
-**Siguiente punto de autorización:** iniciar la definición de `add-postgres-foundation` en OpenSpec, usando el handoff §14.1. No se ha concedido esa autorización: no generar OpenSpecs, comenzar implementación, modificar entornos ni efectuar el corte como consecuencia de este cierre.
+**Siguiente punto de autorización:** continuar las tareas pendientes de `add-postgres-foundation` según su tracker y una solicitud explícita. Esta revisión documental no autoriza tareas PostgreSQL adicionales, corte de persistencia, despliegue, sincronización ni archivo de OpenSpec.
