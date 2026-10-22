@@ -289,4 +289,6 @@ El PRD aprobado fundamenta la [arquitectura ya aprobada](open-gym-evolution.arch
 
 **Handoff vigente:** la arquitectura aprobada traduce este PRD a contratos y gates; el progreso técnico se sigue en [OpenSpec Foundation](../openspec/changes/add-postgres-foundation/tasks.md). Sus tareas no constituyen por sí solas la entrega funcional Recovery y deben preservar los requisitos y escenarios de este PRD. Cualquier nueva funcionalidad del MVP requiere justificación de producto y aprobación explícita; las preferencias tecnológicas no amplían el alcance.
 
+La evolución debe preservar Training, su historial y el acceso a los datos existentes. La sustitución de la persistencia y las condiciones para cerrar su retirada técnica se definen en la [arquitectura, §§9, 11–12 y 14](open-gym-evolution.architecture.md); no constituyen criterios adicionales de utilidad o adopción de Recovery.
+
 Cada cambio OpenSpec y su implementación requieren autorización propia. Esta revisión del PRD no inicia tareas técnicas, modifica código ni acredita pruebas de Recovery.

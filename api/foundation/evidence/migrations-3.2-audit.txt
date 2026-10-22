@@ -1,0 +1,19 @@
+Task 3.2 evidence audit
+Commands: node api/foundation/environment.mjs run migrations; run pool; node --test api/foundation/{environment,configuration,environment-docker}.test.mjs
+Runtime: Node 22.23.2 UID 1000 / PostgreSQL 18.6; host orchestration Node 24.14.0
+migrations-3.2-red.txt: expected result and diagnostics PASS; zero labeled containers/volumes/networks/images for opengym-foundation-test-99ec9abe9b8f7d6e
+migrations-3.2-fixtures-green.txt: expected result and diagnostics PASS; zero labeled containers/volumes/networks/images for opengym-foundation-test-e4969ac4eb2ae5c9
+migrations-3.2-infrastructure-red.txt: expected result and diagnostics PASS; zero labeled containers/volumes/networks/images for opengym-foundation-test-cf4290aeec330cf4
+migrations-3.2-green.txt: expected result and diagnostics PASS; zero labeled containers/volumes/networks/images for opengym-foundation-test-c520fe08531802a1
+migrations-3.2-pool-regressions.txt: expected result and diagnostics PASS; zero labeled containers/volumes/networks/images for opengym-foundation-test-d83ff146bf94f87e
+migrations-3.2-harness-regressions.txt: expected result and diagnostics PASS; harness checks own resources
+0ed5b7f0b5368eacf150f42df9cf9fb57f8c12d3aa81eefd3b9050f40d2ea53a  api/foundation/migrate.mjs
+10de6968fda68a793e7b3bee06a2aeed832f3e5a20d09ec57e7068b4f9fac6d0  api/foundation/migrations.test.mjs
+e9f02840084692b567789b3fcc93ed6a4edb80b94b912a38b5cf810deee58da3  api/foundation/migrations/001-foundation.cjs
+520c966b55a7142e9f801dbea6f71923e6058dfaa6b112935556d549a9884e35  api/foundation/environment.test.mjs
+29befdcd3392a60af346bc2c8810aa00922acfe3957896993c7b7b33f7479fa0  api/foundation/Dockerfile
+ed046d8d5475022452d3ccafb1a34860b60e7802cf2148403fc5e9d93301775f  api/foundation/.dockerignore
+Review: CLI, callers, Docker allowlist, real runner lock/singleTransaction/history, role provisioning and focused tests inspected. No blocker for 3.2 synthetic implementation.
+Not verified here: task 3.3 SQL failure/connection termination/full privilege and membership matrix; PostgreSQL server logs; RLS/restore/CI/full suites/provider/production gates.
+Additional cleanup check: --all container queries include stopped containers; zero for all five 3.2 run projects.
+Final checks PASS: OpenSpec strict, node --check, whitespace for new/changed slice sources, evidence links, 8/18 tasks with 3.3 unchecked.

@@ -266,6 +266,10 @@ No basta cambiar `/api/data`. JSON de entrenamiento congelado no puede seguir si
 
 Cada almacén residual de configuración/jobs/credenciales del coach debe clasificarse y tener autoridad y salida explícitas. No son duplicados de Training, pero no deben convertirse en excepción perpetua e indocumentada a la convergencia. Secretos y bytes multimedia pueden permanecer fuera de PostgreSQL con contratos de respaldo; moverlos a tablas no es requisito del MVP.
 
+El inventario de migración debe cubrir todos los productores, consumidores y almacenes afectados, con un destino y tratamiento explícitos para cada uno: sustituir, conservar con justificación o retirar. El almacenamiento local de invitado/offline, medios, secretos y otros elementos con contrato vigente no se consideran obsoletos por usar archivos o JSON.
+
+La retirada técnica incluye eliminar lectores, escritores, cachés, watchers, opciones de configuración, dependencias y pruebas exclusivos de la persistencia sustituida. Las pruebas de comportamiento que sigan siendo aplicables se conservan y adaptan a la nueva autoridad. El cierre exige evidencia de ausencia de accesos activos al almacenamiento sustituido y verificación de los consumidores después de eliminar ese código; no basta con dejarlo desactivado.
+
 ## 10. Seguridad y operación
 
 ### Roles, RLS y autorización
@@ -320,7 +324,12 @@ Migración de autoridad:
 2. Importar preservando identidad, credenciales, documentos internos y referencias.
 3. Validar equivalencia antes de habilitar tráfico.
 4. Activar una sola autoridad PostgreSQL; retirar lecturas/escrituras heredadas del dominio.
-5. Conservar origen congelado y protegido durante ventana de recuperación, no como fallback.
+5. Conservar origen congelado y protegido durante una ventana de recuperación definida antes del corte, no como fallback.
+6. Completar la retirada técnica de §9 y verificar nuevamente compatibilidad y recuperación antes de declarar terminada la migración.
+
+Antes de retirar el código sustituido, conservar durante la ventana de recuperación la imagen/release anterior identificada por revisión y digest, su configuración compatible y los secretos necesarios bajo protección. Ensayar en un entorno aislado su recuperación con el origen congelado; conservar solo los datos no basta. Estos artefactos permiten ejecutar el procedimiento de reversión aprobado, sin mantener accesos legacy activos ni habilitar fallback automático; no eluden las restricciones sobre nuevas escrituras descritas a continuación.
+
+La retirada del código y la eliminación de los datos originales son operaciones distintas. El vencimiento de la ventana de recuperación no autoriza su borrado: este requiere una decisión y autorización explícitas, comprobando previamente el respaldo y la restauración del sistema vigente. La especificación de migración debe definir la conservación, protección y disposición final del origen sin convertirlo en una segunda autoridad.
 
 Antes de nuevas escrituras, rollback al origen es directo tras validación. Después, requiere exportación inversa validada o corrección hacia adelante; recuperar el backup anterior pierde cambios y exige autorización explícita. No habilitar doble escritura como seguro aparente.
 
@@ -334,8 +343,8 @@ PostgreSQL JSONB reordena claves y cambia representación. Validar equivalencia 
 | --- | --- | --- |
 | G0: inventario/procedencia | Clientes/orígenes identificados; backups locales comprobados; imagen frontend identificable; correspondencia API documentada | No cortar persistencia existente ni borrar clientes; resolver diferencias. No impide Foundation sintética aislada |
 | G1: foundation | Pool/roles/migraciones/RLS sobre PostgreSQL real; backup y restore aislado; compatibilidad del proveedor | No habilitar nuevo backend autoritativo; corregir con datos sintéticos |
-| G2: corte identidad/Training | Importación equivalente, consumidores adaptados, autoridad única y reversión ensayada | Rollback antes de escrituras; luego recuperación explícita sin pérdida silenciosa |
-| G3: compatibilidad | Auth, sync, offline, medios, coach, MCP y administración sin regresión | No comenzar datos reales Recovery; resolver contrato |
+| G2: corte identidad/Training | Importación equivalente, consumidores operativos sobre PostgreSQL, autoridad única, ausencia de accesos activos al almacenamiento sustituido y reversión ensayada | Rollback antes de escrituras; luego recuperación explícita sin pérdida silenciosa |
+| G3: compatibilidad | Auth, sync, offline, medios, coach, MCP y administración sin regresión después de la retirada técnica de §9; evidencia de compatibilidad y recuperación aprobada | No comenzar datos reales Recovery; resolver contrato |
 | G4: dominio Recovery | Escenarios A-D del PRD, atomicidad, idempotencia, snapshots y aislamiento demostrados | Mantener Recovery no disponible y preservar Training |
 | G5: experiencia web responsive/datos reales | Recorrido visible completo de captura, organización, sesión, guardado, continuación e historial; autenticación, persistencia, matriz §12.1 y restauración operables | No iniciar las tres sesiones reales si falta evidencia del recorrido o hay riesgo de pérdida; corregir primero |
 
@@ -407,21 +416,25 @@ G5 requiere este recorrido visible completo y las garantías de datos/restauraci
 
 ## 14. Secuencia conceptual confirmada de futuras OpenSpecs y handoff
 
-**Estado de la secuencia:** `add-postgres-foundation` ya está creado y en implementación autorizada por tareas; tiene 6/18 completadas (1.1–2.3). El [tracker OpenSpec](../openspec/changes/add-postgres-foundation/tasks.md) es la fuente de progreso. Los demás cambios enumerados siguen siendo handoffs conceptuales y requieren autorización para su elaboración e implementación:
+**Estado de la secuencia:** `add-postgres-foundation` ya está creado y en implementación autorizada por tareas. El [tracker OpenSpec](../openspec/changes/add-postgres-foundation/tasks.md) es la fuente de progreso. Los demás cambios enumerados siguen siendo handoffs conceptuales y requieren autorización para su elaboración e implementación:
 
 1. `add-postgres-foundation`: conectividad, roles, migraciones, pruebas reales y recuperación. Gate G1; incorpora decisiones operativas pendientes antes del uso real.
-2. `migrate-opengym-persistence`: identidad, Training JSONB, contratos y consumidores. Gates G0/G2/G3; debe incluir inventario y reversión, no solo importación.
+2. `migrate-opengym-persistence`: identidad, Training JSONB, contratos y consumidores. Gates G0/G2/G3; debe cumplir el handoff de migración y retirada definido a continuación.
 3. `add-recovery-foundation`: procesos, indicaciones, sesiones, correcciones, recibos y contexto histórico. Gate G4.
 4. `add-recovery-experience`: captura, ejercicios, guardado, continuación, historial cronológico sencillo y validación web responsive de §12.1. Gate G5 y validación funcional del PRD.
 5. `add-garmin-connector`: iniciativa posterior independiente, tras validar Recovery y definir producto/proveedor/autenticación. Python, import incremental, reintentos y deduplicación por identidad externa; sin escribir archivos ni sesiones Recovery implícitamente.
 
 Foundation y experiencia Recovery no constituyen entregas de producto independientes incompletas: el experimento funcional requiere el recorrido completo del PRD. No iniciar validación de adopción solo por disponer del backend.
 
+**Handoff obligatorio de `migrate-opengym-persistence`:** su futura OpenSpec debe incluir el inventario y la retirada de §9, pruebas de equivalencia y compatibilidad, restauración y reversión, y el corte controlado de §11 con tratamiento de fallos antes y después de nuevas escrituras. Debe contener un tramo final de eliminación del código sustituido y verificación posterior, actualizar las guías operativas afectadas y registrar la decisión de conservación del origen. Una importación exitosa no acredita el cierre de la migración.
+
+Antes de declarar esa especificación lista para implementar deben quedar resueltos el entorno objetivo, los plazos de recuperación y los procedimientos concretos de corte, restauración y reversión. La documentación operativa seguirá describiendo el sistema actual hasta que se implemente el cambio correspondiente. Este handoff continúa siendo conceptual: no crea la OpenSpec ni acredita sus gates.
+
 Trabajos con PostgreSQL se evaluarán cuando existan tareas duraderas: leases/locks, reintentos, recuperación y deduplicación, sin prometer ejecución externa exactamente una vez. No crear ahora un sistema de colas. LangChain/LangGraph, FastAPI y pgvector requieren justificación separada; ningún servicio futuro administra el esquema de otro sin contrato.
 
 ### 14.1 Handoff preparado: `add-postgres-foundation`
 
-**Estado:** [OpenSpec generado](../openspec/changes/add-postgres-foundation/proposal.md), con implementación parcial autorizada: 6/18 tareas completadas, hasta 2.3. Entorno y pool tienen evidencia sintética; migraciones, roles/RLS, recuperación y CI siguen pendientes. G1 operativo no está acreditado. El tracker prevalece sobre este corte de estado.
+**Estado:** [OpenSpec generado](../openspec/changes/add-postgres-foundation/proposal.md), con implementación parcial autorizada por tareas. El [tracker OpenSpec](../openspec/changes/add-postgres-foundation/tasks.md) es la fuente de progreso y evidencia por tarea. G1 operativo no está acreditado.
 
 **Objetivo del primer cambio:** establecer una base PostgreSQL verificable para la posterior migración de identidad/Training, sin convertirla aún en autoridad de los datos existentes. No incluir el corte ni la experiencia funcional Recovery en este cambio.
 

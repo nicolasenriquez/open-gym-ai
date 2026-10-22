@@ -4,3 +4,5 @@
 !package-lock.json
 !versions.json
 !*.mjs
+!migrations/
+!migrations/*.cjs

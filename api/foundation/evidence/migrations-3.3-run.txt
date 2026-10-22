@@ -1,0 +1,172 @@
+Foundation project: opengym-foundation-test-c3be811618e8070d
+ Image opengym-foundation-test-c3be811618e8070d-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 555B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 141B done
+#4 DONE 0.0s
+
+#5 [1/8] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#5 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 17.05kB done
+#6 DONE 0.0s
+
+#7 [2/8] WORKDIR /app
+#7 CACHED
+
+#8 [3/8] RUN chown node:node /app
+#8 CACHED
+
+#9 [4/8] COPY --chown=node:node package.json package-lock.json ./
+#9 CACHED
+
+#10 [5/8] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#10 CACHED
+
+#11 [6/8] COPY --chown=node:node *.mjs versions.json ./
+#11 DONE 0.0s
+
+#12 [7/8] COPY --chown=node:node migrations/ ./migrations/
+#12 DONE 0.0s
+
+#13 [8/8] RUN npm run check:toolchain
+#13 0.316 
+#13 0.316 > opengym-postgres-foundation@0.0.0 check:toolchain
+#13 0.316 > node check-toolchain.mjs
+#13 0.316 
+#13 0.379 Node 22.23.2; npm 10.9.8; linux/x64
+#13 0.379 Lock SHA-256: dfa32b226d91be7bb3fae885073bae29f71054335ce0b3f33e1b39ed574e3027
+#13 0.379 Package	Version	License (metadata)	Node engine (metadata)
+#13 0.380 ansi-regex	6.4.0	MIT	>=12
+#13 0.380 ansi-styles	6.2.3	MIT	>=12
+#13 0.380 balanced-match	4.0.4	MIT	18 || 20 || >=22
+#13 0.380 brace-expansion	5.0.12	MIT	20 || >=22
+#13 0.381 cliui	9.0.1	ISC	>=20
+#13 0.381 emoji-regex	10.6.0	MIT	(not declared)
+#13 0.381 escalade	3.2.0	MIT	>=6
+#13 0.381 get-caller-file	2.0.5	ISC	6.* || 8.* || >= 10.*
+#13 0.381 get-east-asian-width	1.7.0	MIT	>=18
+#13 0.381 glob	13.0.6	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.381 jiti	2.7.0	MIT	(not declared)
+#13 0.382 lru-cache	11.5.3	BlueOak-1.0.0	20 || >=22
+#13 0.382 minimatch	10.2.6	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.382 minipass	7.1.3	BlueOak-1.0.0	>=16 || 14 >=14.17
+#13 0.382 node-pg-migrate	9.0.0	MIT	>=20.11.0
+#13 0.382 path-scurry	2.0.2	BlueOak-1.0.0	18 || 20 || >=22
+#13 0.382 pg	8.23.1	MIT	>= 16.0.0
+#13 0.383 pg-cloudflare	1.4.1	MIT	(not declared)
+#13 0.383 pg-connection-string	2.14.1	MIT	(not declared)
+#13 0.383 pg-int8	1.0.1	ISC	>=4.0.0
+#13 0.383 pg-pool	3.14.0	MIT	(not declared)
+#13 0.383 pg-protocol	1.16.1	MIT	(not declared)
+#13 0.383 pg-types	2.2.0	MIT	>=4
+#13 0.383 pgpass	1.0.5	MIT	(not declared)
+#13 0.383 postgres-array	2.0.0	MIT	>=4
+#13 0.383 postgres-bytea	1.0.1	MIT	>=0.10.0
+#13 0.383 postgres-date	1.0.7	MIT	>=0.10.0
+#13 0.383 postgres-interval	1.2.0	MIT	>=0.10.0
+#13 0.383 split2	4.2.0	ISC	>= 10.x
+#13 0.383 string-width	7.2.0	MIT	>=18
+#13 0.383 strip-ansi	7.2.0	MIT	>=12
+#13 0.384 wrap-ansi	9.0.2	MIT	>=18
+#13 0.384 xtend	4.0.2	MIT	>=0.4
+#13 0.384 y18n	5.0.8	ISC	>=10
+#13 0.384 yargs	18.0.0	MIT	^20.19.0 || ^22.12.0 || >=23
+#13 0.384 yargs-parser	22.0.0	ISC	^20.19.0 || ^22.12.0 || >=23
+#13 0.384 PASS: pinned runtime, lock/installed metadata, stable versions, integrity metadata and ESM exports.
+#13 0.384 Engine range compatibility is checked by npm ci --engine-strict, not by this script.
+#13 DONE 0.4s
+
+#14 exporting to image
+#14 exporting layers 0.1s done
+#14 exporting manifest sha256:c6adbbb84816949546ba2bc7717e65d307ad14cb9622480b7b4949959f4a0210 0.0s done
+#14 exporting config sha256:87f40e4aa3c0937cd14d48904a7c10d7d8ba9db9d5ed978c8bcf77692ce1cda9 0.0s done
+#14 exporting attestation manifest sha256:424ccd6bbe924430eca84ad4f8b450d84bfaa6c45b4e039b3fc78d5398a14d77 0.0s done
+#14 exporting manifest list sha256:5aa07a10dc7eaaa17a18af34805eb04a0cecf5a400459408cd3e4c859c578b96
+#14 exporting manifest list sha256:5aa07a10dc7eaaa17a18af34805eb04a0cecf5a400459408cd3e4c859c578b96 0.0s done
+#14 naming to docker.io/library/opengym-foundation-test-c3be811618e8070d-foundation-test:latest done
+#14 unpacking to docker.io/library/opengym-foundation-test-c3be811618e8070d-foundation-test:latest
+#14 unpacking to docker.io/library/opengym-foundation-test-c3be811618e8070d-foundation-test:latest 0.4s done
+#14 DONE 0.7s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image opengym-foundation-test-c3be811618e8070d-foundation-test Built 
+ Network opengym-foundation-test-c3be811618e8070d_private Creating 
+ Network opengym-foundation-test-c3be811618e8070d_private Created 
+ Volume opengym-foundation-test-c3be811618e8070d_postgres-data Creating 
+ Volume opengym-foundation-test-c3be811618e8070d_postgres-data Created 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-db-1 Creating 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-db-1 Created 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-db-1 Starting 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-db-1 Started 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-db-1 Waiting 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-db-1 Healthy 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-test-run-2f624468c824 Creating 
+ Container opengym-foundation-test-c3be811618e8070d-foundation-test-run-2f624468c824 Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: committed Foundation migration is infrastructure only and reruns without replay
+ok 1 - committed Foundation migration is infrastructure only and reruns without replay
+  ---
+  duration_ms: 485.213374
+  type: 'test'
+  ...
+# Subtest: empty database and an applied test prefix converge to one unreplayed history
+ok 2 - empty database and an applied test prefix converge to one unreplayed history
+  ---
+  duration_ms: 695.076989
+  type: 'test'
+  ...
+# Subtest: bootstrap separates role attributes, memberships, ownership and effective runtime privileges
+ok 3 - bootstrap separates role attributes, memberships, ownership and effective runtime privileges
+  ---
+  duration_ms: 232.142891
+  type: 'test'
+  ...
+# Subtest: a real SQL failure rolls back all pending work, preserves the applied prefix and reruns unchanged
+ok 4 - a real SQL failure rolls back all pending work, preserves the applied prefix and reruns unchanged
+  ---
+  duration_ms: 587.188832
+  type: 'test'
+  ...
+# Subtest: a second process fails while the first holds the migration lock; history records it once
+ok 5 - a second process fails while the first holds the migration lock; history records it once
+  ---
+  duration_ms: 395.876453
+  type: 'test'
+  ...
+# Subtest: interrupted locked migration leaves no partial work and can be rerun
+ok 6 - interrupted locked migration leaves no partial work and can be rerun
+  ---
+  duration_ms: 278.480214
+  type: 'test'
+  ...
+# Subtest: terminated database connection rolls back, releases its lock and permits a clean rerun
+ok 7 - terminated database connection rolls back, releases its lock and permits a clean rerun
+  ---
+  duration_ms: 455.127403
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3188.187272
+Foundation cleanup complete

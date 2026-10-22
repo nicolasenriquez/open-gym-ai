@@ -1,0 +1,31 @@
+Task 3.3 synthetic migration checkpoint audit
+Command: node api/foundation/environment.mjs run migrations
+Scope: verification tests, fixture-only SQL, README/design/task Notes; no runtime implementation changes.
+Runtime: pinned Node 22.23.2 UID 1000 / PostgreSQL 18.6; host Node 24.14.0 orchestrates Docker only.
+migrations-3.3-privileges.txt: PASS 5/5, no skips/cancellations, expected cleanup and safe captured stdout/stderr.
+migrations-3.3-sql-failure.txt: PASS 6/6, no skips/cancellations, expected cleanup and safe captured stdout/stderr.
+migrations-3.3-run.txt: PASS 7/7, no skips/cancellations, expected cleanup and safe captured stdout/stderr.
+Diagnostic scanner positive controls PASS; every child result is also checked by the process-seam helper. SQL/concurrent negative cases require generic errors; connection failure checks reject raw SQL. PostgreSQL server logs are outside this audit.
+Independent cleanup PASS: zero containers (including stopped), volumes, networks and labeled runner images for opengym-foundation-test-6cc1fd506876c48e
+Independent cleanup PASS: zero containers (including stopped), volumes, networks and labeled runner images for opengym-foundation-test-31172e383a8e2b87
+Independent cleanup PASS: zero containers (including stopped), volumes, networks and labeled runner images for opengym-foundation-test-4d5297289a20c61b
+Independent cleanup PASS: zero containers (including stopped), volumes, networks and labeled runner images for opengym-foundation-test-c3be811618e8070d
+0ed5b7f0b5368eacf150f42df9cf9fb57f8c12d3aa81eefd3b9050f40d2ea53a  api/foundation/migrate.mjs (unchanged from 3.2)
+e9f02840084692b567789b3fcc93ed6a4edb80b94b912a38b5cf810deee58da3  api/foundation/migrations/001-foundation.cjs (unchanged from 3.2)
+29befdcd3392a60af346bc2c8810aa00922acfe3957896993c7b7b33f7479fa0  api/foundation/Dockerfile (unchanged from 3.2)
+ed046d8d5475022452d3ccafb1a34860b60e7802cf2148403fc5e9d93301775f  api/foundation/.dockerignore (unchanged from 3.2)
+520c966b55a7142e9f801dbea6f71923e6058dfaa6b112935556d549a9884e35  api/foundation/environment.test.mjs (unchanged from 3.2)
+8578fb0d596a46d0cda0ac69c516c88a56255d58dc0c9cfb55a42abc4e2f6cc0  api/foundation/migrations.test.mjs
+da92f644e4007b7577a1876946219bbf3a89494f9ab147f0cb74f6312d530174  api/foundation/environment.mjs
+6dd66c8caf8d21994c0180f8679810790886fb68fceba06afbfddd68c3071825  api/foundation/run.mjs
+da51b74704bd1fe0eb63795710e9a1d7d425472abbc8c29ff4f1614189652ae5  compose.foundation.yml
+278a50aeeb7fe51f186dfa88c46882300b2f0accc5126c2c41041e98c502e89f  api/foundation/package.json
+dfa32b226d91be7bb3fae885073bae29f71054335ce0b3f33e1b39ed574e3027  api/foundation/package-lock.json
+Runtime/packaging/manifests unchanged relative to the staged 3.2 baseline. Prior pool/harness regression evidence was not rerun or presented as fresh.
+Coverage: empty/prefix and immutable rerun; restricted roles and zero memberships/ownership; 14 real 42501 denials with INSERT/SELECT positive control; real 23505 rollback across pending ALTER/CREATE/write retaining prefix; concurrent runner rejection; child SIGTERM; verified synthetic backend termination; no partial success/history, absent PID/advisory locks and consistent rerun.
+Termination caveat: the connection test releases only the fixture JavaScript IPC gate after backend termination; it does not prove cancellation of arbitrary JavaScript.
+What this change does: completes the synthetic migration verification checkpoint through the approved CLI/SQL seams. It changes tests and documentation, not application persistence.
+Review: exact 3.3 diff, fixtures, process helper/teardown, migrator, runner, Docker packaging and spec scenarios inspected for two local/CI migration processes. No blocking findings remain. Verdict: Ship task 3.3 only.
+Not checked: full API/frontend/MCP suites/build/locales; RLS/restore/CI; provider TLS/pooler/production recovery; operational G1. Task 4.1 and later remain pending. No commit/push/sync/archive.
+Final checks PASS: OpenSpec strict validation, node --check, current tracked diff whitespace and source/doc whitespace; all four 3.3 evidence links resolve; tracker 9/18, only 3.3 advanced, 4.1 unchecked.
+Global staged whitespace check reports 117 trailing-whitespace lines in previously staged raw 3.1/3.2 Docker logs only; historical bytes and index preserved. Current 3.3 raw Docker output is also retained verbatim; raw logs are not claimed whitespace-clean. No source/doc whitespace error.

@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 const versions = JSON.parse(readFileSync(new URL('./versions.json', import.meta.url)));
 const [group = 'environment', ...extra] = process.argv.slice(2);
 try {
-  if (!['environment', 'pool'].includes(group) || extra.length) throw new Error('Foundation slice not implemented');
+  if (!['environment', 'pool', 'migrations'].includes(group) || extra.length) throw new Error('Foundation slice not implemented');
   if (process.env.PGHOST !== 'foundation-db' || process.env.PGPORT !== '5432'
     || process.env.PGDATABASE !== 'foundation_test' || process.env.PGUSER !== 'foundation_bootstrap'
     || process.env.PGPASSWORD !== 'synthetic-foundation-only') {
@@ -27,8 +27,8 @@ try {
   } finally {
     await client.end();
   }
-  if (group === 'pool') {
-    const child = spawn(process.execPath, ['--test', '--test-concurrency=1', 'pool.test.mjs'], { stdio: 'inherit' });
+  if (group !== 'environment') {
+    const child = spawn(process.execPath, ['--test', '--test-concurrency=1', `${group}.test.mjs`], { stdio: 'inherit' });
     process.exitCode = await new Promise((resolve, reject) => {
       child.once('error', reject);
       child.once('exit', code => resolve(code ?? 1));

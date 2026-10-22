@@ -53,7 +53,7 @@ async function cleanup(project) {
 }
 
 async function run(group = 'environment') {
-  if (!['environment', 'pool'].includes(group)) throw new Error('Foundation slice not implemented');
+  if (!['environment', 'pool', 'migrations'].includes(group)) throw new Error('Foundation slice not implemented');
   const runProject = `opengym-foundation-test-${randomBytes(8).toString('hex')}`;
   const compose = ['compose', '--env-file', emptyEnv, '-f', composeFile, '-p', runProject];
   for (const type of ['container', 'volume', 'network', 'image']) {

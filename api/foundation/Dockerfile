@@ -7,6 +7,7 @@ USER node
 COPY --chown=node:node package.json package-lock.json ./
 RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
 COPY --chown=node:node *.mjs versions.json ./
+COPY --chown=node:node migrations/ ./migrations/
 RUN npm run check:toolchain
 ENTRYPOINT ["node", "run.mjs"]
 CMD ["environment"]

@@ -1,0 +1,183 @@
+Foundation project: opengym-foundation-test-99ec9abe9b8f7d6e
+ Image opengym-foundation-test-99ec9abe9b8f7d6e-foundation-test Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 875B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 506B 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 110B done
+#4 DONE 0.0s
+
+#5 [1/7] FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+#5 resolve docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 465B done
+#6 DONE 0.0s
+
+#7 [2/7] WORKDIR /app
+#7 CACHED
+
+#8 [3/7] RUN chown node:node /app
+#8 CACHED
+
+#9 [4/7] COPY --chown=node:node package.json package-lock.json ./
+#9 CACHED
+
+#10 [5/7] RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+#10 CACHED
+
+#11 [6/7] COPY --chown=node:node *.mjs versions.json ./
+#11 CACHED
+
+#12 [7/7] RUN npm run check:toolchain
+#12 CACHED
+
+#13 exporting to image
+#13 exporting layers done
+#13 exporting manifest sha256:9b40ab309028fb822ec76eaf49947eeb4a3a492845a31724b118c43259178eb1 0.0s done
+#13 exporting config sha256:24e7a81c0a5c2301c8f3a5294163e7fa5602041daeba8734dabc107011a84139 0.0s done
+#13 exporting attestation manifest sha256:6a82410512303a0729244affdede351e50b99d7d857e8ea62c924c05f0779acf 0.0s done
+#13 exporting manifest list sha256:94462b31b92634e1917895edf010cab5c1d91ff15b4cf6e001f3e513100611d7
+#13 exporting manifest list sha256:94462b31b92634e1917895edf010cab5c1d91ff15b4cf6e001f3e513100611d7 0.0s done
+#13 naming to docker.io/library/opengym-foundation-test-99ec9abe9b8f7d6e-foundation-test:latest done
+#13 unpacking to docker.io/library/opengym-foundation-test-99ec9abe9b8f7d6e-foundation-test:latest
+#13 unpacking to docker.io/library/opengym-foundation-test-99ec9abe9b8f7d6e-foundation-test:latest 0.3s done
+#13 DONE 0.5s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.0s
+ Image opengym-foundation-test-99ec9abe9b8f7d6e-foundation-test Built 
+ Network opengym-foundation-test-99ec9abe9b8f7d6e_private Creating 
+ Network opengym-foundation-test-99ec9abe9b8f7d6e_private Created 
+ Volume opengym-foundation-test-99ec9abe9b8f7d6e_postgres-data Creating 
+ Volume opengym-foundation-test-99ec9abe9b8f7d6e_postgres-data Created 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-db-1 Creating 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-db-1 Created 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-db-1 Starting 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-db-1 Started 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-db-1 Waiting 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-db-1 Healthy 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-test-run-ddd3ef6037fe Creating 
+ Container opengym-foundation-test-99ec9abe9b8f7d6e-foundation-test-run-ddd3ef6037fe Created 
+Foundation environment ready: Node 22.23.2; PostgreSQL 18.6
+TAP version 13
+# Subtest: empty database and an applied test prefix converge to one unreplayed history
+not ok 1 - empty database and an applied test prefix converge to one unreplayed history
+  ---
+  duration_ms: 459.584289
+  type: 'test'
+  location: '/app/migrations.test.mjs:99:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the prefix must actually have been applied
+    + actual - expected
+    
+    + []
+    - [
+    -   '001-probe'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: '001-probe'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///app/migrations.test.mjs:108:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: bootstrap provisions a real runtime login that cannot perform DDL
+not ok 2 - bootstrap provisions a real runtime login that cannot perform DDL
+  ---
+  duration_ms: 113.032767
+  type: 'test'
+  location: '/app/migrations.test.mjs:116:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    bootstrap must create a restricted runtime role, not silently reuse bootstrap
+    + actual - expected
+    
+    + []
+    - [
+    -   {
+    -     rolbypassrls: false,
+    -     rolname: 'foundation_runtime',
+    -     rolsuper: false
+    -   }
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      rolname: 'foundation_runtime'
+      rolsuper: false
+      rolbypassrls: false
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///app/migrations.test.mjs:120:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a second process fails while the first holds the migration lock; history records it once
+not ok 3 - a second process fails while the first holds the migration lock; history records it once
+  ---
+  duration_ms: 183.44131
+  type: 'test'
+  location: '/app/migrations.test.mjs:136:3'
+  failureType: 'testCodeFailure'
+  error: 'migration process exited without the fixture signal proving an acquired lock'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'fail'
+  stack: |-
+    file:///app/migrations.test.mjs:39:16
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (file:///app/migrations.test.mjs:142:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: interrupted locked migration leaves no partial work and can be rerun
+not ok 4 - interrupted locked migration leaves no partial work and can be rerun
+  ---
+  duration_ms: 131.274671
+  type: 'test'
+  location: '/app/migrations.test.mjs:136:3'
+  failureType: 'testCodeFailure'
+  error: 'migration process exited without the fixture signal proving an acquired lock'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'fail'
+  stack: |-
+    file:///app/migrations.test.mjs:39:16
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (file:///app/migrations.test.mjs:142:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 947.459945
+
+Foundation cleanup complete
+Docker compose failed

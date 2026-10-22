@@ -2,6 +2,8 @@
 
 La arquitectura aprobada requiere demostrar conectividad, migraciones, aislamiento y recuperación PostgreSQL antes de migrar identidad y Training. Hoy la API y sus consumidores dependen de archivos JSON y no existe una base PostgreSQL verificada; este cambio prepara esa base sin modificar la autoridad de los datos actuales.
 
+Su evidencia prepara el handoff de `migrate-opengym-persistence` descrito en la arquitectura §14; no acredita el reemplazo de la persistencia existente ni autoriza retirar su código o eliminar sus datos. Las condiciones de retirada y conservación del origen pertenecen a la arquitectura §§9 y 11–12.
+
 ## What Changes
 
 - Incorporar una superficie aislada y reproducible de ensayo PostgreSQL, exclusivamente con datos sintéticos; alcance local/CI confirmado por el usuario durante esta especificación.

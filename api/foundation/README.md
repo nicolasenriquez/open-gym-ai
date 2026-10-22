@@ -1,4 +1,4 @@
-# PostgreSQL Foundation — isolated toolchain, environment and pool
+# PostgreSQL Foundation — isolated toolchain, environment, pool and migrations
 
 Isolated dependency resolution for `add-postgres-foundation`. This package is **not**
 imported by `api/server.js`, installed by `api/Dockerfile`, or part of the normal
@@ -11,7 +11,8 @@ Tasks **1.1–1.3** are delivered here. The environment runner starts only synth
 PostgreSQL and verifies connectivity/version, not domain persistence. The legacy
 API also passes its existing HTTP/JSON smoke without PostgreSQL. Tasks 2.1–2.3 add
 pool/transaction tests, implementation and the verified synthetic checkpoint.
-Migrations, RLS, recovery and CI remain pending. No real instance configuration or data is
+Tasks 3.1–3.3 deliver the isolated migrator and its synthetic verification checkpoint.
+RLS, recovery and CI remain pending. No real instance configuration or data is
 mounted. G1 operational and all production gates remain unproven.
 
 ## Run the isolated environment (task 1.2)
@@ -27,7 +28,7 @@ The first build downloads the already locked dependencies with verified TLS and
 `npm ci --ignore-scripts --engine-strict`, then reruns `check:toolchain`. There is
 no host installation. The runner is read-only with a temporary `/tmp`, no Linux
 capabilities and no privilege escalation. The default group is `environment`;
-`pool` runs task 2.1's intentionally failing behavioral tests. Unimplemented
+`pool` and `migrations` run their implemented behavioral tests. Unimplemented
 groups (including `all`) fail explicitly rather than pretend that later database
 proofs ran.
 
@@ -171,12 +172,12 @@ failures remain recorded; they are not a PostgreSQL regression or TDD proof.
 | --- | --- |
 | 1: environment | `node api/foundation/environment.mjs run environment`; config/guard and no-DB smoke commands above |
 | 2: pool | `node api/foundation/environment.mjs run pool`: 2.1–2.3 complete, synthetic checkpoint PASS |
-| 3: migrations | Pending tasks 3.1–3.3; no runnable proof yet |
+| 3: migrations | `node api/foundation/environment.mjs run migrations`: 3.1–3.3 complete, synthetic checkpoint PASS |
 | 4: isolation | Pending tasks 4.1–4.3; no runnable proof yet |
 | 5: recovery | Pending tasks 5.1–5.3; no runnable proof yet |
 | 6: complete CI run | Pending tasks 6.1–6.3; no runnable proof yet |
 
-The `environment` and `pool` groups are passing. Other groups still fail explicitly; commands for later
+The `environment`, `pool` and `migrations` groups are passing. Other groups still fail explicitly; commands for later
 slices will be documented when delivered, not advertised as working.
 The shared prerequisite checkpoint is verified; this does not complete Foundation
 or establish operational G1.
@@ -317,6 +318,166 @@ existing 12 pool checks; the six harness regressions passed in 2.2.
 sizing, roles/RLS, migration/restore, full legacy suites and operational G1 remain
 unverified. SQL timeouts do not bound arbitrary JavaScript callbacks. This does
 not complete Foundation or authorize task 3.1, commit, synchronization or archive.
+
+## Migration process fail-first contract (task 3.1)
+
+```bash
+node api/foundation/environment.mjs run migrations
+```
+
+The following records the **historical 3.1 RED baseline**, replaced by 3.2 below.
+At that checkpoint `migrate.mjs` was connectivity-only: it validated the
+synthetic target, connects and closes, and emits `baseline-connected`. It creates
+no roles, schema, history or locks and does not invoke node-pg-migrate. Its exit 0
+only means that this baseline connected, never that migrations were applied.
+The existing guarded harness validates pinned Node/PostgreSQL and cleans up even
+after the expected test failure. Normal API startup does not import this command.
+
+The approved public seam is a separate Node CLI process with these synthetic
+arguments (not a production migration interface):
+
+- `node migrate.mjs bootstrap`: provision the disposable migrator/runtime roles;
+  the 3.1 baseline made no changes.
+- `node migrate.mjs up <directory> <schema> [count]`: apply fixture migrations
+  from `/tmp/foundation-migrations-*`, in an isolated `foundation_probe_<16 hex>`
+  schema; optional positive count applies a real prefix. Target remains the fixed
+  `foundation_test` database. Expected history table: `pgmigrations` in that schema.
+
+Four node:test cases use real PostgreSQL and child processes, not mocks:
+
+| Case | Contract retained for implementation | Observed 3.1 RED |
+| --- | --- | --- |
+| Empty history / prior prefix | Apply two CJS fixtures from an empty scope; separately apply one then the rest, rerun, compare exact history and actual columns | Prefix history remains empty |
+| Runtime DDL | Bootstrap `foundation_runtime` with synthetic login, no superuser/BYPASSRLS; connect as runtime and require SQLSTATE 42501 for CREATE/ALTER/DROP | Restricted runtime role is absent; DDL branch not reached |
+| Two processes | After the first owns an advisory lock, a second fails explicitly (exit 1), first finishes and rerun leaves one history entry and row | First exits without the lock-acquired fixture signal |
+| Interruption | SIGTERM only the signaled first process; require no partial table/history or residual lock, then successful rerun | First exits without that signal; interruption branch not reached |
+
+Fixtures are generated under tmpfs, syntax-checked, and kept outside functional
+migrations. The controlled fixture uses node-pg-migrate 9.0.0's public `pgm.db`
+interface to verify a granted advisory lock on its own backend before emitting
+`migration-locked` over Node IPC. The parent independently checks `pg_locks` before
+starting the competitor or sending SIGTERM. Release is an IPC message, never a
+sleep. Only the fixture uses `FOUNDATION_MIGRATION_HOLD`; the production runner
+needs no test pause hook. The future runner must wrap this work transactionally
+with locking enabled; fake history or disabled locks cannot satisfy the contract.
+Child lifetimes are bounded to 8 seconds (timeout is a failure); teardown stops
+only this test's children before dropping its generated schemas and temp paths.
+
+Observed on pinned non-root Node 22.23.2/PostgreSQL 18.6: **4 intended behavioral
+failures, 0 passes/skips/cancellations**, exit 1, cleanup complete. Missing
+role/history/signal are asserted explicitly; there is no missing module, SQL
+setup error or fabricated acquired-lock signal. This is RED evidence, **not**
+successful DDL denial, serialization, interruption or recovery evidence; those
+branches await 3.2–3.3. Full output:
+[`evidence/migrations-3.1-red.txt`](evidence/migrations-3.1-red.txt).
+
+Focused regressions: **12/12 pool PASS** in
+[`evidence/migrations-3.1-pool-regressions.txt`](evidence/migrations-3.1-pool-regressions.txt);
+**7/7 harness PASS**, including rejection of external targets/invalid migration
+arguments before connecting, in
+[`evidence/migrations-3.1-harness-regressions.txt`](evidence/migrations-3.1-harness-regressions.txt).
+Host orchestration uses Node 24; the migration and pool behavioral runs use the
+pinned container runtime. No new dependency or host install was introduced.
+Routine ponytail-review found no blocking issue for retaining this isolated RED
+contract. Full suites, actual migration/role implementation, privilege matrix,
+RLS/restore/CI and operational G1 were not tested by that RED checkpoint.
+
+## Migration implementation (task 3.2)
+
+`node api/foundation/environment.mjs run migrations` now exits **0**. The separate
+CLI keeps the fixed synthetic target guard; it is never imported by normal API
+startup. No dependency or host installation was added. Inside the disposable runner:
+
+- `node migrate.mjs bootstrap` provisions the two login roles transactionally.
+  Its own transaction lock serializes setup; repeated bootstrap is safe in this
+  fresh synthetic environment. Public database/schema privileges are revoked.
+- `node migrate.mjs up` uses **foundation_migrator**, never the bootstrap login,
+  to apply committed `migrations/001-foundation.cjs`. There is one infrastructure
+  history, `foundation.pgmigrations`. The migrator owns the schema/history;
+  **foundation_runtime** has CONNECT and schema USAGE, without CREATE or history
+  write privileges. Both roles lack superuser, BYPASSRLS, role/database creation
+  and replication. No elevating memberships are provisioned.
+- `node migrate.mjs up <directory> <schema> [count]` retains the approved fixture
+  seam. Each generated scope has its own test history, never mixed with the
+  infrastructure history. Paths must be canonical direct `/tmp/foundation-migrations-*`
+  directories; schema names and positive safe-integer counts are validated before
+  connecting. Fixtures stay in tmpfs, outside committed migrations.
+
+The committed migration only revokes public schema access and grants runtime
+USAGE. The runner creates the schema/history; no Recovery, identity or Training
+table is introduced. The forward-only infrastructure migration has no down path:
+recreate this disposable environment instead. Applied files must remain immutable;
+no checksum enforcement is claimed. The Docker allowlist explicitly copies this
+migration directory into the isolated image, outside the normal API image.
+
+Pinned node-pg-migrate 9.0.0 uses its session advisory lock in **fail** mode,
+ordering checks and a single transaction for all pending migrations. There is no
+fake-history, down or no-lock CLI option. Every invocation closes its dedicated
+connection in `finally`; connection/query/statement/lock limits are finite.
+Diagnostics expose only safe events/counts or generic failures, suppressing the
+driver's raw SQL/errors. Credentials are public synthetic constants, not a
+production secret-management scheme. These log checks do not audit PostgreSQL logs.
+
+Evidence: [`migrations-3.2-red.txt`](evidence/migrations-3.2-red.txt) repeats the four
+original behavioral failures before implementation;
+[`migrations-3.2-fixtures-green.txt`](evidence/migrations-3.2-fixtures-green.txt)
+records their first GREEN. The infrastructure-only migration then had its own
+[`RED`](evidence/migrations-3.2-infrastructure-red.txt) before implementation.
+[`migrations-3.2-green.txt`](evidence/migrations-3.2-green.txt) records **5/5 PASS**,
+no skips/cancellations, on non-root Node 22.23.2/PostgreSQL 18.6, exit 0 and cleanup.
+The existing concurrency and SIGTERM branches now execute and pass; this is
+implementation evidence, not completion of the broader 3.3 checkpoint.
+
+Focused regressions: [pool 12/12 PASS](evidence/migrations-3.2-pool-regressions.txt)
+and [harness 7/7 PASS](evidence/migrations-3.2-harness-regressions.txt). The harness
+also checks traversal, unsafe counts and extra bootstrap arguments before connecting.
+[Evidence audit](evidence/migrations-3.2-audit.txt) records source hashes, safe
+captured diagnostics and independent resource cleanup queries. Routine
+ponytail-review of CLI, callers, role setup, migration/fixture separation and
+Docker packaging found no blocker for this synthetic implementation.
+
+At the 3.2 checkpoint, dedicated SQL failure, connection termination and complete
+role/privilege verification remained pending; their results follow below.
+
+## Migration verification checkpoint (task 3.3)
+
+Reran `node api/foundation/environment.mjs run migrations` on the current tree:
+**7/7 PASS**, no skips/cancellations, Node 22.23.2/non-root and PostgreSQL 18.6,
+test duration about 3.2 seconds, natural runner exit 0 and cleanup complete.
+This task extends the existing process/SQL verification seam. No migrator, bootstrap,
+committed migration, dependency, Docker configuration or normal API code changed;
+passing characterization is used instead of manufacturing a RED for existing behavior.
+
+| Requirement scenario | Observed proof |
+| --- | --- |
+| Empty database / previous test schema | Infrastructure-only history and ownership; empty fixture scope and real prefix converge, reruns do not replay |
+| Runtime privilege separation | Both login roles have restricted attributes and no memberships; runtime owns no database/schema/relation. With fixture USAGE and DML grants, INSERT/SELECT succeed; 14 DDL/TRUNCATE/elevation/history-write attempts fail with SQLSTATE 42501 |
+| Concurrent runners | Parent verifies the signaled backend is this disposable migrator and holds an advisory lock; competitor exits 1, first completes once; rerun leaves one entry and row |
+| Transactional SQL failure | Real unique_violation (23505) after pending ALTER/CREATE/write rolls back all pending work; applied prefix/data survive, session/lock disappear. Remove only the conflicting input row, rerun the same files, then rerun again: exact history/data, no fake history |
+| Process interruption | SIGTERM only the signaled child; no partial table/history, session or advisory lock remains; rerun succeeds |
+| Connection termination | Terminate only the verified synthetic backend, waiting for server termination; no partial table/history or lock, child exits 1 without timeout kill, rerun succeeds |
+
+The connection test releases the fixture's JavaScript IPC gate after terminating
+its database session. It does not claim that SQL timeouts cancel arbitrary JavaScript.
+Lock readiness/release use IPC and PostgreSQL observations, without arbitrary sleeps.
+All child stdout/stderr is checked for synthetic credentials/DSNs; expected failures
+also check generic diagnostics. Teardown stops this test's children and drops its
+own fixture schema/temp directory even if a diagnostic assertion rejects.
+
+Progressive evidence: [privilege matrix, 5/5](evidence/migrations-3.3-privileges.txt),
+[SQL failure added, 6/6](evidence/migrations-3.3-sql-failure.txt),
+[final checkpoint, 7/7](evidence/migrations-3.3-run.txt),
+[source/log/cleanup audit](evidence/migrations-3.3-audit.txt).
+The audit independently checks that this run's containers (including stopped ones),
+volumes, networks and runner image are gone. Routine ponytail-review found no
+blocking finding for the synthetic two-process workload and mapped every migration
+scenario to these checks. No other task was advanced.
+
+The 3.2 pool/harness regressions remain historical evidence, not rerun results for
+3.3: their implementation/configuration is unchanged. Full suites/build/locales,
+RLS, restore and CI remain in later tasks. PostgreSQL server logs, provider TLS,
+production recovery and operational G1 remain unverified. Slice 3 is verified only
+for the isolated synthetic environment; Foundation is not complete.
 
 ## Pins and evidence
 
