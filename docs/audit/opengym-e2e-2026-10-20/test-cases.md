@@ -1,3 +1,8 @@
+---
+type: Audit
+title: Casos E2E de OpenGym
+description: Casos y resultados históricos de la verificación E2E.
+---
 # Casos E2E de OpenGym
 
 Base: UI española, kg/cm, `http://localhost:8080`, invitado en navegador efímero propio. Cada ejecución parte vacía salvo que el caso declare datos previos. Usar datos ficticios; nunca el perfil del usuario.

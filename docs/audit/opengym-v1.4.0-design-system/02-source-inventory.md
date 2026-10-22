@@ -1,3 +1,8 @@
+---
+type: Audit
+title: 02 — Source design system and reusable UI inventory
+description: Historical inventory of source design tokens and reusable UI.
+---
 # 02 — Source design system and reusable UI inventory
 
 ## Scope and evidence notation

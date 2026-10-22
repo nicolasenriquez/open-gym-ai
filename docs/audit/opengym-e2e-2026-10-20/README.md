@@ -1,3 +1,8 @@
+---
+type: Audit
+title: Auditoría E2E de OpenGym — 20 octubre 2026
+description: Resultados históricos y alcance de la auditoría E2E del 2026-10-20.
+---
 # Auditoría E2E de OpenGym — 20 octubre 2026
 
 Se encontró y examinó la app real en `http://localhost:8080/#/home`, primero en el navegador integrado de Codex y después con Playwright CLI 0.1.19 + Edge en perfiles efímeros independientes. La interfaz informa **v1.4.1**; el checkout estaba en `666d9080`. No se ha demostrado que el contenedor corresponda exactamente a ese commit. No se cambió código de producto ni se tocaron los documentos de trabajo que ya estaban sin seguimiento.

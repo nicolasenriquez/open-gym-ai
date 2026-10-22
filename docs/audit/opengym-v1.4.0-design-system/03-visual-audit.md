@@ -1,3 +1,8 @@
+---
+type: Audit
+title: 03 — Playwright visual and UX audit
+description: Historical visual and UX findings from Playwright inspection.
+---
 # 03 — Playwright visual and UX audit
 
 ## What was actually exercised

@@ -1,3 +1,8 @@
+---
+type: Reference
+title: 'Fatigue model v2: sets-based, per-muscle half-life (rationale for PR)'
+description: Rationale for the sets-based fatigue model and per-muscle recovery.
+---
 # Fatigue model v2: sets-based, per-muscle half-life (rationale for PR)
 
 ## Problem (observed on real history: 1707 workouts, ~daily Jefit splits)

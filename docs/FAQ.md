@@ -1,3 +1,8 @@
+---
+type: Guide
+title: FAQ
+description: Answers to common questions about the current application.
+---
 # FAQ
 
 Short answers, with a link to the long one.

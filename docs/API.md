@@ -1,3 +1,8 @@
+---
+type: Reference
+title: HTTP API
+description: HTTP API guide linked to the canonical OpenAPI contract.
+---
 # HTTP API
 
 The complete openGym HTTP API — every route of `api/server.js`, with auth,

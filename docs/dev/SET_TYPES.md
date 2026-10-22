@@ -1,3 +1,8 @@
+---
+type: Reference
+title: 'Set types: drop sets and rest-pause'
+description: Drop-set and rest-pause representation and counting rules.
+---
 # Set types: drop sets and rest-pause
 
 Notes for whoever picks this up next. Not a spec — a map of what changed and why, kept next to

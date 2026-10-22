@@ -1,3 +1,8 @@
+---
+type: Guide
+title: openGym on NixOS — Flake & NixOS Module
+description: Native NixOS setup, module options and operating guidance.
+---
 # openGym on NixOS — Flake & NixOS Module
 
 openGym can run natively on NixOS through its **Nix flake** and **NixOS module** — no Docker, no
@@ -207,7 +212,7 @@ services.opengym = {
 Changing `rpId` later invalidates every registered passkey. On a LAN without certificates,
 plain `http://<ip>` can't do passkeys — use guest mode or put a certificate in front of it.
 The full `RP_ID`/`ORIGIN` troubleshooting guide in
-[`docs/SELF_HOSTING.md`](SELF_HOSTING.md#passkeys-fail-even-though-rpid-looks-right) applies
+[`docs/SELF_HOSTING.md`](SELF_HOSTING.md#passkeys-fail-even-though-rp_id-looks-right) applies
 word-for-word.
 
 ## 5. Using the NixOS module

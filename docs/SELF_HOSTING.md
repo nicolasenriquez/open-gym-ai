@@ -1,3 +1,8 @@
+---
+type: Guide
+title: Self-hosting openGym
+description: Current deployment, passkeys, backups and troubleshooting.
+---
 # Self-hosting openGym
 
 openGym is two small containers (a web server and an API) plus a folder of your data.

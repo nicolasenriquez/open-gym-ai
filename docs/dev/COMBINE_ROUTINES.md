@@ -1,3 +1,8 @@
+---
+type: Reference
+title: Combine routines — do more than one routine in a session
+description: Design of combining more than one routine in a workout session.
+---
 # Combine routines — do more than one routine in a session
 
 Implementable spec for **combining routines**: running more than one routine in a single

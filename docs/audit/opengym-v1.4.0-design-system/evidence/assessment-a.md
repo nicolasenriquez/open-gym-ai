@@ -1,3 +1,8 @@
+---
+type: Audit
+title: Independent qualitative assessment A (recorded before detector)
+description: Historical independent qualitative assessment recorded during the design review.
+---
 # Independent qualitative assessment A (recorded before detector)
 
 ⚠️ DEGRADED: single-context (no sub-agent tool exposed). Methodology adapted from installed Impeccable critique/audit; not an unmodified command run. No overlay injection or external service.

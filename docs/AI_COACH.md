@@ -1,3 +1,8 @@
+---
+type: Guide
+title: The AI Coach
+description: How the optional coach works, what it sees and how to configure it.
+---
 # The AI Coach
 
 An optional AI that **designs** a training plan and **revises it from what you actually log**,

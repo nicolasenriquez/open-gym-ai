@@ -1,0 +1,18 @@
+{
+  "docs/audit/documentation-maintainability-review-2026-10-22.md": "8bf70d53324fdcd92df8c01e1f4eef3f1cddd6bf3c0b1a7553f2e3476646f61d",
+  "docs/audit/evolution-architecture-evidence-2026-10-22.md": "23f757bb755cc3599885d9fbb6dec324bdffd1b6ce755c0617c6787559e9a49a",
+  "docs/audit/opengym-architecture-rebaseline-2026-10-22.md": "27fc91a0250727eceac2249a0c1bf97ac42cb633c2b0fcc01c2ddc351c19d84b",
+  "docs/audit/opengym-e2e-2026-10-20/README.md": "6a675578b1645a67e221671d96c3fb175adebef74c7073a81a12a9f49ee1b691",
+  "docs/audit/opengym-e2e-2026-10-20/test-cases.md": "fa89c4f0de49f423a17d98262846e014a99e01f429f835679bf81f8f64c0af16",
+  "docs/audit/opengym-v1.4.0-design-system/01-environment-and-skills.md": "55eab846b9b80ce7054fb3ea4a90ecc4f3d0be67d4276bf759d7941b7950739a",
+  "docs/audit/opengym-v1.4.0-design-system/02-source-inventory.md": "a33751761b5872e5aba14659c7f659fda287ce7a262a6cced954197d615ce0d3",
+  "docs/audit/opengym-v1.4.0-design-system/03-visual-audit.md": "cd56a5845a4d1ca21b1257641c00d89a35c757a7b81e6813564d734e85612930",
+  "docs/audit/opengym-v1.4.0-design-system/04-design-system-draft.md": "f7e204435d5a7db7c83f4c5e49f6ca30920a089fcd35ff01577e7dbeb2fc479a",
+  "docs/audit/opengym-v1.4.0-design-system/05-agent-integration-proposal.md": "c07fe9bc4278c0639285bc761c4c9fc63a3b8fb1b605bc40a210b2eb0ee43274",
+  "docs/audit/opengym-v1.4.0-design-system/06-open-questions-and-plan.md": "77a69301997836416221bf7e44573dc3bb5cb92233ce6dd280dd43a9e8c425b8",
+  "docs/audit/opengym-v1.4.0-design-system/evidence/assessment-a.md": "21c49845c02b8e650c3db272661ad4ee63c2ce4ef6f8669bf0bff9a194bcc691",
+  "docs/audit/opengym-v1.4.0-design-system/evidence/screenshots.md": "bddf27c3107759e53beabbb5caac950f0e3ab00965b2eb4c52e0d7f1b67b9d8c",
+  "docs/dev/personal-recovery-discovery.md": "fa898e763df0047c4b588d540e3012cd9cb22cda7ed2e8652d92eb5ee81ab631",
+  "docs/plans/okf-v0.2-documentation-migration.plan.md": "91c8dcd203579ae02c81dcb1803ced847e3e079d5d056807fb89fe740782cd98",
+  "docs/research/recovery-reference-benchmark.md": "5b38c9fb83adfb97242613c11e9f64afc6237f87b144969ec7d71916a16ea9f1"
+}

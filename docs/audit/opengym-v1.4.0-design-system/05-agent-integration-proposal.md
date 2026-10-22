@@ -1,3 +1,8 @@
+---
+type: Audit
+title: 05 — Proposed integration for future agents
+description: Historical proposal for agent guidance and documentation ownership.
+---
 # 05 — Proposed integration for future agents
 
 **Documentation-only proposal. No root instructions were created or edited.** Existing root CLAUDE.md remains authoritative except that factual drift should be surfaced for owner resolution. This is not approval to add scripts, hooks, dependencies or application changes.

@@ -1,3 +1,8 @@
+---
+type: Audit
+title: 01 — Environment, provenance and tooling
+description: Historical environment, provenance and tooling recorded for the design audit.
+---
 # 01 — Environment, provenance and tooling
 
 Audit date: 2026-10-19 (host UTC−03; evidence timestamps UTC). Discovery/proposal only. Read this provenance before interpreting any screenshot.

@@ -1,3 +1,8 @@
+---
+type: Audit
+title: 04 — Evidence-backed design-system draft (non-canonical)
+description: Historical non-canonical design proposal and its evidence boundaries.
+---
 # 04 — Evidence-backed design-system draft (non-canonical)
 
 **Proposal, not an instruction file.** Do not promote this whole audit automatically to `DESIGN.md`. Target source is v1.4.0; visual cross-check runtime is v1.4.1. The exact facts/values/component map live in [02](02-source-inventory.md); defects and confidence boundaries in [03](03-visual-audit.md). This draft intentionally does not rebrand openGym or mint a replacement token system.

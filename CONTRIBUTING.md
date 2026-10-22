@@ -15,7 +15,7 @@ mcp/       Optional read-only MCP server for compatible AI clients. Not in the
            Docker build; it only runs when a client spawns it. See mcp/README.md.
 website/   The static project site at opengym.ch.
 kubernetes/ Example manifests (docs/SELF_HOSTING_KUBERNETES.md).
-docs/      User and operator guides (index: docs/README.md); docs/dev/ has feature design notes.
+docs/      User and operator guides (index: docs/index.md); docs/dev/ has feature design notes.
 catalogue/ The exercise catalogue: one JSON file per exercise, translations in i18n/, and the
            licensed 180 px stills and animations in media/ (catalogue/README.md).
 ```
@@ -82,6 +82,12 @@ docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/so
   language and has no file. `node scripts/check-locales.mjs` (run in CI) flags a key that is
   missing, blank or has lost a `{n}` placeholder. Portuguese (Brazil) inherits from Portuguese
   (Portugal) and has its own guard test.
+
+## Documentation changes
+
+Start with the [documentation index](docs/index.md) and follow the
+[OKF authoring guide](docs/operations/okf-authoring-guide.md) when adding, editing
+or moving a document. Run `node scripts/docs/okf.mjs check` before submitting.
 
 ## Using AI tools
 

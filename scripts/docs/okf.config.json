@@ -1,0 +1,109 @@
+{
+  "version": "0.2",
+  "bundle": "docs",
+  "specification": {
+    "version": "0.2",
+    "commit": "0b87c52c6ef999286c745e19998fdfcd03d5dbee",
+    "sha256": "26aa5da029278939f914e578107242d9607d4f2dc5fe153272b82f9ed1030101",
+    "url": "https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/0b87c52c6ef999286c745e19998fdfcd03d5dbee/SPEC.md"
+  },
+  "routing": [
+    "AGENTS.md",
+    "README.md",
+    "CONTRIBUTING.md",
+    "ROADMAP.md",
+    ".agents/README.md"
+  ],
+  "directories": {
+    "docs": {
+      "title": "Documentación OpenGym",
+      "description": "Guías actuales, evolución y evidencias.",
+      "owned": true
+    },
+    "docs/audit": {
+      "title": "Auditorías y evidencia",
+      "description": "Informes fechados; sus cuerpos históricos están preservados.",
+      "owned": true
+    },
+    "docs/audit/opengym-e2e-2026-10-20": {
+      "title": "Verificación E2E del 2026-10-20",
+      "description": "Resultados y casos de verificación históricos.",
+      "owned": true
+    },
+    "docs/audit/opengym-v1.4.0-design-system": {
+      "title": "Revisión de diseño v1.4.0",
+      "description": "Inventario, evaluación visual y propuestas históricas.",
+      "owned": true
+    },
+    "docs/audit/opengym-v1.4.0-design-system/evidence": {
+      "title": "Evidencia de diseño",
+      "description": "Registros de capturas y evaluación independiente.",
+      "owned": true
+    },
+    "docs/dev": {
+      "title": "Notas de desarrollo y discovery",
+      "description": "Diseño de funciones actuales y evidencia de producto.",
+      "owned": true
+    },
+    "docs/plans": {
+      "title": "Planes documentales",
+      "description": "Secuencias propuestas y criterios de aceptación.",
+      "owned": true
+    },
+    "docs/reference": {
+      "title": "Contratos de referencia",
+      "description": "Seguridad, observabilidad y contratos posteriores de Recovery.",
+      "owned": true
+    },
+    "docs/research": {
+      "title": "Investigación",
+      "description": "Comparaciones de referencia con límites de evidencia explícitos.",
+      "owned": true
+    },
+    "docs/standards": {
+      "title": "Estándares documentales",
+      "description": "Perfil OKF local y su relación con la especificación.",
+      "owned": true
+    },
+    "docs/operations": {
+      "title": "Mantenimiento documental",
+      "description": "Autoría, comprobación y recuperación.",
+      "owned": true
+    },
+    "docs/agents": {
+      "title": "Rutas heredadas de agentes",
+      "description": "Compatibilidad de enlaces; las reglas vigentes viven en .agents/docs/.",
+      "owned": true
+    }
+  },
+  "rootGroups": {
+    "README.md": "Entrada",
+    "FAQ.md": "Uso actual",
+    "MOBILE.md": "Uso actual",
+    "DATA_IMPORTS.md": "Uso actual",
+    "AI_COACH.md": "Uso actual",
+    "SELF_HOSTING.md": "Operación actual",
+    "SELF_HOSTING_HTTPS.md": "Operación actual",
+    "SELF_HOSTING_KUBERNETES.md": "Operación actual",
+    "NIX.md": "Operación actual",
+    "API.md": "Desarrollo actual",
+    "open-gym-evolution.prd.md": "Evolución planificada",
+    "open-gym-evolution.architecture.md": "Evolución planificada",
+    "open-gym-recovery.prd.md": "Evolución planificada"
+  },
+  "rootOrder": [
+    "README.md",
+    "FAQ.md",
+    "MOBILE.md",
+    "DATA_IMPORTS.md",
+    "AI_COACH.md",
+    "SELF_HOSTING.md",
+    "SELF_HOSTING_HTTPS.md",
+    "SELF_HOSTING_KUBERNETES.md",
+    "NIX.md",
+    "API.md",
+    "open-gym-evolution.prd.md",
+    "open-gym-evolution.architecture.md",
+    "open-gym-recovery.prd.md"
+  ]
+}

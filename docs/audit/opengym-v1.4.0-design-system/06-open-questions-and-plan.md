@@ -1,3 +1,8 @@
+---
+type: Audit
+title: 06 — Open questions, approval plan and readiness
+description: Historical readiness assessment, open decisions and proposed checks.
+---
 # 06 — Open questions, approval plan and readiness
 
 ## Executive conclusion

@@ -1,3 +1,8 @@
+---
+type: Reference
+title: UI accessibility fixes — 2026-10-20
+description: Recorded accessibility fixes and checks from 2026-10-20.
+---
 # UI accessibility fixes — 2026-10-20
 
 Three isolated fixes address the guest audit findings:

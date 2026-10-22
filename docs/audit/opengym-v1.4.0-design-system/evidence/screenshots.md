@@ -1,3 +1,8 @@
+---
+type: Audit
+title: Screenshot register
+description: Historical screenshot register associated with the design audit.
+---
 # Screenshot register
 
 All images: actual localhost:8080 runtime reporting **v1.4.1**, Edge 155 / Chromium, session `opengym-audit`, Spanish, guest except login. Viewports are CSS pixels, not physical touch-device emulation. No v1.4.0 runtime screenshots are claimed. Dates are file capture times.

@@ -1,3 +1,8 @@
+---
+type: Guide
+title: The phone app (Android and iOS)
+description: Current Android and iOS installation options and server connectivity.
+---
 # The phone app (Android and iOS)
 
 **Just want the app?** Download the APK from the

@@ -252,7 +252,7 @@ stay in your phone's secure hardware or your password manager.
 
 ## Documentation
 
-The [documentation index](docs/README.md) sorts every guide by who it's for. The most used ones:
+The [documentation index](docs/index.md) sorts every guide by who it's for. The most used ones:
 
 | I want to | Read |
 |---|---|

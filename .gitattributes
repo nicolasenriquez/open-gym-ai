@@ -13,3 +13,11 @@ api/coach/core/prompts.js text eol=lf
 Dockerfile      text eol=lf
 *.Dockerfile    text eol=lf
 docker-compose*.yml text eol=lf
+
+# Documentary evidence hashes include line endings. Keep protected bodies stable
+# across Windows/Linux checkouts; these files already use LF.
+docs/audit/**/*.md text eol=lf
+docs/dev/personal-recovery-discovery.md text eol=lf
+docs/research/*.md text eol=lf
+docs/plans/*.md text eol=lf
+scripts/docs/*.mjs text eol=lf

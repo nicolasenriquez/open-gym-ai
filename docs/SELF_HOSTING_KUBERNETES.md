@@ -1,3 +1,8 @@
+---
+type: Guide
+title: Self-hosting openGym on Kubernetes
+description: Current example Kubernetes deployment and configuration.
+---
 # Self-hosting openGym on Kubernetes
 
 Example manifests for a small cluster, contributed from a K3s setup with the Gateway API and

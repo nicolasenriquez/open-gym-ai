@@ -1,3 +1,8 @@
+---
+type: Reference
+title: Workout view — cards / list / compact / focus
+description: Design notes for workout cards, list, compact and focus views.
+---
 # Workout view — cards / list / compact / focus
 
 The active workout screen (`frontend/src/views/Workout.jsx`) has four layouts, chosen by
