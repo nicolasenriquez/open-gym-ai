@@ -1,0 +1,322 @@
+[
+  {
+    "name": "alembic",
+    "version": "1.20.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "annotated-doc",
+    "version": "0.0.5",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "annotated-types",
+    "version": "0.8.0",
+    "license": "MIT",
+    "classifiers": [
+      "License :: OSI Approved :: MIT License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "anyio",
+    "version": "4.15.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "ast-serialize",
+    "version": "0.13.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "asyncpg",
+    "version": "0.32.0",
+    "license": "Apache-2.0",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "certifi",
+    "version": "2026.10.19",
+    "license": "MPL-2.0",
+    "classifiers": [
+      "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "cffi",
+    "version": "2.1.1",
+    "license": "MIT-0",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "click",
+    "version": "8.5.0",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "colorama",
+    "version": "0.4.6",
+    "license": "",
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": false
+  },
+  {
+    "name": "cryptography",
+    "version": "50.0.2",
+    "license": "Apache-2.0 OR BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "fastapi",
+    "version": "0.161.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "h11",
+    "version": "0.16.0",
+    "license": "MIT",
+    "classifiers": [
+      "License :: OSI Approved :: MIT License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "httpcore",
+    "version": "1.0.9",
+    "license": "BSD-3-Clause",
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "httpx",
+    "version": "0.28.1",
+    "license": "BSD-3-Clause",
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "idna",
+    "version": "3.20",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "iniconfig",
+    "version": "2.3.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "librt",
+    "version": "0.16.0",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "mako",
+    "version": "1.4.3",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "markupsafe",
+    "version": "3.0.4",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "mypy",
+    "version": "2.4.0",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "mypy-extensions",
+    "version": "1.1.0",
+    "license": null,
+    "classifiers": [],
+    "licenseTextFallback": "Mypy extensions are licensed under the terms of the MIT license, reproduced below.\n\n= = = = =\n\nThe MIT License\n\nCopyright (c) 2016-2017 Jukka Lehtosalo and contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a\ncopy of this software and associated documentation files (the \"Software\"),\nto deal in the Software without restriction, including without limitation\nthe rights to use, copy, modify, merge, publish, distribute, sublicense,\nand/or sell copies of the Software, and to permit persons to whom the\nSoftware is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER\nDEALINGS IN THE SOFTWARE.\n\n= = = = =\n",
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "opentelemetry-api",
+    "version": "1.45.1",
+    "license": "Apache-2.0",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "license": "Apache-2.0 OR BSD-2-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pathspec",
+    "version": "1.1.1",
+    "license": null,
+    "classifiers": [
+      "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pluggy",
+    "version": "1.7.0",
+    "license": "MIT",
+    "classifiers": [
+      "License :: OSI Approved :: MIT License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pycparser",
+    "version": "3.12",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pydantic",
+    "version": "2.14.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pydantic-core",
+    "version": "2.50.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pygments",
+    "version": "2.21.0",
+    "license": "BSD-2-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pytest",
+    "version": "9.1.1",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pytest-asyncio",
+    "version": "1.4.0",
+    "license": "Apache-2.0",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "ruff",
+    "version": "0.17.2",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "sqlalchemy",
+    "version": "2.1.6",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "starlette",
+    "version": "1.9.0",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "typing-extensions",
+    "version": "4.16.0",
+    "license": "PSF-2.0",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "typing-inspection",
+    "version": "0.4.4",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "uvicorn",
+    "version": "0.54.0",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  }
+]

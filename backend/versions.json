@@ -1,0 +1,14 @@
+{
+  "python": "3.14.9",
+  "pythonImage": "python:3.14.9-slim-bookworm@sha256:945c2676dc2b18e0c1f16879244122c57c0ffede60006bf3df159c507a31bcae",
+  "uv": "0.13.5",
+  "uvImage": "ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff",
+  "postgres": "18.6",
+  "postgresImage": "postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6",
+  "verifiedPlatform": "linux/amd64",
+  "toolLicenses": {
+    "python": "PSF-2.0",
+    "uv": "Apache-2.0 (OCI image declaration)",
+    "postgres": "PostgreSQL"
+  }
+}
