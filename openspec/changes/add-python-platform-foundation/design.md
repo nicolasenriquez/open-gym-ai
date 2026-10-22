@@ -1,6 +1,6 @@
 ## Context
 
-Cambio de runtime/tooling especificado el 2026-10-22; implementación no iniciada. Checkout de referencia inspeccionado: `db6eb33ee8ec523d7efa7167f793701d288b87b5`, árbol inicialmente limpio. OpenSpec CLI 1.3.1, schema `spec-driven`, sin otros cambios activos al crear este cambio.
+Cambio de runtime/tooling especificado el 2026-10-22. Delivery posterior limitado a 1.1: seams aprobadas y toolchain aislado verificado; código runtime y pruebas conductuales aún no iniciados. Evidencia y comandos en `backend/README.md` (desde la raíz del repositorio). Checkout de referencia inspeccionado: `db6eb33ee8ec523d7efa7167f793701d288b87b5`, árbol inicialmente limpio. OpenSpec CLI 1.3.1, schema `spec-driven`, sin otros cambios activos al crear este cambio.
 
 `docker-compose.yml` sigue ejecutando Node/JSON. `api/server.js` lee identidad, secretos y documentos Training bajo DATA_DIR; `api/coach/jobs.js` y `mcp/src/state.js` son consumidores adicionales. El frontend conserva estado local/offline y sesión activa. `api/openapi.yaml` describe HTTP, pero declara los handlers como fuente de comportamiento; resolver discrepancias mediante caracterización, no adaptar automáticamente Node a un documento.
 
@@ -28,7 +28,7 @@ Usar CPython 3.14 (GIL normal), Debian slim y PostgreSQL 18 con herramientas pg_
 
 La tarea 1.1 fija patches estables, imágenes por digest, uv y dependencias exactas, lock transitivo y licencias en un contenedor desechable. Mantener las familias aprobadas: FastAPI/Pydantic 2/Uvicorn, asyncpg con SQL explícito, Alembic/SQLAlchemy 2 solo para migraciones; pytest/pytest-asyncio/httpx, Ruff/mypy; cryptography para AES-GCM. No ORM de aplicación, extras Uvicorn innecesarios, pre-releases ni SDK de telemetría por anticipación. Resolver con TLS verificado y comprobar `uv lock --check` + `uv sync --locked`; sin resolver de nuevo durante pruebas/build reproducible.
 
-Los pins y la instalación verificables son un resultado de entrega previo a los slices runtime, no evidencia obtenida durante esta especificación. Si la resolución estable no admite Python 3.14 o un major elegido, detener el prerrequisito y revisar la decisión, sin downgrade silencioso ni ampliar dependencias. La planificación no instala dependencias ni crea un lock ficticio.
+Los pins y la instalación verificables son un resultado de entrega previo a los slices runtime, no evidencia obtenida durante esta especificación. Si la resolución estable no admite Python 3.14 o un major elegido, detener el prerrequisito y revisar la decisión, sin downgrade silencioso ni ampliar dependencias. La planificación no instala dependencias ni crea un lock ficticio. En delivery 1.1 se verificaron CPython 3.14.9, uv 0.13.5 y PostgreSQL/tools 18.6; digests, pins y licencias quedan en `backend/versions.json`, `backend/pyproject.toml`, `backend/uv.lock` y `backend/dependency-licenses.json`. `uv lock --check`, instalación bloqueada e imports pasaron en linux/amd64; no prueba otras arquitecturas ni interacción con PostgreSQL. FastAPI incorpora `opentelemetry-api` transitivamente, sin añadir SDK/collector/exporter.
 
 ### 3. Caracterización antes del port
 
@@ -53,9 +53,9 @@ La matriz diferencia estado persistente/memoria/cliente, bytes multimedia, secre
 
 ### 4. Interfaz DB y aplicación Foundation
 
-`create_app(settings)` crea FastAPI por factory; lifespan abre/cierra un solo pool por proceso. Rutas exclusivas de ensayo `GET /health/live` y `GET /health/ready`, internas a la red descartable; no modifican `/api/health` actual. Live responde 200 mientras vive el proceso; ready 200 solo con DB accesible y revisión Alembic esperada, 503 con código seguro si falta DB/esquema. Startup con DB ausente falla acotadamente; las comprobaciones de caída se realizan también después del arranque.
+`create_app(settings)` crea FastAPI por factory; lifespan abre/cierra el pool perteneciente a esa instancia de aplicación, sin singleton global compartido entre factories. Rutas exclusivas de ensayo `GET /health/live` y `GET /health/ready`, internas a la red descartable; no modifican `/api/health` actual. Live responde 200 mientras vive el proceso; ready 200 solo con DB accesible y revisión Alembic esperada, 503 con código seguro si falta DB/esquema. Startup con DB ausente falla acotadamente; las comprobaciones de caída se realizan también después del arranque.
 
-Interfaz pública Python: `Database.open(settings)`, `execute(sql, *args)`, `fetch(sql, *args)`, `transaction(owner_id=None)` como context manager async y `close()`. El handle transaccional expone execute/fetch, usa una conexión y deja de ser válido al salir. No expone el cliente asyncpg. SQL parametrizado; consultas de propietario siempre en transacción con contexto `app.owner_id` instalado por código de confianza mediante set_config local. owner_id ausente no concede nada; las fixtures no implican autenticación HTTP.
+Interfaz pública Python: `Database.open(settings)`, `execute(sql, *args)`, `fetch(sql, *args)`, `transaction(owner_id=None)` como context manager async y `close()`. El handle transaccional expone execute/fetch, usa una conexión y deja de ser válido al salir. No expone el cliente asyncpg. SQL parametrizado; consultas de propietario siempre en transacción con contexto `app.owner_id` instalado por código de confianza mediante set_config local. owner_id ausente no concede nada; las fixtures no implican autenticación HTTP. El acceso a datos protegidos solo se realiza mediante el handle de `transaction(owner_id)` con contexto local; `Database.execute/fetch` fuera de ese bloque no instala ni hereda propietario.
 
 Defaults de ensayo: pool min=1/max=4; conexión/adquisición 5 s; statement 5 s; comando 6 s; lock SQL 2 s; cierre 10 s. Overrides positivos/acotados se usan para casos rápidos. Ante fallo antes de enviar COMMIT se hace rollback si la conexión lo permite; solo se reutiliza una conexión con estado limpio comprobado, en otro caso se descarta. El cierre deja de admitir trabajo y termina conexiones si agota su deadline. Contexto/callbacks no pueden sobrevivir a su transacción. Probar max=1 para forzar reuso, saturación y conexiones rotas.
 
@@ -89,7 +89,9 @@ Para este slice, salud, logs estructurados acotados y errores seguros son obliga
 
 ### 7. Seams públicas de prueba
 
-Se proponen las siguientes seams; **no se ha recibido aprobación explícita de seams ni permiso de implementación**. La aprobación de planificación recibida cubre autoría; antes de escribir tests en delivery se debe confirmar esta tabla conforme a la skill TDD. Su aprobación no es necesaria para validar los documentos; el estado de esa aprobación se conserva separado de Implementation Ready.
+**Seis seams aprobadas explícitamente en delivery**, tras la revisión comparativa de AI Tutor `c28d4c3` y la respuesta del usuario «proceed with recommended decision». La autorización actual cubre únicamente el prerrequisito 1.1: descargar imágenes y resolver/instalar dependencias en contenedores desechables, sin instalar en host, montar datos personales ni publicar puertos. No autoriza avanzar a 2.x.
+
+Aclaraciones aprobadas: pool por instancia de aplicación, no singleton global; acceso protegido solo mediante transacción con contexto local; comparador, relay y recovery mínimos, con fixtures privadas y sin frameworks generales. El comparador reutiliza suites públicas existentes; el relay pertenece solo a las pruebas de resultado incierto. Recovery conserva el alcance sintético, sin scheduler, retención ni almacenamiento remoto. Toolchain/CI es prerrequisito/verificador de estas interfaces, no una séptima seam. No se modifican los escenarios ni las garantías exigidas.
 
 | Seam | Detecta | No demuestra |
 | --- | --- | --- |
@@ -138,7 +140,7 @@ El siguiente cambio será port de capacidades/migración ensayada; usará esta r
 
 ## Open Questions
 
-No quedan decisiones de producto/alcance abiertas para especificar este ensayo. Los pins resueltos, lockfile/licencias y pruebas de compatibilidad son entregables del prerrequisito 1.1; si falla, bloquea delivery. Proveedor/TLS/pooler, sesiones productivas, bibliotecas de port, inventario real, retención/observabilidad completa y RPO/RTO no condicionan este entorno sintético y siguen pendientes en sus futuras etapas. Aprobación explícita de seams pendiente antes de escribir pruebas.
+No quedan decisiones de producto/alcance abiertas para especificar este ensayo. Los pins resueltos, lockfile/licencias y pruebas de compatibilidad son entregables del prerrequisito 1.1; si falla, bloquea delivery. Proveedor/TLS/pooler, sesiones productivas, bibliotecas de port, inventario real, retención/observabilidad completa y RPO/RTO no condicionan este entorno sintético y siguen pendientes en sus futuras etapas. Las seis seams están aprobadas según §7; la autorización de ejecución actual se limita a 1.1.
 
 ## Fuentes y límites de investigación
 
@@ -162,7 +164,7 @@ La consulta de metadata PyPI desde PowerShell falló por DNS; no se dedujo una v
 
 ## Readiness de especificación
 
-**Veredicto de walkthrough: YES — Implementation Ready (especificación)**. Alcance, interfaces, seams propuestas, escenarios, slices y dependencias definidos. Aprobación de seams pendiente antes de escribir tests; implementación no autorizada por esta fase. Resolución/pinning de toolchain es el prerrequisito verificable de delivery 1.1, no un resultado afirmado aquí.
+**Veredicto de walkthrough: YES — Implementation Ready (especificación)**. Alcance, interfaces, seams propuestas, escenarios, slices y dependencias definidos. Durante la autoría, aprobación de seams pendiente e implementación no autorizada; la aprobación posterior de delivery y su alcance constan en §7. Resolución/pinning de toolchain es el prerrequisito verificable de delivery 1.1, no un resultado afirmado aquí.
 
 Comprobaciones ejecutadas durante la autoría:
 

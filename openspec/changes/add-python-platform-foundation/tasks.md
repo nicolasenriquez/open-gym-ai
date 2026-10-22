@@ -1,6 +1,6 @@
 ## Estado de entrega
 
-Cambio de runtime/tooling; esta fase solo especifica. Ninguna tarea implementada ni prueba runtime ejecutada durante la autoría. Antes de delivery se requiere solicitud explícita de implementación y confirmación de las seams propuestas en design §7; esa confirmación no se presupone por aprobar esta planificación.
+Cambio de runtime/tooling. Durante la autoría no se implementaron tareas ni se ejecutaron pruebas runtime. En delivery, el usuario aprobó las seis seams de design §7, las tres aclaraciones recomendadas y el entorno desechable para 1.1. La autorización actual se limita a ese prerrequisito; no incluye 2.x ni cierre del cambio.
 
 Cada slice runtime usa prueba conductual fallida → implementación mínima → verificación, con dependencias reales. Un error de import/setup/DB no cuenta como RED conductual. No escribir todas las pruebas por adelantado. Las comprobaciones documentales no necesitan RED runtime: se verifican por cobertura, referencias y validadores.
 
@@ -8,8 +8,9 @@ En caracterización, RED/GREEN corresponde al comparador/runner nuevo y su recha
 
 ## 1. Prerrequisitos compartidos
 
-- [ ] 1.1 Confirmar las seams de design §7 antes de escribir tests; registrar alcance de la aprobación y cualquier cambio material. Resolver toolchain CPython 3.14 estable y dependencias en entorno desechable autorizado, fijar imágenes/patches/uv/lockfile y licencias; verificar instalación bloqueada, sin instalar en host. Si no es viable, detener y revisar la selección.
+- [x] 1.1 Confirmar las seams de design §7 antes de escribir tests; registrar alcance de la aprobación y cualquier cambio material. Resolver toolchain CPython 3.14 estable y dependencias en entorno desechable autorizado, fijar imágenes/patches/uv/lockfile y licencias; verificar instalación bloqueada, sin instalar en host. Si no es viable, detener y revisar la selección.
   Traceability: python-platform-foundation / Isolated reproducible Python environment / Dependency resolution fails; design §§2 y 7.
+  Notes: PASS — seis seams y aclaraciones aprobadas mediante «proceed with recommended decision»; alcance de ejecución solo 1.1. Toolchain CPython 3.14.9 GIL/uv 0.13.5/PostgreSQL y tools 18.6 fijados por digest; 12 pins directos estables, lock transitivo y 38 licencias inventariadas (37 instaladas linux/amd64). `docker build -f backend/Dockerfile.toolchain backend` y contenedor no root/read-only sin mounts/puertos personales: `uv lock --check`, `uv sync --locked`, `uv pip check`, imports, assert versiones/GIL/inventario y lock offline/SHA sin cambios PASS. Binarios postgres/pg_dump/pg_restore 18.6 PASS, sin arrancar servidor. Primeros checks auxiliares corregidos por colorama condicional, licencia desde wheel y tmpfs noexec; no RED conductual. Comandos/evidencia/límites: `backend/README.md`, `backend/versions.json`, `backend/dependency-licenses.json`. Sin instalación host ni evidencia de compatibilidad productiva. `openspec validate add-python-platform-foundation --strict --no-interactive`, `node scripts/docs/okf.mjs check`, `git diff --check` y self-check de pins/lock/licencias/whitespace PASS. Revisión del diff completo de 1.1 (incluidos archivos nuevos): sin bloqueantes; sin cambios de convenciones runtime que requieran editar AGENTS.md.
 
 Checkpoint: toolchain reproducible y seams confirmadas; no prueba de compatibilidad productiva. Verificación: inventario de versiones/licencias, `uv lock --check` y `uv sync --locked` en contenedor; registrar resultados.
 
