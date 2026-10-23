@@ -8,6 +8,24 @@ The change SHALL record a characterization matrix covering architecture section 
 - **THEN** every required area and its persistent, in-memory, client, secret or media state is accounted for with a source and verification entry
 - **AND** untested provider/client behavior and future migration decisions are identified without claiming GP or G0 satisfied
 
+### Requirement: Functional ownership and frontend correspondence
+The characterization matrix SHALL associate each required area with its proposed owning Python module, existing frontend views/components/hooks or store/helpers where applicable, current transport and persistence authority, and intended public collaborations. Areas without a frontend participant SHALL state that fact. The map SHALL preserve current file locations and distinguish future organization from implemented code. It SHALL provide a reusable handoff for colocated contracts, business operations and queries without requiring a frontend rewrite, new dependencies or business implementation in Foundation.
+
+#### Scenario: Trace an existing capability into the modular port
+- **WHEN** a maintainer follows a characterized case such as Training read and save
+- **THEN** the matrix identifies its source contract and case, future owner, current client path and data authority, and relevant positive and failure behavior
+- **AND** cross-module access is planned through authorized public interfaces instead of another module's repository or tables
+- **AND** missing integration or client evidence is recorded as pending rather than credited from a directory map or documentation validation
+
+### Requirement: Runtime-neutral JavaScript preservation handoff
+The handoff SHALL inventory runtime-neutral JavaScript currently under `api/coach/core`, its frontend imports and dynamic loads, test/build consumers and generated prompt/catalogue inputs. It SHALL identify `shared/coach-core` as the subsequent canonical JavaScript location, with one editable JS source and independent Python compatibility vectors. Foundation SHALL preserve current locations and Node reference behavior. Relocation, generator/build updates, local coach compatibility and removal of active legacy-tree dependencies SHALL be acceptance requirements for the subsequent port and retirement, not reported as completed here.
+
+#### Scenario: Preserve local coach before legacy removal
+- **WHEN** Foundation prepares the port and retirement handoff
+- **THEN** it records frontend coach-local and setup consumers, Vite/web Docker build inputs, relevant asset generators and tests with their planned disposition
+- **AND** the later port must prove current web and pertinent mobile bundles plus local coach compatibility without imports from the retired API tree before that tree is removed
+- **AND** a remaining runtime-neutral JavaScript library is distinguished from a permanently required Node business API
+
 ### Requirement: Reproducible synthetic contract cases
 Characterization SHALL run against the real Node implementation and existing client/MCP public interfaces using only disposable synthetic state. It SHALL preserve inputs and independent expected results with stable case identifiers reusable by the future port. Existing behavioral suites SHALL be reused; additional tests SHALL cover gaps rather than duplicate internals. At least one successful and one negative case SHALL be executed per required area; public or unprotected areas SHALL use an applicable invalid-input/failure case. External push/coach transport SHALL use fixtures without contacting accounts or providers.
 

@@ -1,5 +1,39 @@
 ## ADDED Requirements
 
+### Requirement: Modular Foundation ownership and port handoff
+The Foundation SHALL place new shared Python configuration, database lifecycle and transaction code under `opengym_platform/core`, internal health contracts and probes under `opengym_platform/health`, and application composition in its factory. Core SHALL NOT depend on health, the application factory or business modules. Dependencies SHALL remain explicit and application instances SHALL NOT share an implicit global pool. The change SHALL document future functional ownership and the preserved frontend path according to the platform modularity reference without scaffolding business modules, changing the existing frontend or claiming functional modularity acceptance. Existing delivered evidence SHALL NOT be relabeled as proof of this added requirement.
+
+#### Scenario: Foundation dependency direction
+- **WHEN** the pending database and health slices are implemented and reviewed
+- **THEN** the review identifies each new file's owner and verifies that health uses core and the factory composes them without reverse imports or cycles
+- **AND** behavioral tests still exercise the approved lifecycle and transaction interfaces rather than empty wrappers introduced only for folder symmetry
+
+#### Scenario: Functional architecture remains a later delivery
+- **WHEN** Foundation evidence and the port handoff are consolidated
+- **THEN** they identify future module contracts, dependencies and existing frontend participants while leaving domain tables, business routers and frontend relocation outside this change
+- **AND** the Training pilot, per-module behavior and EV-09 acceptance remain pending for the subsequent port and GP/GO/G3 verification
+
+### Requirement: Phase-owned environment and image handoff
+The delivery SHALL document a phase-owned environment and image handoff distinguishing Foundation, subsequent functional port and operation. It SHALL identify explicit Compose selection, configuration sources, mounts, network/data separation, build versus runtime values, commands to be delivered and platform support evidence. Production runtime/test/migration targets and dev/operations overlays SHALL remain subsequent deliverables; the Foundation harness SHALL NOT be credited as the production image. Linux/amd64 synthetic results SHALL NOT imply arm64 or provider support.
+
+#### Scenario: Environment and image phase handoff
+- **WHEN** the Foundation handoff is reviewed
+- **THEN** it identifies the synthetic entry point and pending dev/CI/operations combinations, their data/configuration separation and the owning later delivery with acceptance criteria
+- **AND** production image contents, no-install startup, resolved Compose inspection and supported-platform verification remain required before operational acceptance
+
+### Requirement: Cache-aware Foundation builds
+Foundation test images SHALL preserve immutable image references, locked dependency installation and synthetic isolation while placing dependency manifests before changing source. Download cache mounts SHALL use suitable ownership and SHALL NOT be included in image layers. CI SHALL reuse external layer cache with image/target scopes and distinguish it from package-cache persistence. Cache failures SHALL NOT bypass lock checks or turn unavailable dependencies into successful proofs. Build probes SHALL use owned disposable fixtures/builders without editing user lockfiles, clearing shared caches or passing secrets in build arguments.
+
+#### Scenario: Cold and repeated build
+- **WHEN** Foundation images are built with empty owned caches and then repeated without input changes
+- **THEN** the cold build and smoke succeed with locked dependencies and the repeated build logs identify dependency-layer reuse
+- **AND** evidence records revision, command, target, platform, cache state and observed duration without claiming unmeasured speed guarantees
+
+#### Scenario: Source manifest and test changes
+- **WHEN** separate fixture builds change only source, a coherent dependency manifest/lock, tests or image metadata
+- **THEN** source-only and test-only changes preserve applicable dependency installation layers, while a coherent manifest/lock change rebuilds its affected installation
+- **AND** an inconsistent manifest/lock fails instead of updating the lock or using stale cache as success
+
 ### Requirement: Isolated reproducible Python environment
 The Foundation SHALL run CPython/FastAPI and real disposable PostgreSQL independently of the ordinary API/web stack and the historical Node Foundation. It SHALL use exact stable versions, immutable image references, uv lock verification and recorded dependency licenses before runtime slices proceed. Local and CI execution SHALL use the same container entry point without host Python/PostgreSQL installation. No real environment, credentials, user state, personal media, public ports or Docker socket SHALL be supplied to test containers.
 
@@ -19,6 +53,8 @@ The Foundation SHALL run CPython/FastAPI and real disposable PostgreSQL independ
 
 ### Requirement: Bounded Python database lifecycle
 The Python application SHALL create and close its asyncpg pool through FastAPI lifespan. Database operations SHALL use finite acquisition, connection, command, SQL and shutdown limits. All transactional work SHALL use one leased connection. A failure before commit SHALL roll back when the connection permits; a SQL error that aborts the transaction SHALL prevent successful exit even if the caller catches that error. The interface SHALL distinguish acknowledged commit, confirmed rollback and unknown commit outcome. If commit has been sent but its outcome cannot be established, the interface SHALL report a safe machine-readable unknown outcome, discard the connection and SHALL NOT automatically retry or claim rollback. Unusable connections SHALL be discarded. Owner context SHALL be transaction-local and absent context SHALL grant no protected access. Expired transaction handles SHALL reject use. Cancellation SHALL propagate without falsely confirming either commit or rollback.
+
+The transaction initiator SHALL own the single begin/commit/rollback decision. Collaborating operations SHALL accept its explicit handle and authorized context without independently acquiring another connection, committing or changing owner context. Foundation SHALL demonstrate this through synthetic collaborators only; real intermodule operations and external-effect recovery SHALL remain scoped to the subsequent port.
 
 #### Scenario: Rollback and connection reuse
 - **WHEN** a synthetic write fails or is cancelled before commit and a max-one pool serves the next owner
@@ -45,6 +81,11 @@ The Python application SHALL create and close its asyncpg pool through FastAPI l
 - **THEN** configuration is rejected or the operation returns a safe stable error code
 - **AND** errors and emitted diagnostics contain no DSN, credentials, SQL values or synthetic sensitive payload markers
 - **AND** plaintext is allowed only for the explicitly identified private synthetic database
+
+#### Scenario: Collaborating operations share one transaction
+- **WHEN** two synthetic collaborators receive the initiator's transaction handle and the second fails after both write
+- **THEN** neither write persists, neither collaborator independently commits or acquires a separate connection, and the initiator reports failure
+- **AND** the successful variant commits both writes together, handles expire and the next borrower inherits no transaction or owner context
 
 ### Requirement: Foundation process health
 The isolated app SHALL expose internal liveness and readiness separately. Readiness SHALL require both an accessible database and the expected Alembic revision, and SHALL fail without file fallback. These routes SHALL NOT replace or alter the current application health contract.
