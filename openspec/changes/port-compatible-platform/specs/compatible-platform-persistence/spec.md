@@ -1,0 +1,82 @@
+## ADDED Requirements
+
+### Requirement: Phase-bounded compatible capability port
+The platform SHALL port the current capabilities into the approved Python modular monolith, preserving the existing frontend, local/offline Training, catalogue, formats, access and authorized consumers. It SHALL use the approved platform-schema reference as the physical contract and platform-modularity as ownership authority. Each slice SHALL identify contracts, actor/resource permissions, owning tables/stores, public collaborations, transaction scope and existing client path. Business implementation SHALL follow Foundation acceptance and explicit slice authorization; this specification SHALL NOT credit implementation or extend Foundation to business tables.
+
+#### Scenario: Training pilot follows identity
+- **WHEN** the first functional Training slice is prepared
+- **THEN** it requires compatible identity and declares HTTP, schemas, operation/repository, owner transaction, client reconciliation and positive/failure evidence
+- **AND** public collaborators share the initiating transaction without independent commits or cross-module repository access
+
+### Requirement: Legacy-compatible identity namespace and credentials
+Identity SHALL preserve textual IDs, nonunique display names, normalized login aliases, optional passwords, WebAuthn material/counters, one-time links, invitations and signed session/version behavior. Alias claims SHALL prohibit cross-owner name/email collisions while allowing both purposes for the same owner, retaining email claims without passwords and releasing only expired temporary reset reservations transactionally. It SHALL preserve sessions when safe/compatible; exceptional reauthentication SHALL be documented and proven without clearing client pending state. Consumed invitations SHALL remain consumed after account deletion.
+
+#### Scenario: Concurrent alias reservation and reset expiry
+- **WHEN** two owners claim the same normalized name/email or a reset-only reservation expires
+- **THEN** serialization and constraints prevent conflicting ownership and only an actually expired temporary claim can be released
+- **AND** display-name duplicates remain valid without credentials and legacy Unicode/login lookup behavior is preserved
+
+#### Scenario: Credential and account access continuity
+- **WHEN** legacy credentials/sessions are ported and password/reset/revocation operations run
+- **THEN** independent vectors prove formats, counters, expiry, disabled-account rejection and version revocation
+- **AND** passkey limits, last-way-in protection and one-time link consumption survive concurrent requests
+
+### Requirement: Canonical compatible Training persistence
+Training SHALL store the full compatible document as canonical JSONB with revision/write-id GENERATED STORED projections, validated without rounding or converting incompatible legacy types. It SHALL preserve missing versus null, internal stamps/lineage/reset metadata, allowed legacy writes, conflicts and local active-session behavior. The initiating transaction SHALL serialize by owner including an absent first document, revalidate access, compare bases and commit one document update.
+
+#### Scenario: First write and competing revision
+- **WHEN** concurrent writers target an absent document or send a stale baseRev/baseWid
+- **THEN** owner serialization and existing conflict behavior prevent silent overwrite
+- **AND** revision/write-id derive from the committed document, including the legacy response-versus-stored revision distinction
+
+#### Scenario: No document and legacy metadata
+- **WHEN** a user has no document or a full internal legacy document is imported
+- **THEN** no document remains state null/revision zero and import preserves all required metadata and semantic types
+- **AND** client offline/pending/active state is preserved and no general JSONB index or normalization is required
+
+### Requirement: Compatible notification and coach state
+The platform SHALL preserve push endpoint/device semantics, ownership, limits and local delivery dates while leaving preferences in Training. Coach SHALL separate settings, current jobs, pending proposals, history events and UTC usage counters according to the physical contract. Enqueue SHALL atomically enforce caps and count usage with job creation. It SHALL preserve single-flight, two global executions in the initial runtime, bounded 20-event personal/100-result instance history, lazy proposal expiry and no automatic replay after restart.
+
+#### Scenario: Atomic limits and repeated job events
+- **WHEN** concurrent enqueue attempts approach user/instance limits and a proposal later becomes applied/dismissed/expired
+- **THEN** committed counters and current jobs remain consistent and multiple events may reference the same job without overwriting each other
+- **AND** a restart records failed/restart rather than silently repeating provider work
+
+#### Scenario: Forget and late provider response
+- **WHEN** consent is withdrawn, coach content is forgotten or an owner is deleted while a provider runs
+- **THEN** owner/consent/generation checks prevent late content resurrection and stale Training sync cannot reenable sharing
+- **AND** forget preserves only applicable daily consumption, deletion removes owner usage and the instance aggregate has no personal link
+
+### Requirement: Least-privilege access and restricted MCP HTTP
+The platform SHALL implement the security reference's separate owner/migrator/runtime/executor/backup privileges, explicit RLS and transaction-local owner context. Preauthentication SHALL expose only bounded credential verification operations; administration SHALL authorize concrete actor/resource actions without arbitrary owner impersonation. MCP SHALL remain Node stdio and obtain only authorized Training through HTTP with a dedicated random revocable read-only credential, stored as a digest and checked for scope, expiry, owner state and session version. This token SHALL NOT authenticate ordinary write/admin routes or provide SQL/Recovery access.
+
+#### Scenario: Preauthentication and pool reuse
+- **WHEN** preauth executes without an authenticated owner and the pool subsequently serves different owners or missing context
+- **THEN** preauth has only its explicit bounded privileges and no later borrower inherits another owner's protected access
+- **AND** runtime cannot execute DDL, bypass RLS or assume privileged executors
+
+#### Scenario: MCP credential boundaries
+- **WHEN** a valid MCP token reads its allowed Training or attempts another owner, write/admin/media/Recovery access, or is expired/revoked/version-invalid
+- **THEN** only the permitted current-owner read succeeds and all disallowed cases fail safely
+- **AND** no plaintext token is stored/logged and no active JSON mirror or SQL password is needed by MCP
+
+### Requirement: Recoverable deletion and compatible audit
+Deletion SHALL preserve legacy administrative safeguards, remove operational SQL data and transactionally record pending external cleanup. It SHALL disconnect personally bound coach credentials before releasing ownership, preserve consumed invitations and historical audit, and keep cleanup failures visible without reopening access. Media bytes/GC marks SHALL remain external and missing/unreadable references SHALL NOT trigger destructive collection. Legacy audit SHALL remain best effort with configured 90-day/5000-event defaults and IP off; audit failure SHALL NOT abort business SQL or change a committed success.
+
+#### Scenario: External cleanup or audit failure
+- **WHEN** user deletion commits but external cleanup fails, or a legacy audit write fails
+- **THEN** cleanup remains recoverable and visibly pending, the deleted user has no access, and no credential is silently reassigned
+- **AND** audit degradation is observable without converting a confirmed business success to failure or deleting historical invitations/events
+
+### Requirement: Faithful import and retirement parity
+Schema evolution and data import SHALL be separate. Import SHALL retain IDs, credential semantics, complete documents and ownership; unfaithful representations SHALL block import/cutover with a protected report instead of silent correction. Before retirement the port SHALL prove parity, update JS source/build/generator consumers to the canonical neutral library, preserve admitted provider/client contracts and eliminate active legacy-file dependencies. Synthetic current-reference success SHALL NOT be called Python or post-retirement acceptance.
+
+#### Scenario: Unrepresentable legacy data
+- **WHEN** prevalidation finds invalid Unicode/JSON, incompatible revision types or unresolved identity/ownership differences
+- **THEN** import and cutover stop without silently rewriting or dropping data
+- **AND** the discrepancy is resolved explicitly before equivalent fixtures can pass
+
+#### Scenario: Parity after removing the replaced backend
+- **WHEN** the old business API and file readers are retired
+- **THEN** current client, coach, MCP, media, formats and security scenarios still pass on Python/PostgreSQL
+- **AND** relevant web/mobile bundles and generators no longer import the retired API tree while the neutral JavaScript library remains available
