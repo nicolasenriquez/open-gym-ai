@@ -33,6 +33,8 @@ For documentation changes, follow the [authoring guide](operations/okf-authoring
 | HTTP API contract | [OpenAPI](../api/openapi.yaml); [API guide](API.md) explains it |
 | Platform outcomes and priority | [Evolution PRD](open-gym-evolution.prd.md) |
 | Transition, mechanisms and technical gates | [Architecture](open-gym-evolution.architecture.md) and its linked references |
+| Approved platform tables, relationships, constraints and indexes | [Compatible SQL schema](reference/platform-schema.md); target contract, not executed DDL |
+| Target personal local operation, backup and recovery | [Local platform operation](reference/platform-operations.md); current hosting remains in SELF_HOSTING |
 | Module ownership, vertical slices and frontend placement | [Platform modularity](reference/platform-modularity.md), as a target design preserving the existing frontend |
 | Recovery functional requirements | [Recovery PRD](open-gym-recovery.prd.md) |
 | Product evidence and decision sources | [Discovery](dev/personal-recovery-discovery.md) and [research](research/index.md), only within their stated scope |

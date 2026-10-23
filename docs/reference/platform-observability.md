@@ -22,15 +22,15 @@ description: Contrato objetivo de señales, tracing, privacidad y evidencia de o
 
 Aplicar allowlist de atributos y revisar tanto instrumentación propia como automática. Excluir credenciales, cookies, tokens, notas, historial personal, prompts y parámetros SQL con valores. Usar rutas normalizadas y códigos estables en vez de URLs crudas, nombres de usuario o texto libre como etiquetas. No transportar datos personales en baggage ni considerar un hash de usuario como anonimato garantizado.
 
-Definir acceso, almacenamiento, retención y eliminación por señal. El historial de negocio, audit requerido y recibos de guardado no dependen del muestreo ni de la disponibilidad de traces. Para pruebas de filtración, usar exclusivamente contenido sensible sintético reconocible y comprobar que no aparece en los artefactos emitidos.
+Diseño aprobado: diagnóstico privado accesible al operador local, sin envío a servicios externos. Logs hasta 7 días, trazas hasta 24 h y métricas hasta 7 días en perfil local opcional, con cotas de espacio documentadas y eliminación efectiva por edad. Cotas pueden acortar conservación; no prometer retener toda señal durante el máximo. Rotación Docker solo por tamaño no acredita borrado por antigüedad: probar también todas las copias duraderas. El historial de negocio, audit y recibos no dependen del muestreo ni de disponibilidad de traces. Para pruebas de filtración, usar contenido sensible sintético reconocible y comprobar su ausencia.
 
 ## Ejecución y fallos
 
-Evaluar instrumentación OpenTelemetry compatible con FastAPI y el cliente DB durante Foundation/port; fijar versiones y probar la configuración elegida. Backend de almacenamiento, collector y visualización se seleccionan según necesidad, como herramientas de ensayo o perfil opcional. Este contrato no impone Grafana/Tempo/Jaeger/Sentry ni altera por sí mismo los tres servicios de aplicación `web`/`api`/`db`.
+Implementar instrumentación OpenTelemetry compatible con FastAPI y cliente DB durante port/operación; fijar versiones y probar configuración. Foundation aporta salud/logs sintéticos y handoff, sin acreditar EV-08 ni añadir SDK/exportadores por esta revisión. Backend de almacenamiento, collector y visualización se eligen para el perfil local opcional, sin imponer Grafana/Tempo/Jaeger/Sentry o alterar los tres servicios de negocio web/api/db. Probes y métricas internos; interfaces de diagnóstico solo privadas/loopback según operación local.
 
 Acotar buffers, exportación, timeouts y overhead. Un destino de telemetría caído no bloquea indefinidamente las peticiones ni cambia el resultado de un commit ya confirmado. Su fallo debe ser identificable sin un bucle ilimitado de logs. La política de fallo de audit se define separadamente en seguridad.
 
-Concretar muestreo, cobertura de operaciones, retención, acceso y canal de alertas antes de GO. Las señales deben distinguir conflicto de negocio, indisponibilidad DB y fallo externo; los conflictos esperados no se clasifican todos como error interno. Acordar umbrales y objetivos de servicio con el entorno: esta documentación no inventa un SLA o garantía de recuperación.
+Concretar muestreo, cobertura, cotas, herramientas y superficie local de avisos antes de GO; acceso y máximos de retención quedan fijados arriba. Distinguir conflicto de negocio, indisponibilidad DB y fallo externo; conflictos esperados no son todos error interno. Exponer degradación de audit y respaldo fallido/antigüedad frente a objetivos de recuperación según [operación local](platform-operations.md#respaldo-coordinado), sin servicios externos ni SLA inventado.
 
 ## Evidencia para GO
 

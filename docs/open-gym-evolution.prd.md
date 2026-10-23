@@ -9,6 +9,8 @@ description: Resultados y aceptación de plataforma antes de Recovery, Garmin e 
 
 **Ampliación documental:** el promotor solicita concretar una arquitectura modular por vertical slices inspirada en AI Tutor, con contratos y lógica localizados por funcionalidad y orden equivalente en frontend. Se conserva el frontend actual; esta revisión ajusta PRD, arquitectura y OpenSpec activo, sin implementar código ni ampliar permisos de ejecución anteriores.
 
+**Diseño consolidado confirmado:** esquema compatible de las capacidades actuales y operación personal local con Compose, conservando el legado como referencia. [Esquema SQL](reference/platform-schema.md), [seguridad](reference/platform-security.md) y [operación local](reference/platform-operations.md) concretan tablas, relaciones, índices, roles y recuperación. La aprobación autoriza esta documentación y sus OpenSpecs, no implementación, instalaciones, migraciones ni corte. Foundation conserva su alcance sintético y el trabajo ya registrado.
+
 **Fuentes:** solicitud del promotor, revisión del código y documentación recogida en el informe, [arquitectura](open-gym-evolution.architecture.md) y [PRD de Recovery](open-gym-recovery.prd.md). Este documento define intención, alcance y aceptación de plataforma; arquitectura define mecanismos y gates. Recovery conserva la autoridad sobre sus requisitos funcionales.
 
 ## Resumen ejecutivo
@@ -87,6 +89,15 @@ La [responsabilidad por fase](reference/platform-modularity.md#responsabilidad-y
 
 La migración es costosa de revertir después de recibir datos nuevos. Concretar preservación y recuperación antes del uso real; un backend parcial no satisface la entrega completa.
 
+### Decisiones de aceptación consolidadas
+
+- EV-01/02/05: preservar IDs, alias y credenciales heredadas, Training completo y pendientes cliente. Conservar sesiones cuando sea seguro/compatible; excepción de reautenticación solo documentada y demostrada. MCP tendrá lectura HTTP Training con credencial específica revocable. El borrado conserva invitaciones consumidas/auditoría y verifica limpieza externa; diferencias no representables fielmente bloquean el corte.
+- EV-03/06: primera operación personal en Compose, acceso desde el mismo computador, PostgreSQL privado y aceptación inicial Linux/amd64. Acceso LAN/remoto y arm64 requieren configuración/verificación propias; tratar expresamente clientes existentes antes de cortar.
+- EV-04: objetivos RPO 6 h/RTO 24 h aceptados pero pendientes de prueba. Backups coordinados cifrados cada 3 h, al arranque si vencidos y antes de migrar, retención 30 días en disco independiente con clave separada; restore aislado mensual. Reconciliar bajas/revocaciones posteriores antes de habilitar acceso. Conservar origen/release/configuración protegidos al menos 30 días tras corte aceptado, sin borrado automático.
+- EV-08: diagnóstico privado, logs hasta 7 días y perfil local opcional de trazas/métricas. Auditoría conserva su política compatible de fallo observable sin invalidar éxito confirmado; no se confunde con telemetría.
+
+Los detalles técnicos tienen un único propietario en las referencias enlazadas; este PRD no incorpora DDL ni acredita objetivos medidos. El [OpenSpec planificado de port y operación](../openspec/changes/port-compatible-platform/proposal.md) aporta requisitos, escenarios y tareas pendientes después de Foundation, manteniendo Recovery fuera.
+
 ## 7. Criterios de éxito y fracaso
 
 | Resultado | Objetivo | Comprobación y referencia |
@@ -123,10 +134,10 @@ El cierre requiere **todos** estos resultados. No exige ausencia de toda deuda h
 | Matriz exacta de capacidades y clientes compatibles | Caracterización del sistema y handoff de migración | Aceptación de paridad y alcance de EV-01. |
 | Correspondencia de módulos, contratos y componentes por recorrido | Propuesta modular y OpenSpecs de Foundation/port; evidencia del slice piloto | EV-09; Foundation aporta estructura parcial, no aceptación de módulos funcionales. |
 | Biblioteca JS neutral, transacciones colaborativas y entrega operativa | Responsabilidad por fase de la propuesta modular; escenarios Foundation y posteriores OpenSpecs de port/operación | EV-01/02/03/05/06/09; no retirar fuentes compartidas ni aceptar operación sin verificar sus imágenes, ambientes y soporte. |
-| Conservación de sesiones, adaptación de credenciales y acceso de consumidores | Arquitectura y pruebas de transición | Continuidad de acceso; no autoriza sustituir la experiencia de autenticación automáticamente. |
+| Validar el esquema y continuidad de acceso ya diseñados | Esquema SQL aprobado, seguridad y OpenSpec de port; DDL y pruebas pendientes | Alias/credenciales compatibles, proyecciones Training, RLS y token MCP demostrados; no solo tablas dibujadas. |
 | Viabilidad de cada proveedor/runtime del coach y contrato MCP | Arquitectura y ensayos acotados | Retirada completa sin pérdida de capacidades. |
-| Inventario real, mantenimiento, recuperación y plazos aceptables | Plan operativo previo al corte | Migración de datos reales y aceptación EV-02/EV-04. |
-| Señales, cobertura, acceso, retención y tratamiento de fallos de diagnóstico | Arquitectura y contrato de observabilidad | Aceptación EV-08/GO, sin seleccionar herramientas en este PRD. |
+| Inventario real y demostrar operación/recuperación aceptadas | Operación local y OpenSpec de port/operación; destino físico y ensayo previos al corte | Migración real y EV-02/04: objetivos acordados no equivalen a garantías; bloqueos de reconciliación y clientes resueltos. |
+| Implementar/verificar diagnóstico privado y su retención | Contrato de observabilidad y operación | EV-08/GO: instrumentación, cotas y eliminación real pendientes; sin elegir herramientas en este PRD. |
 
 **Handoff:** la [arquitectura](open-gym-evolution.architecture.md) desarrolla esta dirección y conserva los requisitos funcionales del [PRD Recovery](open-gym-recovery.prd.md) para la entrega posterior. [Foundation archivada](../openspec/changes/archive/2026-10-22-add-postgres-foundation/proposal.md) es evidencia sintética histórica de Node; no acredita el stack Python ni cierra esta entrega.
 

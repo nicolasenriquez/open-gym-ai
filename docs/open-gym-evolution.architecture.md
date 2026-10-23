@@ -13,6 +13,8 @@ description: Contratos, transición y gates de la plataforma objetivo Python/Fas
 
 **Ampliación modular:** por solicitud posterior del promotor, se concreta la organización por vertical slices en la [referencia de modularidad](reference/platform-modularity.md). Sustituye la colocación futura no definida por propiedad funcional de contratos, reglas, operaciones y consultas, conservando el frontend y sus comportamientos. Esta revisión modifica únicamente documentación y artefactos del cambio activo; no implementa el destino ni altera evidencia histórica.
 
+**Consolidación confirmada:** [esquema SQL compatible](reference/platform-schema.md) y [operación local](reference/platform-operations.md) fijan el diseño de plataforma antes abierto: tablas/índices, roles, redes y procedimientos. Sus escenarios pertenecen al [OpenSpec planificado de port y operación](../openspec/changes/port-compatible-platform/proposal.md), dependiente de Foundation. Es aprobación documental, no DDL aplicado, implementación autorizada ni gate satisfecho.
+
 **Fuentes de intención:** [PRD Evolution](open-gym-evolution.prd.md) para la entrega de plataforma y [PRD aprobado de Recovery](open-gym-recovery.prd.md) para sus requisitos funcionales posteriores. Complementos: [discovery](dev/personal-recovery-discovery.md) y [glosario](../GLOSSARY.md). La arquitectura define mecanismos y aceptación técnica; no amplía el MVP funcional de Recovery. La evidencia sintética archivada conserva su alcance histórico.
 
 **Lectura:** decisiones aprobadas, recomendaciones y pendientes no equivalen a pruebas ejecutadas. Este plan no es DDL ni tareas de implementación. Leer [seguridad](reference/platform-security.md) al modificar acceso/audit, [observabilidad](reference/platform-observability.md) al instrumentar/operar y [contratos Recovery](reference/recovery-contracts.md) para su entrega posterior. El [índice documental](README.md#documentation-authority) delimita fuentes de verdad.
@@ -54,6 +56,8 @@ La [comparación histórica](research/evolution-architecture-evidence.md#23-ai-t
 | Plataforma antes de Recovery | Cerrar G0–G3/GP/GO antes de implementar Recovery; luego Garmin y ampliaciones de IA. Las tres sesiones reales validan Recovery, no la arquitectura. |
 | SQL explícito | Sin ORM obligatorio ni normalización completa de Training. |
 | Training en JSONB | Documento compatible, revisiones, linaje, stamps, sync y offline existentes. |
+| Esquema de plataforma consolidado | Tablas por módulo, alias de acceso separados del nombre visible, proyecciones Training GENERATED STORED, coach/consumos y auditoría según §6; sin tablas Recovery anticipadas. |
+| Operación personal local | Compose, web en loopback:8080, API interna:3000 y PostgreSQL privado:5432; Linux/amd64 inicial, una API/un worker. Ver operación local. |
 | Recovery relacional + JSONB selectivo | Relaciones/invariantes y snapshots históricos sin normalización excesiva. |
 | Paridad antes del corte | Inventario de capacidades, Foundation Python, pruebas de contratos y consumidores en entorno sintético; G0 antes de cualquier migración real. |
 | RLS para Recovery, condicionada | Debe pasar pruebas reales de propietario, transacciones y pool; no se puede declarar efectiva antes. |
@@ -145,19 +149,20 @@ El [contrato transaccional intermodular](reference/platform-modularity.md#transa
 
 ## 6. Modelo conceptual PostgreSQL
 
-**No es DDL aprobado ni nomenclatura definitiva.** Durante plataforma:
+El [esquema SQL compatible](reference/platform-schema.md) es la fuente propietaria del modelo físico aprobado: tablas/columnas, PK/FK, restricciones, índices y consultas. Sustituye el modelo de plataforma anteriormente solo conceptual; no es DDL ejecutado ni acreditación de integridad. El port entregará y probará las migraciones Alembic. El ancla de esta sección se conserva por compatibilidad de enlaces.
 
-| Concepto | Relacional | JSONB selectivo |
-| --- | --- | --- |
-| Usuario | ID heredado, estado, roles, versión de sesión | Atributos heredados preservados durante transición |
-| Credencial e identidad auxiliar | Propietario, ID credencial, contador, relaciones relevantes | Metadatos WebAuthn/atributos heredados cuando corresponda |
-| Training compatible | Propietario, revisión/linaje sincronizados con el documento | Documento existente completo |
+```text
+identity.users --> credenciales / alias / enlaces / token MCP
+       |
+       +--> training.documents: JSONB completo --> revision/write_id generados
+       +--> notifications: suscripciones y fechas locales
+       +--> coach: trabajo actual / propuesta / eventos / consumo UTC
 
-- Conservar IDs de usuario; no exigir UUID para identidades heredadas.
-- Coherencia de propietario en asociaciones, preferiblemente respaldada por claves/constraints adecuadas, además de RLS.
-- JSONB no autoriza contenido sin contrato: validación de estructura, tamaño y versión, con IDs estables para elementos corregibles.
+audit: eventos históricos; administration: limpieza externa pendiente
+Medios/GC y secretos fuera de SQL; pendientes y sesión activa en cliente
+```
 
-Para Training, evitar dos copias discordantes de revisión/linaje entre columnas y JSONB. Si se proyectan como columnas, su actualización y serialización deben tener una única regla transaccional probada. Importar también campos internos de sincronización, no solo lo que expone `forClient`.
+Conservar IDs textuales y ausente/null. Alias único no significa nombre visible único. Training completo es canónico, con revision/write_id GENERATED STORED y serialización por propietario incluso antes del primer documento. JSONB mantiene validación acotada; datos no representables fielmente bloquean importación/corte, sin normalizarlos silenciosamente. Coherencia de propietario respaldada por FK/constraints y RLS.
 
 El [modelo Recovery y sus invariantes](reference/recovery-contracts.md#modelo-conceptual) pertenecen a su entrega posterior.
 
@@ -175,7 +180,7 @@ El [contrato de guardado/concurrencia](reference/recovery-contracts.md#guardado-
 
 ## 8. Stack Python, migraciones y evidencia histórica
 
-**Dirección técnica de esta revisión:** FastAPI/Pydantic y Uvicorn; `asyncpg` con SQL explícito; Alembic para esquema; uv y lockfile; pytest/httpx, Ruff y mypy para verificación. Son herramientas objetivo, no dependencias instaladas o versiones verificadas. Mantener npm, Vitest y los controles frontend/MCP pertinentes. La implementación deberá comprobar versiones estables, compatibilidad, licencias y ejecución reproducible antes de fijarlas; no adoptar prereleases sin justificación y aprobación expresa.
+**Dirección técnica:** FastAPI/Pydantic y Uvicorn; `asyncpg` con SQL explícito; Alembic para esquema; uv y lockfile; pytest/httpx, Ruff y mypy. Foundation registra sus pins/licencias y evidencia acotada en [su README](../backend/README.md) y versiones/lock del paquete; esa evidencia no demuestra compatibilidad operativa o port funcional. Reutilizar y revalidar la selección en su fase, sin duplicar otra autoridad de versiones aquí. Mantener npm, Vitest y controles frontend/MCP; no adoptar prereleases sin justificación y aprobación expresa.
 
 El pool se inicializa y cierra mediante lifespan; conexiones/transacciones tienen límites y timeouts probados. SQL permanece en repositorios y reglas de dominio fuera de handlers. SQLAlchemy puede limitarse al engine de migraciones de Alembic; no se impone un ORM a la aplicación. No copiar ajustes pgvector o de pool de AI Tutor sin necesidad.
 
@@ -252,7 +257,7 @@ Compose es la base objetivo con `web`/`api`/`db` según §1. Runtime no root, ve
 
 Inicialización controlada: DB saludable → migración completada satisfactoriamente con rol separado → API con esquema compatible. Readiness no equivale solo a proceso vivo; fallar explícitamente si DB/esquema no son utilizables y tratar caídas posteriores. Véanse [Compose: dependencias](https://docs.docker.com/compose/how-tos/startup-order/) y [FastAPI en contenedores](https://fastapi.tiangolo.com/deployment/docker/).
 
-Pool acotado, timeouts y transacciones cortas. Proveedor, major PostgreSQL, límites de conexiones, proxy/pooler y compatibilidad con advisory locks están pendientes. Migraciones con conexión de sesión apropiada si un pooler transaccional impide el locking esperado.
+La base local ya está decidida en [operación local](reference/platform-operations.md#ambientes-imágenes-y-almacenamiento): Compose, toolchain PostgreSQL según pins/lock de Foundation y pool inicial min=1/max=4 con timeouts definidos. Queda verificar su compatibilidad operativa, límites y locking con pruebas representativas; no volver a tratar esos valores como decisiones abiertas. El migrador utiliza conexión dedicada de sesión. Proveedor remoto o proxy/pooler adicional no son requisitos de la primera instancia local; si se incorporan después, requieren validación propia de conexiones, TLS y advisory locks.
 
 ### HTTPS y acceso web
 
@@ -270,9 +275,9 @@ Al implementar, actualizar guías operativas, API y artefactos de la entrega sop
 
 ## 11. Respaldos, restauración y rollback
 
-**Objetivos candidatos, no garantías:** RPO 6 horas y RTO 24 horas. Requieren aprobación operativa, capacidad del proveedor y ensayo cronometrado de restauración completa.
+**Objetivos aceptados, no garantías demostradas:** RPO 6 horas y RTO 24 horas. La [operación local](reference/platform-operations.md#respaldo-coordinado) posee frecuencia cada 3 h, arranque si vencido, copia previa a migrar, retención 30 días y restore mensual; captura coordinada y medición pendientes.
 
-- Backups automáticos cifrados externos al host principal, con retención y control de acceso por definir.
+- Backups cifrados en disco independiente del disco de instancia, clave separada y acceso restringido. No acreditar ubicación off-host o cobertura de pérdida completa del equipo; destino físico se configura/verifica antes del corte.
 - La planificación debe contemplar fallos de ejecución, transferencia y verificación; programar una copia cada seis horas no acredita por sí solo RPO de seis horas.
 - Backup PostgreSQL consistente y backup coordinado de medios, configuración y secretos necesarios. `pg_dump` lógico no equivale a PITR.
 - PITR solo si se verifican backup base, archivado WAL continuo, retención y procedimiento del proveedor. No es capacidad confirmada.
@@ -281,6 +286,8 @@ Al implementar, actualizar guías operativas, API y artefactos de la entrega sop
 - Restaurar en entorno aislado con coach, notificaciones y llamadas externas deshabilitados; validar identidad, relaciones, snapshots, recibos y referencias multimedia.
 - Rotar generación Recovery y probar protección de pestañas anteriores. Probar linaje Training después de restore y clientes con cambios offline.
 - Un restore a un punto anterior puede retroceder contadores WebAuthn/revocaciones; definir reconciliación de autenticación y revocación de sesiones según riesgo, sin prometer supervivencia segura de todas las sesiones.
+
+La [restauración acordada](reference/platform-operations.md#restauración-y-decisiones-de-seguridad-posteriores) permanece aislada, invalida sesiones/tokens restaurados y exige reconciliar bajas/revocaciones con información posterior al snapshot. Si no hay cobertura suficiente, el acceso permanece bloqueado hasta revisión; el backup no reconstruye esa información. Medios, secretos y cleanup pendientes deben verificarse junto con datos SQL.
 
 Migración de autoridad:
 
@@ -294,6 +301,8 @@ Migración de autoridad:
 Antes de retirar el código sustituido, conservar durante la ventana de recuperación la imagen/release anterior identificada por revisión y digest, su configuración compatible y los secretos necesarios bajo protección. Ensayar en un entorno aislado su recuperación con el origen congelado; conservar solo los datos no basta. Estos artefactos permiten ejecutar el procedimiento de reversión aprobado, sin mantener accesos legacy activos ni habilitar fallback automático; no eluden las restricciones sobre nuevas escrituras descritas a continuación.
 
 La retirada del código y la eliminación de los datos originales son operaciones distintas. El vencimiento de la ventana de recuperación no autoriza su borrado: este requiere una decisión y autorización explícitas, comprobando previamente el respaldo y la restauración del sistema vigente. La especificación de migración debe definir la conservación, protección y disposición final del origen sin convertirlo en una segunda autoridad.
+
+La ventana acordada conserva origen, release/configuración y secretos protegidos al menos 30 días después del corte aceptado; su vencimiento no autoriza eliminación automática.
 
 Antes de nuevas escrituras, rollback al origen es directo tras validación. Después, requiere exportación inversa validada o corrección hacia adelante; recuperar el backup anterior pierde cambios y exige autorización explícita. No habilitar doble escritura como seguro aparente.
 
@@ -372,7 +381,7 @@ El [protocolo responsive Recovery](reference/recovery-contracts.md#validación-w
 
 ## 14. Secuencia conceptual confirmada de futuras OpenSpecs y handoff
 
-**Estado:** prioridad documental revisada el 2026-10-22. Foundation Node está archivada; la plataforma Python y Recovery no están implementados. Los siguientes tramos son handoffs conceptuales, no OpenSpecs creadas ni tareas autorizadas por esta edición:
+**Estado:** Foundation Node está archivada; plataforma Python completa y Recovery siguen pendientes. Foundation Python conserva su cambio activo. Los tramos de port/operación ya tienen un [OpenSpec planificado](../openspec/changes/port-compatible-platform/proposal.md) con tareas runtime pendientes, dependiente de Foundation; los posteriores siguen siendo handoffs conceptuales. Esta revisión no autoriza ejecución ni modifica evidencia entregada:
 
 1. **Caracterización y Foundation Python/PostgreSQL:** contratos de referencia, entorno sintético, pool/lifespan, roles, Alembic, recuperación y CI. Añadir inventario JS compartido, prueba transaccional de colaboradores sintéticos y matriz de caché sobre imágenes de ensayo. Reutilizar requisitos/escenarios históricos, aportando evidencia nueva de G1 para Python sin acreditar operación.
 2. **Port de capacidades y migración ensayada:** backend Python compatible por módulos, identidad mínima previa al slice piloto Training y luego consumidores §9.1; frontend actual operando en el entorno nuevo, importación equivalente y recuperación representativa. Trasladar biblioteca JS neutral y adaptar generadores/builds; implementar desarrollo/CI y transacciones intermodulares de negocio. Cada OpenSpec de port declara contratos, dependencias y componentes del recorrido según §5.1. GP, EV-09 y parte previa de GO.
@@ -418,13 +427,13 @@ Esos resultados no fueron reejecutados en esta edición. No acreditan proveedor,
 | Entorno/major PostgreSQL | Definir Compose local y despliegue objetivo, versión, conexiones, TLS/pooler, backup/PITR si corresponde, coste y ubicación | G1 operativo/GO y corte; no obliga a adelantar VPS |
 | Paridad auth y clientes | Biblioteca WebAuthn/material heredado, scrypt/NFKC, sesiones existentes o reautenticación controlada y clientes nativos admitidos | GP y continuidad de acceso |
 | Coach/MCP | Probar proveedores/SDK/CLI/sandbox, lectura restringida y credencial MCP; delimitar autoridad/salida de cada almacén | GP/G3 y retirada completa |
-| RPO 6 h / RTO 24 h | Objetivos candidatos históricos, no garantías; acordar y medir restauración representativa | GO y uso real con garantías de recuperación |
-| Retención/cifrado/destino externo | Acordar ubicación, acceso, claves y alertas; DB y elementos externos necesarios | GO y recuperación operativa |
+| Demostrar RPO 6 h / RTO 24 h | Objetivos aceptados, no garantías; medir restauración representativa conforme a operación local | GO y uso real con garantías de recuperación |
+| Configurar/verificar backup acordado | Disco independiente, cifrado/clave separada, 30 días y cadencia definidos; ubicación física, acceso y señales se verifican antes del corte | GO y recuperación operativa |
 | Inventario de clientes | Identificar perfiles/orígenes/cuentas, teléfonos utilizados, sesión activa y datos pendientes; backups comprobados | G0 y corte |
 | Procedencia de artefactos | Referencia Node e imágenes nuevas por revisión/digest; observación histórica `dev` no equivale al estado actual | GP/G0/GO |
 | Publicación web | HTTPS, origen/RP ID/certificado y transición de passkeys; localhost compatible para ensayo local | Publicación/autenticación; no exige un dispositivo concreto |
 | Soporte y documentación | Adaptar artefactos soportados, marcar alternativas legacy, verificar comandos desde checkout limpio | GO/EV-06 |
-| Observabilidad operativa | Seleccionar instrumentación y destino de ensayo, acceso, retención, muestreo y alertas; demostrar casos EV-08 sin datos privados | GO; no requiere otro gate ni dashboard específico |
+| Observabilidad operativa | Implementar diagnóstico privado y retención acordada; seleccionar instrumentación/cotas y demostrar EV-08 sin datos privados | GO; no requiere otro gate ni dashboard específico |
 | Ventana de mantenimiento/rollback | Pausar todos los escritores y resolver procedimiento antes/después de nuevas escrituras | Corte definitivo |
 
-**Siguiente trabajo:** continuar las tareas pendientes del [cambio activo Foundation Python](../openspec/changes/add-python-platform-foundation/proposal.md) solo bajo su autorización de ejecución, con los criterios modulares de §5.1; después especificar el port funcional y su piloto. Esta revisión no implementa esas tareas. Las pruebas y evidencias, no el cierre documental, acreditarán los gates.
+**Siguiente trabajo:** continuar las tareas pendientes del [cambio activo Foundation Python](../openspec/changes/add-python-platform-foundation/proposal.md) solo bajo su autorización de ejecución; después preparar pruebas/seams por slice y ejecutar, cuando se autorice, el [port planificado](../openspec/changes/port-compatible-platform/proposal.md) con identidad previa al piloto Training. Esquema y operación ya tienen diseño aprobado; su DDL, paridad y ensayos siguen pendientes. Esta revisión no implementa tareas. Las pruebas y evidencias, no el cierre documental, acreditarán los gates.

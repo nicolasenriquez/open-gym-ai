@@ -9,7 +9,7 @@ description: Modelo, guardado y verificación técnica de la entrega posterior d
 
 ## Modelo conceptual
 
-**Sin DDL aprobado ni nomenclatura definitiva.** Identidad y Training permanecen en [arquitectura §6](../open-gym-evolution.architecture.md#6-modelo-conceptual-postgresql), junto a coherencia de propietario y validación JSONB compartidas.
+**Recovery sigue sin DDL aprobado ni nomenclatura definitiva.** Identidad y Training tienen su [esquema de plataforma confirmado](platform-schema.md), enlazado desde [arquitectura §6](../open-gym-evolution.architecture.md#6-modelo-conceptual-postgresql). Esa aprobación no crea tablas Recovery ni acredita coherencia de propietario/RLS sin pruebas.
 
 | Concepto | Relacional | JSONB selectivo |
 | --- | --- | --- |

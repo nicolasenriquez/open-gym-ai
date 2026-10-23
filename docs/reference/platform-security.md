@@ -11,7 +11,7 @@ Leer al modificar identidad, sesiones, permisos, consumidores o eventos de segur
 
 ## Identidad y acceso
 
-Preservar IDs, passkeys y material WebAuthn, contadores, scrypt/NFKC, passwords opcionales, pairing/device links, cookies y bearer de clientes móviles. Caracterizar firma/encoding, expiración, revocación y límites del sistema Node con fixtures antes del port. Resolver explícitamente conservación de sesiones o reautenticación controlada y biblioteca WebAuthn Python compatible; evitar una conversión implícita a Google/JWT/bcrypt.
+Preservar IDs, passkeys y material WebAuthn, contadores, scrypt/NFKC, passwords opcionales, pairing/device links, cookies y bearer de clientes móviles. Caracterizar firma/encoding, expiración, revocación y límites del sistema Node con fixtures antes del port. Conservar sesiones si es seguro/compatible; reautenticación o reemparejamiento excepcional solo documentado y respaldado por pruebas, preservando pendientes locales. Seleccionar biblioteca WebAuthn compatible; evitar conversión implícita a Google/JWT/bcrypt. El [esquema aprobado](platform-schema.md#identidad-y-acceso) separa nombres visibles, alias y credenciales sin cambiar el mecanismo firmado de sesiones.
 
 Mantener origen/RP ID y HTTPS para publicación, proxy de mismo origen y clientes/subpaths admitidos. Cambiar hostname puede exigir nuevas passkeys; localhost compatible sirve para ensayos, no acredita publicación HTTPS. El contrato CORS/bearer móvil requiere pruebas propias además del navegador. La confianza en headers de proxy se limita a la topología realmente desplegada.
 
@@ -31,6 +31,25 @@ Una autorización que cambió durante una espera no confirma con una sesión obs
 
 ## Roles, RLS y datos
 
+Diseño de roles aprobado para el port, pendiente de DDL y pruebas:
+
+| Rol | Facultades |
+| --- | --- |
+| `schema_owner` NOLOGIN | Posee objetos/esquemas; no atiende peticiones. ENABLE/FORCE RLS y políticas explícitas. |
+| `migrator` LOGIN | Puede asumir propietario únicamente en el proceso Alembic puntual; credencial ausente del runtime. |
+| `api_runtime` LOGIN | Operaciones autorizadas por contexto transaccional/RLS y funciones allowlisted; sin ownership, DDL, superusuario o BYPASSRLS. |
+| `identity_executor` NOLOGIN | Funciones limitadas para preauth y credenciales; grants/políticas solo sobre tablas necesarias. |
+| `administration_executor` NOLOGIN | Funciones administrativas concretas, comprobando actor activo, privilegio, versión de sesión y acción/recurso. |
+| Rol operativo de backup | Lectura completa explícita y comprobada para dump coherente, separado de runtime y acceso cliente. |
+
+Runtime no puede asumir roles ejecutores; recibe EXECUTE sobre funciones revisadas.
+Preauth busca solo material mínimo para verificar una credencial, sin inventar un
+owner autenticado ni dar SELECT global a anónimos. Funciones SECURITY DEFINER usan
+propietario dedicado, search_path seguro, objetos cualificados, ausencia de SQL
+dinámico y EXECUTE PUBLIC revocado; sus políticas/grants siguen siendo explícitos,
+no se asume que el nombre SECURITY DEFINER eluda FORCE RLS. Administración coordina
+interfaces propietarias con el handle compartido, sin SET owner arbitrario.
+
 - Separar propietario/migrador y runtime; runtime sin DDL, superusuario o `BYPASSRLS`, con privilegios mínimos y sin extensiones anticipadas.
 - Fijar contexto de propietario desde el servidor con alcance transaccional y denegar contexto ausente. Probar conexión reutilizada tras commit, rollback, timeout y cancelación.
 - Respaldar asociaciones coherentes con propietario mediante constraints/FK; RLS complementa la autorización HTTP y no sustituye estas invariantes.
@@ -40,17 +59,46 @@ Una autorización que cambió durante una espera no confirma con una sesión obs
 
 ## Secretos y conexiones
 
+### Credencial MCP y lectura HTTP
+
+MCP sigue stdio Node y consume interfaz HTTP Training restringida. Emitir token
+aleatorio de alta entropía, mostrado una vez, digest SHA-256 almacenado y formato
+distinguible de cookie/bearer heredado; scope fijo `training:read` y propietario
+asociado. Emisión/revocación exige sesión propietaria y prueba reciente según las
+operaciones de acceso existentes. Caducidad inicial usa SESSION_DAYS de instancia.
+Cada petición comprueba digest, scope, expiración/revocación, cuenta activa y
+`issued_session_version` vigente. No aceptar token MCP en rutas normales de sesión,
+PUT Training, medios, administración o Recovery. Sin contraseña SQL distribuida a MCP.
+El port define rutas y errores compatibles con su adaptador y prueba aislamiento
+positivo/negativo antes de retirar lectores de archivos; Foundation no lo implementa.
+
+### Protección de material y proveedores
+
 Secretos fuera de Git, frontend y logs; separar credenciales runtime/migrador y claves del coach. Proteger rotación, firma de sesiones y restauración de credenciales conforme al contrato. PostgreSQL privado, autenticación y mínimo privilegio; verificar certificados TLS al cruzar redes no confiables o por requisito del proveedor. Las URLs con contraseñas no se registran.
 
 Preservar el sandbox/límites de cada proveedor del coach o resolver su tratamiento explícitamente. Separación de módulos y RLS no son un sandbox frente al administrador del host o un backend comprometido.
 
 ## Auditoría y trazabilidad de datos
 
-El audit actual es un registro operativo JSON con retención, borrable por administración; no acredita inmutabilidad. La migración debe inventariar sus eventos/consumidores, seleccionar una autoridad duradera y definir acceso, integridad, retención, tratamiento de IP y recuperación. Preservar eventos incluidos en el contrato actual y documentar cambios intencionales.
+El audit actual es un registro operativo JSON con retención, borrable por administración; no acredita inmutabilidad. El destino aprobado es `audit.events`, con lectura/clear administrativos explícitos, secuencia conservada y máximos configurables de 90 días/5000 eventos, aplicando ambos límites; IP off por defecto. IDs/nombres históricos no tienen FK destructiva al borrar usuario, e invitaciones consumidas conservan su marca. Inventariar eventos/consumidores y probar recuperación; no incluir credenciales o contenido personal de negocio en nuevos eventos.
 
 Cada evento definido identifica actor/recurso/acción/instante/resultado con datos mínimos; controlar acceso y evitar credenciales, contenido de entrenamiento/rehabilitación o secretos. No copiar nombres o payloads personales al tracing por reutilizar audit. El historial de correcciones Recovery tiene su contrato propio y no se reemplaza por audit operativo.
 
-La escritura fallida de audit debe ser observable y tener política explícita por tipo de operación. Caracterizar el comportamiento existente y resolver cualquier cambio; no prometer auditoría atómica sin probarla ni cambiar silenciosamente el resultado de una operación ya confirmada. [Telemetría técnica](platform-observability.md) y audit son canales distintos: el muestreo de traces no decide qué eventos de seguridad/historia se conservan.
+Política aprobada: preservar best effort de eventos heredados, incluido login y administración, con fallo observable/código seguro. Audit se intenta en unidad separada o después del commit de negocio, sin abortarlo mediante un error SQL de auditoría ni devolver fallo tras éxito confirmado. No prometer entrega garantizada, atomicidad o reintento ilimitado; endurecimiento obligatorio por operación requiere otro cambio explícito. [Telemetría técnica](platform-observability.md) y audit son canales distintos: el muestreo de traces no decide qué eventos de seguridad/historia se conservan.
+
+### Eliminación y restauración
+
+Eliminar cuenta borra datos SQL operativos, desconecta credenciales personales
+ligadas del coach y registra limpieza externa pendiente en la misma transacción.
+Medios/secretos se eliminan después por sus propietarios; fallo conserva tarea y
+señal de pendiente, no resucita acceso ni se presenta como limpieza completa.
+Olvidar coach conserva únicamente cuota del día; eliminar cuenta borra su cuota,
+conservando agregado de instancia sin vínculo personal.
+
+La [restauración aislada](platform-operations.md#restauración-y-decisiones-de-seguridad-posteriores)
+invalida sesiones/tokens restaurados y reconcilia bajas/revocaciones posteriores,
+incluidas passkeys. Sin información suficiente, acceso bloqueado hasta revisión;
+retención de backups no significa eliminación inmediata de toda copia histórica.
 
 ## Evidencia de aceptación
 

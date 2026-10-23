@@ -90,8 +90,9 @@ y las piezas operativas necesarias; no crea módulos de negocio como scaffolding
 Catálogo y sus medios siguen empaquetados en `web`; no requieren un módulo Python
 si no hay comportamiento servidor que lo justifique. Import/export Training sigue
 en el cliente y debe probarse contra el nuevo contrato. MCP permanece stdio Node,
-con lectura Training restringida mediante la interfaz/adaptador que se especifique
-en el port; no consume `repository.py` ni archivos espejo. Recovery se añade solo
+con lectura Training HTTP y credencial específica revocable read-only según
+[seguridad](platform-security.md#credencial-mcp-y-lectura-http); el port prueba
+adaptador y rutas. No consume `repository.py`, credenciales SQL ni archivos espejo. Recovery se añade solo
 después de aceptar plataforma, con propiedad separada de Training.
 
 Reglas de dependencia:
@@ -239,6 +240,13 @@ web consume la biblioteca neutral, sin necesitar un servidor Node en ejecución.
 
 ## PostgreSQL y composición Docker
 
+El [esquema SQL aprobado](platform-schema.md) posee tablas/columnas, claves,
+restricciones e índices por consulta; [operación local](platform-operations.md)
+posee puertos/redes, almacenamiento y recuperación. Cada módulo conserva la
+propiedad de sus tablas y repositorios; compartir esquema no habilita acceso
+directo desde otro módulo. Administración solo posee el registro mínimo de
+limpieza externa que coordina tras borrado SQL, no los archivos de medios.
+
 Conservar SQL explícito/asyncpg, Training JSONB compatible, IDs heredados y una
 autoridad por dominio. Separar Alembic de importación de datos; probar vacío,
 revisión anterior, concurrencia, fallo y recuperación con roles reales. Los medios,
@@ -249,6 +257,11 @@ de migraciones con rol distinto. El proceso migrador termina antes de habilitar
 tráfico compatible; la API no migra al arrancar. Compose puede expresar DB healthy
 y migrador completado, pero se deben probar también caídas/reconexión posteriores.
 Readiness no demuestra auth, paridad ni recuperación.
+
+Primera operación acordada: instancia personal local Linux/amd64, web loopback:8080,
+API:3000 y DB:5432 privadas, una API/un worker. Red aplicación con egress autorizado
+y red DB internal; overlays/datos dev y operación separados. Ver contrato operativo
+para acceso LAN/remoto posterior y tratamiento de clientes existentes.
 
 Separar configuración de desarrollo de operación mediante overrides explícitos,
 manteniendo una definición común cuando corresponda. La imagen runtime Python
