@@ -5,7 +5,9 @@ description: Resultados y aceptación de plataforma antes de Recovery, Garmin e 
 ---
 # OpenGym Evolution — PRD de modernización de plataforma
 
-**Estado:** dirección y cleanup documental autorizados el 2026-10-22. Primera entrega: Python/FastAPI/PostgreSQL con paridad, seguridad y operación verificables. La autorización actual es documental; implementación, OpenSpecs, migración y despliegue se concretan por solicitudes posteriores.
+**Estado:** dirección y cleanup documental autorizados el 2026-10-22. Primera entrega: Python/FastAPI/PostgreSQL con paridad, seguridad y operación verificables. La presente revisión es documental; la ejecución de tareas, migración y despliegue se concretan por solicitudes separadas. El OpenSpec activo conserva su estado y evidencia de entrega.
+
+**Ampliación documental:** el promotor solicita concretar una arquitectura modular por vertical slices inspirada en AI Tutor, con contratos y lógica localizados por funcionalidad y orden equivalente en frontend. Se conserva el frontend actual; esta revisión ajusta PRD, arquitectura y OpenSpec activo, sin implementar código ni ampliar permisos de ejecución anteriores.
 
 **Fuentes:** solicitud del promotor, revisión del código y documentación recogida en el informe, [arquitectura](open-gym-evolution.architecture.md) y [PRD de Recovery](open-gym-recovery.prd.md). Este documento define intención, alcance y aceptación de plataforma; arquitectura define mecanismos y gates. Recovery conserva la autoridad sobre sus requisitos funcionales.
 
@@ -56,6 +58,7 @@ La ventana es la aceptación de esta entrega, sin plazo de calendario inventado.
 El usuario principal es el promotor que desarrolla, mantiene y opera su instancia; las personas y clientes existentes deben conservar el acceso a sus datos y entrenamiento.
 
 - **Al modificar la herramienta**, quiero comprobar que las capacidades actuales conservan su comportamiento antes de añadir otras.
+- **Al trabajar en una capacidad**, quiero encontrar juntos sus contratos, reglas y operaciones, reconocer sus componentes cliente y comprobar el recorrido sin reconstruir mentalmente toda la aplicación.
 - **Al preparar una instalación**, quiero ejecutarla desde instrucciones reproducibles sin depender de la máquina original del desarrollador.
 - **Al actualizar o recuperar la instancia**, quiero conservar los datos y saber cómo proceder ante un fallo, sin resultados silenciosamente incompletos.
 - **Al terminar la transición**, quiero que el sistema nuevo sea suficiente para operar la app y que exista una condición clara para comenzar Recovery.
@@ -68,14 +71,19 @@ No se construye en esta entrega una plataforma clínica, un servicio comercial m
 | --- | --- |
 | EV-01 | Preservar las capacidades actuales inventariadas: identidad/acceso, Training y sincronización/offline, catálogo, medios, administración, notificaciones, coach, MCP e import/export. Revalidar autenticación, permisos por propietario/acción, revocación y auditoría durante el traspaso; diferencias o limitaciones de compatibilidad se resuelven expresamente. |
 | EV-02 | Conservar identidad, propiedad y significado del historial y configuración migrados; proteger los datos pendientes en clientes. Ninguna migración transforma objetivos o cálculos en resultados realizados ni altera el historial por accidente. |
-| EV-03 | Construir, iniciar, detener y verificar el stack objetivo desde un checkout limpio con instrucciones reproducibles y runtime en contenedores. Las verificaciones necesarias tienen una superficie documentada y reproducible. |
+| EV-03 | Construir, iniciar, detener y verificar el stack objetivo desde un checkout limpio con instrucciones reproducibles y runtime en contenedores. Distinguir desarrollo, ensayo/CI y operación; demostrar build correcto sin caché y reutilización de dependencias cuando no cambian, sin prometer tiempos no medidos. Las verificaciones necesarias tienen una superficie documentada y reproducible. |
 | EV-04 | Disponer de procedimientos de respaldo, restauración y tratamiento de fallos comprobados para el alcance operativo acordado, incluyendo los elementos necesarios fuera de la base de datos. No prometer recuperación o plazos que no se hayan demostrado. |
-| EV-05 | Completar la sustitución del backend y persistencia seleccionados: el destino funciona con una autoridad clara y los consumidores dejan de depender del almacenamiento retirado. Conservar una versión recuperable no equivale a mantener una dependencia activa del sistema anterior. |
+| EV-05 | Completar la sustitución del backend y persistencia seleccionados: el destino funciona con una autoridad clara y los consumidores dejan de depender del almacenamiento retirado. Preservar como biblioteca neutral el código JavaScript que aún necesite el frontend, sin depender de la API Node retirada. Conservar una versión recuperable no equivale a mantener una dependencia activa del sistema anterior. |
 | EV-06 | Mantener documentación y artefactos soportados coherentes con lo entregado; identificar expresamente alternativas legacy o fuera del soporte objetivo. |
 | EV-07 | Comenzar la implementación de Recovery y las integraciones posteriores solo después de la aceptación de plataforma. La evolución funcional no se usa para compensar una migración incompleta. |
 | EV-08 | Poder diagnosticar fallos y latencias, correlacionar operaciones y reconocer indisponibilidad o saturación con señales verificables, acceso/retención definidos y sin exponer datos privados. Un fallo del destino de telemetría mantiene el contrato de las operaciones; auditoría e historial conservan sus garantías propias. |
+| EV-09 | Localizar cada capacidad portada en un módulo con contratos, reglas, operaciones y acceso a datos de propiedad explícita, y reconocer su recorrido en el frontend conservado. Demostrar dependencias controladas, responsabilidad transaccional entre operaciones y pruebas por caso de uso; reorganizar carpetas sin evidencia de comportamiento no satisface el resultado. |
 
 **Restricciones confirmadas:** backend Python/FastAPI y PostgreSQL; conservar el frontend y las capacidades útiles existentes; desarrollo y despliegue con contenedores guiados por los patrones pertinentes de AI Tutor. Las versiones, bibliotecas auxiliares, esquema, contratos de transición y arquitectura de pruebas corresponden a arquitectura y a las especificaciones posteriores.
+
+La organización objetivo es un monolito modular por funcionalidad. La [propuesta de módulos y vertical slices](reference/platform-modularity.md) concreta responsabilidades, contratos, componentes frontend, dependencias y slice piloto. Conservar el frontend permite mejoras internas acotadas al área intervenida, con pruebas; no exige trasladar todos sus archivos ni sustituir su estado local, estilos o herramientas.
+
+La [responsabilidad por fase](reference/platform-modularity.md#responsabilidad-y-aceptación-por-fase) asigna biblioteca JS compartida, caché, imagen final, ambientes y transacciones a Foundation, port y operación. Foundation aporta evidencia sintética y handoff; port conserva capacidades; operación entrega imágenes/ambientes soportados y verifica corte/retirada. No se acredita el resultado final con una imagen de pruebas ni se retira soporte de clientes/plataformas silenciosamente.
 
 La migración es costosa de revertir después de recibir datos nuevos. Concretar preservación y recuperación antes del uso real; un backend parcial no satisface la entrega completa.
 
@@ -86,11 +94,12 @@ La migración es costosa de revertir después de recibir datos nuevos. Concretar
 | Continuidad funcional | Capacidades incluidas operativas con sus contratos o diferencias expresamente resueltas | Matriz y evidencias de paridad de arquitectura §§9 y 12; EV-01. |
 | Seguridad conservada y comprobada | Acceso y acciones limitados al actor autorizado, revocación y eventos audit interpretables | Casos de seguridad antes del corte y tras retirada, referenciados desde arquitectura; EV-01. |
 | Continuidad de datos | Datos interpretables y sin pérdida o sobrescritura silenciosa | Ensayo de migración, clientes pendientes y verificación tras corte; EV-02. |
-| Instalación/operación reproducibles | La app funciona desde un checkout limpio conforme a las instrucciones | Evidencia de operación independiente de la máquina original; EV-03/EV-06. |
+| Instalación/operación reproducibles | La app funciona desde un checkout limpio conforme a las instrucciones, con ambientes explícitos e imagen entregable identificada | Matriz de build/caché, inventario runtime y combinaciones de ambientes verificadas en sus fases; EV-03/EV-06 y GO. |
 | Recuperación comprobada | Se puede restaurar el alcance acordado y continuar con acceso y datos coherentes | Ensayo completo y límites documentados; EV-04. |
 | Sustitución completa | El backend nuevo sirve la app y sus consumidores sin accesos activos al almacenamiento sustituido | Verificación después de retirada técnica; EV-05. |
 | Secuencia respetada | Recovery no comienza con la plataforma pendiente | Aceptación de plataforma registrada antes del primer cambio funcional; EV-07. |
 | Diagnóstico operativo | Se puede localizar una operación y distinguir fallo interno/dependencia, conflicto y saturación sin revelar datos privados | Casos sintéticos y verificación posterior al corte conforme a GO; EV-08. |
+| Modularidad verificable | Cada capacidad portada tiene propietario y contrato localizables, dependencias explícitas y recorrido cliente probado cuando corresponde | Slice piloto Training y revisión de los módulos portados según la propuesta modular, dentro de GP/GO/G3; EV-09. |
 
 El cierre requiere **todos** estos resultados. No exige ausencia de toda deuda histórica: identificar la base y demostrar que el cambio no introduce regresiones dentro del alcance. Levantar contenedores o importar filas por sí solos no acredita aceptación.
 
@@ -112,6 +121,8 @@ El cierre requiere **todos** estos resultados. No exige ausencia de toda deuda h
 | --- | --- | --- |
 | Versiones/entorno objetivo y herramientas auxiliares | Arquitectura y especificación de Foundation Python | Evidencia técnica reproducible y operación objetivo. |
 | Matriz exacta de capacidades y clientes compatibles | Caracterización del sistema y handoff de migración | Aceptación de paridad y alcance de EV-01. |
+| Correspondencia de módulos, contratos y componentes por recorrido | Propuesta modular y OpenSpecs de Foundation/port; evidencia del slice piloto | EV-09; Foundation aporta estructura parcial, no aceptación de módulos funcionales. |
+| Biblioteca JS neutral, transacciones colaborativas y entrega operativa | Responsabilidad por fase de la propuesta modular; escenarios Foundation y posteriores OpenSpecs de port/operación | EV-01/02/03/05/06/09; no retirar fuentes compartidas ni aceptar operación sin verificar sus imágenes, ambientes y soporte. |
 | Conservación de sesiones, adaptación de credenciales y acceso de consumidores | Arquitectura y pruebas de transición | Continuidad de acceso; no autoriza sustituir la experiencia de autenticación automáticamente. |
 | Viabilidad de cada proveedor/runtime del coach y contrato MCP | Arquitectura y ensayos acotados | Retirada completa sin pérdida de capacidades. |
 | Inventario real, mantenimiento, recuperación y plazos aceptables | Plan operativo previo al corte | Migración de datos reales y aceptación EV-02/EV-04. |

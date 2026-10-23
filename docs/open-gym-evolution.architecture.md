@@ -11,6 +11,8 @@ description: Contratos, transición y gates de la plataforma objetivo Python/Fas
 
 **Alcance:** documentación de dirección, contratos y aceptación; no ejecuta código, OpenSpecs, instalaciones, migraciones o despliegues. Una modificación futura debe identificar la decisión que sustituye y su motivo.
 
+**Ampliación modular:** por solicitud posterior del promotor, se concreta la organización por vertical slices en la [referencia de modularidad](reference/platform-modularity.md). Sustituye la colocación futura no definida por propiedad funcional de contratos, reglas, operaciones y consultas, conservando el frontend y sus comportamientos. Esta revisión modifica únicamente documentación y artefactos del cambio activo; no implementa el destino ni altera evidencia histórica.
+
 **Fuentes de intención:** [PRD Evolution](open-gym-evolution.prd.md) para la entrega de plataforma y [PRD aprobado de Recovery](open-gym-recovery.prd.md) para sus requisitos funcionales posteriores. Complementos: [discovery](dev/personal-recovery-discovery.md) y [glosario](../GLOSSARY.md). La arquitectura define mecanismos y aceptación técnica; no amplía el MVP funcional de Recovery. La evidencia sintética archivada conserva su alcance histórico.
 
 **Lectura:** decisiones aprobadas, recomendaciones y pendientes no equivalen a pruebas ejecutadas. Este plan no es DDL ni tareas de implementación. Leer [seguridad](reference/platform-security.md) al modificar acceso/audit, [observabilidad](reference/platform-observability.md) al instrumentar/operar y [contratos Recovery](reference/recovery-contracts.md) para su entrega posterior. El [índice documental](README.md#documentation-authority) delimita fuentes de verdad.
@@ -24,6 +26,8 @@ Completar la transición de la aplicación servidor a un monolito modular Python
 **Entregas posteriores:** Recovery completo según PRD y G4/G5 → Garmin Connect con alcance/acceso verificados → ampliaciones de IA con evaluación y consentimiento. No comenzar su implementación funcional antes de aceptar plataforma. Recovery mantendrá identidad, Training compatible, dominio aislado, guardado confiable, snapshots, recuperación y experiencia web responsive. LangChain/LangGraph, pgvector, colas y Kubernetes no son dependencias anticipadas.
 
 **Monolito y contenedores:** una sola aplicación backend con módulos internos, una unidad de release y tres servicios Compose iniciales: `web` (nginx/estáticos), `api` (FastAPI) y `db` (PostgreSQL privado). Migraciones como proceso puntual separado del runtime. Esto no exige una imagen conjunta ni introducir microservicios; PostgreSQL conserva su contenedor y volumen propios. No implica portar la UI ni todos sus helpers a Python.
+
+La [construcción/caché](reference/platform-modularity.md#construcción-y-caché-verificables), los [targets entregables](reference/platform-modularity.md#targets-e-imagen-entregable) y la [matriz de ambientes](reference/platform-modularity.md#matriz-de-ambientes-y-comandos-objetivo) tienen aceptación por fase: Foundation prueba imágenes de ensayo; el port prepara desarrollo/CI; operación entrega runtime/migrador y combinaciones Compose explícitas. Linux/amd64 es el alcance inicial de evidencia Python; arm64 y cualquier retirada de soporte previo requieren prueba/decisión expresa antes del corte. Esta edición no cambia Dockerfiles, Compose, lockfiles ni workflows.
 
 ## 2. Base de evidencia y límites de la auditoría
 
@@ -54,6 +58,7 @@ La [comparación histórica](research/evolution-architecture-evidence.md#23-ai-t
 | Paridad antes del corte | Inventario de capacidades, Foundation Python, pruebas de contratos y consumidores en entorno sintético; G0 antes de cualquier migración real. |
 | RLS para Recovery, condicionada | Debe pasar pruebas reales de propietario, transacciones y pool; no se puede declarar efectiva antes. |
 | Frontend y experiencia actuales | React/Vite/Zustand, componentes, catálogo, acceso rápido y PWA. |
+| Vertical slices en monolito modular | Cada funcionalidad posee contratos, reglas, operaciones y consultas. Infraestructura común pequeña; frontend actual con componentes/hooks/clientes de propiedad explícita, mejorados por área sin reorganización masiva. Ver §5.1. |
 | Una autoridad por dominio | Sin dual-write permanente, espejos autoritativos ni fallback silencioso a archivos. |
 | Pool async y migrador único | Dirección técnica: `asyncpg` y Alembic según §8; versiones, locking y recuperación pendientes de prueba en Python. `pg`/`node-pg-migrate` describen la Foundation histórica. |
 | G0 obligatorio antes del corte | Foundation puede investigarse y probarse previamente con datos sintéticos; eso no habilita el corte ni acredita el inventario. |
@@ -129,6 +134,14 @@ Las filas Recovery describen contratos de la entrega posterior; no autorizan cre
 Para reutilización futura de catálogo/controles y aislamiento de datos Recovery, leer [interfaz y componentes](reference/recovery-contracts.md#reutilización-e-interfaz).
 
 Separación modular no equivale a sandbox frente al administrador del host ni a una API comprometida. Se requieren permisos y contratos, no solo carpetas diferentes.
+
+### 5.1 Organización por funcionalidad y contratos
+
+La [propuesta modular](reference/platform-modularity.md) es la fuente propietaria del mapa de módulos, árboles objetivo, reglas de dependencia, contratos Pydantic, correspondencia frontend, composición Docker y evidencia por slice. Concentra cada caso de uso en su módulo; evita nuevos directorios globales de controllers/services/repositories que dispersen una misma funcionalidad. Los archivos se crean por necesidad, sin capas de paso.
+
+Foundation implementará solo infraestructura y salud cuando se autorice. El port posterior usará como piloto la lectura/guardado Training compatible, con identidad previa, transacción, conflictos y reconciliación del frontend actual. El mapa completo no autoriza crear módulos vacíos, nuevas tablas de negocio o Recovery durante Foundation. La aceptación EV-09 se incorpora a GP/GO/G3, sin nuevo gate ni reemplazo de paridad.
+
+El [contrato transaccional intermodular](reference/platform-modularity.md#transacción-entre-operaciones-de-módulos) fija un iniciador y un handle compartido sin commits internos; Foundation prueba colaboradores sintéticos y el port casos reales. La [biblioteca JS neutral](reference/platform-modularity.md#biblioteca-javascript-compartida-y-retirada-de-api) conserva coach local y generadores antes de retirar `api/`: su destino es `shared/coach-core/`, sin API Node de negocio permanente. No eliminar el árbol legacy hasta verificar imports y builds actualizados.
 
 ## 6. Modelo conceptual PostgreSQL
 
@@ -290,9 +303,13 @@ PostgreSQL JSONB reordena claves y cambia representación. Validar equivalencia 
 
 **Estado:** G0–G5, GP y GO pendientes para el destino objetivo. Foundation Node es evidencia histórica y no valida Python ni G1 operativo. G0 precede al corte real; los ensayos sintéticos autorizados pueden precederlo sin acreditar proveedor o recuperación operativa.
 
-**Cierre de plataforma:** requiere G0, G1, GP, GO, G2 y G3. GP se demuestra antes del corte y G3 tras retirada; GO cubre ensayo previo y verificación operativa posterior, incluidos seguridad y observabilidad. **Recovery comienza a implementarse después de este cierre.** G4/G5 y sus tres sesiones reales pertenecen a la entrega posterior. Esta matriz gobierna la aceptación técnica de EV-01–EV-08.
+**Cierre de plataforma:** requiere G0, G1, GP, GO, G2 y G3. GP se demuestra antes del corte y G3 tras retirada; GO cubre ensayo previo y verificación operativa posterior, incluidos seguridad y observabilidad. **Recovery comienza a implementarse después de este cierre.** G4/G5 y sus tres sesiones reales pertenecen a la entrega posterior. Esta matriz gobierna la aceptación técnica de EV-01–EV-09.
 
 Trazabilidad: EV-01 → GP/G3, incluido [seguridad](reference/platform-security.md#evidencia-de-aceptación); EV-02 → G0/G1/G2/G3; EV-03 → GO; EV-04 → G1/GO/G2/G3; EV-05 → G2/G3; EV-06 → GO/G3; EV-07 → cierre conjunto registrado antes de Recovery; EV-08 → GO y [casos de observabilidad](reference/platform-observability.md#evidencia-para-go). Registrar requisito → escenario OpenSpec → prueba → evidencia con revisión/entorno/resultados/límites.
+
+EV-09 → GP/GO/G3: probar el slice piloto y revisar propiedad, contratos e imports de los módulos portados según la [referencia modular](reference/platform-modularity.md#slice-piloto-y-evidencia-de-aceptación). El resultado debe conservarse después de retirar Node; checks documentales y Foundation aislada no acreditan este cierre.
+
+La [matriz de responsabilidad por fase](reference/platform-modularity.md#responsabilidad-y-aceptación-por-fase) añade evidencia concreta sin otro gate: transacción compartida y biblioteca neutral en GP/G3; build frío/caliente y runtime/ambientes soportados en GO; imports/builds independientes del árbol retirado en G3. Los OpenSpecs de port/operación deben contener sus requisitos, escenarios y tareas antes de implementar esos entregables.
 
 | Gate | Evidencia de aceptación | Recuperación si falla |
 | --- | --- | --- |
@@ -357,9 +374,9 @@ El [protocolo responsive Recovery](reference/recovery-contracts.md#validación-w
 
 **Estado:** prioridad documental revisada el 2026-10-22. Foundation Node está archivada; la plataforma Python y Recovery no están implementados. Los siguientes tramos son handoffs conceptuales, no OpenSpecs creadas ni tareas autorizadas por esta edición:
 
-1. **Caracterización y Foundation Python/PostgreSQL:** contratos de referencia, entorno sintético, pool/lifespan, roles, Alembic, recuperación y CI. Reutilizar requisitos/escenarios históricos, aportando evidencia nueva de G1 para Python.
-2. **Port de capacidades y migración ensayada:** backend Python compatible, identidad/Training y consumidores §9.1, frontend actual operando en el entorno nuevo, importación equivalente y recuperación representativa. GP y parte previa de GO.
-3. **Corte, retirada y aceptación de plataforma:** G0, G1 operativo, GP/GO previos al corte, autoridad única, compatibilidad tras retirada y verificación operativa posterior. Cierre G2/G3/GO y EV-01–EV-08; ningún lector activo del almacenamiento sustituido ni API Node de negocio necesaria.
+1. **Caracterización y Foundation Python/PostgreSQL:** contratos de referencia, entorno sintético, pool/lifespan, roles, Alembic, recuperación y CI. Añadir inventario JS compartido, prueba transaccional de colaboradores sintéticos y matriz de caché sobre imágenes de ensayo. Reutilizar requisitos/escenarios históricos, aportando evidencia nueva de G1 para Python sin acreditar operación.
+2. **Port de capacidades y migración ensayada:** backend Python compatible por módulos, identidad mínima previa al slice piloto Training y luego consumidores §9.1; frontend actual operando en el entorno nuevo, importación equivalente y recuperación representativa. Trasladar biblioteca JS neutral y adaptar generadores/builds; implementar desarrollo/CI y transacciones intermodulares de negocio. Cada OpenSpec de port declara contratos, dependencias y componentes del recorrido según §5.1. GP, EV-09 y parte previa de GO.
+3. **Operación, corte, retirada y aceptación de plataforma:** targets test/runtime/migrate y herramientas operativas puntuales, ambientes explícitos, soporte de plataformas y matriz de caché entregable; G0, G1 operativo, GP/GO previos al corte, autoridad única, compatibilidad tras retirada y verificación operativa posterior. Cierre G2/G3/GO y EV-01–EV-09; ningún lector activo del almacenamiento sustituido ni API Node de negocio necesaria. Preparar/probar imágenes y operación antes del corte; no posponer su aceptación hasta recibir datos nuevos.
 4. **Recovery:** `add-recovery-foundation` y `add-recovery-experience`, únicamente después del cierre de plataforma. Dominio de procesos/indicaciones/sesiones/correcciones/recibos y experiencia completa según PRD, G4/G5 y §12.1. Después, tres sesiones reales para evaluar utilidad.
 5. **Garmin Connect:** tras Recovery, definir datos/acceso/autenticación/procedencia y deduplicación; conector Python sin sesiones Recovery implícitas. La exportación `.fit` existente no equivale a esta integración.
 6. **Ampliaciones de IA:** después de las etapas anteriores, casos de uso, consentimiento, límites y evaluación propios. Mantener el coach actual durante plataforma no habilita datos Recovery/Garmin automáticamente.
@@ -382,11 +399,15 @@ Esos resultados no fueron reejecutados en esta edición. No acreditan proveedor,
 
 ### 14.2 Handoff de Foundation Python
 
-**Entradas:** PRD Evolution EV-01–EV-08, esta arquitectura §§7–12 y referencias de seguridad/observabilidad, contratos actuales y evidencia histórica. Seleccionar versiones estables compatibles y documentar licencias/lockfiles antes de implementarlas.
+**Entradas:** PRD Evolution EV-01–EV-09, esta arquitectura §§5.1 y 7–12, referencias de modularidad/seguridad/observabilidad, contratos actuales y evidencia histórica. Seleccionar versiones estables compatibles y documentar licencias/lockfiles antes de implementarlas.
 
 **Alcance sintético:** PostgreSQL descartable, sin perfiles, secretos, medios ni configuración real; pool Python/lifespan, límites/timeouts/cancelaciones, roles, migración única con locking/fallos, RLS de fixtures, backup/restore y job CI obligatorio con DB real. No migrar usuarios ni crear el dominio Recovery por adelantado.
 
 **Salida esperada:** comandos y evidencias reproducibles, versiones fijadas y límites explícitos, pruebas de ausencia de DB que fallen y estado de cada gate. El entorno sintético puede preceder decisiones finales de proveedor, pero G1 operativo requiere validar el entorno objetivo antes del corte. Ni Foundation Python aislada ni su futura aprobación reemplazan GP/GO o autorizan migración real.
+
+**Salida modular acotada:** infraestructura compartida bajo `core/`, contratos/probes Foundation bajo `health/`, composición en la factory y revisión de dependencias. El inventario de caracterización añade módulo propietario y recorrido frontend existente como handoff. El port funcional y sus reorganizaciones justificadas requieren un cambio posterior; no se declara EV-09 satisfecho con ese mapa.
+
+**Salida de build/handoff:** resultados nuevos de caché e instalación bloqueada para imágenes de ensayo, rollback de dos colaboradores sintéticos y mapa JS/ambientes/targets con responsable y criterio por fase. Runtime de producción, traslado a `shared/coach-core/`, ambiente dev del port, proveedor y arm64 siguen pendientes. Conservar toda evidencia histórica con su alcance original.
 
 ## 15. Pendientes operativos y de verificación
 
@@ -406,4 +427,4 @@ Esos resultados no fueron reejecutados en esta edición. No acreditan proveedor,
 | Observabilidad operativa | Seleccionar instrumentación y destino de ensayo, acceso, retención, muestreo y alertas; demostrar casos EV-08 sin datos privados | GO; no requiere otro gate ni dashboard específico |
 | Ventana de mantenimiento/rollback | Pausar todos los escritores y resolver procedimiento antes/después de nuevas escrituras | Corte definitivo |
 
-**Siguiente trabajo:** especificar el tramo de caracterización/Foundation Python de §14.2 y resolver sus pendientes antes de ejecutar. Las pruebas y evidencias, no el cierre documental, acreditarán los gates.
+**Siguiente trabajo:** continuar las tareas pendientes del [cambio activo Foundation Python](../openspec/changes/add-python-platform-foundation/proposal.md) solo bajo su autorización de ejecución, con los criterios modulares de §5.1; después especificar el port funcional y su piloto. Esta revisión no implementa esas tareas. Las pruebas y evidencias, no el cierre documental, acreditarán los gates.
