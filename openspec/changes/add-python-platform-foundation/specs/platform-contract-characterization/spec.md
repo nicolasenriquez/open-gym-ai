@@ -1,5 +1,13 @@
 ## ADDED Requirements
 
+### Requirement: Approved schema and operation handoff
+The Foundation documentation handoff SHALL reference the approved platform SQL schema, security and local operation contracts and the separate planned port-compatible-platform change. It SHALL distinguish target tables/relationships/indexes, session and MCP policies, roles, private local topology and recovery objectives from executed Foundation evidence. It SHALL NOT implement business tables, credentials, backup scheduling or cutover, reopen completed characterization tasks or credit functional/operational acceptance from this handoff.
+
+#### Scenario: Consolidated decisions stay outside synthetic delivery
+- **WHEN** the pending Foundation closeout documentation is prepared
+- **THEN** it identifies the separate port/operation owner, contract references and still-pending DDL/parity/restore/cutover evidence
+- **AND** previously completed characterization retains its original scope and the future runtime tasks remain pending in their own change
+
 ### Requirement: Versioned capability and consumer reference
 The change SHALL record a characterization matrix covering architecture section 9.1: HTTP/OpenAPI, identity/access/passwords/sessions, Training/sync and local/offline client state, administration/push/audit, catalogue/media/import/export, coach and MCP. Each entry SHALL identify producers, consumers, stores, current authority, observable contract, source revision, fixtures/test commands, coverage limits and the future parity gate. Every affected store SHALL have an explicit proposed disposition: replace, retain with justification or retire. Inventory alone SHALL NOT be reported as executed parity evidence.
 

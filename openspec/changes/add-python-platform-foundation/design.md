@@ -1,5 +1,7 @@
 ## Context
 
+Delivery posterior 4.1: solicitud exclusiva y confirmación «y» para builds bloqueados/fixtures PostgreSQL propios, sin host installs/datos reales/puertos/socket. Se conserva la seam Database/SQL aprobada y se acota a un primer RED antes de autorizar GREEN 4.2; no escribir toda la matriz por adelantado. CLI pool ejecuta una prueba real de dos colaboradores: mismo PID reusado, observador restringido ve dos filas tras fallo frente a cero esperadas. Scaffold no operacional bajo core, sin implementar transacciones/contexto; 4.1 sigue parcial y sin checkbox, con casos restantes por ciclos. Evidencia/límites en tasks y backend/README; 4.2 y posteriores no autorizados. El párrafo siguiente conserva el delivery anterior.
+
 Delivery 3.3 autorizado exclusivamente para contratos sintéticos/inventarios/evidencia, sin avanzar a 4.1. La referencia `backend/CONTRACTS.md` consolida ocho áreas, propietarios/recorridos cliente, siete proveedores y fuentes/generadores compartidos. El manifest añade únicamente selección de tests existentes del comparador y adapters. Run final `opengym-python-foundation-test-feafd9ce288d9f11`: seis casos HTTP y cuatro suites PASS, cleanup confirmado. No cambios de seam, aplicación, dependencias o entorno normal; no paridad Python ni gates operativos. Estado y límites de entrega en `tasks.md`/`backend/README.md`; los párrafos siguientes conservan su contexto histórico.
 
 Ampliación documental por solicitud del promotor: [arquitectura modular por vertical slices](../../../docs/reference/platform-modularity.md), EV-09 y correspondencia backend/frontend. Define propiedad y colocación para el trabajo pendiente; esta edición no implementa código, no mueve archivos, no repite pruebas runtime ni amplía permisos de ejecución históricos. Las tareas completadas conservan su evidencia original; la conformidad estructural nueva queda pendiente de verificación.
@@ -11,6 +13,13 @@ Cambio de runtime/tooling especificado el 2026-10-22. Delivery: 1.1 completado c
 `api/foundation/` y `compose.foundation.yml` son un ensayo aislado Node, con pool, migraciones, RLS y recuperación. Su historial y sus 55 pruebas sintéticas registradas son antecedentes, no resultados Python. `.github/workflows/test.yml` ya ejecuta esa Foundation. En el checkout de referencia anterior a delivery no había paquete backend Python ni migraciones productivas PostgreSQL. No se inspeccionaron datos ni configuración personales, servicios vivos o proveedor.
 
 ## Goals / Non-Goals
+
+Handoff consolidado aprobado: [esquema SQL](../../../docs/reference/platform-schema.md)
+y [operación local](../../../docs/reference/platform-operations.md) se implementarán
+en [port-compatible-platform](../port-compatible-platform/proposal.md), dependiente
+de esta Foundation. Aquí solo se enlazan y distingue su evidencia: tablas/roles
+de negocio, MCP HTTP, backup programado, retención y corte no pertenecen a las
+pruebas sintéticas actuales. Esta edición no modifica estado ni resultados previos.
 
 **Goals:** referencia reproducible de compatibilidad, Foundation Python aislada, transacciones/roles/locking comprobados sobre PostgreSQL real, recuperación cifrada y CI con fallos explícitos. Aportar evidencia sintética a G1 y preparar GP conforme a arquitectura §§8–12 y 14.2.
 
@@ -108,6 +117,8 @@ La transferencia separa directorios y base destino, no demuestra copia off-host,
 Para este slice, salud, logs estructurados acotados y errores seguros son obligatorios. Evaluación de EV-08: no añadir aún un SDK/collector OpenTelemetry; mantener interfaz DB concentrada y registrar cobertura de salud/timeouts, quedando tracing, métricas/exportador, acceso/retención y ensayo completo de GO expresamente para port/operación. No declarar EV-08 satisfecho con health/logs. Esta elección evita instrumentar rutas de negocio inexistentes.
 
 ### 7. Seams públicas de prueba
+
+Autorización actual: `/opsx-delivery-workflow openspec\changes\add-python-platform-foundation 4.1` y confirmación «y» para builds con lockfiles existentes exclusivamente en contenedores y creación/cleanup de fixtures PG propias. La respuesta previa acotó a un único RED (scaffold ejecutable para llegar a aserción, no fallo de import/setup), sin GREEN/4.2 ni matriz completa adelantada. La primitiva colaborativa documental añadida se incorpora al primer caso mediante dos funciones sintéticas que reciben el mismo handle; no introduce módulos ni nueva seam. Los criterios restantes de 4.1 siguen pendientes por ciclos; no se autoriza commit/publicación/sync/archive/cierre.
 
 Histórico de autorización para 3.2: solicitud explícita `/opsx-delivery-workflow openspec\changes\add-python-platform-foundation 3.2`, manteniendo ponytail ultra, y aprobación de builds/dependencias bloqueadas exclusivamente en contenedores desechables. Cubrió implementación/validación enfocada del comparador, fixtures HTTP y reutilización de suites cliente/MCP por el runner existente, incluidas comprobaciones de integración necesarias. Se conserva la seam aprobada; sin instalaciones host, datos personales, nuevas dependencias, cierre de 3.3 ni tareas posteriores. Esta revisión solo es documental.
 

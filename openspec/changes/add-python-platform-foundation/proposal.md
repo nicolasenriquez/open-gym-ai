@@ -29,10 +29,19 @@ Ninguna. `postgres-foundation` conserva su contrato Node y su evidencia históri
 
 ## Impact
 
-Cambio de runtime/tooling, aunque esta fase solo crea la especificación. La implementación añadirá `backend/` como raíz Python, `compose.python-foundation.yml`, un orquestador Node sin dependencias en `scripts/python-foundation.mjs` y un job en `.github/workflows/test.yml`. Node se conserva para frontend, MCP y referencia de compatibilidad.
+Cambio de runtime/tooling ya iniciado: toolchain, entorno aislado y caracterización están entregados; el primer RED de transacciones de 4.1 está registrado como parcial. El [tracker](tasks.md) y sus evidencias gobiernan el estado actual, no la autoría inicial de la especificación. Ya existen `backend/`, `compose.python-foundation.yml` y el orquestador Node `scripts/python-foundation.mjs`; la implementación restante y el job CI propio de esta Foundation siguen pendientes según sus tareas. Node se conserva para frontend, MCP y referencia de compatibilidad. Esta corrección solo actualiza redacción; no implementa 4.2 ni acredita el checkpoint de transacciones.
 
 Dependencias objetivo: FastAPI/Pydantic/Uvicorn, asyncpg, Alembic/SQLAlchemy limitado a migraciones, uv, pytest/pytest-asyncio/httpx, Ruff/mypy y cryptography para cifrado autenticado. Resolver y fijar versiones/licencias en el primer prerrequisito de entrega, dentro de un contenedor desechable y sin instalar herramientas en el host.
 
 Autoridad de alcance: [PRD Evolution](../../../docs/open-gym-evolution.prd.md), [arquitectura](../../../docs/open-gym-evolution.architecture.md), [modularidad](../../../docs/reference/platform-modularity.md), [seguridad](../../../docs/reference/platform-security.md) y [observabilidad](../../../docs/reference/platform-observability.md). Esta entrega contribuye a EV-01/02/03/04/08 y prepara parcialmente EV-09; no acredita cierre de plataforma EV-05/06/07/09, GP/GO ni G1 operativo. El slice piloto Training, los módulos funcionales y la adaptación acotada del frontend pertenecen al port posterior.
 
 La [responsabilidad por fase](../../../docs/reference/platform-modularity.md#responsabilidad-y-aceptación-por-fase) separa: Foundation = builds/transacciones sintéticos e inventarios; port = biblioteca JS neutral, desarrollo/CI y casos intermodulares reales; operación = targets entregables, ambientes soportados, caché final y retirada verificada. Esta ampliación solo documenta requisitos pendientes; no cambia permisos, Dockerfiles, código, locks o tareas completadas.
+
+El diseño confirmado de [esquema SQL](../../../docs/reference/platform-schema.md),
+[seguridad](../../../docs/reference/platform-security.md) y
+[operación local](../../../docs/reference/platform-operations.md) tiene ahora
+[OpenSpec de port/operación propio](../port-compatible-platform/proposal.md).
+Foundation solo entrega su handoff documental: sin tablas/roles de negocio, tokens
+MCP, scheduler de backups, migración real ni aceptación operativa. Se conservan
+checkboxes y evidencias de delivery ya existentes, sin aplicarle retroactivamente
+los criterios funcionales del cambio posterior.
