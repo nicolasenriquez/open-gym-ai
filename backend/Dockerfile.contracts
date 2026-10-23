@@ -4,9 +4,26 @@ RUN chown node:node /app/api
 USER node
 COPY --chown=node:node api/package.json api/package-lock.json ./
 RUN npm ci --ignore-scripts --omit=optional --engine-strict --no-audit --no-fund && test "$(node --version)" = v22.23.2 && test "$(npm --version)" = 10.9.8
+WORKDIR /app/frontend
+COPY --chown=node:node frontend/package.json frontend/package-lock.json ./
+RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+WORKDIR /app/mcp
+COPY --chown=node:node mcp/package.json mcp/package-lock.json ./
+RUN npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+WORKDIR /app/api
 COPY --chown=node:node api/*.js ./
 COPY --chown=node:node api/coach/ ./coach/
-COPY --chown=node:node backend/contracts-run.mjs backend/versions.json LICENSE /app/
+COPY --chown=node:node api/test/ ./test/
+COPY --chown=node:node api/openapi.yaml ./
+COPY --chown=node:node frontend/src/ /app/frontend/src/
+COPY --chown=node:node frontend/scripts/ /app/frontend/scripts/
+COPY --chown=node:node frontend/vite.config.js /app/frontend/
+COPY --chown=node:node mcp/src/ /app/mcp/src/
+COPY --chown=node:node mcp/test/ /app/mcp/test/
+COPY --chown=node:node mcp/vitest.config.js /app/mcp/
+COPY --chown=node:node scripts/build-api-docs.mjs /app/scripts/
+COPY --chown=node:node backend/contracts/ /app/contracts/
+COPY --chown=node:node backend/contracts-run.mjs backend/contracts-compare.test.mjs backend/versions.json LICENSE /app/
 WORKDIR /app
 ENV HOME=/tmp NODE_ENV=test
 ENTRYPOINT ["node", "contracts-run.mjs"]

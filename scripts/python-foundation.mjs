@@ -84,7 +84,7 @@ async function cleanup(project) {
 }
 
 async function run(group) {
-  if (group !== 'environment') throw new Error(`Python Foundation group not implemented: ${group}`);
+  if (!['environment', 'contracts'].includes(group)) throw new Error(`Python Foundation group not implemented: ${group}`);
   const project = `opengym-python-foundation-test-${randomBytes(8).toString('hex')}`;
   console.log(`Python Foundation project: ${project}`);
   if ((await resources(project)).length) throw new Error('Refusing an existing Python Foundation project');
@@ -99,10 +99,15 @@ async function run(group) {
   process.on('SIGTERM', stop);
   try {
     await step(['config', '--quiet']);
-    await step(['build', 'foundation-test', 'foundation-contracts']);
-    await step(['run', '--rm', '--no-deps', 'foundation-contracts', 'environment']);
-    await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'foundation-db']);
-    await step(['run', '--rm', '--no-deps', 'foundation-test', group]);
+    if (group === 'contracts') {
+      await step(['build', 'foundation-contracts']);
+      await step(['run', '--rm', '--no-deps', 'foundation-contracts', group]);
+    } else {
+      await step(['build', 'foundation-test', 'foundation-contracts']);
+      await step(['run', '--rm', '--no-deps', 'foundation-contracts', 'environment']);
+      await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'foundation-db']);
+      await step(['run', '--rm', '--no-deps', 'foundation-test', group]);
+    }
   } finally {
     try { await cleanup(project); }
     finally {

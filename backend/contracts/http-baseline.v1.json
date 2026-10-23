@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "1b2daff9199611604783faabf76cd741123cec95",
+  "setup": {
+    "secret": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "users": [{ "id": "owner_a", "name": "A" }, { "id": "owner_b", "name": "B" }],
+    "states": { "owner_a": { "_ts": 100, "_rev": 1, "routines": [], "workouts": [], "_unstamped": true, "_prior": {} } }
+  },
+  "cases": [
+    { "id": "http.health-populated.v1", "request": { "method": "GET", "path": "/api/health" },
+      "response": { "status": 200, "body": { "ok": true, "users": 2, "writable": true }, "headers": { "content-type": "application/json", "cache-control": "no-store" } } },
+    { "id": "auth.invalid-session.v1", "request": { "method": "GET", "path": "/api/data", "headers": { "cookie": "gymsid=invalid" } },
+      "response": { "status": 401, "body": { "error": "not signed in" } } },
+    { "id": "training.owner-a.v1", "request": { "method": "GET", "path": "/api/data", "owner": "owner_a" },
+      "response": { "status": 200, "body": { "state": { "_ts": 100, "_rev": 1, "routines": [], "workouts": [] }, "rev": 1 } } },
+    { "id": "training.owner-b.v1", "request": { "method": "GET", "path": "/api/data", "owner": "owner_b", "headers": { "x-user-id": "owner_a" } },
+      "response": { "status": 200, "body": { "state": null, "rev": 0 } } },
+    { "id": "http.bad-input.v1", "request": { "method": "POST", "path": "/api/register/options", "headers": { "content-type": "application/json" }, "body": "not json" },
+      "response": { "status": 400, "body": { "error": "invalid json" } } },
+    { "id": "admin.denied.v1", "request": { "method": "GET", "path": "/api/admin/users", "owner": "owner_b" },
+      "response": { "status": 403, "body": { "error": "forbidden" } } }
+  ]
+}

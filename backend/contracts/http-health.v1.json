@@ -1,0 +1,10 @@
+{
+  "id": "http.health.v1",
+  "sourceRevision": "1b2daff9199611604783faabf76cd741123cec95",
+  "request": { "method": "GET", "path": "/api/health" },
+  "setup": "Empty disposable DATA_DIR; writable tmpdir; no users",
+  "response": {
+    "status": 200,
+    "body": { "ok": true, "users": 0, "writable": true }
+  }
+}

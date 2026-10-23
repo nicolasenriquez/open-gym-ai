@@ -1,6 +1,45 @@
 # Python Foundation — isolated synthetic tooling
 
-[add-python-platform-foundation](../openspec/changes/add-python-platform-foundation/tasks.md): **1.1** supplies the pinned toolchain, **2.1** recorded the first CLI RED, **2.2** supplies the executable environment skeleton, and **2.3** verifies its runtime isolation, cleanup and ordinary Node API startup. Only `environment` runs proofs today. No business routes, Database wrapper, migrations, roles/RLS, recovery, contract baseline or CI job exist yet. The ordinary Node/JSON stack and historical Node Foundation are unchanged.
+[add-python-platform-foundation](../openspec/changes/add-python-platform-foundation/tasks.md): **1.1** supplies the pinned toolchain, **2.1–2.3** supply and verify the isolated environment, **3.1–3.2** supply contract inventory/comparison/execution, and **3.3** verifies per-area coverage and completes the port inventories. `environment` and `contracts` are available. No Python business routes, Database wrapper, migrations, roles/RLS, recovery or CI job exist yet. The ordinary Node/JSON stack and historical Node Foundation are unchanged.
+
+## Contract checkpoint (3.3)
+
+The authorized 3.3 run completed with synthetic fixtures only. `node scripts/python-foundation.mjs run contracts` passed: six HTTP cases and four manifest suites (comparator, 28 Node test files, 12 client files, three MCP files), with no detected skips. The existing ten comparator tests and nine adapter-contract tests are now selected by the manifest; no test/application logic or dependencies changed. Details, positive/negative evidence for all eight areas, providers/runtimes/sandbox limits, frontend ownership and neutral-JS/generator disposition live in [CONTRACTS.md](CONTRACTS.md#evidencia-y-cobertura-ejecutada-33).
+
+Final project `opengym-python-foundation-test-feafd9ce288d9f11`: Node 22.23.2, Linux amd64, Docker 29.4.0, host CLI Node 24.14.0. Inspect confirmed UID 1000, read-only root, dropped capabilities, no-new-privileges, private tmpfs/internal network and no binds/published ports. Both the initial and expanded runs completed cleanup, independently checked by project labels and names/tags. No PostgreSQL/Python or personal data were used.
+
+This completes the selected Node characterization checkpoint, not Python parity, clean-independent-checkout proof, real browser/device/provider validation, remote CI or operational gates. Cache was reused during build; the slice-9 cache matrix is not credited. 4.1 remains unstarted. No source relocation, production migration, sync/archive, commit or publication occurred. Prior sections below retain their original task evidence and scope.
+
+## Contract inventory and first RED (3.1)
+
+[CONTRACTS.md](CONTRACTS.md) maps all eight architecture §9.1 areas to producers, consumers, current stores, proposed dispositions, existing positive/negative cases, commands and limits at revision `1b2daff9199611604783faabf76cd741123cec95`. The inventory and pending commands are not executed baseline/parity evidence.
+
+```sh
+node --test backend/contracts-compare.test.mjs
+```
+
+Observed on host Node 24.14.0: **exit 1, one intended assertion failure**. The independent `http.health.v1` fixture expects status 200; the synthetic actual changes only status to 503. The comparator process parses both JSON files, prints `FOUNDATION_CONTRACT_COMPARE_PENDING`, and exits 0 instead of the expected 1. This is behavioral RED, not an import/setup failure. The minimal `compare <expected.json> <actual.json>` branch is a deliberately incomplete scaffold, not an operational comparator; 3.2 owns its GREEN implementation. It does not affect `environment` or enable `run contracts`.
+
+Only 3.1 is authorized in this step. No baseline suites, Docker builds, installs, real API requests or Python parity checks were run for characterization. The slice-3 checkpoint remains pending until 3.2–3.3. No expectations are regenerated from observed results, and no normalization is applied. Relevant focused host regressions and documentary checks are recorded alongside task 3.1.
+
+## Contract comparison and runner (3.2)
+
+The subsequent request authorized 3.2 and locked dependency builds in disposable containers. The first RED above is historical: the comparator now passes its rejection test and the matching-response case. It compares the complete declared response exactly, validates envelopes/64-KiB file bounds and emits only safe case ID/revision/result codes. No normalizations or expectation regeneration. Types, missing/null, ownership, semantic headers, cookie flags and Training stamps remain significant.
+
+```sh
+node --test backend/contracts-compare.test.mjs
+node scripts/python-foundation.mjs run contracts
+```
+
+[CONTRACTS.md](CONTRACTS.md) owns coverage, fixtures, existing suite commands, limits and the 3.3 handoff. `contracts` builds only the Node target, executes six independent HTTP cases plus the versioned Node/client/MCP suite manifest, and cleans its owned resources. It never starts PostgreSQL/Python. Tests use temporary synthetic state, fixture transports and sanitized environments. Container execution is non-root/read-only with tmpfs and no published ports or personal mounts. Existing lockfiles, dependencies and application behavior remain unchanged.
+
+Focused results: comparator **10/10**, new HTTP cases **6/6**, existing frontend import **16/16**, sync/import-restore **29/29**, MCP **95/95**, host CLI guards **4/4**, historical Foundation guards **5/5**. Node target version **22.23.2**; host CLI **24.14.0**. Input-validation and group-selection RED/GREEN are separate from baseline characterization. The first unavailable-Docker test using an empty Windows PATH timed out; using an explicit closed loopback Docker endpoint made that external prerequisite deterministic. That setup failure is not credited as behavioral RED.
+
+Integrated `node scripts/python-foundation.mjs run contracts`: **PASS, exit 0**. Six HTTP cases and all three manifest suites reported OK with revision/ID/command and no detected skips. Project `opengym-python-foundation-test-b404874bdb284358` completed owned cleanup. This executes the new integration for 3.2; it does not close 3.3's per-area coverage audit.
+
+Full affected harness regression: `node --test scripts/python-foundation.test.mjs` **PASS 14/14**, zero skips, including the existing environment isolation, failure and hard-kill cleanup proofs. Historical Foundation guards pass 5/5. Strict OpenSpec, syntax, diff, local fixture/source links and unchanged lockfile/pin checks pass. OKF initially passed (28 concepts); a subsequent global check found an unrelated concurrently added `docs/reference/platform-modularity.md` missing from `docs/reference/index.md` (29 concepts, `local/index-stale`). That file/index is outside this patch and preserved; the final global check cannot be credited as passing on that observed tree.
+
+3.3 remains pending for the per-area walkthrough and complete contract checkpoint. No Python parity, physical device/browser, real provider, clean independent checkout, remote CI or operational gate is credited here. Build cache/base images may remain; run-owned resources must be removed.
 
 ## Pinned environment
 

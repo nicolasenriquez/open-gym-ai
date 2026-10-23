@@ -210,8 +210,15 @@ for (const field of ['service', 'name']) {
   });
 }
 
+test('contracts fails explicitly when its Docker endpoint is unavailable', () => {
+  const result = invoke(cli, ['run', 'contracts'], { env: { ...process.env,
+    DOCKER_HOST: 'tcp://127.0.0.1:1', DOCKER_CONTEXT: '', DOCKER_TLS_VERIFY: '', DOCKER_CERT_PATH: '' } });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Docker (container failed|unavailable)/);
+});
+
 test('known unfinished groups fail explicitly instead of reporting successful proofs', () => {
-  for (const group of ['contracts', 'pool', 'migrations', 'isolation', 'recovery', 'all']) {
+  for (const group of ['pool', 'migrations', 'isolation', 'recovery', 'all']) {
     const result = invoke(cli, ['run', group], { env: { ...process.env, PATH: '' } });
     assert.equal(result.status, 1, group);
     assert.match(result.stderr, /group not implemented/);
