@@ -6,9 +6,14 @@ import sys
 
 
 def main() -> int:
-    if sys.argv[1:] != ["environment"]:
+    tests = {
+        "environment": "tests/test_environment.py",
+        "pool": "tests/core/test_database.py",
+    }
+    if len(sys.argv) != 2 or sys.argv[1] not in tests:
         print(json.dumps({"code": "FOUNDATION_GROUP_UNAVAILABLE"}))
         return 1
+    group = sys.argv[1]
     try:
         result = subprocess.run(
             [
@@ -18,14 +23,15 @@ def main() -> int:
                 "-q",
                 "-p",
                 "no:cacheprovider",
-                "tests/test_environment.py",
+                "--tb=short",
+                tests[group],
             ],
             check=False,
             timeout=60,
         )
         if result.returncode != 0:
             return 1
-        print(json.dumps({"code": "FOUNDATION_ENVIRONMENT_OK"}))
+        print(json.dumps({"code": f"FOUNDATION_{group.upper()}_OK"}))
         return 0
     except OSError, subprocess.TimeoutExpired:
         print(json.dumps({"code": "FOUNDATION_RUNNER_FAILED"}))
