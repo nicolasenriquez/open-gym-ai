@@ -3,3 +3,11 @@
 !pyproject.toml
 !uv.lock
 !dependency-licenses.json
+!Dockerfile
+!versions.json
+!src/
+!src/**
+!tests/
+!tests/**
+**/__pycache__
+**/.env*

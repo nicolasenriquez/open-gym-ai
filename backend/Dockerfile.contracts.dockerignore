@@ -1,0 +1,15 @@
+**
+!LICENSE
+!backend/
+!backend/Dockerfile.contracts
+!backend/contracts-run.mjs
+!backend/versions.json
+!api/
+!api/*.js
+!api/package.json
+!api/package-lock.json
+!api/coach/
+!api/coach/**
+**/node_modules
+**/.env*
+**/__pycache__
