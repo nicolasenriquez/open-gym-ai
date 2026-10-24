@@ -48,7 +48,7 @@ def scan_output(output):
 
 def main() -> int:
     tests = {
-        "environment": ("tests/test_environment.py",),
+        "environment": ("tests/test_environment.py", "tests/test_health.py"),
         "pool": ("tests/core/test_database.py", "tests/test_runner.py"),
         "migrations": ("tests/test_migrations.py",),
     }

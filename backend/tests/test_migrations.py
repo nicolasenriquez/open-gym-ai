@@ -109,8 +109,50 @@ async def test_up_from_empty_database_records_one_revision(migration_database):
     history = await observer.fetchval("SELECT to_regclass('public.alembic_version')")
     assert history is not None, "FOUNDATION_MIGRATION_HISTORY_REQUIRED"
     revisions = await observer.fetch("SELECT version_num FROM public.alembic_version")
-    assert [row["version_num"] for row in revisions] == ["0001_infrastructure"]
+    assert [row["version_num"] for row in revisions] == ["0002_health_readiness"]
     assert await observer.fetchval("SELECT to_regnamespace('foundation')") is not None
+
+
+@pytest.mark.asyncio
+async def test_delivered_0001_prefix_upgrades_without_replay(
+    migration_database, tmp_path
+):
+    observer = migration_database
+    package = tmp_path / "opengym_platform"
+    shutil.copytree(Path(__file__).parents[1] / "src/opengym_platform", package)
+    (package / "migrations/versions/0002_health_readiness.py").unlink()
+    assert await migrate("up", env={**os.environ, "PYTHONPATH": str(tmp_path)}) == (
+        0,
+        {"code": "FOUNDATION_MIGRATION_UP_OK"},
+    )
+    assert (
+        await observer.fetchval("SELECT version_num FROM public.alembic_version")
+        == "0001_infrastructure"
+    )
+    original_oid = await observer.fetchval(
+        "SELECT oid FROM pg_namespace WHERE nspname = 'foundation'"
+    )
+    assert await migrate("up") == (0, {"code": "FOUNDATION_MIGRATION_UP_OK"})
+    assert (
+        await observer.fetchval("SELECT version_num FROM public.alembic_version")
+        == "0002_health_readiness"
+    )
+    assert (
+        await observer.fetchval(
+            "SELECT oid FROM pg_namespace WHERE nspname = 'foundation'"
+        )
+        == original_oid
+    )
+    runtime = await connect(
+        "python_foundation_runtime", "synthetic-python-foundation-runtime-only"
+    )
+    try:
+        assert (
+            await runtime.fetchval("SELECT version_num FROM public.alembic_version")
+            == "0002_health_readiness"
+        )
+    finally:
+        await runtime.close(timeout=5)
 
 
 @pytest.fixture
@@ -118,10 +160,10 @@ def migration_probe(tmp_path):
     # A private graph tests genuine prefixes without changing delivered revisions/CLI.
     package = tmp_path / "opengym_platform"
     shutil.copytree(Path(__file__).parents[1] / "src/opengym_platform", package)
-    (package / "migrations/versions/0002_probe.py").write_text(
+    (package / "migrations/versions/0003_probe.py").write_text(
         "from alembic import op\n"
-        'revision = "0002_probe"\n'
-        'down_revision = "0001_infrastructure"\n'
+        'revision = "0003_probe"\n'
+        'down_revision = "0002_health_readiness"\n'
         "def upgrade():\n"
         '    op.execute("CREATE SCHEMA foundation_migration_probe")\n'
         '    op.execute("SELECT pg_advisory_xact_lock(728323)")\n',
@@ -140,7 +182,7 @@ async def test_empty_and_genuine_prefix_reach_same_head_without_replay(
         assert await migrate("up") == (0, {"code": "FOUNDATION_MIGRATION_UP_OK"})
         assert (
             await observer.fetchval("SELECT version_num FROM public.alembic_version")
-            == "0001_infrastructure"
+            == "0002_health_readiness"
         )
         original_oid = await observer.fetchval(
             "SELECT oid FROM pg_namespace WHERE nspname = 'foundation'"
@@ -177,7 +219,7 @@ async def test_empty_and_genuine_prefix_reach_same_head_without_replay(
         for row in await observer.fetch(
             "SELECT version_num FROM public.alembic_version"
         )
-    ] == ["0002_probe"]
+    ] == ["0003_probe"]
 
 
 @pytest.mark.asyncio
@@ -205,7 +247,7 @@ async def test_interrupted_revision_preserves_prefix_and_rerun_recovers(
                 await observer.fetchval(
                     "SELECT version_num FROM public.alembic_version"
                 )
-                == "0001_infrastructure"
+                == "0002_health_readiness"
             )
             assert (
                 await observer.fetchval(
@@ -243,7 +285,7 @@ async def test_interrupted_revision_preserves_prefix_and_rerun_recovers(
     await observer.fetchval("SELECT pg_advisory_unlock(728322)")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "0001_infrastructure"
+        == "0002_health_readiness"
     )
     assert (
         await observer.fetchval("SELECT to_regnamespace('foundation_migration_probe')")
@@ -255,7 +297,7 @@ async def test_interrupted_revision_preserves_prefix_and_rerun_recovers(
     )
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "0002_probe"
+        == "0003_probe"
     )
     assert (
         await observer.fetchval("SELECT to_regnamespace('foundation_migration_probe')")
@@ -270,6 +312,7 @@ async def test_bootstrap_rerun_removes_excess_runtime_grants(migration_database)
     await observer.execute("""
         GRANT CREATE, TEMP ON DATABASE python_foundation_test TO python_foundation_runtime;
         GRANT CREATE ON SCHEMA public, foundation TO python_foundation_runtime;
+        GRANT INSERT, UPDATE, DELETE, TRUNCATE ON TABLE public.alembic_version TO python_foundation_runtime;
     """)
     assert await migrate("bootstrap") == (
         0,
@@ -279,6 +322,7 @@ async def test_bootstrap_rerun_removes_excess_runtime_grants(migration_database)
         SELECT has_database_privilege('python_foundation_runtime', current_database(), 'CREATE,TEMP')
             OR has_schema_privilege('python_foundation_runtime', 'public', 'CREATE')
             OR has_schema_privilege('python_foundation_runtime', 'foundation', 'CREATE')
+            OR has_table_privilege('python_foundation_runtime', 'public.alembic_version', 'INSERT,UPDATE,DELETE,TRUNCATE')
     """)
     assert not excessive, "FOUNDATION_RUNTIME_EXCESS_GRANTS"
 
@@ -317,6 +361,19 @@ async def test_runtime_roles_have_no_ddl_ownership_or_elevation(migration_databa
                 await connection.fetchval("SELECT current_user")
                 == f"python_foundation_{suffix}"
             )
+            if suffix == "runtime":
+                try:
+                    history = await connection.fetch(
+                        "SELECT version_num FROM public.alembic_version"
+                    )
+                except asyncpg.InsufficientPrivilegeError:
+                    history = []
+                assert len(history) == 1, "FOUNDATION_RUNTIME_HISTORY_READ_REQUIRED"
+            else:
+                with pytest.raises(asyncpg.InsufficientPrivilegeError):
+                    await connection.fetch(
+                        "SELECT version_num FROM public.alembic_version"
+                    )
             for statement in (
                 "CREATE SCHEMA forbidden",
                 "CREATE TABLE public.forbidden (id integer)",
@@ -326,6 +383,9 @@ async def test_runtime_roles_have_no_ddl_ownership_or_elevation(migration_databa
                 "SET ROLE python_foundation_bootstrap",
                 "CREATE ROLE forbidden",
                 "TRUNCATE public.alembic_version",
+                "INSERT INTO public.alembic_version VALUES ('forbidden')",
+                "UPDATE public.alembic_version SET version_num = 'forbidden'",
+                "DELETE FROM public.alembic_version",
             ):
                 with pytest.raises(asyncpg.InsufficientPrivilegeError):
                     await connection.execute(statement)
@@ -449,7 +509,7 @@ async def test_only_lock_owner_applies_pending_revision_after_history_read(
                 await observer.fetchval(
                     "SELECT version_num FROM public.alembic_version"
                 )
-                == "0001_infrastructure"
+                == "0002_health_readiness"
             )
             assert (
                 await observer.fetchval(
@@ -466,7 +526,7 @@ async def test_only_lock_owner_applies_pending_revision_after_history_read(
         for row in await observer.fetch(
             "SELECT version_num FROM public.alembic_version"
         )
-    ] == ["0002_probe"]
+    ] == ["0003_probe"]
     assert (
         await observer.fetchval("""
             SELECT pg_get_userbyid(nspowner) FROM pg_namespace
@@ -495,5 +555,5 @@ async def test_failed_revision_rolls_back_history_and_rerun_recovers(
     assert await migrate("up") == (0, {"code": "FOUNDATION_MIGRATION_UP_OK"})
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "0001_infrastructure"
+        == "0002_health_readiness"
     )

@@ -66,6 +66,17 @@ async def _bootstrap():
                             python_foundation_runtime, python_foundation_training;
                     END IF;
                 END $$;
+                DO $$ BEGIN
+                    IF to_regclass('public.alembic_version') IS NOT NULL THEN
+                        REVOKE ALL ON TABLE public.alembic_version FROM PUBLIC,
+                            python_foundation_runtime, python_foundation_training;
+                        IF EXISTS (SELECT FROM public.alembic_version
+                            WHERE version_num = '0002_health_readiness') THEN
+                            GRANT USAGE ON SCHEMA public TO python_foundation_runtime;
+                            GRANT SELECT ON TABLE public.alembic_version TO python_foundation_runtime;
+                        END IF;
+                    END IF;
+                END $$;
                 ALTER SCHEMA public OWNER TO python_foundation_migrator;
                 GRANT CONNECT, CREATE ON DATABASE python_foundation_test TO python_foundation_migrator;
                 GRANT CONNECT ON DATABASE python_foundation_test TO python_foundation_runtime, python_foundation_training;
