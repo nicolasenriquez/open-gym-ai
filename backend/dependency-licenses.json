@@ -102,6 +102,14 @@
     "installedLinuxAmd64": true
   },
   {
+    "name": "greenlet",
+    "version": "3.5.6",
+    "license": "MIT AND PSF-2.0",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
     "name": "h11",
     "version": "0.16.0",
     "license": "MIT",

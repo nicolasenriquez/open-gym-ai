@@ -12,6 +12,9 @@ _MARKERS = (
         (
             "synthetic-python-foundation-only",
             "synthetic-python-foundation-pool-only",
+            "synthetic-python-foundation-migrator-only",
+            "synthetic-python-foundation-runtime-only",
+            "synthetic-python-foundation-training-only",
             "synthetic-sensitive-value",
             "synthetic-secret-dsn",
         ),
@@ -47,6 +50,7 @@ def main() -> int:
     tests = {
         "environment": ("tests/test_environment.py",),
         "pool": ("tests/core/test_database.py", "tests/test_runner.py"),
+        "migrations": ("tests/test_migrations.py",),
     }
     if len(sys.argv) != 2 or sys.argv[1] not in tests:
         print(json.dumps({"code": "FOUNDATION_GROUP_UNAVAILABLE"}))
