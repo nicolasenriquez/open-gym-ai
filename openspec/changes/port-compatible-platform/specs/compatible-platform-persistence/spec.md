@@ -60,6 +60,44 @@ The platform SHALL implement the security reference's separate owner/migrator/ru
 - **THEN** only the permitted current-owner read succeeds and all disallowed cases fail safely
 - **AND** no plaintext token is stored/logged and no active JSON mirror or SQL password is needed by MCP
 
+### Requirement: Authenticated session to RLS ownership
+For protected owner-scoped HTTP operations, Python identity SHALL verify the compatible cookie or bearer signature, expiry, current account state and session version before deriving the authorized actor. The transaction initiator SHALL derive its owner context exclusively from that verified actor, install it transaction-locally on the single leased connection and pass the same handle and authorized context to collaborators. Client-supplied owner identifiers in body, query parameters or headers SHALL NOT establish or replace the actor or RLS owner. An explicit foreign resource target SHALL require authorization for that actor/resource action; administration and preauthentication SHALL retain their bounded privileges rather than impersonating an arbitrary owner. Missing or invalid authentication SHALL grant no protected access.
+
+#### Scenario: Verified session controls owner context despite client forgery
+- **WHEN** authenticated owner A sends protected read/write requests with owner B identifiers in body, query parameters or headers, separately and in combination, using compatible cookie and bearer sessions
+- **THEN** the actor and transaction-local RLS owner remain A, only A-authorized operations may succeed and explicit unauthorized targets are denied
+- **AND** B's protected rows are neither exposed nor modified, including through conflict/error responses, while legitimate same-owner operations still succeed
+
+#### Scenario: Invalid sessions never establish protected ownership
+- **WHEN** requests omit authentication, alter a signed identity or signature, use expired/revoked sessions or refer to disabled/deleted accounts, even while supplying a valid owner's identifier
+- **THEN** the API rejects protected access without establishing authorized owner context, exposing protected rows or persisting a business write
+
+#### Scenario: Session expires while waiting for protected work
+- **WHEN** a cookie or bearer session is valid at HTTP entry but expires while its request waits for pool acquisition or an owner lock, before protected work is authorized
+- **THEN** the API rechecks expiry against the current trusted server time after the wait and rejects the operation without protected data disclosure or a committed business write
+- **AND** tests coordinate each wait and expiry boundary deterministically, verify a still-valid session succeeds and confirm the next pooled borrower inherits no authorized owner context
+- **AND** the expiry decision point is explicit; a request authorized before expiry is not retroactively reported as rolled back solely because expiry occurs after its acknowledged commit
+
+#### Scenario: Mixed credentials and duplicate cookies resolve one actor
+- **WHEN** HTTP requests carry a cookie for A and a bearer for B, identical or conflicting duplicate session cookies, or both current and legacy cookie names
+- **THEN** identity selects credentials once using characterized Node-compatible rules: a nonempty unambiguous cookie takes precedence over bearer, and the current cookie name takes precedence over the legacy name when present
+- **AND** identical duplicates of the selected cookie name behave as one cookie; different values for that name supply no cookie credential, never a first-value or last-value winner
+- **AND** without a selected cookie, only an independently verified bearer may establish an actor; conflicting duplicates without such a bearer are denied, and a selected cookie that fails verification never falls back to bearer or a lower-priority cookie
+- **AND** HTTP tests cover both A/B assignments and cookie orders, valid and invalid bearer/cookie combinations, duplicate values and current/legacy names in their applicable HTTP/HTTPS configurations; the response identity, authorization and transaction-local RLS owner agree on the single selected actor, with other-owner data unchanged
+
+#### Scenario: Concurrent revocation is serialized with protected work
+- **WHEN** a protected operation waits for a connection or owner lock while session revocation, account disabling or deletion runs concurrently
+- **THEN** the implementation defines and proves an observable serialization order and revalidates current access under that ordering before protected work is authorized
+- **AND** if revocation, disabling or deletion takes effect first, stale-session work is denied without protected data disclosure or a committed business write
+- **AND** work ordered before the security change may complete only under its then-valid authorization, and subsequent requests using invalidated credentials are denied
+
+#### Scenario: HTTP and real PostgreSQL prove the complete ownership path
+- **WHEN** the Python port acceptance suite drives actual protected HTTP routes against disposable real PostgreSQL with two synthetic owners, compatible signed sessions and the restricted runtime login
+- **THEN** independent observations verify authorized own-owner reads/writes, denied cross-owner access and owner forgery, invalid-session rejection, expiry during pool/lock waits, mixed-credential/duplicate-cookie selection and coordinated concurrent revocation outcomes
+- **AND** runtime metadata and behavior verify ENABLE/FORCE RLS, USING/WITH CHECK enforcement and absence of ownership, superuser or BYPASSRLS privileges on protected tables
+- **AND** a max-one pool serving A then B or missing context after commit, rollback, SQL error, timeout and cancellation leaks neither owner context nor protected access
+- **AND** privileged connections are limited to disposable setup and independent inspection; mocked authentication/database calls, isolated SQL fixtures or historical Node results alone do not satisfy this Python HTTP acceptance
+
 ### Requirement: Recoverable deletion and compatible audit
 Deletion SHALL preserve legacy administrative safeguards, remove operational SQL data and transactionally record pending external cleanup. It SHALL disconnect personally bound coach credentials before releasing ownership, preserve consumed invitations and historical audit, and keep cleanup failures visible without reopening access. Media bytes/GC marks SHALL remain external and missing/unreadable references SHALL NOT trigger destructive collection. Legacy audit SHALL remain best effort with configured 90-day/5000-event defaults and IP off; audit failure SHALL NOT abort business SQL or change a committed success.
 
