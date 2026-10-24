@@ -84,7 +84,7 @@ async function cleanup(project) {
 }
 
 async function run(group) {
-  if (!['environment', 'contracts', 'pool', 'migrations'].includes(group)) throw new Error(`Python Foundation group not implemented: ${group}`);
+  if (!['environment', 'contracts', 'pool', 'migrations', 'isolation'].includes(group)) throw new Error(`Python Foundation group not implemented: ${group}`);
   const project = `opengym-python-foundation-test-${randomBytes(8).toString('hex')}`;
   console.log(`Python Foundation project: ${project}`);
   if ((await resources(project)).length) throw new Error('Refusing an existing Python Foundation project');

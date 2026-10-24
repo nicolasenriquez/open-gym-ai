@@ -218,7 +218,7 @@ test('contracts fails explicitly when its Docker endpoint is unavailable', () =>
 });
 
 test('known unfinished groups fail explicitly instead of reporting successful proofs', () => {
-  for (const group of ['isolation', 'recovery', 'all']) {
+  for (const group of ['recovery', 'all']) {
     const result = invoke(cli, ['run', group], { env: { ...process.env, PATH: '' } });
     assert.equal(result.status, 1, group);
     assert.match(result.stderr, /group not implemented/);

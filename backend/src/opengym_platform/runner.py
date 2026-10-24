@@ -51,6 +51,7 @@ def main() -> int:
         "environment": ("tests/test_environment.py", "tests/test_health.py"),
         "pool": ("tests/core/test_database.py", "tests/test_runner.py"),
         "migrations": ("tests/test_migrations.py",),
+        "isolation": ("tests/test_isolation.py",),
     }
     if len(sys.argv) != 2 or sys.argv[1] not in tests:
         print(json.dumps({"code": "FOUNDATION_GROUP_UNAVAILABLE"}))
