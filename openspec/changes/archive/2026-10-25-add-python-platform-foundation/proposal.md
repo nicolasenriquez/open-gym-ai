@@ -2,7 +2,7 @@
 
 La Foundation PostgreSQL archivada verifica Node, no el destino Python/FastAPI del PRD Evolution. El siguiente tramo de arquitectura (§§14–14.2) necesita una referencia de compatibilidad y evidencia sintética propia antes del port de capacidades, sin cambiar la autoridad Node/JSON actual.
 
-La ampliación documental solicitada concreta además EV-09: propiedad por funcionalidad de contratos, reglas, operaciones y consultas, inspirada en AI Tutor y conservando el frontend actual. La [propuesta modular](../../../docs/reference/platform-modularity.md) define el destino y su evidencia. Esta revisión solo ajusta documentación; no autoriza implementación ni acredita resultados nuevos de runtime.
+La ampliación documental solicitada concreta además EV-09: propiedad por funcionalidad de contratos, reglas, operaciones y consultas, inspirada en AI Tutor y conservando el frontend actual. La [propuesta modular](../../../../docs/reference/platform-modularity.md) define el destino y su evidencia. Esta revisión solo ajusta documentación; no autoriza implementación ni acredita resultados nuevos de runtime.
 
 ## What Changes
 
@@ -33,14 +33,14 @@ Cambio de runtime/tooling ya iniciado: toolchain, entorno aislado y caracterizac
 
 Dependencias objetivo: FastAPI/Pydantic/Uvicorn, asyncpg, Alembic/SQLAlchemy limitado a migraciones, uv, pytest/pytest-asyncio/httpx, Ruff/mypy y cryptography para cifrado autenticado. Resolver y fijar versiones/licencias en el primer prerrequisito de entrega, dentro de un contenedor desechable y sin instalar herramientas en el host.
 
-Autoridad de alcance: [PRD Evolution](../../../docs/open-gym-evolution.prd.md), [arquitectura](../../../docs/open-gym-evolution.architecture.md), [modularidad](../../../docs/reference/platform-modularity.md), [seguridad](../../../docs/reference/platform-security.md) y [observabilidad](../../../docs/reference/platform-observability.md). Esta entrega contribuye a EV-01/02/03/04/08 y prepara parcialmente EV-09; no acredita cierre de plataforma EV-05/06/07/09, GP/GO ni G1 operativo. El slice piloto Training, los módulos funcionales y la adaptación acotada del frontend pertenecen al port posterior.
+Autoridad de alcance: [PRD Evolution](../../../../docs/open-gym-evolution.prd.md), [arquitectura](../../../../docs/open-gym-evolution.architecture.md), [modularidad](../../../../docs/reference/platform-modularity.md), [seguridad](../../../../docs/reference/platform-security.md) y [observabilidad](../../../../docs/reference/platform-observability.md). Esta entrega contribuye a EV-01/02/03/04/08 y prepara parcialmente EV-09; no acredita cierre de plataforma EV-05/06/07/09, GP/GO ni G1 operativo. El slice piloto Training, los módulos funcionales y la adaptación acotada del frontend pertenecen al port posterior.
 
-La [responsabilidad por fase](../../../docs/reference/platform-modularity.md#responsabilidad-y-aceptación-por-fase) separa: Foundation = builds/transacciones sintéticos e inventarios; port = biblioteca JS neutral, desarrollo/CI y casos intermodulares reales; operación = targets entregables, ambientes soportados, caché final y retirada verificada. Esta ampliación solo documenta requisitos pendientes; no cambia permisos, Dockerfiles, código, locks o tareas completadas.
+La [responsabilidad por fase](../../../../docs/reference/platform-modularity.md#responsabilidad-y-aceptación-por-fase) separa: Foundation = builds/transacciones sintéticos e inventarios; port = biblioteca JS neutral, desarrollo/CI y casos intermodulares reales; operación = targets entregables, ambientes soportados, caché final y retirada verificada. Esta ampliación solo documenta requisitos pendientes; no cambia permisos, Dockerfiles, código, locks o tareas completadas.
 
-El diseño confirmado de [esquema SQL](../../../docs/reference/platform-schema.md),
-[seguridad](../../../docs/reference/platform-security.md) y
-[operación local](../../../docs/reference/platform-operations.md) tiene ahora
-[OpenSpec de port/operación propio](../port-compatible-platform/proposal.md).
+El diseño confirmado de [esquema SQL](../../../../docs/reference/platform-schema.md),
+[seguridad](../../../../docs/reference/platform-security.md) y
+[operación local](../../../../docs/reference/platform-operations.md) tiene ahora
+[OpenSpec de port/operación propio](../../port-compatible-platform/proposal.md).
 Foundation solo entrega su handoff documental: sin tablas/roles de negocio, tokens
 MCP, scheduler de backups, migración real ni aceptación operativa. Se conservan
 checkboxes y evidencias de delivery ya existentes, sin aplicarle retroactivamente

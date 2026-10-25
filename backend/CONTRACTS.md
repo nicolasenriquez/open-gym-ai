@@ -1,6 +1,6 @@
 # Referencia de contratos Node — inventario y caracterización
 
-Fuente inspeccionada: `1b2daff9199611604783faabf76cd741123cec95`. Autoridad de alcance: [arquitectura §9.1](../docs/open-gym-evolution.architecture.md#91-paridad-del-port-y-alcance-de-retirada), [spec de caracterización](../openspec/changes/add-python-platform-foundation/specs/platform-contract-characterization/spec.md) y handlers actuales. Esta página distingue inventario histórico y [ejecución sintética 3.3](#evidencia-y-cobertura-ejecutada-33); **no acredita paridad Python, G0, GP ni G3**. No se leyeron datos/configuración de instancia.
+Fuente inspeccionada: `1b2daff9199611604783faabf76cd741123cec95`. Autoridad de alcance: [arquitectura §9.1](../docs/open-gym-evolution.architecture.md#91-paridad-del-port-y-alcance-de-retirada), [spec de caracterización](../openspec/specs/platform-contract-characterization/spec.md) y handlers actuales. Esta página distingue inventario histórico y [ejecución sintética 3.3](#evidencia-y-cobertura-ejecutada-33); **no acredita paridad Python, G0, GP ni G3**. No se leyeron datos/configuración de instancia.
 
 Los IDs siguientes identifican el baseline de compatibilidad `v1`, sus inputs y expectativas independientes. No duplicar suites enteras ni ejecutar las heredadas con variables de instancia/proveedor. Los comandos se ejecutan desde la raíz mediante el entorno sintético aislado. Los resultados históricos pertenecen a OpenSpec; esta referencia conserva contratos, fuentes y límites para el port.
 
@@ -51,7 +51,7 @@ Interfaz pública: `node backend/contracts-run.mjs compare <expected.json> <actu
 La fixture independiente exige que una diferencia de status, tipos, ausente/null,
 propietario, headers, cookies o stamps produzca exit 1; igualdad produce exit 0.
 No regenerar expectativas para aceptar diferencias. El historial fail-first y sus
-resultados se conservan en [OpenSpec](../openspec/changes/add-python-platform-foundation/tasks.md).
+resultados se conservan en [OpenSpec archivado](../openspec/changes/archive/2026-10-25-add-python-platform-foundation/tasks.md).
 
 ```sh
 node --test backend/contracts-compare.test.mjs

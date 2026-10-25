@@ -52,6 +52,6 @@ Autoridad: [PRD](../../../docs/open-gym-evolution.prd.md),
 [seguridad](../../../docs/reference/platform-security.md),
 [operación](../../../docs/reference/platform-operations.md) y
 [modularidad](../../../docs/reference/platform-modularity.md).
-Foundation sigue en [su cambio propio](../add-python-platform-foundation/proposal.md).
+Foundation está completada en [su cambio archivado](../archive/2026-10-25-add-python-platform-foundation/proposal.md).
 Contribución esperada EV-01–EV-09 y G0/G1 operativo/GP/GO/G2/G3, todos sin acreditar
 por esta especificación. Recovery solo comienza después del cierre de plataforma.

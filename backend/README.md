@@ -45,11 +45,11 @@ Required prerequisites, test failures, skipped/xfail/xpass/deselected required
 Python proofs and cleanup failures return nonzero. `FOUNDATION_ALL_OK` is emitted
 only after every group, its cleanup and the Docker regressions succeed. Docker
 and host-harness commands have a five-minute deadline per invocation.
-The runner bounds pytest to 60 seconds and scans captured diagnostics before
+The runner bounds pytest to 60 seconds (180 for migrations) and scans captured diagnostics before
 replaying them. A passing group proves only its synthetic scope, not platform
 parity, HTTP authorization or operational acceptance.
 
-The [OpenSpec tasks](../openspec/changes/add-python-platform-foundation/tasks.md)
+The [archived OpenSpec tasks](../openspec/changes/archive/2026-10-25-add-python-platform-foundation/tasks.md)
 own delivery state and concise execution evidence. Tests are executable proof;
 Git and PRs preserve implementation history. Keep session records out of this guide.
 
