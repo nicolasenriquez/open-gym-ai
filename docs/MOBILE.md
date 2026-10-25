@@ -225,7 +225,7 @@ in openGym removes it there; turning it off with "remove" leaves no openGym reco
 
 ## Prerequisites
 
-- Node 22.12+ (CI uses Node 22; Vite's exact requirement is in `frontend/package-lock.json`)
+- Node 22.12+ (CI uses Node 22; Vite's exact requirement is in `frontend/pnpm-lock.yaml`)
 - **Android:** Android Studio (bundles the SDK). Java 21 for Gradle.
 - **iOS:** a Mac with Xcode 15+ and CocoaPods (`brew install cocoapods`). A free Apple ID
   is enough to run the app on your own iPhone (see below); paid membership is only needed
@@ -235,34 +235,29 @@ in openGym removes it there; turning it off with "remove" leaves no openGym reco
 
 ```sh
 cd frontend
-npm install
-npm run build:mobile        # VITE_MOBILE build + `cap sync` into android/ and ios/
+pnpm install --frozen-lockfile
+pnpm run build:mobile        # VITE_MOBILE build + `cap sync` into android/ and ios/
 
-npx cap open android        # opens Android Studio → run on emulator or device
-npx cap open ios            # opens Xcode (Mac only) → set your signing team, then run
+pnpm exec cap open android        # opens Android Studio → run on emulator or device
+pnpm exec cap open ios            # opens Xcode (Mac only) → set your signing team, then run
 ```
 
-`npm run build:mobile` builds the mobile frontend, stages exercise media from
+`pnpm run build:mobile` builds the mobile frontend, stages exercise media from
 `catalogue/media/` into `dist/exercise-media/`, syncs both native projects and checks the
 synced bundle. Release builds can supply larger animations through `APP_MEDIA_DIR`;
 see [the staging script](../scripts/catalogue/stage-media.mjs). Re-run after every
 web-code change before building natively.
 
 > **Heads-up:** after `build:mobile`, `frontend/dist` contains the *mobile* bundle.
-> Run a plain `npm run build` again before deploying `dist` to a server.
+> Run a plain `pnpm run build` again before deploying `dist` to a server.
 
 ## App icons & splash screens
 
 `frontend/resources/icon.svg` is the 1024×1024 source (the app's dumbbell glyph on the
-app background). Generate all platform assets from it on a machine with the tooling:
-
-```sh
-cd frontend
-npx @capacitor/assets generate --iconBackgroundColor '#0c0e12' --splashBackgroundColor '#0c0e12'
-```
-
-(If the generator won't take the SVG directly, export it to `resources/icon.png` at
-1024×1024 first — any image tool can do it.)
+app background). Generated Android/iOS assets remain committed. The legacy
+`@capacitor/assets` generator was removed because it pins vulnerable dependencies;
+no icon-generation tool is installed by this project. Review replacement tooling
+before regenerating icons or splash screens.
 
 ## Distribution — deliberately no app stores
 
@@ -298,7 +293,7 @@ emulator.
 To build and sign your own:
 
 ```sh
-cd frontend && npm run build:mobile
+cd frontend && pnpm run build:mobile
 cd android && ./gradlew assembleRelease            # → app/build/outputs/apk/release/app-release-unsigned.apk
 
 # one-time: create a keystore. KEEP IT — updates must be signed with the same key,

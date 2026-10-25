@@ -15,7 +15,7 @@ description: Resultados y aceptación de plataforma antes de Recovery, Garmin e 
 
 ## Resumen ejecutivo
 
-OpenGym Evolution busca una base mantenible y operable sobre la que ampliar la herramienta sin perder el acceso, los datos ni las capacidades actuales. La primera entrega sustituye la aplicación servidor heredada, preservando Training, autenticación, catálogo, medios, administración, notificaciones, coach y MCP dentro de sus contratos vigentes.
+OpenGym Evolution busca una base mantenible y operable sobre la que ampliar la herramienta sin perder el acceso, los datos ni las capacidades actuales. La primera entrega sustituye la aplicación servidor heredada, preservando Training, autenticación, catálogo, medios, administración, notificaciones, coach dentro de sus contratos vigentes.
 
 Por decisión del promotor, la plataforma objetivo utiliza Python/FastAPI y PostgreSQL, con desarrollo y despliegue basados en contenedores. Es una restricción estratégica del proyecto, no una prueba de que ese stack sea por sí solo más seguro o de que Node sea inadecuado. La arquitectura desarrolla la transición y sus comprobaciones.
 
@@ -32,7 +32,7 @@ La necesidad inmediata es conservar una herramienta utilizable y contar con una 
 | Evidencia | Fuente y alcance |
 | --- | --- |
 | Prioridad explícita de completar Python/FastAPI/PostgreSQL antes de nuevas funcionalidades | Solicitud del usuario y autorización de estos ajustes documentales el 2026-10-22. |
-| Identidad y Training servidor almacenados en archivos; consumidores adicionales leen esos datos | `api/server.js`, `api/coach/jobs.js` y `mcp/src/state.js`, inspeccionados en la revisión. Es evidencia de acoplamiento, no de pérdida de datos. |
+| Identidad y Training servidor almacenados en archivos; consumidores adicionales leen esos datos | `api/server.js` y `api/coach/jobs.js`, inspeccionados en la revisión. Es evidencia de acoplamiento, no de pérdida de datos. |
 | Cliente con persistencia local, sincronización y sesión activa propias | `frontend/src/store/useStore.js`; conservar pantallas no basta para preservar comportamiento. |
 | PostgreSQL Foundation completada como ensayo separado en Node | [Tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md) y [README Foundation](../api/foundation/README.md). No sustituye la aplicación ni demuestra el backend Python. |
 | AI Tutor ofrece patrones de desarrollo y operación pertinentes | [Fuentes y límites](research/evolution-architecture-evidence.md#23-ai-tutor-como-referencia); no acredita que su topología o dominio deban copiarse. |
@@ -71,7 +71,7 @@ No se construye en esta entrega una plataforma clínica, un servicio comercial m
 
 | ID | Resultado requerido |
 | --- | --- |
-| EV-01 | Preservar las capacidades actuales inventariadas: identidad/acceso, Training y sincronización/offline, catálogo, medios, administración, notificaciones, coach, MCP e import/export. Revalidar autenticación, permisos por propietario/acción, revocación y auditoría durante el traspaso; diferencias o limitaciones de compatibilidad se resuelven expresamente. |
+| EV-01 | Preservar las capacidades actuales inventariadas: identidad/acceso, Training y sincronización/offline, catálogo, medios, administración, notificaciones, coach e import/export. Revalidar autenticación, permisos por propietario/acción, revocación y auditoría durante el traspaso; diferencias o limitaciones de compatibilidad se resuelven expresamente. |
 | EV-02 | Conservar identidad, propiedad y significado del historial y configuración migrados; proteger los datos pendientes en clientes. Ninguna migración transforma objetivos o cálculos en resultados realizados ni altera el historial por accidente. |
 | EV-03 | Construir, iniciar, detener y verificar el stack objetivo desde un checkout limpio con instrucciones reproducibles y runtime en contenedores. Distinguir desarrollo, ensayo/CI y operación; demostrar build correcto sin caché y reutilización de dependencias cuando no cambian, sin prometer tiempos no medidos. Las verificaciones necesarias tienen una superficie documentada y reproducible. |
 | EV-04 | Disponer de procedimientos de respaldo, restauración y tratamiento de fallos comprobados para el alcance operativo acordado, incluyendo los elementos necesarios fuera de la base de datos. No prometer recuperación o plazos que no se hayan demostrado. |
@@ -91,7 +91,7 @@ La migración es costosa de revertir después de recibir datos nuevos. Concretar
 
 ### Decisiones de aceptación consolidadas
 
-- EV-01/02/05: preservar IDs, alias y credenciales heredadas, Training completo y pendientes cliente. Conservar sesiones cuando sea seguro/compatible; excepción de reautenticación solo documentada y demostrada. MCP tendrá lectura HTTP Training con credencial específica revocable. El borrado conserva invitaciones consumidas/auditoría y verifica limpieza externa; diferencias no representables fielmente bloquean el corte.
+- EV-01/02/05: preservar IDs, alias y credenciales heredadas, Training completo y pendientes cliente. Conservar sesiones cuando sea seguro/compatible; excepción de reautenticación solo documentada y demostrada. El borrado conserva invitaciones consumidas/auditoría y verifica limpieza externa; diferencias no representables fielmente bloquean el corte.
 - EV-03/06: primera operación personal en Compose, acceso desde el mismo computador, PostgreSQL privado y aceptación inicial Linux/amd64. Acceso LAN/remoto y arm64 requieren configuración/verificación propias; tratar expresamente clientes existentes antes de cortar.
 - EV-04: objetivos RPO 6 h/RTO 24 h aceptados pero pendientes de prueba. Backups coordinados cifrados cada 3 h, al arranque si vencidos y antes de migrar, retención 30 días en disco independiente con clave separada; restore aislado mensual. Reconciliar bajas/revocaciones posteriores antes de habilitar acceso. Conservar origen/release/configuración protegidos al menos 30 días tras corte aceptado, sin borrado automático.
 - EV-08: diagnóstico privado, logs hasta 7 días y perfil local opcional de trazas/métricas. Auditoría conserva su política compatible de fallo observable sin invalidar éxito confirmado; no se confunde con telemetría.
@@ -134,8 +134,8 @@ El cierre requiere **todos** estos resultados. No exige ausencia de toda deuda h
 | Matriz exacta de capacidades y clientes compatibles | Caracterización del sistema y handoff de migración | Aceptación de paridad y alcance de EV-01. |
 | Correspondencia de módulos, contratos y componentes por recorrido | Propuesta modular y OpenSpecs de Foundation/port; evidencia del slice piloto | EV-09; Foundation aporta estructura parcial, no aceptación de módulos funcionales. |
 | Biblioteca JS neutral, transacciones colaborativas y entrega operativa | Responsabilidad por fase de la propuesta modular; escenarios Foundation y posteriores OpenSpecs de port/operación | EV-01/02/03/05/06/09; no retirar fuentes compartidas ni aceptar operación sin verificar sus imágenes, ambientes y soporte. |
-| Validar el esquema y continuidad de acceso ya diseñados | Esquema SQL aprobado, seguridad y OpenSpec de port; DDL y pruebas pendientes | Alias/credenciales compatibles, proyecciones Training, RLS y token MCP demostrados; no solo tablas dibujadas. |
-| Viabilidad de cada proveedor/runtime del coach y contrato MCP | Arquitectura y ensayos acotados | Retirada completa sin pérdida de capacidades. |
+| Validar el esquema y continuidad de acceso ya diseñados | Esquema SQL aprobado, seguridad y OpenSpec de port; DDL y pruebas pendientes | Alias/credenciales compatibles, proyecciones Training, RLS demostrados; no solo tablas dibujadas. |
+| Viabilidad de cada proveedor/runtime del coach | Arquitectura y ensayos acotados | Retirada completa sin pérdida de capacidades. |
 | Inventario real y demostrar operación/recuperación aceptadas | Operación local y OpenSpec de port/operación; destino físico y ensayo previos al corte | Migración real y EV-02/04: objetivos acordados no equivalen a garantías; bloqueos de reconciliación y clientes resueltos. |
 | Implementar/verificar diagnóstico privado y su retención | Contrato de observabilidad y operación | EV-08/GO: instrumentación, cotas y eliminación real pendientes; sin elegir herramientas en este PRD. |
 

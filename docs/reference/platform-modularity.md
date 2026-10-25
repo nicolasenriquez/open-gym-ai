@@ -89,10 +89,7 @@ y las piezas operativas necesarias; no crea módulos de negocio como scaffolding
 
 Catálogo y sus medios siguen empaquetados en `web`; no requieren un módulo Python
 si no hay comportamiento servidor que lo justifique. Import/export Training sigue
-en el cliente y debe probarse contra el nuevo contrato. MCP permanece stdio Node,
-con lectura Training HTTP y credencial específica revocable read-only según
-[seguridad](platform-security.md#credencial-mcp-y-lectura-http); el port prueba
-adaptador y rutas. No consume `repository.py`, credenciales SQL ni archivos espejo. Recovery se añade solo
+en el cliente y debe probarse contra el nuevo contrato. MCP se ha retirado del fork; no se entrega adaptador ni credencial MCP. Recovery se añade solo
 después de aceptar plataforma, con propiedad separada de Training.
 
 Reglas de dependencia:
@@ -206,7 +203,6 @@ los consumidores y pruebas exactos, sin presentar esta tabla como cobertura ejec
 | Coach actual | `views/CoachChat.jsx`, `views/CoachSetup.jsx`, `views/AdminCoach.jsx`, `lib/coach-api.js`, `lib/coach.js` | `coach`: consentimiento, propuesta, cancelación/fallo y proveedores actuales; sin nuevas capacidades IA. |
 | Catálogo e import/export | `views/Library.jsx`, `views/Settings.jsx`, helpers de catálogo/importación/backup | Assets siguen en web y formatos en cliente; `training`/`media` reciben lo que corresponda con semántica preservada. |
 | Auditoría y diagnóstico | Superficie administrativa autorizada cuando corresponda; sin nuevo panel obligatorio | `audit` posee eventos duraderos; `core` diagnóstico. Probar acceso/retención y privacidad según sus contratos, sin confundir logs con audit. |
-| MCP | Sin participante frontend directo; `mcp/src/state.js` y herramientas stdio actuales | Consumidor restringido de `training`; errores seguros y ausencia de acceso Recovery o mirrors autoritativos. |
 
 El port conserva inicialmente las ubicaciones actuales. Cada cambio registra el
 mapa de archivos que implementa el recorrido y cualquier desviación justificada.
@@ -222,7 +218,7 @@ sin mantener copias editables bajo `api/coach/core` y `shared/`; durante Foundat
 se conservan las rutas actuales y su referencia Node intactas.
 
 El inventario debe seguir imports y cargas dinámicas desde `frontend/src/lib/coach-local.js`,
-`frontend/src/views/CoachSetup.jsx`, tests de paridad y consumidores Node/MCP que
+`frontend/src/views/CoachSetup.jsx`, tests de paridad y consumidores Node que
 correspondan. Incluir `frontend/vite.config.js`, `web/Dockerfile`, scripts
 `build-coach-assets.mjs`/`build-coach-library.mjs`, prompts, catálogo y artefactos
 generados: el directorio fuente no es el único consumidor. Elegir un propietario
@@ -280,9 +276,9 @@ metadatos de release de instalaciones costosas y conservar contextos con allowli
 o exclusiones explícitas por imagen. El build web debe incluir la biblioteca neutral
 y assets necesarios, excluyendo directorios móviles/cachés cuando no sean inputs.
 
-Usar cache mounts BuildKit para descargas uv/npm con UID/GID compatibles con el
+Usar cache mounts BuildKit para descargas uv/pnpm con UID/GID compatibles con el
 usuario de build; no incluir cachés en capas finales ni secretos en ARG/ENV de build.
-Conservar `uv sync --locked`, `npm ci` y pins; la caché no sustituye verificaciones.
+Conservar `uv sync --locked`, `pnpm install --frozen-lockfile` y pins; la caché no sustituye verificaciones.
 Reutilizar etapas de dependencias cuando corresponda, sin acoplar reinstalaciones
 de proyectos independientes por el orden de sus COPY. No es obligatorio fragmentar
 el harness si no mejora el recorrido medido.

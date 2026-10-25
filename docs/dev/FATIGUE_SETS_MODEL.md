@@ -65,7 +65,7 @@ show rating/estimate coverage rather than presenting every set as user-rated.
 Use the [recovery tests](../../frontend/src/lib/recovery.test.js),
 [view tests](../../frontend/src/lib/recovery-view.test.js) and
 [effort tests](../../frontend/src/lib/effort.test.js). From `frontend/`, run
-`npm run test:fatigue-probe` for the synthetic monotonicity probe. Its
+`pnpm run test:fatigue-probe` for the synthetic monotonicity probe. Its
 [source](../../frontend/scripts/fatigue-monotonic-probe.mjs) owns the comparison matrix.
 Private histories and one-off calibration results are not test fixtures or acceptance
 proof. Record actual results against the tested revision separately.

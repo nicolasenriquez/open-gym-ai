@@ -354,7 +354,7 @@ to anyone; it is only a second name that points at the account, and the password
   so switching between the two does not get around the pause.
 - Only the owner (in Settings) and admins (the user list and the user's page in the admin
   dashboard) ever see the address. It is not written to the activity log (entries show it masked,
-  `a…@e…`) or the container log, is not part of what the Coach, the MCP server or plan sharing
+  `a…@e…`) or the container log, is not part of what the Coach or plan sharing
   see, and is not in `/api/me`. It is stored in `db.json` as `email` on the user, lower-cased.
 - With `PASSWORD_LOGIN` off, the row and the field are hidden and the address is not used; it
   stays in `db.json` for when the flag comes back.
@@ -822,5 +822,5 @@ the shipped JavaScript bundle. Setting them in the `.env` next to `docker compos
 effect on an already-built image — the bundle has already made up its mind.
 
 They are only useful if you build the frontend yourself (`docker compose up -d --build`, or a
-`npm run build` with the variables exported). If you need to redirect media on a prebuilt
+`pnpm run build` with the variables exported). If you need to redirect media on a prebuilt
 image, do it in your reverse proxy instead.

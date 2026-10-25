@@ -21,7 +21,7 @@ description: Contratos, transición y gates de la plataforma objetivo Python/Fas
 
 ## 1. Objetivo y límites
 
-Completar la transición de la aplicación servidor a un monolito modular Python/FastAPI, con PostgreSQL como autoridad del estado duradero migrado y operación reproducible en contenedores. Preservar el frontend React/Vite/Zustand, Training, sincronización/offline, catálogo, autenticación, medios, administración, notificaciones, coach y MCP. La ejecución será incremental; el destino no incluye una API Node de negocio permanente.
+Completar la transición de la aplicación servidor a un monolito modular Python/FastAPI, con PostgreSQL como autoridad del estado duradero migrado y operación reproducible en contenedores. Preservar el frontend React/Vite/Zustand, Training, sincronización/offline, catálogo, autenticación, medios, administración, notificaciones, coach. La ejecución será incremental; el destino no incluye una API Node de negocio permanente.
 
 **Primera entrega: plataforma.** Caracterizar contratos, preparar Python/PostgreSQL con datos sintéticos, demostrar paridad, ensayar importación/recuperación, realizar un corte controlado y retirar el código sustituido. Su aceptación requiere G0–G3, GP y GO de §12; no requiere implementar Recovery ni validar sus tres sesiones reales.
 
@@ -92,7 +92,7 @@ React/Vite/Zustand
   ├─ coach, administración, recordatorios
   └─ medios y secretos en filesystem
 
-MCP y otros consumidores acceden directamente a archivos.
+El Coach lee Training mediante los helpers compartidos.
 ```
 
 Evidencia: `frontend/src/store/useStore.js`, `frontend/public/sw.js`, `api/server.js:117`, `api/server.js:2169`, `api/durable.js`, `docker-compose.yml`. La API excluye `active` de Training al guardar (`api/server.js:2242`). La escritura síncrona permite comparación/escritura atómica solo dentro del proceso actual; cambiar a acceso asíncrono exige transacciones explícitas.
@@ -113,7 +113,6 @@ Frontend actual: React/Vite/Zustand, Training local/offline/sync
 Medios: filesystem protegido, referencias duraderas.
 Secretos: gestión externa/protegida, no frontend ni tablas de dominio.
 Migraciones: proceso previo con rol separado, un solo historial.
-MCP: cliente stdio opcional, contrato Training restringido.
 Después de plataforma: Recovery → Garmin → ampliaciones de IA.
 ```
 
@@ -130,10 +129,10 @@ Mantener inicialmente un solo proceso/réplica API. PostgreSQL no distribuye aut
 | Dominio Recovery | Reglas puras de procesos, indicaciones, sesiones, contexto y correcciones; sin progresión automática. |
 | Persistencia | SQL parametrizado, conexiones y transacciones; no presentación ni reglas de Training. |
 | Identidad | Mismos identificadores y semántica de passkeys, sesiones, revocación, roles y deshabilitación. |
-| Coach/MCP | Lectura exclusivamente autorizada de Training; sin privilegios sobre Recovery. |
+| Coach | Lectura exclusivamente autorizada de Training; sin privilegios sobre Recovery. |
 | Operación | Migraciones, backups, restauración, secretos y control de versión compatible. |
 
-Las filas Recovery describen contratos de la entrega posterior; no autorizan crear su esquema o interfaz durante plataforma. Node puede mantenerse como herramienta de build, cliente MCP stdio y dependencia auxiliar opcional expresamente justificada del coach; no como API HTTP de negocio necesaria para cerrar plataforma. Antes del cierre se debe demostrar la viabilidad de cada proveedor/SDK/CLI y su sandbox, o resolver explícitamente su tratamiento sin eliminar capacidades silenciosamente.
+Las filas Recovery describen contratos de la entrega posterior; no autorizan crear su esquema o interfaz durante plataforma. Node puede mantenerse como herramienta de build y dependencia auxiliar opcional expresamente justificada del coach; no como API HTTP de negocio necesaria para cerrar plataforma. Antes del cierre se debe demostrar la viabilidad de cada proveedor/SDK/CLI y su sandbox, o resolver explícitamente su tratamiento sin eliminar capacidades silenciosamente.
 
 Para reutilización futura de catálogo/controles y aislamiento de datos Recovery, leer [interfaz y componentes](reference/recovery-contracts.md#reutilización-e-interfaz).
 
@@ -152,7 +151,7 @@ El [contrato transaccional intermodular](reference/platform-modularity.md#transa
 El [esquema SQL compatible](reference/platform-schema.md) es la fuente propietaria del modelo físico aprobado: tablas/columnas, PK/FK, restricciones, índices y consultas. Sustituye el modelo de plataforma anteriormente solo conceptual; no es DDL ejecutado ni acreditación de integridad. El port entregará y probará las migraciones Alembic. El ancla de esta sección se conserva por compatibilidad de enlaces.
 
 ```text
-identity.users --> credenciales / alias / enlaces / token MCP
+identity.users --> credenciales / alias / enlaces
        |
        +--> training.documents: JSONB completo --> revision/write_id generados
        +--> notifications: suscripciones y fechas locales
@@ -180,7 +179,7 @@ El [contrato de guardado/concurrencia](reference/recovery-contracts.md#guardado-
 
 ## 8. Stack Python, migraciones y evidencia histórica
 
-**Dirección técnica:** FastAPI/Pydantic y Uvicorn; `asyncpg` con SQL explícito; Alembic para esquema; uv y lockfile; pytest/httpx, Ruff y mypy. Foundation registra sus pins/licencias y evidencia acotada en [su README](../backend/README.md) y versiones/lock del paquete; esa evidencia no demuestra compatibilidad operativa o port funcional. Reutilizar y revalidar la selección en su fase, sin duplicar otra autoridad de versiones aquí. Mantener npm, Vitest y controles frontend/MCP; no adoptar prereleases sin justificación y aprobación expresa.
+**Dirección técnica:** FastAPI/Pydantic y Uvicorn; `asyncpg` con SQL explícito; Alembic para esquema; uv y lockfile; pytest/httpx, Ruff y mypy. Foundation registra sus pins/licencias y evidencia acotada en [su README](../backend/README.md) y versiones/lock del paquete; esa evidencia no demuestra compatibilidad operativa o port funcional. Reutilizar y revalidar la selección en su fase, sin duplicar otra autoridad de versiones aquí. Mantener pnpm, Vitest y controles frontend; no adoptar prereleases sin justificación y aprobación expresa.
 
 El pool se inicializa y cierra mediante lifespan; conexiones/transacciones tienen límites y timeouts probados. SQL permanece en repositorios y reglas de dominio fuera de handlers. SQLAlchemy puede limitarse al engine de migraciones de Alembic; no se impone un ORM a la aplicación. No copiar ajustes pgvector o de pool de AI Tutor sin necesidad.
 
@@ -214,7 +213,6 @@ Referencias: [lifespan FastAPI](https://fastapi.tiangolo.com/advanced/events/), 
 | API identidad (`api/server.js`, `passkeys-store.js`) | `db` en memoria, múltiples `saveDb`, referencias a usuarios y credenciales | Adaptar lecturas/mutaciones y concurrencia sin un snapshot en memoria que sobrescriba cambios nuevos. |
 | API Training | `readStateStrict`, `readStateCached`, `stateFile`, revisión por stat | Repositorio PostgreSQL; no cachear usando mtime de archivos retirados. |
 | Coach (`api/coach/jobs.js`) | Enumera `state-*.json` y lee documentos; jobs/config propios | Leer Training autoritativo. Inventariar aparte su estado persistente; mantener funciones actuales. |
-| MCP (`mcp/src/state.js`, `tools.js`) | `db.json`, archivos estado y watcher | Adaptador de lectura Training restringido; sin archivos espejo autoritativos ni privilegios Recovery. Transporte/credencial concretos pendientes. |
 | Medios (`api/media.js`) | Callback de estado para referencias/GC | Adaptar a nueva lectura; no borrar medios por tomar error de BD como ausencia de referencias. |
 | Administración y recordatorios | Usuarios/estado leídos en el servidor | Consultar autoridad actual y conservar ownership/permisos. |
 | Export/import/reset frontend (`Settings.jsx`, `useStore.js`, `backup-media.js`) | Documento Training local, merge y reemplazos deliberados | Mantener alcance y semántica. Export Training no debe prometer backup completo de Recovery. |
@@ -233,11 +231,10 @@ La matriz de consumidores anterior cubre persistencia; la sustitución Node → 
 | Administración/push | Invitaciones, audit, suscripciones, recordatorios/rest timers y estado por dispositivo | Casos habilitados/deshabilitados y permisos; inventario del estado en memoria y persistente. |
 | Medios/import/export/catálogo | Ownership, referencias/GC, IDs, formatos e interpretación del historial | Error DB conserva medios; import/export y restore mantienen significado. No presentar export Training como backup de plataforma completa. |
 | Coach actual | Proveedores, propuestas/aprobación, consentimiento, jobs/config/credenciales, límites y sandbox | Fixtures sin llamadas reales, fuente Training nueva y prueba de cada SDK/CLI necesario o tratamiento expresamente resuelto. |
-| MCP | Solo lectura y propietario, resultados y cálculos compartidos con frontend | Contrato Training restringido y pruebas de paridad. Definir provisionamiento/revocación de credencial, errores y disponibilidad sin mirrors JSON. |
 
-Node puede continuar para build frontend y MCP stdio. Los helpers compartidos frontend/MCP no se portan por anticipación; la lógica servidor que pase a Python necesita equivalencia verificable. La excepción de un runtime auxiliar opcional del coach requiere alcance y evidencia: no convierte otra API Node en destino admitido ni autoriza perder proveedores silenciosamente.
+Node puede continuar para build frontend. Los helpers compartidos frontend no se portan por anticipación; la lógica servidor que pase a Python necesita equivalencia verificable. La excepción de un runtime auxiliar opcional del coach requiere alcance y evidencia: no convierte otra API Node en destino admitido ni autoriza perder proveedores silenciosamente.
 
-No basta cambiar `/api/data`. JSON de entrenamiento congelado no puede seguir siendo leído como verdad por MCP/coach.
+No basta cambiar `/api/data`. JSON de entrenamiento congelado no puede seguir siendo leído como verdad por coach.
 
 Cada almacén residual de configuración/jobs/credenciales del coach debe clasificarse y tener autoridad y salida explícitas. No son duplicados de Training, pero no deben convertirse en excepción perpetua e indocumentada a la convergencia. Secretos y bytes multimedia pueden permanecer fuera de PostgreSQL con contratos de respaldo; moverlos a tablas no es requisito del MVP.
 
@@ -269,9 +266,9 @@ EV-08 exige diagnóstico operativo verificable, no solo logs o un endpoint healt
 
 ### Verificación, entrega y soporte
 
-CI debe comprobar lockfiles, formato/lint/tipos Python, pruebas y builds pertinentes, contratos HTTP y PostgreSQL real descartable obligatorio para migraciones, permisos, RLS, concurrencia y restore. Mocks complementan; ausencia de PostgreSQL no debe convertir la prueba obligatoria en skip. Las suites frontend/MCP y controles de locales/artefactos siguen aplicando. Ni un CI verde histórico Node ni el harness simulado de AI Tutor acreditan estas garantías en Python.
+CI debe comprobar lockfiles, formato/lint/tipos Python, pruebas y builds pertinentes, contratos HTTP y PostgreSQL real descartable obligatorio para migraciones, permisos, RLS, concurrencia y restore. Mocks complementan; ausencia de PostgreSQL no debe convertir la prueba obligatoria en skip. Las suites frontend y controles de locales/artefactos siguen aplicando. Ni un CI verde histórico Node ni el harness simulado de AI Tutor acreditan estas garantías en Python.
 
-Al implementar, actualizar guías operativas, API y artefactos de la entrega soportada. Inventariar Nix, Kubernetes, Helm, shells móviles, website y diagramas: adaptar lo soportado o identificarlo expresamente como legacy/fuera del objetivo. No anunciar despliegues Python con manifiestos que todavía ejecutan Node. No exigir nuevos builds/publicación nativa para esta entrega web ni romper clientes existentes sin resolver su alcance de compatibilidad.
+Al implementar, actualizar guías operativas, API y artefactos de la entrega soportada. Inventariar Kubernetes, Helm, shells móviles, website y diagramas: adaptar lo soportado o identificarlo expresamente como legacy/fuera del objetivo. No anunciar despliegues Python con manifiestos que todavía ejecutan Node. No exigir nuevos builds/publicación nativa para esta entrega web ni romper clientes existentes sin resolver su alcance de compatibilidad.
 
 ## 11. Respaldos, restauración y rollback
 
@@ -338,7 +335,7 @@ Pruebas obligatorias para plataforma (G0–G3/GP/GO):
 - Autenticación existente: passkeys, contadores, revocación, usuarios deshabilitados, roles, contraseñas opcionales y sesiones; no reidentificar usuarios.
 - Training: revisiones/linaje, primer documento concurrente, stamps legacy, reset, importación, polling, pérdida de respuesta y dos dispositivos.
 - Offline Training, sesión activa local y cambios pendientes: reconciliación tras migración/restauración sin sobrescritura silenciosa.
-- Paridad Python de §9.1, incluyendo auth y coerciones/serialización, errores HTTP, runtime de proveedores coach y contrato MCP.
+- Paridad Python de §9.1, incluyendo auth y coerciones/serialización, errores HTTP, runtime de proveedores coach.
 - Casos de [seguridad](reference/platform-security.md#evidencia-de-aceptación) y [observabilidad](reference/platform-observability.md#evidencia-para-go), con fixtures sintéticas y sin credenciales ni contenido privado emitido.
 - RLS Foundation: fixtures de propietarios, contexto ausente y pool reutilizado tras commit/rollback; roles restringidos reales, sin tablas Recovery anticipadas.
 - Medios: caída de BD no equivale a referencias vacías ni dispara GC destructivo.
@@ -394,7 +391,7 @@ No se exige completar G0 para ensayos sintéticos aislados; sí antes de un cort
 
 **Handoff obligatorio de migración y retirada:** el alcance antes denominado `migrate-opengym-persistence` debe revisarse para el destino Python. Incluir matriz §9.1, inventario de todos los almacenes/consumidores, paridad, equivalencia, restauración/reversión y corte §11. Contener un tramo final de eliminación del código sustituido, pruebas posteriores, guías actualizadas y conservación protegida del origen/versión anterior. Importar datos o conectar FastAPI no acredita el cierre.
 
-Antes de declarar lista una especificación de corte deben resolverse entorno objetivo, clientes/credenciales compatibles, capacidades coach/MCP, plazos de recuperación y procedimientos antes/después de nuevas escrituras. Las guías operativas describen el sistema actual hasta la entrega correspondiente; esta revisión de planificación no cambia su contrato.
+Antes de declarar lista una especificación de corte deben resolverse entorno objetivo, clientes/credenciales compatibles, capacidades coach, plazos de recuperación y procedimientos antes/después de nuevas escrituras. Las guías operativas describen el sistema actual hasta la entrega correspondiente; esta revisión de planificación no cambia su contrato.
 
 Trabajos duraderos, LangChain/LangGraph, pgvector y colas requieren una necesidad posterior; no se crean por anticipación. Ningún futuro módulo o servicio administra el esquema compartido con un segundo migrador.
 
@@ -426,7 +423,7 @@ Esos resultados no fueron reejecutados en esta edición. No acreditan proveedor,
 | Tooling en el entorno objetivo | Ensayos nuevos Python sobre PostgreSQL real: pool, contexto/roles, locking, interrupción y restore; evidencia Node como antecedente únicamente | G1 operativo |
 | Entorno/major PostgreSQL | Definir Compose local y despliegue objetivo, versión, conexiones, TLS/pooler, backup/PITR si corresponde, coste y ubicación | G1 operativo/GO y corte; no obliga a adelantar VPS |
 | Paridad auth y clientes | Biblioteca WebAuthn/material heredado, scrypt/NFKC, sesiones existentes o reautenticación controlada y clientes nativos admitidos | GP y continuidad de acceso |
-| Coach/MCP | Probar proveedores/SDK/CLI/sandbox, lectura restringida y credencial MCP; delimitar autoridad/salida de cada almacén | GP/G3 y retirada completa |
+| Coach | Probar proveedores/SDK/CLI/sandbox, lectura restringida autorizada; delimitar autoridad/salida de cada almacén | GP/G3 y retirada completa |
 | Demostrar RPO 6 h / RTO 24 h | Objetivos aceptados, no garantías; medir restauración representativa conforme a operación local | GO y uso real con garantías de recuperación |
 | Configurar/verificar backup acordado | Disco independiente, cifrado/clave separada, 30 días y cadencia definidos; ubicación física, acceso y señales se verifican antes del corte | GO y recuperación operativa |
 | Inventario de clientes | Identificar perfiles/orígenes/cuentas, teléfonos utilizados, sesión activa y datos pendientes; backups comprobados | G0 y corte |

@@ -116,8 +116,6 @@ if you want to try it before installing anything.
 - An [AI coach](docs/AI_COACH.md) that drafts a week of routines and later suggests changes based on
   what you logged. You approve every change. It runs on your server with your own provider key
   (Anthropic, OpenAI, Gemini or any OpenAI-compatible endpoint, Ollama included).
-- An [MCP server](mcp/README.md) so an assistant like Claude Desktop can answer questions about your
-  training history. Read-only and local; not part of the Docker build.
 
 The full list of what changed release by release is in the [changelog](CHANGELOG.md).
 
@@ -195,12 +193,6 @@ Details and build instructions: [docs/MOBILE.md](docs/MOBILE.md).
 
 ## How it works
 
-<p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/architecture-dark.png">
-  <img src="docs/diagrams/architecture.png" alt="Architecture: the phone talks HTTPS to nginx (web), which serves the app and proxies /api to the Node api; the api stores JSON in ./data. The exercise media ship inside the web image; the AI coach and MCP server are optional." width="520">
-</picture>
-</p>
 
 - **`frontend/`** is React 19 and Vite (React Router, Zustand), built to static files inside Docker.
 - **`api/`** is plain `node:http`, with three direct runtime dependencies
@@ -323,10 +315,10 @@ What that does and doesn't mean:
   are the maintainer's call. Changes are tested on a staging instance and on real phones before
   they are tagged.
 - **Tests hold the logic in place.** The training logic is covered by unit tests, and pull requests
-  run the frontend, API and MCP suites in CI. That is the guard against plausible-looking code
+  run the frontend and API suites in CI. That is the guard against plausible-looking code
   that is wrong, whoever or whatever wrote it.
 - **The app itself doesn't need an LLM.** Nothing in a default install calls an AI service. The AI
-  coach and the MCP server are opt-in, and the coach only talks to the provider you configure, with
+  coach is opt-in and only talks to the provider you configure, with
   your own key.
 
 Community pull requests are written by their authors, with whatever tools they like, and reviewed

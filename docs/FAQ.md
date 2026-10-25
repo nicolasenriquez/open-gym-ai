@@ -59,10 +59,9 @@ the [README](../README.md#how-opengym-is-built).
 
 ### Does the app itself use AI?
 
-Only if you turn it on. The default install calls no AI service. Two optional pieces exist: the
-[AI coach](AI_COACH.md) (off until an admin enables it, runs with your own provider key, every
-change needs your approval) and the [MCP server](../mcp/README.md), which lets an AI client on your
-computer read your history. Neither is needed for anything else in the app.
+Only if you turn it on. The default install calls no AI service. The optional
+[AI coach](AI_COACH.md) runs with your provider and requires approval for changes.
+MCP is not supported by this fork.
 
 ### My passkey sign-in doesn't work.
 

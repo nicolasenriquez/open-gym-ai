@@ -11,7 +11,7 @@ la aprobación documental como implementación.
 - Portar capacidades actuales por módulos con identidad mínima antes del piloto
   Training, frontend conservado y paridad verificable contra la referencia Node.
 - Implementar en su fase el esquema aprobado, sus restricciones/índices, contratos
-  de autorización, credencial MCP HTTP y limpieza externa recuperable.
+  de autorización, limpieza externa recuperable.
 - Conservar JS neutral en shared/coach-core, catálogo, import/export, offline,
   providers coach y clientes admitidos con diferencias expresamente resueltas.
 - Entregar imágenes/ambientes locales separados, diagnóstico privado, backup y
@@ -42,7 +42,7 @@ vigentes se conservan; estas deltas no acreditan entrega ni cambian el runtime a
 ## Impact
 
 Futura implementación en backend Python, frontend intervenido por recorrido, shared,
-MCP, Alembic, contenedores, CI y documentación operativa. Esta revisión escribe
+Alembic, contenedores, CI y documentación operativa. Esta revisión escribe
 únicamente documentación/OpenSpec; no añade dependencias, código, SQL ejecutable,
 credenciales, programaciones, migraciones, imágenes ni datos reales.
 

@@ -116,7 +116,7 @@ cuentan como punto recuperable.
 
 ```text
 Restore aislado, sin tráfico ni efectos externos
-  --> invalidar sesiones/pairings/tokens MCP restaurados
+  --> invalidar sesiones/pairings restaurados
   --> reconciliar eliminaciones y revocaciones posteriores
   --> comprobar datos, credenciales, medios y linaje
   --> habilitar únicamente accesos revisados
@@ -153,7 +153,7 @@ silenciosamente una copia vieja perdiendo cambios nuevos.
 Retirada de código y borrado de originales son decisiones distintas: cumplir el
 plazo no autoriza borrar. G3 y GO posteriores comprueban capacidades, seguridad,
 recuperación, diagnóstico e independencia de imports/builds respecto de API Node
-retirada; la biblioteca neutral JS y MCP stdio permanecen conforme a sus contratos.
+retirada; la biblioteca neutral JS permanece conforme a su contrato.
 
 ## Evidencia de aceptación y límites de esta revisión
 

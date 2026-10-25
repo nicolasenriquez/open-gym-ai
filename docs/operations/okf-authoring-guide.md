@@ -9,7 +9,7 @@ Para cambiar documentación, seguir `AGENTS.md` → [índice](../index.md) → d
 
 ## Preparación
 
-Instalar las dependencias de desarrollo raíz con `npm ci --ignore-scripts`, usando Node 22 o posterior. `js-yaml` lee metadatos; `markdown-it` distingue estructura Markdown de ejemplos; `github-slugger` calcula anclas. Son herramientas documentales, no dependencias de la aplicación.
+Instalar las dependencias de desarrollo raíz con `pnpm install --frozen-lockfile --ignore-scripts`, usando Node 22 o posterior. `js-yaml` lee metadatos; `markdown-it` distingue estructura Markdown de ejemplos; `github-slugger` calcula anclas. Son herramientas documentales, no dependencias de la aplicación.
 
 ```sh
 node scripts/docs/okf.mjs check

@@ -13,7 +13,7 @@ Evitar copiar una segunda lista editable de columnas aquí.
 ## Goals / Non-Goals
 
 **Goals:** preservar capacidades y datos; implementar esquema/roles aprobados;
-frontend actual sobre Python; MCP sin lectores JSON; operación local recuperable;
+frontend actual sobre Python; operación local recuperable;
 autoridad única y retirada verificada. Demostrar comportamiento, no solo carpetas.
 
 **Non-Goals:** implementar durante esta revisión, Recovery, nuevas capacidades IA,
@@ -25,7 +25,7 @@ intermedia, publicación remota o aceptación arm64 no probada.
 ### 1. Propiedad modular y orden de slices
 
 Identidad y primitivas transaccionales antes del piloto leer/guardar Training;
-después medios, administración/notificaciones, coach/MCP y formatos/builds cliente.
+después medios, administración/notificaciones, coach y formatos/builds cliente.
 Cada slice declara entrada/salida/errores, actor/recurso, tablas/almacenes, operación
 iniciadora/participantes y recorrido frontend. Service posee transacción; repository
 SQL propio; domain puro. Colaboración pública con handle compartido, sin commits
@@ -47,8 +47,7 @@ fielmente bloquea avance; no normalización silenciosa ni reidentificación.
 
 Sesiones firmadas actuales, scrypt/WebAuthn compatibles, roles mínimos y owner
 transaccional. Preauth mediante funciones limitadas con grants/políticas explícitos;
-admin verifica facultad, no SET owner arbitrario. MCP mantiene stdio Node y token
-HTTP propio read-only, no contraseña SQL ni bearer con escritura.
+admin verifica facultad, no SET owner arbitrario.
 
 Audit best effort se ejecuta fuera de la transacción de negocio que podría abortar;
 fallo observable no cambia éxito confirmado. Eliminación confirma datos SQL y tarea
@@ -106,7 +105,7 @@ evidencia previa e inventario real. Esta autoría no ejecuta los pasos.
 
 Preferencias de producto/esquema/operación quedan resueltas por el diseño confirmado.
 Antes de ejecución: detallar pruebas/seams de cada slice, DDL y funciones, biblioteca
-WebAuthn y adaptadores proveedores, rutas/provisionamiento MCP, herramientas/cotas
+WebAuthn y adaptadores proveedores, herramientas/cotas
 de telemetría y fuente protegida para reconciliación restore. Antes de corte:
 inventario real, disco/rutas/claves, clientes/orígenes, duración de pausa/ventana y
 evidencia G0/GP/GO. Son prerrequisitos técnicos y operativos, no resultados afirmados

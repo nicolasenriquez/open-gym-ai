@@ -78,7 +78,7 @@ neither is fixed by adding clusters to the total again.
 Persist row fields with the existing Training document. Preserve legacy shapes;
 redeployment does not migrate or clear a running workout's local state. For testing
 schema changes use a fresh disposable profile/session, not instructions to discard
-someone's active workout. MCP shares domain helpers, so counting changes can affect
+someone's active workout. The Coach shares domain helpers, so counting changes can affect
 its results too.
 
 UI strings follow the repository's all-locales rule and locale check; there is no

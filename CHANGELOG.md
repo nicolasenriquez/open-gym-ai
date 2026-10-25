@@ -7,13 +7,22 @@ principles. Published entries below are preserved; see the
 
 ## Unreleased
 
+### Removed
+
+- Removed the optional MCP server and Nix packaging from this fork. Docker remains
+  the supported deployment path; the web application and Coach remain available.
+
 ### Added
 
-- A complete isolated Python Foundation verifier with a path-selected CI job,
+- A complete isolated Python Foundation verifier within the consolidated CI workflow,
   lock/static checks, real PostgreSQL/Docker negatives and cache-aware test builds.
   It does not change the Node/JSON product or establish production platform gates.
 
 ### Changed
+
+- Migrated JavaScript installs to frozen pnpm locks; retained isolated uv-based Python tooling.
+  Added correctness, workflow, dependency and source security checks, plus a packaged
+  web/API smoke. Updated affected dependencies and retired the vulnerable legacy icon generator.
 
 - Consolidated GitHub CI for every pull request and removed inherited GitLab,
   Gitea, mirror, publication and deployment workflows, plus the GitLab-only

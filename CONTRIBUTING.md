@@ -11,8 +11,6 @@ frontend/  React + Vite app (src/views, src/components, src/store, src/lib). Bui
 api/       Backend: server.js on plain node:http, with dependencies listed in api/package.json.
            coach/ is the optional AI coach; openapi.yaml documents every route.
 web/       Multi-stage Dockerfile (builds the frontend, serves it with nginx) and the nginx template.
-mcp/       Optional read-only MCP server for compatible AI clients. Not in the
-           Docker build; it only runs when a client spawns it. See mcp/README.md.
 website/   The static project site at opengym.ch.
 kubernetes/ Example manifests (docs/SELF_HOSTING_KUBERNETES.md).
 docs/      User and operator guides (index: docs/index.md); docs/dev/ has feature design notes.
@@ -25,14 +23,15 @@ catalogue/ The exercise catalogue: one JSON file per exercise, translations in i
 The separate synthetic Python harness is documented in
 [backend/README.md](backend/README.md). It does not replace the normal stack below.
 
+Use Node 22 and the pinned pnpm 10.34.8 (`corepack enable`), or Docker for the stack.
+
 ```bash
 cp .env.example .env
 docker compose up -d --build      # api + web on :8080
 
-cd frontend && npm install && npm run dev   # hot reload, proxies /api to :3000
-cd frontend && npm test                     # training logic, locales, components
-cd api && npm test
-cd mcp && npm test
+cd frontend && pnpm install --frozen-lockfile && pnpm run dev   # hot reload, proxies /api to :3000
+cd frontend && pnpm test                     # training logic, locales, components
+cd api && pnpm test
 ```
 
 The frontend suite runs the actual nginx entrypoint script and requires a POSIX `sh` on PATH.
@@ -45,7 +44,7 @@ $gitBin = Join-Path $gitRoot 'bin'
 if (!(Test-Path (Join-Path $gitBin 'sh.exe'))) { throw 'Locate your Git for Windows sh.exe and add its directory to this terminal PATH.' }
 $env:PATH = "$gitBin;$env:PATH"
 cd frontend
-npm.cmd test
+pnpm.cmd test
 ```
 
 API tests keep recovery, durable writes and profile deletion covered on Windows. POSIX mode
@@ -67,8 +66,8 @@ docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/so
 - **Keep it dependency-light.** See `frontend/package.json` and `api/package.json` for current
   dependencies, including mobile plugins and the optional coach SDK. Justify new dependencies.
 - **Match the style.** Small components, clear names, comments only where the *why* isn't obvious.
-  State lives in the Zustand store (`src/store`), pure helpers in `src/lib`. There is no linter or
-  formatter config, so follow the surrounding code.
+  State lives in the Zustand store (`src/store`), pure helpers in `src/lib`. Oxlint checks a small set of correctness rules; there is no automatic
+  formatter, so follow the surrounding code.
 - **Don't commit** `data/`; it is gitignored. Don't add or replace anything in
   `catalogue/media/`: the stills and animations are licensed from Gym visual, 180 px at most, and
   not open to contributions (see [NOTICE.md](NOTICE.md)).
@@ -87,6 +86,37 @@ docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/so
   missing, blank or has lost a `{n}` placeholder. Portuguese (Brazil) inherits from Portuguese
   (Portugal) and has its own guard test.
 
+## CI and security checks
+
+[Tests](.github/workflows/test.yml) is the only workflow. Every PR runs quality,
+source/dependency security, documentation, catalogue, frontend/API, PostgreSQL
+and Python Foundation checks. Image checks depend on quality and product tests;
+all other checks run independently. Pushes to main/coach and manual runs are supported.
+No workflow publishes or deploys.
+
+Build mobile packages locally using [the mobile guide](docs/MOBILE.md).
+A first-time contributor's workflows may wait for maintainer approval.
+Required checks are configured separately in GitHub branch rules.
+
+Run `pnpm install --frozen-lockfile --ignore-scripts` at the root, then
+`pnpm run lint:ci`. Run `pnpm audit` at root, frontend, api and api/foundation.
+Audit failures, including an unavailable advisory service, block CI. API's scoped
+Zod override corrects the optional SDK's pinned vulnerable dependency; remove it
+when the SDK supplies a fixed version and adapter/image checks pass.
+
+The separate locked `backend/security/` environment leaves Foundation dependencies
+unchanged. Build it with `docker build -f backend/Dockerfile.security -t opengym-security:ci .`.
+Its CI commands run Bandit (medium severity and confidence), zizmor offline, and
+pip-audit over hashed application/development/tool requirements. Bandit's two B108
+exceptions document Recovery's mandatory tmpfs check and no-follow directory open.
+Bandit/pip-audit use Apache-2.0, zizmor MIT and Oxlint MIT; retain dependency notices.
+Scanners supplement review and runtime isolation; they do not certify security.
+
+CodeQL uses the extended JavaScript/TypeScript queries. Its job alone does not
+block merges on alerts: configure code-scanning merge protection separately in
+GitHub. Repository rules and CodeQL availability must be verified remotely before
+requiring these checks; this change does not alter remote settings.
+
 ## Documentation changes
 
 README files describe current purpose, supported commands and where to find detail.
@@ -102,7 +132,7 @@ or moving a document. Run `node scripts/docs/okf.mjs check` before submitting.
 
 Future releases use [SemVer 2.0.0](https://semver.org/): PATCH for compatible bug
 fixes, MINOR for compatible additions or deprecations, MAJOR for incompatible
-public-contract changes. Compatibility includes supported HTTP/MCP interfaces,
+public-contract changes. Compatibility includes supported HTTP interfaces,
 import/export formats and documented deployment/upgrade behavior. An internal
 runtime rewrite alone does not determine the version increment.
 
@@ -128,14 +158,7 @@ understand the change, it is tested, and you can answer questions about it in re
 
 ## What CI does with your pull request
 
-Every pull request runs the frontend, API and MCP checks, PostgreSQL Foundation
-proofs, API image checks, documentation checks and catalogue validation through
-`.github/workflows/test.yml`. Pushes to `main` and `coach` run the same workflow.
-CI does not publish images, mobile packages or the demo. Build mobile packages
-locally using [the mobile guide](docs/MOBILE.md).
-
-A first-time contributor's workflows may wait for maintainer approval. Required
-checks are configured in GitHub branch rules, separately from the workflow.
+See [CI and security checks](#ci-and-security-checks).
 
 ## Good first issues
 

@@ -30,7 +30,7 @@ Operation SHALL provide backup every three hours, startup catch-up when overdue,
 - **AND** evidence reports whether the accepted RPO/RTO objectives were met without inventing guarantees from scheduling alone
 
 ### Requirement: Restore preserves later security decisions
-Restore SHALL remain isolated with external effects disabled, invalidate restored sessions/pairings/MCP tokens and reconcile subsequent deletions/revocations including passkeys using sufficiently protected later information. A snapshot SHALL NOT be treated as proof of current authorization. Access without sufficient reconciliation SHALL remain blocked until explicit review; stale clients SHALL NOT silently overwrite restored Training or lose pending work.
+Restore SHALL remain isolated with external effects disabled, invalidate restored sessions/pairings and reconcile subsequent deletions/revocations including passkeys using sufficiently protected later information. A snapshot SHALL NOT be treated as proof of current authorization. Access without sufficient reconciliation SHALL remain blocked until explicit review; stale clients SHALL NOT silently overwrite restored Training or lose pending work.
 
 #### Scenario: Deleted account or revoked credential exists in snapshot
 - **WHEN** a restored snapshot contains an account/credential later deleted or revoked and the later information is missing or incomplete

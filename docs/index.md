@@ -19,7 +19,6 @@ okf_version: "0.2"
 - [Self-hosting openGym](SELF_HOSTING.md) - Current deployment, passkeys, backups and troubleshooting.
 - [HTTPS at home without exposing your server](SELF_HOSTING_HTTPS.md) - HTTPS on a home network without exposing the instance publicly.
 - [Self-hosting openGym on Kubernetes](SELF_HOSTING_KUBERNETES.md) - Current example Kubernetes deployment and configuration.
-- [openGym on NixOS — Flake & NixOS Module](NIX.md) - Native NixOS setup, module options and operating guidance.
 
 ## Desarrollo actual
 

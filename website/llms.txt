@@ -5,10 +5,10 @@
 > multi-device sync, PWA). No account required, no cloud, no telemetry.
 
 ## Docs
-- [Complete reference](https://opengym.ch/docs.html): every feature, self-hosting, every .env setting, AI Coach, imports (FitNotes/Strong/Hevy/Apple Health), backups, MCP server, troubleshooting
+- [Complete reference](https://opengym.ch/docs.html): every feature, self-hosting, every .env setting, AI Coach, imports (FitNotes/Strong/Hevy/Apple Health), backups, troubleshooting
 - [HTTP API](https://opengym.ch/api.html): OpenAPI spec, also at [openapi.yaml](https://opengym.ch/openapi.yaml)
 - [README](https://raw.githubusercontent.com/DuarteSantos8/openGym/main/README.md): project overview in Markdown
-- [Documentation index](https://github.com/DuarteSantos8/openGym/blob/main/docs/README.md): every guide by audience, plus an [FAQ](https://raw.githubusercontent.com/DuarteSantos8/openGym/main/docs/FAQ.md)
+- [Upstream documentation index](https://github.com/DuarteSantos8/openGym/blob/main/docs/README.md): original project guides, plus the [upstream FAQ](https://raw.githubusercontent.com/DuarteSantos8/openGym/main/docs/FAQ.md)
 
 ## Try & get it
 - [Live demo](https://opengym.ch/demo/): the real app with example data, in the browser
@@ -16,7 +16,7 @@
 - [About](https://opengym.ch/about.html): the story and every release
 
 ## How it is built
-- Developed with Claude Code (Anthropic's coding agent); changes are reviewed, tested and released by the maintainer. The app itself needs no AI service; the AI coach and MCP server are optional.
+- Developed with Claude Code (Anthropic's coding agent); changes are reviewed, tested and released by the maintainer. The app itself needs no AI service; the AI coach is optional.
 
 ## Source & community
 - [Fork repository](https://github.com/nicolasenriquez/open-gym-ai): code, issues, pull requests and CI; no automated publication

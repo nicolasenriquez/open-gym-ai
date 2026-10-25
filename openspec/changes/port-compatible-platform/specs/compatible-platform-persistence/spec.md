@@ -47,18 +47,13 @@ The platform SHALL preserve push endpoint/device semantics, ownership, limits an
 - **THEN** owner/consent/generation checks prevent late content resurrection and stale Training sync cannot reenable sharing
 - **AND** forget preserves only applicable daily consumption, deletion removes owner usage and the instance aggregate has no personal link
 
-### Requirement: Least-privilege access and restricted MCP HTTP
-The platform SHALL implement the security reference's separate owner/migrator/runtime/executor/backup privileges, explicit RLS and transaction-local owner context. Preauthentication SHALL expose only bounded credential verification operations; administration SHALL authorize concrete actor/resource actions without arbitrary owner impersonation. MCP SHALL remain Node stdio and obtain only authorized Training through HTTP with a dedicated random revocable read-only credential, stored as a digest and checked for scope, expiry, owner state and session version. This token SHALL NOT authenticate ordinary write/admin routes or provide SQL/Recovery access.
+### Requirement: Least-privilege access
+The platform SHALL implement the security reference's separate owner/migrator/runtime/executor/backup privileges, explicit RLS and transaction-local owner context. Preauthentication SHALL expose only bounded credential verification operations; administration SHALL authorize concrete actor/resource actions without arbitrary owner impersonation.
 
 #### Scenario: Preauthentication and pool reuse
 - **WHEN** preauth executes without an authenticated owner and the pool subsequently serves different owners or missing context
 - **THEN** preauth has only its explicit bounded privileges and no later borrower inherits another owner's protected access
 - **AND** runtime cannot execute DDL, bypass RLS or assume privileged executors
-
-#### Scenario: MCP credential boundaries
-- **WHEN** a valid MCP token reads its allowed Training or attempts another owner, write/admin/media/Recovery access, or is expired/revoked/version-invalid
-- **THEN** only the permitted current-owner read succeeds and all disallowed cases fail safely
-- **AND** no plaintext token is stored/logged and no active JSON mirror or SQL password is needed by MCP
 
 ### Requirement: Authenticated session to RLS ownership
 For protected owner-scoped HTTP operations, Python identity SHALL verify the compatible cookie or bearer signature, expiry, current account state and session version before deriving the authorized actor. The transaction initiator SHALL derive its owner context exclusively from that verified actor, install it transaction-locally on the single leased connection and pass the same handle and authorized context to collaborators. Client-supplied owner identifiers in body, query parameters or headers SHALL NOT establish or replace the actor or RLS owner. An explicit foreign resource target SHALL require authorization for that actor/resource action; administration and preauthentication SHALL retain their bounded privileges rather than impersonating an arbitrary owner. Missing or invalid authentication SHALL grant no protected access.
@@ -116,5 +111,5 @@ Schema evolution and data import SHALL be separate. Import SHALL retain IDs, cre
 
 #### Scenario: Parity after removing the replaced backend
 - **WHEN** the old business API and file readers are retired
-- **THEN** current client, coach, MCP, media, formats and security scenarios still pass on Python/PostgreSQL
+- **THEN** current client, coach, media, formats and security scenarios still pass on Python/PostgreSQL
 - **AND** relevant web/mobile bundles and generators no longer import the retired API tree while the neutral JavaScript library remains available

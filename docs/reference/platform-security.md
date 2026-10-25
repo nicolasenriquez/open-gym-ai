@@ -25,7 +25,7 @@ El servidor resuelve identidad y permisos en cada operación protegida; el propi
 | Usuario propietario | Sus recursos según operación y estado de cuenta/sesión. |
 | Otro usuario | Sin acceso a recursos ajenos, incluidos medios y operaciones por ID. |
 | Administrador | Facultades actuales inventariadas y privilegios explícitos; sin acceso clínico o exportación Recovery implícitos. |
-| MCP/coach | Contrato Training restringido y credencial/propietario verificables; sin privilegios Recovery. El coach conserva sus propuestas/aprobación actuales. |
+| Coach | Acceso a Training limitado al propietario autorizado; sin privilegios sobre Recovery. Conserva consentimiento y aprobación explícita de propuestas. |
 
 Una autorización que cambió durante una espera no confirma con una sesión obsoleta: definir y probar serialización con revocación, deshabilitación y eliminación. Conservar respuestas HTTP/errores de compatibilidad; validar acceso en backend aunque la UI oculte controles.
 
@@ -59,18 +59,6 @@ interfaces propietarias con el handle compartido, sin SET owner arbitrario.
 
 ## Secretos y conexiones
 
-### Credencial MCP y lectura HTTP
-
-MCP sigue stdio Node y consume interfaz HTTP Training restringida. Emitir token
-aleatorio de alta entropía, mostrado una vez, digest SHA-256 almacenado y formato
-distinguible de cookie/bearer heredado; scope fijo `training:read` y propietario
-asociado. Emisión/revocación exige sesión propietaria y prueba reciente según las
-operaciones de acceso existentes. Caducidad inicial usa SESSION_DAYS de instancia.
-Cada petición comprueba digest, scope, expiración/revocación, cuenta activa y
-`issued_session_version` vigente. No aceptar token MCP en rutas normales de sesión,
-PUT Training, medios, administración o Recovery. Sin contraseña SQL distribuida a MCP.
-El port define rutas y errores compatibles con su adaptador y prueba aislamiento
-positivo/negativo antes de retirar lectores de archivos; Foundation no lo implementa.
 
 ### Protección de material y proveedores
 

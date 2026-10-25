@@ -60,7 +60,7 @@ Compartir catálogo y búsqueda (`frontend/src/lib/exercises.js`) y controles (`
 - Escenarios A–D completos del PRD; correcciones sucesivas y ejercicios editados sin reescritura de snapshots.
 - Atomicidad: fallo antes/después del commit y consistencia de cambio/corrección/recibo.
 - Idempotencia concurrente: mismo ID/contenido, reutilización con otro contenido, reinicio, respuesta perdida y reintento tras otras escrituras.
-- RLS Recovery: propietario distinto, contexto ausente, pool reutilizado y roles Training sin acceso; no filtración a coach, MCP, export/admin Training, sincronización global, cachés o logs.
+- RLS Recovery: propietario distinto, contexto ausente, pool reutilizado y roles Training sin acceso; no filtración a coach, export/admin Training, sincronización global, cachés o logs.
 - Restore con generación Recovery y clientes antiguos; recorrido responsive §12.1, separado de las tres sesiones reales de adopción.
 
 ## Validación web responsive

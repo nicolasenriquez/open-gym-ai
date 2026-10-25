@@ -21,7 +21,6 @@ Licencia: AGPL-3.0-or-later.
   nginx también hace proxy de `/api`.
 - `catalogue/`: catálogo de ejercicios y medios. `catalogue/media/` se incluye
   en la imagen web; no hay un servicio Compose separado que descargue estos medios.
-- `mcp/`: servidor MCP opcional, de solo lectura y por stdio; ver `mcp/README.md`.
 - `docs/`: guías indexadas en `docs/index.md` y notas de diseño en `docs/dev/`.
 - `website/`: sitio estático del proyecto, desplegado por separado.
 - `kubernetes/`: manifiestos de ejemplo.
@@ -34,24 +33,24 @@ cp .env.example .env
 docker compose up -d --build
 
 # Frontend en desarrollo
-cd frontend && npm install && npm run dev
+cd frontend && pnpm install --frozen-lockfile && pnpm run dev
 
 # Tests del frontend
-cd frontend && npm test
-cd frontend && npm run test:watch
-npx vitest run src/lib/progression.test.js
-npx vitest run -t "some test name"
+cd frontend && pnpm test
+cd frontend && pnpm run test:watch
+pnpm exec vitest run src/lib/progression.test.js
+pnpm exec vitest run -t "some test name"
 
-# Tests de API y MCP
-cd api && npm test
-cd mcp && npm test
+# Tests de API
+cd api && pnpm test
 
 # Build de producción
-cd frontend && npm run build
-cd frontend && npm run build:mobile
+cd frontend && pnpm run build
+cd frontend && pnpm run build:mobile
 ```
 
-La CI usa Node 22. No hay configuración de ESLint o Prettier; sigue el estilo
+La CI usa Node 22 y pnpm 10.34.8; `corepack enable` activa el gestor fijado.
+Oxlint verifica errores de corrección; no hay formateador automático. Sigue el estilo
 del código cercano. Mantén pequeña la huella de dependencias y justifica las nuevas;
 consulta los `package.json` para ver las dependencias actuales.
 
@@ -80,8 +79,6 @@ consulta los `package.json` para ver las dependencias actuales.
   declaradas en `api/package.json`.
 - WebAuthn depende del hostname exacto y requiere HTTPS, salvo en localhost.
   El proxy de nginx mantiene frontend y API bajo el mismo origen.
-- El MCP lee los mismos datos del usuario que escribe la API; es opcional y
-  no forma parte del stack Docker por defecto.
 
 ## Git y despliegue
 
