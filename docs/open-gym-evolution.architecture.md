@@ -23,7 +23,7 @@ description: Contratos, transición y gates de la plataforma objetivo Python/Fas
 
 Completar la transición de la aplicación servidor a un monolito modular Python/FastAPI, con PostgreSQL como autoridad del estado duradero migrado y operación reproducible en contenedores. Preservar el frontend React/Vite/Zustand, Training, sincronización/offline, catálogo, autenticación, medios, administración, notificaciones, coach. La ejecución será incremental; el destino no incluye una API Node de negocio permanente.
 
-**Primera entrega: plataforma.** Caracterizar contratos, preparar Python/PostgreSQL con datos sintéticos, demostrar paridad, ensayar importación/recuperación, realizar un corte controlado y retirar el código sustituido. Su aceptación requiere G0–G3, GP y GO de §12; no requiere implementar Recovery ni validar sus tres sesiones reales.
+**Primera entrega: plataforma, en checkpoints.** Port funcional → operación local recuperable → corte/retirada/aceptación en cambio operativo separado. El OpenSpec activo entrega los dos primeros y ensaya el tercero con recursos sintéticos; transferir obligaciones S11 explícitamente antes de archive. Caracterizar contratos, demostrar paridad y ensayar recuperación no acredita el corte real. Su aceptación requiere G0–G3, GP y GO de §12; no requiere implementar Recovery ni validar sus tres sesiones reales.
 
 **Entregas posteriores:** Recovery completo según PRD y G4/G5 → Garmin Connect con alcance/acceso verificados → ampliaciones de IA con evaluación y consentimiento. No comenzar su implementación funcional antes de aceptar plataforma. Recovery mantendrá identidad, Training compatible, dominio aislado, guardado confiable, snapshots, recuperación y experiencia web responsive. LangChain/LangGraph, pgvector, colas y Kubernetes no son dependencias anticipadas.
 
@@ -262,7 +262,7 @@ Preservar el [contrato de origen, passkeys y clientes](reference/platform-securi
 
 ### Observabilidad
 
-EV-08 exige diagnóstico operativo verificable, no solo logs o un endpoint health. El [contrato de observabilidad](reference/platform-observability.md) define logs, métricas, tracing/correlación, privacidad, acceso/retención y exportación acotada. Sus casos sintéticos y verificación tras corte son obligatorios para GO. Audit y trazabilidad de datos conservan autoridad separada; traces muestreados no los reemplazan.
+EV-08 exige diagnóstico verificable, no solo health verde: logs estándar estructurados con request_id, resultado/duración y estado puntual de DB/esquema/pool/audit/backup. El [contrato de observabilidad](reference/platform-observability.md) fija privacidad, cuota/edad y pruebas de todas las copias. Seleccionar/fijar tooling estándar antes de S9. Se difieren OpenTelemetry, exporter propio, spans e históricos métricos. Casos sintéticos y comprobación tras corte siguen obligatorios para GO; audit e historial conservan autoridad separada.
 
 ### Verificación, entrega y soporte
 
@@ -276,7 +276,7 @@ Al implementar, actualizar guías operativas, API y artefactos de la entrega sop
 
 - Backups cifrados en disco independiente del disco de instancia, clave separada y acceso restringido. No acreditar ubicación off-host o cobertura de pérdida completa del equipo; destino físico se configura/verifica antes del corte.
 - La planificación debe contemplar fallos de ejecución, transferencia y verificación; programar una copia cada seis horas no acredita por sí solo RPO de seis horas.
-- Backup PostgreSQL consistente y backup coordinado de medios, configuración y secretos necesarios. `pg_dump` lógico no equivale a PITR.
+- Backup PostgreSQL consistente y captura de medios/configuración/secretos con pausa controlada de API y todos los escritores. Wrapper host con exclusión/journal, Docker/Compose y Node 22+; no Node ni socket Docker en API. PG sigue disponible; reiniciar solo servicios previamente activos tras cese de captura y revisión compatible. Sin leases/socket de mantenimiento. `pg_dump` lógico no equivale a PITR.
 - PITR solo si se verifican backup base, archivado WAL continuo, retención y procedimiento del proveedor. No es capacidad confirmada.
 - No copiar un directorio de datos PostgreSQL en caliente como si fuera un backup consistente.
 - Manifiesto de revisión de aplicación, versión de esquema, alcance y punto recuperable; secretos protegidos separadamente cuando proceda.
@@ -284,7 +284,7 @@ Al implementar, actualizar guías operativas, API y artefactos de la entrega sop
 - Rotar generación Recovery y probar protección de pestañas anteriores. Probar linaje Training después de restore y clientes con cambios offline.
 - Un restore a un punto anterior puede retroceder contadores WebAuthn/revocaciones; definir reconciliación de autenticación y revocación de sesiones según riesgo, sin prometer supervivencia segura de todas las sesiones.
 
-La [restauración acordada](reference/platform-operations.md#restauración-y-decisiones-de-seguridad-posteriores) permanece aislada, invalida sesiones/tokens restaurados y exige reconciliar bajas/revocaciones con información posterior al snapshot. Si no hay cobertura suficiente, el acceso permanece bloqueado hasta revisión; el backup no reconstruye esa información. Medios, secretos y cleanup pendientes deben verificarse junto con datos SQL.
+La [restauración acordada](reference/platform-operations.md#restauración-y-decisiones-de-seguridad-posteriores) permanece aislada, invalida sesiones/tokens restaurados y exige reconciliar bajas/revocaciones con información posterior al snapshot. Si falta evidencia, las credenciales históricas permanecen bloqueadas; Q1 admite nueva vía local explícitamente autorizada para cuenta verificada, sin cambiar ID/rol ni reactivar las dudosas. Definir autorización/entrega privada antes de implementarla; sin una salida completa probada no hay RTO acreditado. Medios, secretos y cleanup se verifican junto con SQL.
 
 Migración de autoridad:
 
@@ -322,7 +322,7 @@ La [matriz de responsabilidad por fase](reference/platform-modularity.md#respons
 | G0: inventario/procedencia | Clientes/orígenes identificados; backups locales comprobados; imagen frontend identificable; correspondencia API documentada | No cortar persistencia existente ni borrar clientes; resolver diferencias. No impide Foundation sintética aislada |
 | G1: foundation Python/PostgreSQL | Pool asyncpg/lifespan, roles, Alembic/locking, transacciones/RLS y backup/restore sobre PostgreSQL real; compatibilidad del entorno objetivo | No habilitar nuevo backend autoritativo; corregir con datos sintéticos. Evidencia Node no sustituye estas pruebas |
 | GP: paridad Python | Matriz §9.1 contra Node y frontend actual sobre Python/PG; diferencias resueltas; contrato de seguridad probado: permisos por actor/recurso, revocación, RLS y audit | No cortar ni retirar capacidades; completar el port y su evidencia |
-| GO: operación reproducible y observable | Checkout limpio, contenedores/CI, revisión identificable, guías/restore representativo y EV-08: correlación/traces, métricas, salud, fallos DB/exportación, privacidad/acceso/retención según referencia; ensayo previo y comprobación tras corte | No cerrar plataforma ni comenzar Recovery; resolver operación, recuperación o diagnóstico no demostrados |
+| GO: operación reproducible y observable | Checkout limpio, contenedores/CI, revisión identificable, guías/restore representativo y EV-08: logs correlacionados, salud/DB/pool/backup, fallos DB/sink y privacidad/acceso/retención según referencia; ensayo previo y comprobación tras corte | No cerrar plataforma ni comenzar Recovery; resolver operación, recuperación o diagnóstico no demostrados |
 | G2: corte identidad/Training | Importación equivalente, consumidores operativos sobre PostgreSQL, autoridad única, ausencia de accesos activos al almacenamiento sustituido y reversión ensayada | Rollback antes de escrituras; luego recuperación explícita sin pérdida silenciosa |
 | G3: compatibilidad tras retirada | Capacidades §9 y seguridad/auth/audit sin regresión; GP/GO, diagnóstico y recuperación comprobados después de eliminar código sustituido | No cerrar plataforma ni comenzar implementación Recovery; resolver contrato |
 | G4: dominio Recovery | Escenarios A-D del PRD, atomicidad, idempotencia, snapshots y aislamiento demostrados | Mantener Recovery no disponible y preservar Training |
@@ -336,7 +336,7 @@ Pruebas obligatorias para plataforma (G0–G3/GP/GO):
 - Training: revisiones/linaje, primer documento concurrente, stamps legacy, reset, importación, polling, pérdida de respuesta y dos dispositivos.
 - Offline Training, sesión activa local y cambios pendientes: reconciliación tras migración/restauración sin sobrescritura silenciosa.
 - Paridad Python de §9.1, incluyendo auth y coerciones/serialización, errores HTTP y coach local/HTTP; verificar y declarar SDK/CLI no disponibles por Q6.
-- Casos de [seguridad](reference/platform-security.md#evidencia-de-aceptación) y [observabilidad](reference/platform-observability.md#evidencia-para-go), con fixtures sintéticas y sin credenciales ni contenido privado emitido.
+- Casos de [seguridad](reference/platform-security.md#evidencia-de-aceptación) y [observabilidad](reference/platform-observability.md#evidencia-para-go), con fixtures sintéticas, correlación por request_id y retención/sink fallido sin credenciales ni contenido privado emitido.
 - RLS Foundation: fixtures de propietarios, contexto ausente y pool reutilizado tras commit/rollback; roles restringidos reales, sin tablas Recovery anticipadas.
 - Medios: caída de BD no equivale a referencias vacías ni dispara GC destructivo.
 - Restauración completa medida, con autenticación, archivos externos, linaje Training y clientes antiguos.
@@ -387,7 +387,7 @@ El [protocolo responsive Recovery](reference/recovery-contracts.md#validación-w
 5. **Garmin Connect:** tras Recovery, definir datos/acceso/autenticación/procedencia y deduplicación; conector Python sin sesiones Recovery implícitas. La exportación `.fit` existente no equivale a esta integración.
 6. **Ampliaciones de IA:** después de las etapas anteriores, casos de uso, consentimiento, límites y evaluación propios. Mantener el coach actual durante plataforma no habilita datos Recovery/Garmin automáticamente.
 
-No se exige completar G0 para ensayos sintéticos aislados; sí antes de un corte real. No completar primero una migración productiva Node/PostgreSQL como paso obligatorio. Los tramos pueden descomponerse en cambios acotados cuando se autoricen; no implementar toda la transición en un solo salto.
+No se exige completar G0 para ensayos sintéticos aislados; sí antes de un corte real. No completar primero una migración productiva Node/PostgreSQL como paso obligatorio. El cambio activo se limita a port y operación sintéticos más ensayos de corte/retirada; las obligaciones operativas reales se transfieren con trazabilidad a cambio separado antes de archive. No aceptar plataforma ni comenzar Recovery al cerrar solo el tramo sintético.
 
 **Handoff obligatorio de migración y retirada:** el alcance antes denominado `migrate-opengym-persistence` debe revisarse para el destino Python. Incluir matriz §9.1, inventario de todos los almacenes/consumidores, paridad, equivalencia, restauración/reversión y corte §11. Contener un tramo final de eliminación del código sustituido, pruebas posteriores, guías actualizadas y conservación protegida del origen/versión anterior. Importar datos o conectar FastAPI no acredita el cierre.
 
