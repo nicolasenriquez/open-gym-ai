@@ -1,37 +1,9 @@
-# Runs on pull requests too — the other two workflows only fire on push to main, so
-# contributed changes used to reach main without anything ever having been run.
 name: Tests
 
 on:
   pull_request:
-    paths:
-      - 'frontend/**'
-      - 'api/**'
-      - 'mcp/**'
-      - 'compose.foundation.yml'
-      - 'openspec/specs/postgres-foundation/**'
-      - 'openspec/changes/archive/2026-10-22-add-postgres-foundation/**'
-      - 'scripts/build-coach-assets.mjs'
-      - 'scripts/build-coach-library.mjs'
-      - 'scripts/build-api-docs.mjs'
-      - 'website/api.html'
-      - 'api/coach/prompts/**'
-      - '.github/workflows/test.yml'
   push:
     branches: [main, coach]
-    paths:
-      - 'frontend/**'
-      - 'api/**'
-      - 'mcp/**'
-      - 'compose.foundation.yml'
-      - 'openspec/specs/postgres-foundation/**'
-      - 'openspec/changes/archive/2026-10-22-add-postgres-foundation/**'
-      - 'scripts/build-coach-assets.mjs'
-      - 'scripts/build-coach-library.mjs'
-      - 'scripts/build-api-docs.mjs'
-      - 'website/api.html'
-      - 'api/coach/prompts/**'
-      - '.github/workflows/test.yml'
   workflow_dispatch:
 
 permissions:
@@ -42,6 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --include=dev
+      - run: node scripts/docs/okf.mjs check
+      - run: node --test scripts/docs/okf.test.mjs
+
+  catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Validate the catalogue
+        run: node scripts/catalogue/validate.mjs
+      - name: Generated files are up to date
+        run: node scripts/catalogue/build.mjs --check
+      - name: Media stay within 180 px (licence)
+        run: node scripts/catalogue/check-media.mjs
+
   foundation:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -116,8 +115,8 @@ jobs:
           cache-dependency-path: api/package-lock.json
       # The Coach tests run on node:test and drive the in-repo fixture provider plus a local mock
       # of the Chat Completions shape, so the job needs no AI account and no network — but it does
-      # need the api's own dependencies since the server-side fetch moved onto undici (same
-      # install as test:api in .gitlab-ci.yml; the Agent SDK is optional and stays out).
+      # need the api's own dependencies since the server-side fetch moved onto undici (the
+      # Agent SDK is optional and stays out).
       - run: npm ci --omit=optional
         working-directory: api
       - run: npm test
@@ -143,10 +142,8 @@ jobs:
 
       - run: docker build --target default -t opengym-api:default ./api
       - run: docker build --target coach   -t opengym-api:coach   ./api
-      # No --target, exactly like docker-publish.yml. That workflow names no stage, so what it
-      # ships is whatever Dockerfile stage happens to be last -- and that untargeted artifact,
-      # not opengym-api:default above, is the image every self-hoster pulls as :latest. Build it
-      # the same way here so the assertion below is about the thing we actually publish.
+      # An untargeted build uses the last Dockerfile stage. Verify it remains runtime-free
+      # for consumers building without --target, independently of the explicit default build.
       - run: docker build -t opengym-api:published ./api
 
       - name: the image published as :latest has no AI runtime either

@@ -95,8 +95,8 @@ updates:
         patterns: ['*']
         update-types: ['minor', 'patch']
       # Action majors are usually a runner or Node-version change and usually harmless — but
-      # these workflows publish the ghcr images and deploy the live demo, so the blast radius
-      # is real. Separate PR, so a failure has an obvious cause.
+      # these workflows are the only check this fork runs, so the blast radius is real.
+      # Separate PR, so a failure has an obvious cause.
       actions-major:
         patterns: ['*']
         update-types: ['major']
