@@ -13,6 +13,7 @@ no host Python installation is needed. Builds may require network access.
 ```sh
 node scripts/python-foundation.mjs config
 node scripts/python-foundation.mjs run environment
+node scripts/python-foundation.mjs run all
 ```
 
 The harness ignores instance dotenv files and inherited Compose overrides. It
@@ -38,9 +39,12 @@ node scripts/python-foundation.mjs run recovery
 | `migrations` | Controlled Alembic CLI, serialized history, interruptions and restricted roles. |
 | `isolation` | Real runtime/Training permissions, owner RLS and reuse after transaction outcomes. |
 | `recovery` | Synthetic encrypted backup/copy/restore, restricted-owner reads, history/ownership/grants/RLS equivalence, timings and unsafe bundle/path/target rejection. Not an operational recovery command. |
-| `all` | Not implemented; fails explicitly. |
+| `all` | Contracts → environment → pool → migrations → isolation → recovery → lock/static checks, then real Docker harness regressions. Each group has its own project/DB so fixtures cannot inherit earlier ACLs or history. |
 
-Required prerequisites, test failures and cleanup failures return nonzero.
+Required prerequisites, test failures, skipped/xfail/xpass/deselected required
+Python proofs and cleanup failures return nonzero. `FOUNDATION_ALL_OK` is emitted
+only after every group, its cleanup and the Docker regressions succeed. Docker
+and host-harness commands have a five-minute deadline per invocation.
 The runner bounds pytest to 60 seconds and scans captured diagnostics before
 replaying them. A passing group proves only its synthetic scope, not platform
 parity, HTTP authorization or operational acceptance.
@@ -138,8 +142,12 @@ may remain.
 [versions.json](versions.json) owns image/tool versions and immutable references;
 [pyproject.toml](pyproject.toml) and [uv.lock](uv.lock) own Python dependencies.
 [dependency-licenses.json](dependency-licenses.json) records their license inventory.
-Builds verify the lock rather than resolving new dependencies. Evidence currently
-covers Linux/amd64; other platforms and providers need their own verification.
+Builds verify the lock rather than resolving new dependencies. `all` also runs
+`uv lock --check --offline`, `uv pip check`, Ruff lint/format checks and mypy over
+source/tests without changing files. Mypy is not strict; only the untyped asyncpg
+driver has a missing-import exception, not all dependencies. Its cache is disabled
+to keep the private 64 MiB tmpfs bounded. Evidence currently covers Linux/amd64;
+other platforms and providers need their own verification.
 
 ```sh
 node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs
@@ -148,4 +156,67 @@ node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mj
 These host regressions exercise the harness, ownership guards, failure propagation
 and cleanup. Full API/frontend/MCP suites and their build/locale checks are listed
 in [CONTRIBUTING.md](../CONTRIBUTING.md) and existing CI. Synthetic Foundation results
-do not replace those checks or the later recovery/CI/operational gates.
+do not replace those checks or operational gates.
+
+## Builds and CI
+
+Dependency manifests precede source/test copies. Node API, frontend and MCP
+install in independent stages so a changed API manifest does not reinstall the
+other projects. UID/GID-1000 BuildKit mounts cache uv/npm downloads outside image
+layers. The pinned BuildKit builder is test tooling, not the application runtime.
+
+```sh
+node --test scripts/python-foundation-all.test.mjs
+node --test scripts/python-foundation-build.test.mjs
+```
+
+The first command independently checks the complete `all` result. The build
+probes use owned temporary tracked-input fixtures and fresh builders: cold and
+repeated builds, isolated source/test/image-metadata edits, coherent manifest/lock
+constraint changes with the same installed versions, and rejected inconsistent
+locks. They retain command/revision/platform/cache-state/timing/log evidence in a
+printed temporary directory, then remove only their own builders and images.
+These are observations of dependency-layer reuse, not speed guarantees or a
+production-image benchmark. Never prune shared caches to imitate a cold build.
+A hard-killed build probe may leave its printed builder and probe-tagged images;
+inspect their token against the retained commands before exact removal. The normal
+Foundation `cleanup` command does not own these separate build-probe resources.
+
+[Python Foundation CI](../.github/workflows/python-foundation.yml) selects tooling,
+Compose, backend, contract-consumer and OpenSpec changes on PR/push. Its job has no
+continue-on-error and runs the same `all` and build-probe commands. Buildx imports
+and exports GHA layer caches separately for each test image; download mounts are
+builder-local, not remotely persisted by that export. No image is published and
+branch protection is unchanged. Remote Actions/cache behavior requires an actual
+workflow run; local results do not establish it. Existing product/Node Foundation
+jobs remain in [test.yml](../.github/workflows/test.yml).
+
+## Phase and gate handoff
+
+Foundation uses explicit `compose.python-foundation.yml` and `backend/empty.env`;
+its configuration and data are synthetic, and build inputs are not runtime
+secrets. It provides no instance dev/operations overlay or production image.
+The authoritative [environment/image matrix](../docs/reference/platform-modularity.md#matriz-de-ambientes-y-comandos-objetivo)
+and [phase ownership](../docs/reference/platform-modularity.md#responsabilidad-y-aceptación-por-fase)
+define the later combinations, mounts/ports, configuration, commands and support
+criteria. `compose.platform.yml` plus dev/ops overlays and runtime/test/migrate
+image targets remain future deliverables, not usable Foundation commands.
+Runtime must exclude dev/tests/harness and install nothing at startup; operation
+must verify resolved configurations, digests, platforms and recovery before cutover.
+
+[SQL schema](../docs/reference/platform-schema.md),
+[security](../docs/reference/platform-security.md) and
+[local operations](../docs/reference/platform-operations.md) are approved target
+contracts, not executed business DDL or operational evidence. Their delivery owner
+is [port-compatible-platform](../openspec/changes/port-compatible-platform/proposal.md).
+The port owns minimal identity followed by compatible Training read/save, colocated
+Pydantic contracts/operations/repositories, real intermodule transactions and the
+preserved frontend path. It also owns moving runtime-neutral JavaScript to
+`shared/coach-core/` and updating imports/generators/builds; current paths stay put.
+The [contract matrix](CONTRACTS.md) records participants and remaining parity gaps.
+
+Synthetic results contribute to G1 only. G0, operational G1, GP, GO, G2/G3 and
+production Recovery remain pending. Health/logging do not complete EV-08;
+Foundation ownership does not complete functional EV-09. Provider/TLS/pooler,
+WebAuthn/session continuity, off-host durability, full media/auth recovery,
+arm64 and cutover/legacy retirement require their later acceptance.

@@ -7,6 +7,12 @@ principles. Published entries below are preserved; see the
 
 ## Unreleased
 
+### Added
+
+- A complete isolated Python Foundation verifier with a path-selected CI job,
+  lock/static checks, real PostgreSQL/Docker negatives and cache-aware test builds.
+  It does not change the Node/JSON product or establish production platform gates.
+
 ### Changed
 
 - Consolidated GitHub CI for every pull request and removed inherited GitLab,
