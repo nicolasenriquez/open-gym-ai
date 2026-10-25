@@ -1,0 +1,72 @@
+name: Python Foundation
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'scripts/python-foundation*'
+      - 'compose.python-foundation.yml'
+      - 'openspec/**'
+      - 'api/**'
+      - 'frontend/**'
+      - 'mcp/**'
+      - '.github/workflows/python-foundation.yml'
+      - '.dockerignore'
+      - 'scripts/build-api-docs.mjs'
+      - 'LICENSE'
+  push:
+    branches: [main, coach]
+    paths:
+      - 'backend/**'
+      - 'scripts/python-foundation*'
+      - 'compose.python-foundation.yml'
+      - 'openspec/**'
+      - 'api/**'
+      - 'frontend/**'
+      - 'mcp/**'
+      - '.github/workflows/python-foundation.yml'
+      - '.dockerignore'
+      - 'scripts/build-api-docs.mjs'
+      - 'LICENSE'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-foundation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22.23.2'
+      - uses: docker/setup-buildx-action@v3
+        id: foundation-builder
+        with:
+          driver-opts: image=moby/buildkit:v0.29.0@sha256:0039c1d47e8748b5afea56f4e85f14febaf34452bd99d9552d2daa82262b5cc5
+      # Layer caches are image-scoped; download cache mounts stay builder-local.
+      # No image is pushed. A cache failure never bypasses the proofs.
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: false
+          cache-from: type=gha,scope=python-foundation-test
+          cache-to: type=gha,scope=python-foundation-test,mode=max
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile.contracts
+          push: false
+          cache-from: type=gha,scope=python-foundation-contracts
+          cache-to: type=gha,scope=python-foundation-contracts,mode=max
+      - run: node scripts/python-foundation.mjs run all
+        env:
+          BUILDX_BUILDER: ${{ steps.foundation-builder.outputs.name }}
+      - run: node --test scripts/python-foundation-build.test.mjs
