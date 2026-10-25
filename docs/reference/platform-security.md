@@ -89,6 +89,16 @@ logout/all, Training, push, coach) usan repositorios bajo RLS; cambios de creden
 además revalidan prueba de acceso vigente y conservan última vía. Las funciones
 privilegiadas no hacen HTTP, scrypt, filesystem ni commit interno.
 
+Cada función justifica el acceso que no puede concederse al runtime y la invariancia
+atómica que protege. Python posee transporte, criptografía y coordinación; SQL
+posee constraints, autorización privilegiada e invariantes concurrentes. No mantener
+dos implementaciones independientes de una regla de negocio; validación de entrada
+y constraints de integridad protegen fronteras distintas y pueden coexistir.
+No añadir funciones por simetría: demostrar primero que repositorio/grants/RLS no
+satisfacen la operación. Reducir una firma requiere pruebas equivalentes de permisos,
+concurrencia y respuestas; nunca SELECT global ni BYPASSRLS como atajo. Esta revisión
+no cambia firmas, roles, RLS ni grants aprobados.
+
 **DDL de privilegios:** revocar CREATE de PUBLIC en public, CONNECT público a BD
 operativa, todos los EXECUTE públicos/default EXECUTE de funciones y grants de
 objetos nuevos. Funciones definer pertenecen al executor NOLOGIN correspondiente,
@@ -164,7 +174,7 @@ Backup tiene SELECT y políticas completas explícitas, sin BYPASSRLS/superusuar
 usa `pg_dump --enable-row-security` y verifica conteos/digests de todos los owners.
 Pruebas demuestran ausencia de TRUNCATE, DDL, GRANT o SET ROLE para runtime.
 
-Orden único: lease de barrera operativa → lock namespace identity si hay cambios
+Orden único dentro de la API activa: lock namespace identity si hay cambios
 credenciales/claims/admin → lock endpoint 728324 si corresponde → users afectados
 en orden `id COLLATE C` → singleton/
 contadores coach → recursos propios. Namespace usa advisory xact lock 728323;
@@ -173,7 +183,7 @@ Training. Operaciones admin bloquean actor/target en orden, no siempre actor pri
 No adquirir namespace después de owner. Si cambia un vínculo mientras se calcula
 el conjunto de locks, abortar/reintentar acotadamente con nueva lectura, sin mantener
 TX durante cálculo criptográfico/red. Errores esperados se traducen al contrato
-HTTP vigente; detalle SQL/constraints/parámetros nunca sale al cliente ni al tracing.
+HTTP vigente; detalle SQL/constraints/parámetros nunca sale al cliente ni al diagnóstico.
 
 `set_config('app.owner_id', actor.id, true)` ocurre únicamente después de verificar
 firma, selección de credencial y lock_actor con expiración/versión vigentes. Actor
@@ -215,8 +225,12 @@ conservando agregado de instancia sin vínculo personal.
 
 La [restauración aislada](platform-operations.md#restauración-y-decisiones-de-seguridad-posteriores)
 invalida sesiones/tokens restaurados y reconcilia bajas/revocaciones posteriores,
-incluidas passkeys. Sin información suficiente, acceso bloqueado hasta revisión;
-retención de backups no significa eliminación inmediata de toda copia histórica.
+incluidas passkeys. Sin evidencia suficiente, las credenciales históricas permanecen
+bloqueadas. El procedimiento local explícito de recuperación de acceso puede crear
+una vía nueva en el destino aislado sin reactivar las dudosas, cambiar ID/rol ni
+habilitar automáticamente una cuenta eliminada o disabled. No hay endpoint público
+ni bootstrap admin; autorización local y entrega privada de la vía nueva se definen
+y prueban antes del slice. Retención de backups no elimina copias históricas.
 
 ## Evidencia de aceptación
 

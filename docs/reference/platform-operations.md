@@ -31,7 +31,7 @@ Navegador anfitrión
                     db:5432
 
 Migrador / backup / restore: procesos puntuales con permisos propios
-Perfil diagnóstico: herramientas locales opcionales, no servicios de negocio
+Diagnóstico: logs estándar y herramientas locales, no servicios de negocio
 ```
 
 Tres servicios permanentes web/api/db. Solo publicar web en loopback; API y DB sin
@@ -92,21 +92,24 @@ por cumplido RPO por la mera frecuencia. Señalar incumplimiento del objetivo y
 antigüedad del último punto recuperable al operador por la superficie local definida.
 
 ```text
-Barrera de escrituras --> capturar DB + medios/config/secretos coherentes
+Parar escritores/API --> capturar DB + medios/config/secretos coherentes
                                    |
-                            liberar barrera
+                         recuperar servicio previo
                                    |
                       cifrar --> copiar --> verificar
                                    |
                       punto recuperable válido
 ```
 
-La barrera detiene nuevas mutaciones relevantes, espera las transacciones activas
-y estabiliza medios/GC; también cubre escrituras internas y GET con efectos. Los
-resultados de coach no confirman estado fuera de ella. Medir duración y tratamiento
-de deadline antes de aceptar operación; conservar pendientes cliente ante respuesta
-de mantenimiento, sin prometer una pausa de duración no medida. Cifrado/transferencia
-se realizan fuera de la pausa, desde captura coherente protegida.
+La primera operación local admite una pausa controlada: un wrapper del host toma
+exclusión operativa, detiene limpiamente la API y comprueba el cese de todos sus
+escritores antes de capturar PostgreSQL, medios, configuración y secretos.
+PostgreSQL permanece disponible para el dump; ningún contenedor recibe socket Docker.
+La pausa sustituye el protocolo de leases/socket de mantenimiento en la aplicación.
+Inventariar escritores externos y detenerlos también; un escritor desconocido bloquea
+la captura. No reiniciar la API hasta comprobar el cese de procesos de captura.
+Medir pausa y comprobar clientes dirty/offline; no prometer indisponibilidad cero.
+Cifrado, transferencia y verificación ocurren fuera de la pausa.
 
 Usar dump PostgreSQL consistente y captura coordinada de archivos, manifiesto de
 revisión/esquema/versiones/alcance/checksums y cifrado autenticado. Incluir los
@@ -134,11 +137,13 @@ acceso: identificar cuenta/credencial, snapshot, fuente posterior protegida, cob
 decisión y resultado de comprobación aislada. Guardar evidencia operativa mínima y
 protegida, sin secretos; no crear otro registro general de seguridad por esta regla.
 Backup, login correcto o audit borrable/best effort no bastan para probar vigencia.
-Si falta información suficiente, el acceso permanece bloqueado: la mera revisión
-no permite omitir esa condición ni restaurar contadores WebAuthn dudosos como seguros.
-Incluir revisión y verificación en el RTO medido. Un nuevo ledger persistente o almacén
-para automatizar reconciliación requiere aprobación expresa del promotor. Antes del
-corte identificar fuente y cobertura verificables o bloquear recuperación abierta.
+Si falta información suficiente, la credencial histórica permanece bloqueada: la
+mera revisión no permite restaurar contadores WebAuthn dudosos como seguros. Q1
+admite dos salidas: continuidad con evidencia suficiente, o recuperación local
+explícita de una vía nueva sin reactivar credenciales históricas dudosas. Incluir
+revisión, recuperación de acceso y verificación en el RTO. No crear un ledger.
+Antes del corte probar al menos una salida completa; un restore de datos sin acceso
+recuperable no acredita RTO ni habilita tráfico.
 
 También comprobar pendientes offline y linaje Training. No borrar cliente ni
 permitir sobrescritura silenciosa por una restauración. La reautenticación tras
@@ -189,9 +194,10 @@ Esto no autoriza borrar origen, releases ni respaldos protegidos.
 
 Son contratos de comandos **futuros**, no herramientas disponibles ni ejecuciones
 realizadas. El [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md)
-fija prefijos Compose, suites, flags, salidas y checkpoints. Operador solo necesita
-Docker/Compose; Python, PostgreSQL y cifrado corren en target `ops`. No reutilizar
-la CLI Foundation fuera de sus guardas sintéticas.
+fija prefijos Compose, suites, flags, salidas y checkpoints. Operador necesita
+Docker/Compose y Node 22+ para el wrapper host de parada/recuperación; Python,
+PostgreSQL y cifrado corren en target `ops`. Node no entra al runtime API.
+No reutilizar la CLI Foundation fuera de sus guardas sintéticas.
 
 ### Preparación y programación
 
@@ -214,55 +220,64 @@ Entregar plantillas de Task Scheduler Windows y cron Linux, sin instalarlas desd
 la app: backup cada 3 h y al inicio si han pasado 3 h desde snapshot verificado,
 restore-rehearse mensual y diagnostics-retain cada hora. Cada job ejecuta comando
 puntual con config/rutas explícitas y código de salida observable, sin GUI/secretos
-en argumentos. Mutex operativo de sesión PostgreSQL **728322**, compartido con
+en argumentos. Backup/migrate/maintenance-recover entran por wrapper host; ops directo
+rechaza captura/migración sin prueba de parada de escritores y exclusión vigente. Mutex operativo de sesión PostgreSQL **728322**, compartido con
 migrador/importador/restore: segundo proceso falla en <= 5 s sin ejecución solapada.
+El wrapper del host añade exclusión local por instance_id antes de controlar Compose;
+no depender solo de un lock DB que desaparece si muere el proceso ops.
 Una tarea mensual solo tiene permiso sobre proyecto/volumen de ensayo aislado, no
 sobre el volumen activo. Autorizar programación real pertenece a GO, no a este plan.
 
 ### Backup, barrera y estado recuperable
 
-1. `backup --reason scheduled|startup|pre-migration` ejecuta preflight, toma mutex y
-   pide mantenimiento por socket Unix privado de control (no socket Docker),
-   compartido solo con ops y permisos 0600. Token de instancia/operación y deadline
-   identifican al dueño; no endpoint público para detener escrituras.
-2. El único worker cierra admisión de mutaciones, incluidos GET con efectos, media
-   upload/rename/GC, enlaces/credenciales, audit y resultados/schedulers internos.
-   HTTP mutante recibe 503/code `maintenance`, Retry-After 60; probar dirty/offline
-   y ausencia de confirmación aparente. Drenar leases activas <= 30 s; no mantener
-   TX mientras un proveedor contesta. Resultados externos esperan fuera de TX para
-   adquirir lease de commit, o terminan por su timeout normal sin resucitar datos.
-3. Deadline de captura <= 120 s después de drenaje; es presupuesto de aborto, no
-   duración exitosa prometida. Exportar snapshot repeatable-read; pg_dump custom
-   `--enable-row-security --no-owner --no-acl --snapshot=<snapshot>` con rol backup
-   y copiar archivos/secretos estables al staging 0700 en almacenamiento cifrado
-   configurado. Inventariar cada escritor en prueba; ninguno puede confirmar fuera
-   de lease. Mantener snapshot hasta fin del dump. Congelar GC y referencias juntos.
-4. Manifiesto dentro del cifrado: formato/revisión/heads/major/tools, instante de
-   snapshot, instance_id, cobertura, tamaños/checksums de dump/medios/marcas/config/
-   secretos necesarios. Validar paths sin symlink/hardlink/dispositivos/.. y nombres
-   duplicados; no incluir clave age, cachés SDK/CLI ni telemetría. Catálogo se recupera
-   del release/digest, no duplica medios personales. Sesión activa/pendientes cliente
-   siguen fuera de este backup y tienen evidencia G0 separada.
-5. Finalizada captura, liberar barrera solo tras confirmar cese de procesos de copia.
-   Timeout/fallo descarta captura incompleta. Si muere API/ops, marcador de operación
-   en control volume fuerza arranque en mantenimiento; no abrir por TTL solamente.
-   `maintenance-recover --operation <id>` verifica mutex libre/procesos cesados y
-   propiedad antes de retirar marcador. Probar fallo en cada fase y restablecimiento
-   explícito sin bloqueo eterno ni liberación concurrente peligrosa.
-6. Fuera de pausa: cifrar tar vía age, copiar como `.partial` al disco independiente,
-   fsync, releer/decrypt hasta EOF y verificar manifiesto/checksums. Rename atómico
-   a bundle final; solo entonces actualizar último punto recuperable verificado.
-   Registrar snapshot_at, verified_at, resultado y duración de pausa/transferencia.
-   Tras verificación borrar staging claro propio; crash deja staging protegido y
-   señal de cleanup pendiente, nunca una copia contabilizada como válida.
-7. Retener bundles verificados 30 d. No borrar última copia válida para hacer lugar
-   a una copia fallida; fallar por espacio y avisar. RPO usa `ahora - snapshot_at`
-   del último bundle **verificado**, no hora de inicio o transferencia. Punto nuevo
-   corrupto/clave perdida no desplaza al válido; > 3 h advierte, > 6 h incumple.
+La barrera operativa es la parada comprobada de escritores, no un protocolo interno
+de leases. El wrapper host futuro `node scripts/platform.mjs operate <command>
+--config <absolute-operator.json>` acepta solo backup, migrate y maintenance-recover;
+backup exige además `--reason scheduled|startup|pre-migration`;
+controla Compose por argv allowlisted, sin shell ni flags arbitrarios. Es tooling
+host, nunca dependencia de la imagen API. Captura/cifrado/restore siguen en ops.
+Su implementación es parte de S10; no es un comando disponible hoy.
 
-Prueba con upload, GC, credencial, login/last_pull, audit y finish coach concurrentes
-verifica snapshot SQL y bytes contra observador independiente; no solo el manifiesto
-producido por backup. No descargar/copiar PGDATA caliente ni confundir pg_dump con PITR.
+1. Backup scheduled/startup/pre-migration ejecuta preflight y exclusión host por
+   instancia; el proceso ops toma además el mutex PG compartido. Registrar proyecto,
+   operación, fase y si API estaba activa en un journal privado atómico antes de
+   detenerla. Config explícita, sin .env implícito ni recursos de otra instancia.
+2. Detener API con deadline de cierre 30 s y comprobar que no quedan escritores
+   propios, incluidos coach, audit, upload/GC y schedulers. Si no puede acreditarse
+   cierre limpio, abortar captura. Una llamada coach interrumpida puede tener coste
+   externo sin resultado guardado; no reproducirla automáticamente. El proxy puede
+   devolver indisponibilidad temporal; comprobar que cliente conserva dirty/active.
+3. Capturar con API detenida: dump PG consistente con rol backup y copiar archivos
+   estables a staging 0700 en almacenamiento cifrado. Presupuesto de captura 120 s;
+   si se excede, cancelar y esperar cese de procesos antes de recuperar servicio.
+   No copiar PGDATA caliente. Registrar snapshot_at y comprobar SQL/bytes mediante
+   observador independiente. Abortos nunca producen un bundle final.
+4. Manifiesto cifrado incluye revisión/heads/major/tools, instance_id, cobertura,
+   tamaños/checksums de dump/medios/marcas/config/secretos. Rechazar enlaces,
+   dispositivos, traversal y entradas duplicadas; excluir clave age, caches SDK/CLI
+   y logs. Catálogo viene del release; pendientes/active cliente requieren G0 aparte.
+5. Tras cese de captura, recuperar únicamente servicios que estaban activos y solo
+   si revisión/esquema son compatibles. Un fallo de captura recupera servicio cuando
+   es seguro y devuelve fallo; no iniciar una API previamente detenida. Si muere el
+   wrapper, journal conserva la fase. maintenance-recover toma exclusión, comprueba
+   ownership y cese de procesos antes de recuperar; no apertura por TTL. Un reinicio
+   host no arranca API si el journal indica captura sin resolver; el entrypoint solo
+   comprueba ese bloqueo local, sin migrar ni implementar leases/socket.
+6. Fuera de pausa cifrar vía age, copiar `.partial`, fsync, releer/decrypt hasta EOF,
+   verificar checksums y rename atómico. Solo después actualizar punto verificado.
+   Error no desplaza última copia válida; limpiar staging propio tras verificación
+   o registrar cleanup pendiente protegido. Retener bundles 30 d; > 3 h advierte y
+   > 6 h incumple RPO según snapshot_at del último bundle verificado.
+7. Migración usa el mismo wrapper y exclusión: detener escritores, obtener backup
+   pre-migración verificado antes de DDL en instancia poblada y no reiniciar API entre
+   copia y migración. Arrancar solo tras revisión compatible; fallo conserva estado
+   bloqueado y datos actuales. Backup startup no vuelve a dispararse al reinicio
+   interno del wrapper; comprobar antigüedad una vez por invocación, sin recursión.
+
+Probar fallos antes/durante/después de parada, captura, reinicio y transferencia;
+interrupción del wrapper y host, API inicialmente detenida, mutex ocupado, timeout,
+escritor externo y cliente dirty/offline. Retener evidencia de pausa medida y
+sentinels propios/ajenos. No afirmar recuperación ni RPO por mera programación.
 
 ### Restore aislado y revisión Q1
 
@@ -291,8 +306,17 @@ producido por backup. No descargar/copiar PGDATA caliente ni confundir pg_dump c
    atajo. Contador passkey requiere último valor/estado verificable, no reset a cero
    ni login aislado como prueba. Password también necesita evidencia de vigencia;
    verificar una passkey no habilita automáticamente password u otras passkeys.
-5. Rehabilitar solo cuentas con vías revisadas suficientes, no mediante bootstrap
-   admin automático. Comprobar login sintético autorizado, rechazo de cada vía
+   Alternativamente, restore-access-recover solo sobre destino restaurado aislado
+   establece una vía nueva para una cuenta seleccionada explícitamente. Requiere
+   control local del host, target/instance_id exactos y confirmación privada por
+   cuenta; sin endpoint público, selección automática de admin ni elevación de rol.
+   No rehabilita cuentas eliminadas o disabled sin decisión separada sustentada;
+   ausencia de identidad verificable bloquea esa cuenta. Credenciales históricas
+   dudosas permanecen inhabilitadas; no rotar su contador ni reciclar su material.
+   La implementación debe definir y probar entrega privada de la nueva vía sin
+   secretos en argv/env/logs antes de declarar readiness de 10.5.
+5. Rehabilitar solo cuentas con vías verificadas o recuperadas explícitamente,
+   conservando ID, roles y datos, no mediante bootstrap admin automático. Comprobar login sintético autorizado, rechazo de cada vía
    revocada/dudosa, cookie/bearer viejos, rol/runtime RLS, medios/hash/GC seguro,
    propuestas/historia y cliente dirty/linaje/respuesta perdida. Mantener sin egress
    y sin entrega push durante ensayo; disponibilidad SDK/CLI sigue Q6.
