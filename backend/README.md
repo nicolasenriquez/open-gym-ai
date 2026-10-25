@@ -1,406 +1,151 @@
 # Python Foundation — isolated synthetic tooling
 
-## Restricted-role verification checkpoint (7.3)
-
-User selected **7.3 only**, ponytail ultra/prime-codebase, on `docs/opengym-evolution-discovery` at `685a94fb8` plus preserved uncommitted 7.1/7.2 work; index empty. Same approved Database/SQL seam and existing disposable harness. Only the test and delivery documentation change in this continuation; policy, grants, runtime, migrations, dependencies/locks, Compose, ordinary Node/JSON product and historical Foundation stay unchanged. Baseline `node scripts/python-foundation.mjs run isolation`: **350a41cf174fa9ed 13/13 PASS, 6.24 s**. Extend one behavior family and run before advancing: five transaction outcomes **b885be449c5ad5ea 16/16 PASS, 7.37 s**, then restricted-role operations **16edb30c3dae33ef 34/34 PASS, 15.05 s**. Already-correct behavior is characterization; no manufactured RED or runtime fix.
-
-Final formatted-tree `node scripts/python-foundation.mjs run isolation`: **0846c2e6609ccec9 34/34 PASS, 18.64 s pytest**, zero skips/setup/teardown errors, exit 0/`FOUNDATION_ISOLATION_OK`, cleanup complete. Suite deadline stays 60 s with no retry; durations exclude build/startup/cleanup. The full current matrix includes the 7.2 CRUD, owner-forgery, None/empty context and real Training cases below plus these verified extensions:
-
-| Required proof | Current observable result |
-| --- | --- |
-| Reuse after commit/rollback/SQL error/timeout/cancellation | Each result serves B then missing context on the same physical PID, with the correct local setting and no A rows. A then sees its prior row plus the new row only on commit. The SQL-error case catches the duplicate-key query error inside the body; exit still raises DATABASE_TRANSACTION_ABORTED and rolls back. |
-| Runtime and Training privilege denial | Each real login attempts TRUNCATE, CREATE TABLE/schema/TEMP, disabling RLS, DROP TABLE, SET ROLE to migrator/bootstrap and SUPERUSER alteration: **18 PostgreSQL InsufficientPrivilegeError results**. A matching owner context does not grant these privileges. An unexpected success fails inside the transaction so its effect rolls back; login identity and A's unchanged data are checked afterward. |
-| Fixture removal | Every fixture closes the pool/migrator connection, drops its schema, and independently asserts `to_regnamespace('isolation_fixture') IS NULL` before the existing bootstrap teardown removes roles. Host cleanup removes only its run-owned resources. |
-
-Metadata independently inspected through the existing privileged observer (not used for credited application DML): table `isolation_fixture.owner_probe` is owned by **python_foundation_migrator**, RLS **enabled/forced**, with no public table ACL. Its sole policy **owner_isolation**, command **ALL**, targets **python_foundation_runtime**, with both USING and WITH CHECK comparing owner_id to `nullif(current_setting('app.owner_id', true), '')`. Runtime has schema USAGE and exactly the tested **SELECT/INSERT/UPDATE/DELETE** privileges; schema CREATE, TRUNCATE/REFERENCES/TRIGGER are absent. Training has no schema/table access. Both restricted logins have no ownership, role memberships, SUPERUSER/BYPASSRLS/CREATEDB/CREATEROLE/REPLICATION/INHERIT attributes. These assertions accompany real allowed/denied operations, not metadata-only permission claims.
-
-Static project **8620e5174aaf43c5** formatted only this test using pinned Ruff in a private tmpfs copy, checked its host source hash before copying back, rebuilt and ran `.venv/bin/ruff check --no-cache src tests && .venv/bin/ruff format --check --no-cache src tests && .venv/bin/mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests`: **PASS, 17 files**, cleanup complete. Mypy is ad hoc, not strict/CI. `node scripts/python-foundation.mjs run pool`: **3dbf2f04d84e8a10 39/39 PASS, 3.05 s**, cleanup complete.
-
-Final `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs`: **29/29 PASS, 171.12 s**, zero skips, including environment/health, ordinary Node without PostgreSQL, ownership/sentinel, deliberately failed target/startup and coordinated hard-kill cleanup. Independent read-only Docker queries by exact labels and scoped names/tags found no containers/volumes/networks/images for all **six** direct projects above; host tests verify their own resources. Base images/build cache may remain. Strict OpenSpec, OKF and diff checks pass; index remains empty.
-
-Routine review covered the exact delivered diff including the untracked test and prior 7.1/7.2 work, guarded CLI/runner/scanner, migration fixture/bootstrap/teardown and public Database/asyncpg transaction paths. No blocking finding for this sequential synthetic workload; no reverse core dependency or AGENTS drift. **7.3 and the slice-7 synthetic checkpoint complete; 19/26 tasks.** The full change is not Ready for closeout: recovery/CI/final delivery remain pending. Runtime/policy code needed no correction.
-
-Limits: only Linux/amd64 synthetic PostgreSQL 18.6/CPython 3.14.9 under the existing pins, host Node 24.14.0/Compose 5.1.1. No real-user data, host installs, new dependencies, public ports or socket mounts. No HTTP authorization, production Recovery policy, provider/TLS/pooler/arm64, full API/frontend/MCP/build/locales, independent clean checkout, remote CI or operational gates are credited. No 8.x, commit/push/publication/sync/archive or change closeout. Earlier checkpoints below retain their historical scope.
-
-## Owner-isolation fixture implementation (7.2)
-
-User selected **7.2**, ponytail ultra/prime-codebase. Started at `685a94fb8` plus the preserved uncommitted 7.1 delivery, with an empty index. Same approved Database/SQL seam and existing locked container harness; no new dependencies or host installation. **7.1 and 7.2 complete, 18/26 tasks**. The independent **7.3 verification/checkpoint remains pending**. Sections below retain historical results, including the original intentional RED; `run isolation` now succeeds for this implemented scope.
-
-Only `tests/test_isolation.py` changes execution behavior in this continuation. The real restricted migrator creates and owns the disposable probe outside Alembic history. It enables and forces RLS and installs one runtime policy with both USING and WITH CHECK comparing row ownership to transaction-local `app.owner_id`; missing/empty context grants no access. Runtime receives schema USAGE and table CRUD only; Training receives neither. Existing bootstrap is reused solely for setup, metadata inspection and teardown. All credited data reads/writes use real runtime/Training logins. No business table, production policy, HTTP identity/authentication, Recovery implementation or migration revision is added; core/app/health/migrator/pins/locks/Compose/normal Node/historical Foundation remain unchanged.
-
-```sh
-node scripts/python-foundation.mjs run isolation
-```
-
-Baseline **b5aeafd6b214776d** reproduced `FOUNDATION_RLS_CROSS_OWNER_READ_DENIED` (**one intended failure, 0.70 s pytest**); minimal policy GREEN **58aa21b74f62115f** passed **1/1, 0.70 s**. Each following behavior family was added after the preceding cycle passed; these already worked with the policy, so no new RED is claimed: cross-owner mutation **3ec6fa1dce042d83 2/2**, forgery **c12a8f548e53863e 4/4**, missing context **e7d56ed968a81258 6/6**, Training **ddb3132590ee7bb8 10/10**, timeout/cancellation **0513db29837d7adb 12/12**, metadata **6728138b4b034aca 13/13**. An intervening test-edit error **1de84932b5514af7** produced two NameErrors from a misplaced block; corrected before proceeding, not behavioral RED. Final formatted-tree run **0205f9f7bf39a77d: 13/13 PASS, 6.86 s pytest**, zero skips/setup/teardown errors, exit 0/`FOUNDATION_ISOLATION_OK`, cleanup complete. Pytest durations exclude build/startup/cleanup; unchanged 60-s suite deadline, no retries.
-
-| Requirement / scope | Evidence in `tests/test_isolation.py` |
-| --- | --- |
-| Cross-owner read after commit | A inserts/reads/commits, B has its own context on the same physical PID and sees no A rows; runtime login checked. |
-| Own CRUD and cross-owner mutations | B inserts/reads/updates/deletes its row; update/delete of A affect zero rows and A remains intact. |
-| WITH CHECK / forged row owner | Forged INSERT and reassignment to B fail; subsequent A/B reads prove original ownership and absence of forged data. |
-| Missing/empty context | Unscoped fetch and transactions with None/empty context expose no rows; updates/deletes affect zero; insert fails and A remains intact. |
-| Training consumer | Separate real login with even the matching owner context receives PostgreSQL permission denial for all four CRUD operations; A data unchanged. |
-| Timeout/cancellation reuse | Failed A write disappears, B then missing context reuse the same PID with no A access/context; A still reads only its previously committed row. SQL timeout 50 ms; cancellation waits for observed PgSleep, with 3-s coordination and 5-s task bounds. |
-| Policy/role/ACL metadata | Both RLS flags true; migrator owns table; single policy targets runtime with both clauses; runtime has CRUD/USAGE, no schema CREATE/TRUNCATE/REFERENCES/TRIGGER; Training has no table/schema access. Neither login has ownership, memberships or elevated attributes; no public table ACL. |
-
-Static project **d8070469226d4403** used the pinned Ruff in a private tmpfs copy to format only this test, copied its output back after checking the source had not changed concurrently, then rebuilt and ran `.venv/bin/ruff check --no-cache src tests && .venv/bin/ruff format --check --no-cache src tests && .venv/bin/mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests`: **PASS, 17 files**, cleanup complete. Mypy remains ad hoc, not strict/CI. Focused Database/scanner regression `node scripts/python-foundation.mjs run pool`: **5d158d577d1c768e 39/39 PASS, 2.85 s**, cleanup complete.
-
-Final host regression `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs`: **29/29 PASS, 175.49 s**, zero skips. Includes environment/health and ordinary Node without PostgreSQL, isolation/sentinel ownership, deliberately failed target/startup and coordinated hard-kill cleanup. Strict OpenSpec, OKF and diff checks pass. Routine review covered the exact delivered diff including the new file and inherited 7.1 files, CLI/runner/scanner, guarded bootstrap and nested teardown, public transaction implementation and tests. No blocking finding for this sequential disposable workload; no dependency inversion or now-false AGENTS rule. This is scoped fixture delivery, not operational readiness or authorization to publish.
-
-Limits: synthetic PostgreSQL 18.6/CPython 3.14.9 on Linux/amd64, host Node 24.14.0/Compose 5.1.1, existing image pins and lock. No full API/frontend/MCP/build/locales, separate clean checkout, remote CI, provider/TLS/pooler/arm64 or operational gates are credited. Actual TRUNCATE/DDL/elevation attempts and the complete commit/rollback/SQL-error reuse matrix are reserved for 7.3; metadata checks here do not replace those behavioral proofs. No commit/push/sync/archive or change closeout.
-
-Independent read-only Docker queries by exact project labels and scoped names/tags found no containers, volumes, networks or images for all **12** direct run projects above, including the test-edit failure; host regressions independently check their own resources. Base images/build caches may remain. The existing index is still empty; no staging or unrelated edit.
-
-## First owner-isolation RED (7.1 partial)
-
-The user selected **7.1 only**, ponytail ultra/prime-codebase. The previously approved Database/SQL seam is unchanged. Starting tree/index clean at `685a94fb8`; only the minimal fail-first fixture and runner selection are added. No GREEN/7.2, business schema, dependency or ordinary-stack change. **7.1 stays partial, 16/26 tasks complete:** cross-owner writes, missing context, timeout/cancellation reuse and the Training consumer remain for subsequent focused cycles; the TDD contract forbids writing the whole matrix ahead of the first GREEN.
-
-Run `node scripts/python-foundation.mjs run isolation`. This group now reaches real PostgreSQL and intentionally **exits 1** at `FOUNDATION_RLS_CROSS_OWNER_READ_DENIED`: project **437eadc5b2c535e8**, **one intended assertion failure, 0.73 s pytest**, no skips/setup/teardown errors or success marker, cleanup complete. `tests/test_isolation.py` reuses the guarded migration bootstrap fixture; the real migrator creates a private two-column probe table outside Alembic history. Policies are deliberately absent until 7.2. Metadata checks the runtime has no elevated attributes, memberships or table ownership. A connects as that restricted login, installs local owner A, inserts and reads its own row, then commits. B uses the same physical PID with owner B and sees **one row instead of zero**. Privileged SQL only prepares the fixture/inspects metadata/removes it; it does not provide the claimed runtime reads or writes. This exposes missing fixture RLS, not a leaked owner setting or HTTP authorization failure. Closing the pool/connections and removing the schema precedes bootstrap-role teardown; host cleanup removes only the owned project.
-
-Static project **b664de92ec814bfd**: `.venv/bin/ruff check --no-cache src tests && .venv/bin/ruff format --check --no-cache src tests && .venv/bin/mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests` **PASS, 17 files**, existing-lock build, cleanup complete. Mypy is ad hoc, not strict/CI. Docker initially denied access in the sandbox; execution succeeded through the permission-controlled host tool without changing the harness guards. Host Node **24.14.0**, Compose **5.1.1**, existing pinned CPython/PostgreSQL images, Linux synthetic containers. No host install, personal data, published ports, socket mount, commit/push/sync/archive or operational acceptance. Historical checkpoints below retain their original scope.
-
-Final regressions: `node scripts/python-foundation.mjs run pool` **39/39 PASS, 2.71 s**, project **c590b7f67c6d5690**, cleanup complete; `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs` **29/29 PASS, 172.45 s**, zero skips, including environment/ordinary Node without DB, ownership/sentinel, deliberate failure and coordinated hard-kill cleanup. Independent Docker queries by exact labels and scoped names/tags found no containers/volumes/networks/images for the three direct projects; the host harness checks its own projects. Strict OpenSpec, OKF and diff checks pass. Review of the exact diff including the new test, CLI/runner/scanner, reused bootstrap/teardown and public Database transaction paths found no blocker for the sequential synthetic RED; no reverse core dependency or AGENTS drift. RLS is deliberately unimplemented. Not checked: full API/frontend/MCP/build/locales, separate clean checkout, remote CI, provider/TLS/pooler/arm64 or operational gates. This is not ready for change closeout.
-
-[add-python-platform-foundation](../openspec/changes/add-python-platform-foundation/tasks.md): **1.1** supplies the pinned toolchain, **2.1–2.3** supply and verify the isolated environment, **3.1–3.2** supply contract inventory/comparison/execution, and **3.3** verifies per-area coverage and completes the port inventories. `environment`, `contracts`, `pool` and `migrations` are available. **4.2–4.3** supply and verify bounded Database/scanner behavior; **5.2** supplies controlled Alembic and synthetic role provisioning; **5.3** verifies the bounded migration/roles checkpoint; **6.2** implements isolated factory/lifespan/health and minimal metadata-read permissions and **6.1/6.3** verify its factory and real Uvicorn lifecycle; **7.2** supplies the disposable forced-RLS fixture and **7.1/7.3** verify restricted-role isolation (**19/26 tasks**, slice-7 checkpoint complete). This is not an operational application or platform acceptance. No Python business routes, production RLS, recovery or CI job exist yet. The ordinary Node/JSON stack and historical Node Foundation are unchanged.
-
-## Health and process checkpoint (6.1/6.3)
-
-User selected only 6.1/6.3 and confirmed **si** for locked disposable builds, owned PostgreSQL fixtures/cleanup and synthetic Uvicorn startup/termination. Same approved factory/lifespan/HTTPX + process/SQL seams; no new dependencies, server entry point, product option, host installation, personal state, published port or socket mount. Started at `c0530e3b2` plus preserved prior 6.1/6.2 and concurrent unrelated work; index unchanged. Only `tests/test_health.py` and these delivery docs changed in this resumption; runtime/core/health/migrations/runner/pins/locks/Compose/ordinary Node/historical Foundation unchanged.
-
-One process smoke was added and run at a time. Both already passed: characterization, not a manufactured RED or relabel of the first historical missing-schema RED. The child runs the real factory under pinned Uvicorn on an inherited, already-bound ephemeral loopback socket inside the runner (no free-port race). HTTP polling has a deadline, no fixed startup sleep; a healthy runtime session is visible before SIGTERM. Process termination, pool sessions disappearing and the Uvicorn lifespan-complete log are checked with a **3-s total stop deadline**, using DB close_timeout=1 s and Uvicorn graceful-request timeout=1 s. The separate HTTPX tests prove pool closure while Python stays alive, including exceptional exit and independent factories. Existing pool tests cover a held lease reaching its close deadline; this process smoke is idle, not a hung HTTP request or provider fault test.
-
-Startup failure uses NOLOGIN on only the synthetic runtime, connect_timeout=0.5 s, and a 4-s child wait limit. It exits **3**, emits the safe DATABASE_CONNECT_FAILED/startup-failed diagnostic, opens no runtime session and creates no migration history. It proves access refusal, not a stopped server/blackholed network. Child stdout must be empty; stderr spools in private tmpfs, with size checked from the actual file metadata (not the read cursor), a **16-KiB** limit and the existing scanner before crediting the proof. Raw child logs are not reemitted. Only bounded JSON timing/exit summaries pass through the runner's own scanner; error logs are scanned too, not just success responses. Finally blocks kill/wait only for the test's own still-live child.
-
-| Command / current evidence | Observed result |
-| --- | --- |
-| `node scripts/python-foundation.mjs run environment` baseline cdc42acafb20ec12 | 11/11 PASS, 14.87 s pytest; prior uncommitted tree revalidated. |
-| Same command, smoke additions d6b3d9fbe1a4b310 then d74377fa35e8b36b | 12/12 PASS, 18.39 s (SIGTERM 0.162 s, exit -15); then 13/13 PASS, 20.72 s (stop 0.145 s/-15, rejected startup 1.098 s/3). No runtime correction/RED. |
-| Same command, final bb27fe3370855815 | **13/13 PASS**, 18.69 s pytest, exit 0/FOUNDATION_ENVIRONMENT_OK. Measured stop **0.160 s**, exit -15, session count 1→0; rejected startup **1.037 s**, exit 3. Missing/incompatible schema, post-start DB-access loss and restoration, safe responses, explicit HTTPX lifespan, independent factories and clean normal/exceptional closure all rerun. |
-| `node scripts/python-foundation.mjs run pool`, d7c09f8c036bd787, after environment | **39/39 PASS**, 2.64 s pytest, exit 0/FOUNDATION_POOL_OK; integration with existing Database/scanner/cancellation/deadline behavior. |
-| `node scripts/python-foundation.mjs run migrations`, 2313ff993465f28c | **13/13 PASS**, 46.39 s pytest, exit 0/FOUNDATION_MIGRATIONS_OK; new head/runtime read grants plus prior migration matrix preserved. Run separately from host regressions, unchanged 60-s deadline. |
-| `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs` | **29/29 PASS**, zero skips, 129.48 s; real sentinel/isolation/failure/SIGKILL cleanup, environment and ordinary Node API without PostgreSQL included. |
-| Disposable static project 45fc9212df550a3c | `ruff check --no-cache src tests && ruff format --check --no-cache src tests && mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests`: **PASS, 16 files**. First static batch d8e5db7a817753af failed formatting only (exit 1; mypy not run); not behavioral RED/success. |
-
-Coverage: Foundation process health scenarios map to the existing missing-schema/schema-recovery/DB-access-recovery/startup/factory tests and the two new Uvicorn process tests; bounded DB lifecycle maps to explicit factory cleanup and `run pool`; module ownership maps to app→health→core with no reverse core imports, unchanged. Integrated review included the exact owned diff/new and preexisting files, connected runner/CLI/Database/HTTP/migration paths and cleanup, assuming sequential private harness runs and the already-tested concurrent factories. Review corrected the diagnostic-size check to use file size even after test reads; no blocking finding remains at this synthetic scale. AGENTS still matches Node/JSON authority and the isolated package; no rule edits needed.
-
-**6.1 and 6.3 complete; slice-6 synthetic checkpoint complete, 16/26 tasks.** Strict OpenSpec/OKF/diff PASS. Independent label/name/tag queries find no resources for all **8** directly logged projects; host harness checks its own cleanup. Evidence logs remain outside Git at `/tmp/opengym-613-*.log` in the execution shell. Existing pins/runtime versions unchanged: CPython 3.14.9/FastAPI 0.161.1/Uvicorn 0.54.0/asyncpg 0.32.0/PG 18.6 Linux/amd64; host Node 24.14.0, Docker 29.4.0, Compose 5.1.1. No 7.x/all/CI implementation, full API/frontend/MCP/build/locales, clean-checkout/host Node 22/remote CI or operational gate acceptance. SIGTERM/FD inheritance proven in Linux containers, not native Windows. Mypy is ad hoc, not strict/CI; scanner is marker-bounded, not a universal secret detector. No stage/commit/publication/sync/archive or whole-change closeout. Following sections retain earlier checkpoints and their then-current partial/PENDING/head states; they are historical evidence, not current blockers/results.
-
-## Health implementation (6.2)
-
-User selected **6.2 only**, confirmed **si** for existing-lock disposable builds/owned PostgreSQL fixtures/cleanup and controlled connection/process interruptions, then **si** for the minimal metadata-read revision and affected migration tests. Starting at `c0530e3b2` with prior uncommitted 6.1 work preserved; approved seams unchanged. No dependency, lock, core interface, Docker/Compose, ordinary Node/JSON or historical Foundation change. Concurrent edits under `port-compatible-platform` are unrelated and preserved.
-
-`create_app(settings)` composes `health/` with one Database per lifespan through app-local state. `/health/live` returns 200/`FOUNDATION_LIVE_OK` without DB work. `/health/ready` reads at most two revision rows with existing finite DB limits: exact single **0002_health_readiness** returns 200/`FOUNDATION_READY_OK`; empty/unknown/multiple history returns 503/`FOUNDATION_SCHEMA_INCOMPATIBLE`; inaccessible DB or missing/unreadable history returns 503/`FOUNDATION_DATABASE_UNAVAILABLE`. No driver details, history values, migrations, retry loop, file fallback, functional router or global pool. Docs/OpenAPI disabled. Startup connection failure propagates a safe code; lifespan closes on normal/exceptional exit. This is internal synthetic HTTP, not an operational server entry point.
-
-New forward-only `0002_health_readiness` grants runtime only USAGE on public and SELECT on public.alembic_version; immutable 0001 unchanged. Training cannot read history; neither login can mutate it, perform DDL or elevate. Bootstrap rerun revokes excessive metadata ACL and restores only the minimal read grants when 0002 is already present; it never applies migrations. A real CLI-applied 0001 prefix upgrades without replay (namespace OID retained); existing interruption/concurrency fixture now uses private **0003_probe** after 0002, not a delivered revision.
-
-| Command / evidence | Observed result |
-| --- | --- |
-| `node scripts/python-foundation.mjs run environment` before composition, project 49aa280b22120dbd | Original behavioral RED reproduced: ready 200 instead of 503; 1 fail / 2 PASS, 0.69 s pytest. Minimal probe GREEN ceecaa964358471a: 3/3, 0.67 s. |
-| `node scripts/python-foundation.mjs run migrations` runtime-read assertion, 1be5efe0c2ff5f22 → 60d4d4d924973093 | Runtime denied metadata read: 1 fail / 11 PASS, 44.31 s → new revision GREEN 12/12, 44.47 s. |
-| `run environment` bootstrap rerun, 41895957c55c43a2 → b3029b863437825d | Started runtime ready 200 becomes 503 after bootstrap: 1 fail / 3 PASS, 3.07 s → scoped grant preservation GREEN 4/4, 3.42 s. |
-| `run environment` final 18a36451d65df20c | **11/11 PASS**, 15.75 s pytest, exit 0/FOUNDATION_ENVIRONMENT_OK. Missing schema, restricted-runtime ready, bootstrap rerun, corrupt-history/recovery (empty/unknown/multiple), DB-access loss/recovery after startup, explicit startup refusal, independent factories and normal/exceptional pool closure. Lifespan invoked explicitly with HTTPX. |
-| `run migrations` final ab136dced3dd4963 | **13/13 PASS**, 51.53 s pytest, exit 0/FOUNDATION_MIGRATIONS_OK. New immutable-prefix upgrade/read-only ACL, bootstrap removal of injected excess history-write grants, plus prior locking/interruption/failure/rerun matrix with new head. Runner 60-s deadline unchanged. |
-| `node scripts/python-foundation.mjs run pool`, d5805728cc5c45d5 | **39/39 PASS**, 3.97 s pytest, exit 0/FOUNDATION_POOL_OK. |
-| `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs` | **29/29 PASS**, 131.16 s, no skips. Includes real isolation/sentinel/failure/SIGKILL cleanup, environment and ordinary Node health before PostgreSQL. |
-| Disposable static project 0b502180591d27b0 | `ruff check --no-cache src tests && ruff format --check --no-cache src tests && mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests`: **PASS, 16 files**. Earlier batch bc26449d167bbb84 had lint/format failures, despite shell exit 0 from last command; not credited. |
-
-Additional behaviors were already correct after the minimal probe and are characterized, not fabricated RED. Health tests reuse existing migration fixture/helpers through pytest's plugin mechanism rather than duplicating setup. DB outage is restricted-role NOLOGIN plus termination of only that role's synthetic sessions; restoration is LOGIN, without recreating the app. It is not a server restart/network/provider fault proof. Schema corruption is explicit test-only setup, not supported history repair. Bootstrap observer only prepares/corrupts/inspects fixtures; successful readiness uses the non-superuser runtime. Two simultaneous factories open two independent sessions; closing either normal or exceptional lifespan preserves the other and final session count reaches zero. No global pool or reverse imports from core. Review covered the exact owned diff including new/prior-6.1 files and connected runner/CLI/Database/migration/HTTP paths, assuming private sequential harness runs plus tested simultaneous factories; no blocking finding for 6.2. Read query bounded to two rows during review. Strict OpenSpec/OKF/diff checks recorded in tasks. Independent label/name/tag queries for all **17** directly logged projects find no containers/networks/volumes/images; host harness verifies its own cleanup. Index unchanged; no stage/commit/publication/sync/archive/closeout.
-
-**6.2 complete, 14/26; 6.1 remains partial, 6.3 and the slice-6 checkpoint pending.** Not checked: Uvicorn process startup/termination/shutdown deadline, stopped PostgreSQL/blackholed network, provider TLS/pooler, full API/frontend/MCP/build/locales, clean checkout/host Node 22/remote CI or operational gates. Mypy remains ad hoc, not strict/CI; ~52 s migration suite has little margin on the unchanged 60-s runner deadline. Existing pinned CPython 3.14.9/FastAPI 0.161.1/Uvicorn 0.54.0/asyncpg 0.32.0/Alembic 1.20.1/PG 18.6 on Linux/amd64; host Node 24.14.0/Docker 29.4.0/Compose 5.1.1. Temporary logs outside Git: `/tmp/opengym-62-*.log` in the execution shell. Following sections retain historical RED/PENDING/head-0001 checkpoints, not current-tree results.
-
-## First health RED (6.1, partial)
-
-The user selected **6.1 only** and confirmed **si** for existing-lock disposable builds, owned PostgreSQL fixtures/cleanup and synthetic Uvicorn process start/termination. Starting tree/index clean at `c0530e3b2`; approved factory/lifespan/HTTPX/process seam unchanged. Only the first behavioral RED is delivered, not the entire 6.1 matrix or GREEN/6.2.
-
-```sh
-node scripts/python-foundation.mjs run environment
-```
-
-This command now intentionally **exits 1**: `tests/test_health.py` independently confirms PostgreSQL responds and `public.alembic_version` is absent, enters the real factory lifespan explicitly, then observes live **200** and ready **200 instead of 503** (`FOUNDATION_SCHEMA_READINESS_REQUIRED`). Final project **d63b96621e90d53f**, **1 intended failure / 2 passing smoke tests**, **0.74 s pytest**, no skips/import/setup errors or success marker, cleanup complete. Initial project **cbd9bdd47389c7c8** reproduced the same assertion (**0.92 s**). Ordinary Node API health without DB passed before PostgreSQL startup. These are synthetic Linux/amd64 runs with the existing pins, host Node 24.14.0/Docker 29.4.0/Compose 5.1.1.
-
-`src/opengym_platform/app.py` is deliberately **not operational**: it opens/closes a per-lifespan Database and exposes two scaffold routes; ready unconditionally returns a PENDING code. No schema probe, recovery, restricted runtime provisioning or Uvicorn entry point is implemented. The test uses the fixed disposable bootstrap login, not evidence of runtime permissions. Actual health probes/contracts belong under `health/` in 6.2; core has no reverse dependency. `runner.py` adds this case to `environment`, so prior environment-success harness cases are expected to fail until GREEN; their historical evidence below is not fresh success on this tree.
-
-Focused regressions: `node scripts/python-foundation.mjs run pool` **39/39 PASS**, **2.91 s**, project **66e621b7a4878036**, cleanup complete. `node --test --test-name-pattern='cleanup rejects|unknown group|config excludes|project-named volume|endpoint is unavailable|unfinished groups' scripts/python-foundation.test.mjs` **9/9 PASS**, no skips. `node --test backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs` **15/15 PASS**, no skips. Disposable static project **4520553be61f9be4**: `ruff check --no-cache src tests && ruff format --check --no-cache src tests && mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests` **PASS, 14 files**; two earlier lint/format failures corrected, not behavioral RED. Mypy remains ad hoc, not strict/CI. Logs are temporary outside Git (`/tmp/opengym-61-*.log` in the execution shell).
-
-Review traced host CLI → scanner/pytest → explicit lifespan → real Database → HTTPX assertion → unwind/cleanup, including new files and connected callers. No blocking finding for this RED-only scaffold; it is not safe as a readiness implementation. Strict OpenSpec, OKF and `git diff --check` pass. Independent container/network/volume/image queries by exact project labels and scoped names/tags find no resources for all six owned runs; index unchanged. No new dependency or ordinary/historical stack change. **6.1 remains partial, 13/26 tasks complete.** Still untested: DB loss after startup, an existing wrong revision, startup without DB, Uvicorn termination/deadline and recovery, runtime-role health, full host harness/API/frontend/MCP/build/locales, clean checkout/remote CI and operational gates. No 6.2, commit/publication/sync/archive/closeout. Following sections retain historical evidence.
-
-## Migration and roles verification checkpoint (5.3)
-
-The user selected **5.3 only** and confirmed **si** for existing-lock disposable builds, owned fixtures/cleanup and SIGTERM/disconnection of their synthetic processes/connections. Same approved migrate CLI/process + observable SQL seam. At `312d8b2c9` plus preserved prior 5.1/5.2 work, baseline `run migrations` **12/12 PASS**, project **52ecd944d92c61c5**, **41.24 s pytest**. Review found the prior concurrent test overlapped only reruns: it now reuses the temporary 0002 graph to observe the owner blocked before history read, require the contender's explicit lock refusal, check unchanged 0001/no probe namespace while blocked, then verify the owner succeeds with one 0002 history row and a migrator-owned probe namespace. This already worked: **12/12 PASS**, **ce2509abf655a3c8**, **44.37 s**; characterization, no fabricated RED or runtime fix. Only the existing concurrency test and delivery documentation changed in 5.3; package copies remain private test fixtures, delivered revision 0001 and runtime/dependencies/locks/Compose/product remain unchanged.
-
-Coverage of `Serialized Alembic history and privilege separation` in `tests/test_migrations.py`, reexecuted through the real host/container runner:
-
-| Required proof | Observable result |
-| --- | --- |
-| Empty/prefix/rerun | Genuine CLI-applied prefix, same expected head/namespaces/owners, rerun OIDs unchanged; no stamp/fake success. |
-| Unknown history and lock order | Lock refusal precedes history inspection; unknown revision fails and remains unknown, namespace not applied, lock available afterward. |
-| Two processes with pending work | Only the lock owner applies temporary 0002 after its history read unblocks; contender exits nonzero/LOCKED, one history row. |
-| Transactional failure | Conflicting first revision leaves no successful history; lock released and rerun succeeds after fixture conflict removal. |
-| SIGTERM/backend disconnection | Interrupted pending revision leaves prior history/no partial namespace, no success, lock available after disconnect/gate release; rerun succeeds. |
-| Runtime/Training privileges | Real restricted logins deny schema/table/TEMP creation, role creation/elevation and history TRUNCATE; metadata confirms no elevated attributes/memberships or schema ownership. Bootstrap rerun removes excess grants and refuses elevating memberships. |
-
-Final `node scripts/python-foundation.mjs run migrations`: **bbf47b633e809521**, **12/12 PASS**, zero skips/fixture errors, **42.84 s pytest** excluding build/setup/cleanup, exit 0/`FOUNDATION_MIGRATIONS_OK`. Run separately from host regressions; unchanged 60-s suite deadline, no retries. Final `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs`: **29/29 PASS**, zero skips, **101.87 s**, including environment inventory and ordinary Node API health without PostgreSQL. `node scripts/python-foundation.mjs run pool`: **757ccbe224737e7e**, **39/39 PASS**, **3.59 s**. Static **d07183a0d46c6548**: `ruff check --no-cache src tests && ruff format --check --no-cache src tests && mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests` **PASS, 12 files**. First static batch **42806912dcd17a14** failed formatting (two line wraps), not behavior; mypy was not run in that batch. Final checks use the formatted tree.
-
-Exact delivered diff (including externally staged/new files), connected migration/runner/cleanup paths and requirement-to-evidence mapping reviewed: no blocking finding for isolated sequential fixtures/two overlapping migrators. AGENTS remains accurate, no rules edit. Strict OpenSpec/OKF/working-and-index diff checks pass; independent label and scoped name/tag queries confirm all **six** owned projects have no containers/volumes/networks/images. Logs named `opengym-53-*.log` stay outside Git in host temporaries. CPython **3.14.9**, PostgreSQL **18.6**, SQLAlchemy **2.1.6**, Alembic **1.20.1**, asyncpg **0.32.0**, greenlet **3.5.6**, uv **0.13.5**, Linux amd64; host Node **24.14.0**, Docker **29.4.0**, Compose **5.1.1**. Builds use the existing lock; no fresh dependency resolution. The externally managed index was not staged/unstaged by the agent.
-
-**5.3 and the slice-5 synthetic checkpoint complete; 13/26 tasks.** No 6.x, operational acceptance or change closeout. No host installs, personal data, ports/socket mounts, commit/publication/sync/archive. Not checked/credited: full API/frontend/MCP/build/locales, clean checkout/host Node 22/remote CI, network fault/provider/TLS/pooler/arm64, RLS/business/health/recovery or platform gates. Disconnection is backend termination, SIGTERM is Linux container behavior, mypy is ad hoc and slower hosts may exceed the unchanged suite deadline. Following sections retain historical evidence and authorization limits.
-
-## Migration test coverage completed (5.1 resumed)
-
-The user resumed **5.1 only**, ponytail ultra/prime-codebase, and confirmed **si** for existing-lock builds in disposable containers, owned fixtures/cleanup and interruption of only their synthetic processes/connections. CLI/process + observable PostgreSQL history/locks remains the approved seam. Starting tree: `312d8b2c9` plus prior 5.1/5.2 edits, preserved with the externally managed index. **5.1 complete; 5.2 remains complete; 12/26 tasks. 5.3 and its independent verification/checkpoint remain pending, not authorized or checked off here.** Sections below retain historical states.
-
-`node scripts/python-foundation.mjs run migrations`: baseline **8/8 PASS**, project `fc0a3b035ae2ff38`. Added one focused behavior at a time to `tests/test_migrations.py`: prefix **10/10 PASS** (`ba8080a81ded57d6`, 32.95 s), then SIGTERM **11/11 PASS** (`3ae13dfdc4c291cf`, 37.35 s), then backend disconnect **12/12 PASS** (`98b9320f6af35c66`, 41.55 s). All new behavior already worked: characterization, **no invented RED and no runtime correction**. The original history RED and subsequent 5.2 RED/GREEN evidence below remain historical. No changes to migrate/runner/host CLI, delivered revisions, dependencies, locks, Compose, normal product or historical Foundation in this continuation.
-
-The fixture copies the existing package into pytest's private tmpfs directory and adds only a temporary **0002_probe** following immutable **0001_infrastructure**. CLI still chooses its package-adjacent graph, with the same code/driver/target/lock and no test flags or monkeypatch. Two fresh-database paths (empty and a genuine CLI-applied 0001 prefix) reach the same literal namespace/owner/head expectations; rerun preserves OIDs. No stamp/manual revision insertion, delivered extra revision or business tables. The temporary probe creates an empty namespace, then waits on a test-only transaction advisory gate **728323**. `pg_locks` confirms it waits while holding migration lock **728322**, after DDL and before commit. Observer sees only the prior revision and no uncommitted namespace. SIGTERM must return `-SIGTERM` without success/output; disconnect terminates only the observed synthetic migrator backend and must return exit 1/allowlisted failure with empty stderr. Finally the observer releases the gate, polls lock availability with a 4-s deadline and checks the prefix/no partial namespace before rerun reaches 0002. Process communication remains bounded; teardown removes the extra namespace, roles, histories and private copy. Disconnect is PostgreSQL backend termination, not a network/provider fault matrix; SIGTERM is Linux container behavior, not Windows host signal handling.
-
-Final same command after format review: project **875eaad7597374ec**, **12/12 PASS**, no skips/setup/teardown errors, **39.51 s pytest** excluding build/setup/cleanup, exit 0/`FOUNDATION_MIGRATIONS_OK`, cleanup complete. Migration suite ran separately from final host regressions to stay within the unchanged **60-s** pytest bound; no retries or relaxed deadlines. Final host command `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs`: **29/29 PASS**, zero skips, **70.29 s**, including updated environment inventory and ordinary Node health without DB. `run pool`: **39/39 PASS**, **2.11 s**, project **f508966e193124a5**, cleanup complete. Static project **2d29db77f5c0152c**: Ruff check/format `--no-cache` and mypy `--ignore-missing-imports --cache-dir /tmp/mypy src tests`, chained with `&&`: **PASS, 12 files**. Initial static batch `366b22b6bc43e1b3` requested formatting; its shell exit 0 did not credit formatting PASS. Only test formatting changed, not behavior. Other pins unchanged: CPython 3.14.9/PostgreSQL 18.6 Linux amd64; host Node 24.14.0/Docker 29.4.0/Compose 5.1.1.
-
-Review traced fixture copy → real CLI → unchanged Alembic → observed locks/history → interruption/rollback → rerun/cleanup, including prior connected implementation/new files. No blocker for this isolated sequential test workload and two overlapping migrators; no generic fixture framework or reverse core dependencies. OpenSpec strict/OKF/diff pass; independent scoped label/name/tag queries confirm all eight owned projects empty. Logs remain temporary outside Git. No host installs, personal data, ports/socket mounts, stage/unstage, commit/publication/sync/archive/closeout. **Not credited:** 5.3 checkpoint, full API/frontend/MCP suites or build/locales, clean checkout/remote CI, network/provider/TLS/pooler/arm64, business/RLS/health/recovery or operational gates. Mypy remains ad hoc. Slower machines can still exceed the existing suite deadline; no performance guarantee or concurrency stress proof.
-
-## Controlled migration implementation (5.2 historical checkpoint)
-
-The user selected **5.2 only**, ponytail ultra/prime-codebase, confirmed **si** for disposable builds/owned PostgreSQL fixtures and cleanup, then separately confirmed **si** for the necessary SQLAlchemy asyncio extra and lock/license update in a disposable container. Approved CLI/process + observable SQL seams and existing changes/index are preserved. **5.2 complete; 5.1 still partial, 5.3 pending; 11/26 tasks complete.** No slice-5 checkpoint or closeout.
-
-Run `node scripts/python-foundation.mjs run migrations`. Inside its disposable runner, `python -m opengym_platform.migrate bootstrap|up` validates all five fixed target fields before connecting. No arbitrary DSN, external target, script directory, stamp/down/fake/no-lock or app-startup migration. Bootstrap creates restricted migrator/runtime/Training logins, refuses elevating memberships, removes public/excess direct DB/schema grants and grants only CONNECT to runtime/Training. Up uses the separate migrator identity, SQLAlchemy async/asyncpg, **NullPool** and one dedicated connection holding session advisory key **728322** before reading history through commit/close. Contenders fail with `FOUNDATION_MIGRATION_LOCKED`. Alembic uses the same connection and transactional `public.alembic_version`; revision **0001_infrastructure** creates only the `foundation` namespace/usage grants. No domain/fixture tables; test-only conflict/history setup stays in tests. Runtime/Training DDL, TEMP, role creation/elevation and history TRUNCATE are denied.
-
-Bounds: bootstrap connect/command/close 5 s; up connect 5 s, command 6 s, statement 5 s, lock 2 s; action 30 s, pytest 60 s. Migration-stack imports occur only after target/action guards. Errors emit allowlisted JSON; the deliberately broad outer CLI boundary also catches arbitrary revision errors without exposing SQL/secrets. Scanner adds the three synthetic credential markers. Test teardown closes children/connections and removes its schemas/history/roles before harness cleanup.
-
-Baseline `a17c5c95ad324082` reproduced history RED. Initial GREEN attempt `7b570f38a5832d91` failed startup; diagnostic `d118a9096a268e79` found missing greenlet. Authorized disposable resolution **9e95bd06c0f9789c** enabled `sqlalchemy[asyncio]==2.1.6`, adding only **greenlet 3.5.6**, **MIT AND PSF-2.0** (exact-version PyPI metadata over verified TLS). Existing distribution versions unchanged; **39 locked / 38 installed**. `uv lock --check`, locked sync/pip check, async/greenlet imports and offline lock check passed. Copy-container naming initially caused cleanup refusal without deletion; after exact-label/ID verification and renaming that owned container to the accepted shape, scoped cleanup succeeded without relaxing guards.
-
-History RED → GREEN (`5d778fbaaf7bfa2c`); two subsequent assertion REDs exposed excess runtime grants on bootstrap rerun (`c3701c91acec1120` DB/public; `39576e078631eefd` foundation), fixed by minimal revocations. Other already-correct cases are characterization, not fabricated RED. Final project **f9d631e04b4433c1**: **8/8 PASS**, zero skips/fixture errors, **35.06 s pytest** excluding build/setup/cleanup, exit 0/`FOUNDATION_MIGRATIONS_OK`. Covers empty/history, repeat/bootstrap repair, real restricted-role denial/metadata, membership refusal, unsafe CLI/target rejection, lock before unknown history, two up processes coordinated by `pg_locks` with history read blocked, transactional conflict rollback/no false history, lock release and successful rerun. Earlier parallel attempt `a81d9fe985a2e8d4` returned `FOUNDATION_RUNNER_FAILED` without replay; exact cause not separately instrumented. Review deferred expensive imports past guards; independent `e7763e69c411864c` passed 8/8 in 24.85 s and final concurrent migrations/regressions/pool passed. No automatic retry or failure-as-RED credit.
-
-Final host regression command: `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs`: **29/29 PASS**, zero skips, **104.41 s**, including updated inventory/environment smoke and ordinary Node API health without DB. `run pool` project **563ffe87f0e75dbf**: **39/39 PASS**, cleanup complete. Static project **c84dd9396fe281e5**: `ruff check --no-cache src tests`, `ruff format --check --no-cache src tests`, `mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests` **PASS, 12 files**. Earlier Ruff catch/Record-iteration/format findings corrected; these are auxiliary failures. Mypy remains ad hoc, not strict driver typing/CI. CPython 3.14.9/PostgreSQL 18.6 Linux amd64; host Node 24.14.0/Docker 29.4.0/Compose 5.1.1. Other pins/images unchanged; builds use the updated lock, not runtime resolution.
-
-Review traced host CLI → runner → migrate → Alembic/SQL, including new files, same-connection locking, grants and cleanup; no blocker for synthetic single-operator/two-overlapping-migrator use. Core direction/AGENTS remain accurate. OpenSpec/OKF/syntax/diff pass; independent project-label and scoped name/tag queries confirm owned resources removed. Logs/resolution artifacts stay temporary outside Git. **Pending:** previous-revision prefix, SIGTERM/disconnect, full 5.3 matrix, clean checkout/remote CI, provider/TLS/pooler, RLS/health/recovery and operational gates. No host installs, personal data, ports/socket mounts, changes to normal stack/historical Foundation, stage/unstage, commit/publication/sync/archive or closeout. The following 5.1 section is historical evidence.
-
-## First migration RED (5.1 historical checkpoint, then partial)
-
-The user selected **5.1 only** and confirmed **si** for existing-lockfile builds in disposable containers and owned PostgreSQL fixtures/cleanup. The approved seam remains the migrate CLI as a separate process plus observable SQL history. Starting point: `312d8b2c9` with the two existing README/tasks edits preserved. No new dependencies, host installs, personal data, published ports/socket mounts, task 5.2 implementation or closeout.
-
-```sh
-node scripts/python-foundation.mjs run migrations
-```
-
-This now runs `tests/test_migrations.py` on fresh PostgreSQL through the existing scanner/cleanup harness. The test confirms zero public tables, invokes `python -m opengym_platform.migrate up` as a bounded child process, requires exit 0 and an Alembic history table with one nonempty revision. Final project `opengym-python-foundation-test-9678a9cdebe67263`: **exit 1**, **one assertion failure in 0.15 s**, `FOUNDATION_MIGRATION_HISTORY_REQUIRED` / `None is not None`, no setup/import errors or `FOUNDATION_MIGRATIONS_OK`, cleanup complete. The first run `3ed30d7602f4d520` produced the same intended RED (0.17 s). The metadata observer uses disposable bootstrap only; it proves no runtime privileges or authorized application access.
-
-`migrate.py` is a deliberately **non-operational scaffold**: `up` prints `FOUNDATION_MIGRATION_PENDING` and returns 0 without connecting or changing schema; other arguments fail. It does not bootstrap roles, apply Alembic or fabricate history. The test exposes that false success; the outer migrations group fails. **5.1 remains unchecked/partial**, **10/26 tasks complete**: prefix/rerun, runtime DDL denial, concurrent processes/observable lock, unknown history and failure/interruption remain for later authorized vertical cycles. No slice-5 checkpoint is claimed.
-
-Regressions: `node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs` **29/29 PASS**, zero skips, 103.72 s, including environment smoke and ordinary Node API health without DB; `run pool` project `1c62531b9101359d` **39/39 PASS**, 3.31 s, cleanup complete. Static project `740774c835d23fcd`: `ruff check --no-cache src tests`, `ruff format --check --no-cache src tests`, `mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests` **PASS (10 files)**. Initial static attempts hit Git Bash path conversion (`42275193ddc10fe8`, corrected using `MSYS_NO_PATHCONV=1`) and two Ruff line wraps (`ea6fa507ff820a11`, corrected); these are auxiliary failures, not behavioral RED. CPython 3.14.9/PostgreSQL 18.6 Linux amd64; host Node 24.14.0/Docker 29.4.0/Compose 5.1.1. Build reused locked dependency layers; no fresh resolution or cache-matrix proof.
-
-Exact-diff/new-file review through CLI → runner → process → SQL metadata found no blocker for this partial RED-only scope; core direction and Node/JSON authority are unchanged. Strict OpenSpec, OKF, syntax/diff checks pass. Independent project-label and scoped name/tag queries found no resources for the six projects above; harness cleanup assertions also passed. Logs remain temporary outside Git. No migration implementation, privilege separation, concurrency/interruption, full compatibility/CI or operational gate is credited; mypy remains ad hoc, not strict driver typing. Historical evidence below retains its original scope.
-
-## Database verification checkpoint (4.3)
-
-The user authorized **4.3 only**, confirmed disposable existing-lockfile builds and owned PostgreSQL fixtures/cleanup, and instructed continuation over the existing scanner work. The six approved seams are unchanged. This verifies the slice-4 checkpoint, not later migrations, FastAPI/Uvicorn lifecycle, RLS, recovery, parity or operational acceptance.
-
-```sh
-node scripts/python-foundation.mjs run pool
-node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs
-```
-
-At `49ea6abb0` plus this diff, final pool project `opengym-python-foundation-test-9e5ea80541e5cac9`: **39 passed in 3.88 s**, zero skips/fixture errors, exit 0, `FOUNDATION_POOL_OK`, owned cleanup complete. The unchanged **20 real-PostgreSQL tests** freshly verify caught SQL failure with no persistence; successful/failed collaborators with independent restricted observations; handle expiry and local owner context; pre-COMMIT cancellation, statement/acquisition limits, broken-connection replacement, draining/concurrent/deadline close; acknowledged/rejected/lost/cancelled COMMIT and reset failure. The private relay proves independently visible writes despite unknown COMMIT, one attempt, discarded connection and clean next acquisition. No business transaction, full ACL/RLS or application-process lifecycle is credited.
-
-`runner.py` now scans child stdout/stderr **before replay**, rejects known synthetic secret/payload markers and SQL patterns case-insensitively, emits only `FOUNDATION_DIAGNOSTIC_LEAK` with an allowlisted category on detection, and never emits the group success marker after a leak or child failure. Private temporary-file spools on the container's 64-MiB tmpfs avoid unbounded Python capture memory; combined output above **4 MiB** is rejected before reading/replay with `FOUNDATION_OUTPUT_LIMIT`. The child deadline remains 60 seconds; timeout/OS failure emits the existing safe failure code without replaying partial output. This is a synthetic diagnostic guard, **not a general SQL parser, arbitrary-secret detector, provider/log-retention audit or production redaction service**.
-
-The **19 scanner/runner tests** cover known markers, lower-case SQL, clean summaries, both streams as real subprocess fixtures, suppression of leaking output/success, preservation of clean child failure and oversized output rejection. These fixtures replace only the pytest subprocess at the tooling boundary; PostgreSQL/asyncpg are not mocked. Existing scanner work first passed 9/9; the added lowercase SELECT case produced a genuine assertion RED (`None != 'sql'`, project `2671051c6345c933`) then GREEN. Other already-working process cases are characterization. The size-limit case was interrupted by an unrelated manifest/lock mismatch and passed after the existing concurrent size guard was present; no size-limit RED is claimed. Review replaced unbounded in-memory capture with bounded reads from private spools and kept tests GREEN.
-
-Host regression final: **29/29**, zero skips, **104.35 s**, including environment Python smoke and ordinary Node API health without PostgreSQL. The first run was **28/29**: the unchanged shared-image preflight test received `Docker container failed` instead of its expected refusal text. It passed isolated, then the entire same command passed without a harness change; root cause remains unestablished, not a fixed defect or erased failure. Static project `cb868a3bb82932e1`: Ruff check/format `--no-cache` and mypy `--ignore-missing-imports --cache-dir /tmp/mypy src tests` **PASS on eight files**. Mypy is ad hoc, not strict driver typing or the slice-9 CI gate.
-
-CPython 3.14.9/PostgreSQL 18.6 Linux amd64; host Node 24.14.0, Docker 29.4.0, Compose 5.1.1. A concurrent Ruff 0.17.1 manifest/lock/inventory edit temporarily blocked a build; all three were already restored to the original **0.17.2** when execution resumed. No dependency, lock, inventory, core, relay, Compose, historical Foundation or product change remains in this slice. Temporary failures are not behavioral RED. Integrated review found no remaining blocker in the scanner diff; core still has no app/health/business imports or implicit global pool. Existing AGENTS rules remain valid.
-
-`run environment` also passed **2/2** after the runner change (project `opengym-python-foundation-test-eeb40eb8ad35d341`). CPython 3.14 (PEP 758) accepts `except A, B:` without parentheses; the pinned Ruff target emits that style. It is valid for this interpreter, not a syntax error to "fix" back.
-
-Final strict OpenSpec validation, OKF (31 concepts, seven indexes, 379 local links), working/index diff checks passed. Independent project-label and scoped name/tag queries found no containers, volumes, networks or images for all eight projects recorded in this revalidation. The externally managed index was left untouched by this agent.
-
-This completes **4.3**, **10/26 tasks**, and the bounded slice-4 atomicity/limits/reuse checkpoint only. No host installs, personal data, published ports/socket mounts, new dependencies, task 5.1, commit, publication, spec sync, archive or closeout. The following sections retain their historical evidence and authorization limits.
-
-## Database implementation (4.2)
-
-The user selected **4.2** and confirmed **y** for existing-lockfile builds solely in disposable containers and creation/cleanup of owned synthetic PostgreSQL fixtures. The six seams remain unchanged. Work started from `22081065` plus the two existing 4.1 evidence edits, which were retained. No host installs, new dependencies, personal data, published ports, socket mounts, ordinary-stack changes or closeout actions.
-
-`src/opengym_platform/core/database.py` owns configuration, a per-instance pool and the public `Database.open(settings)`, `execute`, `fetch`, `transaction(owner_id=None)` and `close` interfaces. Settings require explicit `host`, `port`, `database`, `user`, `password`; validated overrides/defaults and bounded limits are defined by the implementation and design §4. Unknown driver/DSN options and invalid sizes/types/deadlines are rejected with `DATABASE_CONFIG_INVALID`, without raw validation input or exception chains. There is no global pool, app/health/business dependency or new functional scaffolding.
-
-TLS uses a verifying default SSL context, optionally with `ca_file`. Plaintext requires the synthetic harness host/database markers and the exact private DB destination; the private in-container loopback relay additionally requires the synthetic runtime login. The test-only relay forwards exclusively to `foundation-db:5432`, publishes no ports and does not replace PostgreSQL. TLS tests demonstrate fail-closed behavior against the non-TLS synthetic server and rejected unsafe settings, **not** a provider handshake or certificate matrix.
-
-Transactions lease one connection, install parameterized transaction-local owner context, expire handles and remember failed SQL even when caught. Public errors expose stable codes, not driver messages/causes or SQL values. Standalone execute/fetch install no owner. Failure before COMMIT rolls back or discards; an acknowledged COMMIT succeeds, including when subsequent reset fails and requires discard. Explicit server constraint/serialization/deadlock rejection is transaction-aborted, not unknown. A lost COMMIT response produces `DATABASE_COMMIT_OUTCOME_UNKNOWN` and `commit_outcome="unknown"`; unresolved cancellation keeps `CancelledError` and that metadata. Neither retries writes nor claims that rollback undid a possibly committed write. Close rejects new work, drains active leases, coordinates concurrent close calls and terminates on deadline.
-
-```sh
-node scripts/python-foundation.mjs run pool
-node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs
-```
-
-Focused TDD: the existing rollback RED first became GREEN (project `96637e0c7bc917d4`). Further individual RED/GREEN cycles covered owner context, captured SQL, expired handles/safe errors, explicit settings/private relay, saturation, close, transport-lost COMMIT, cancelled unresolved COMMIT, server-rejected deferred COMMIT, concurrent close and reset failure after acknowledged commit. Other already-working paths were characterized without manufactured RED: successful collaboration, cancellation before commit, statement timeout, connection replacement, configuration boundaries/TLS and forced-close deadline. No all-tests-first matrix or fake driver was used.
-
-Final run at `22081065` plus this diff: project `opengym-python-foundation-test-4a72209756724ed3`, **20 passed**, zero skips/setup/teardown errors, **exit 0**, `FOUNDATION_POOL_OK`, cleanup complete; pytest **2.14 s** excludes build/setup/cleanup and was measured alongside regressions. Pinned CPython 3.14.9/PostgreSQL 18.6 Linux amd64; host Node 24.14.0/Docker 29.4.0/Compose 5.1.1. Host regressions **29/29** (harness 14, comparator 10, historical guards 5; zero skips, 109.86 s), including Python environment smoke and ordinary Node API health without PostgreSQL. Disposable read-only static run `d9489ee5ea22fa95`: Ruff check/format and mypy `--ignore-missing-imports` PASS on seven files. Earlier broad-catch/import findings were corrected; the initial format invocation failed to initialize a read-only cache, then passed with `--no-cache`. These auxiliary failures are not behavioral RED. Mypy remains ad hoc, not strict driver typing or a CI gate.
-
-Integrated review of the exact diff, callers and new relay found no further blockers for this synthetic 4.2 scope after the fixes above; shared handle guards were consolidated with tests kept GREEN. Core dependency direction and the ordinary Node/JSON authority remain consistent with AGENTS.md; no rules edit was needed. Independent project-label and scoped name/tag queries found no remaining containers, volumes, networks or images for all 34 recorded 4.2 projects. A limited final stdout/stderr check found none of the synthetic password, sensitive-value/DSN or INSERT/DDL-password markers. The later 4.3 section replaces that one-off check with an integrated scanner and completes the slice-4 verification checkpoint; this paragraph remains 4.2 implementation evidence. Logs remain temporary outside Git. Lifecycle through FastAPI/Uvicorn, full role/ACL/RLS, migrations, recovery, remote CI, provider/arm64, parity and operational gates remain unproven. No commit, sync, archive or publication.
-
-## First Database RED (4.1 historical checkpoint, then partial)
-
-The user authorized **4.1 only**, then approved existing-lockfile builds inside disposable containers and owned synthetic PostgreSQL fixtures. The six seams remain unchanged. This step stops at **one behavioral RED**; 4.2/GREEN and subsequent cycles are not authorized. **4.1 remains unchecked** because its other acceptance cases are pending.
-
-```sh
-node scripts/python-foundation.mjs run pool
-```
-
-Expected result at that historical checkpoint: **exit 1**, `DATABASE_ROLLBACK_REQUIRED`, `assert 2 == 0`, followed by `Python Foundation cleanup complete`, with no `FOUNDATION_POOL_OK`. This command builds only the Python target, starts its private DB, runs `tests/core/test_database.py` and cleans up in the existing `finally`. No Node contract suites or business server are involved.
-
-At source revision `a9709d55` plus this working diff, host Node 24.14.0 / Docker 29.4.0 / Compose 5.1.1 / Linux amd64: the final RED project `opengym-python-foundation-test-523b54723b25cd41` produced **one assertion failure, zero setup/teardown errors** (0.10 s pytest, excluding build/setup/cleanup). The fixture starts empty, creates its own schema/table/login transactionally as bootstrap and gives the login only SELECT/INSERT on that table plus schema USAGE. Two synthetic collaborators receive the same handle, insert distinct parameterized IDs and the second raises. The max-one pool reuses the same PostgreSQL PID; a separate connection using the non-superuser login then sees **two durable rows instead of zero**. Fixture teardown closes clients and drops only its schema/login; the CLI removes its project. This proves a real missing rollback, not an import, unavailable DB or mocked driver failure. Full role/ACL and RLS acceptance is not credited from this fixture.
-
-Resumed **4.1 only** at `22081065`, clean checkout: the same public command reproduced the intended RED in project `opengym-python-foundation-test-c5348838b760d517` (one assertion failure, 0.10 s pytest; exit 1, two durable rows, no setup/teardown error or success marker). Existing 4.1 build/fixture approval was reused without extending it to 4.2. Cleanup completed and independent project-label plus scoped name/tag queries found no containers, volumes, networks or images remaining. No runtime/test code changed, no new cases or acceptance were credited, and previous regression/static results below were not rerun. Logs remain temporary outside Git; the task stays partial pending interleaved RED/GREEN cycles.
-
-At the 4.1 checkpoint, `src/opengym_platform/core/database.py` was explicitly **not operational**: it only delegated leased SQL, accepted exactly `{"max_size":1}`, connected solely to the fixed disposable runtime login, ignored owner context, and terminated the pool for teardown. It had no real transaction, safe driver-error surface, expired-handle guard, general validated configuration or graceful lifecycle. That scaffold was solely for the fixtures. Core imports no app/health/business modules and has no global pool; tests exercise public handles/SQL, not driver internals.
-
-At that checkpoint, pending by vertical cycles after the first GREEN: installed/cleared owner context, successful collaboration, captured SQL error, lost/cancelled COMMIT via real relay, expired handles, saturation, broken connection, cancellation, bounded graceful close and safe configuration/errors. No relay or all-tests-first matrix was added; no pool checkpoint or platform gate is met.
-
-Checks: host harness **14/14**, comparator **10/10**, historical guards **5/5**, normal environment smoke **2/2** plus Node health passed. The harness result does **not** mean the separate `pool` group passes. Ad hoc Ruff check/format and mypy `--ignore-missing-imports` passed on six Python files inside a disposable read-only container; mypy is not strict/driver-stub coverage or the future all/CI gate. The initial format check requested two line wraps, corrected during review; that is not behavioral RED. Final RED output was also checked for the synthetic password and INSERT/DDL-password text; no general diagnostic scanner is credited. Exact-diff/new-file review found no additional blockers for this partial RED-only scope; no AGENTS edit needed. Python locks/pins/inventory, ordinary stack, historical Foundation and CI remain unchanged. No host installations, personal data, ports, socket mounts, commit or closeout. Base images/build cache may remain.
-
-## Contract checkpoint (3.3)
-
-The authorized 3.3 run completed with synthetic fixtures only. `node scripts/python-foundation.mjs run contracts` passed: six HTTP cases and four manifest suites (comparator, 28 Node test files, 12 client files, three MCP files), with no detected skips. The existing ten comparator tests and nine adapter-contract tests are now selected by the manifest; no test/application logic or dependencies changed. Details, positive/negative evidence for all eight areas, providers/runtimes/sandbox limits, frontend ownership and neutral-JS/generator disposition live in [CONTRACTS.md](CONTRACTS.md#evidencia-y-cobertura-ejecutada-33).
-
-Final project `opengym-python-foundation-test-feafd9ce288d9f11`: Node 22.23.2, Linux amd64, Docker 29.4.0, host CLI Node 24.14.0. Inspect confirmed UID 1000, read-only root, dropped capabilities, no-new-privileges, private tmpfs/internal network and no binds/published ports. Both the initial and expanded runs completed cleanup, independently checked by project labels and names/tags. No PostgreSQL/Python or personal data were used.
-
-This completes the selected Node characterization checkpoint, not Python parity, clean-independent-checkout proof, real browser/device/provider validation, remote CI or operational gates. Cache was reused during build; the slice-9 cache matrix is not credited. At that checkpoint 4.1 was unstarted; its later partial RED is documented above. No source relocation, production migration, sync/archive, commit or publication occurred. Prior sections below retain their original task evidence and scope.
-
-## Contract inventory and first RED (3.1)
-
-[CONTRACTS.md](CONTRACTS.md) maps all eight architecture §9.1 areas to producers, consumers, current stores, proposed dispositions, existing positive/negative cases, commands and limits at revision `1b2daff9199611604783faabf76cd741123cec95`. The inventory and pending commands are not executed baseline/parity evidence.
-
-```sh
-node --test backend/contracts-compare.test.mjs
-```
-
-Observed on host Node 24.14.0: **exit 1, one intended assertion failure**. The independent `http.health.v1` fixture expects status 200; the synthetic actual changes only status to 503. The comparator process parses both JSON files, prints `FOUNDATION_CONTRACT_COMPARE_PENDING`, and exits 0 instead of the expected 1. This is behavioral RED, not an import/setup failure. The minimal `compare <expected.json> <actual.json>` branch is a deliberately incomplete scaffold, not an operational comparator; 3.2 owns its GREEN implementation. It does not affect `environment` or enable `run contracts`.
-
-Only 3.1 is authorized in this step. No baseline suites, Docker builds, installs, real API requests or Python parity checks were run for characterization. The slice-3 checkpoint remains pending until 3.2–3.3. No expectations are regenerated from observed results, and no normalization is applied. Relevant focused host regressions and documentary checks are recorded alongside task 3.1.
-
-## Contract comparison and runner (3.2)
-
-The subsequent request authorized 3.2 and locked dependency builds in disposable containers. The first RED above is historical: the comparator now passes its rejection test and the matching-response case. It compares the complete declared response exactly, validates envelopes/64-KiB file bounds and emits only safe case ID/revision/result codes. No normalizations or expectation regeneration. Types, missing/null, ownership, semantic headers, cookie flags and Training stamps remain significant.
-
-```sh
-node --test backend/contracts-compare.test.mjs
-node scripts/python-foundation.mjs run contracts
-```
-
-[CONTRACTS.md](CONTRACTS.md) owns coverage, fixtures, existing suite commands, limits and the 3.3 handoff. `contracts` builds only the Node target, executes six independent HTTP cases plus the versioned Node/client/MCP suite manifest, and cleans its owned resources. It never starts PostgreSQL/Python. Tests use temporary synthetic state, fixture transports and sanitized environments. Container execution is non-root/read-only with tmpfs and no published ports or personal mounts. Existing lockfiles, dependencies and application behavior remain unchanged.
-
-Focused results: comparator **10/10**, new HTTP cases **6/6**, existing frontend import **16/16**, sync/import-restore **29/29**, MCP **95/95**, host CLI guards **4/4**, historical Foundation guards **5/5**. Node target version **22.23.2**; host CLI **24.14.0**. Input-validation and group-selection RED/GREEN are separate from baseline characterization. The first unavailable-Docker test using an empty Windows PATH timed out; using an explicit closed loopback Docker endpoint made that external prerequisite deterministic. That setup failure is not credited as behavioral RED.
-
-Integrated `node scripts/python-foundation.mjs run contracts`: **PASS, exit 0**. Six HTTP cases and all three manifest suites reported OK with revision/ID/command and no detected skips. Project `opengym-python-foundation-test-b404874bdb284358` completed owned cleanup. This executes the new integration for 3.2; it does not close 3.3's per-area coverage audit.
-
-Full affected harness regression: `node --test scripts/python-foundation.test.mjs` **PASS 14/14**, zero skips, including the existing environment isolation, failure and hard-kill cleanup proofs. Historical Foundation guards pass 5/5. Strict OpenSpec, syntax, diff, local fixture/source links and unchanged lockfile/pin checks pass. OKF initially passed (28 concepts); a subsequent global check found an unrelated concurrently added `docs/reference/platform-modularity.md` missing from `docs/reference/index.md` (29 concepts, `local/index-stale`). That file/index is outside this patch and preserved; the final global check cannot be credited as passing on that observed tree.
-
-3.3 remains pending for the per-area walkthrough and complete contract checkpoint. No Python parity, physical device/browser, real provider, clean independent checkout, remote CI or operational gate is credited here. Build cache/base images may remain; run-owned resources must be removed.
-
-## Pinned environment
-
-[versions.json](versions.json) records immutable multi-platform image references for CPython **3.14.9** (normal GIL, Debian Bookworm slim), uv **0.13.5**, and PostgreSQL/tools **18.6** (Debian Trixie). Execution was verified only on **linux/amd64**, Docker Desktop Linux Engine 29.4.0. Other architectures are not credited.
-
-[pyproject.toml](pyproject.toml) pins the approved direct dependencies; [uv.lock](uv.lock) pins the transitive graph and artifact hashes from verified-TLS PyPI. No prereleases or Uvicorn extras. SQLAlchemy/Alembic are reserved for migrations, not an application ORM. The importable application package lives in `src/opengym_platform/` and runs via the image's explicit `PYTHONPATH`. `package = false` remains intentional: this application does not need wheel publication or a new build-backend dependency. The manifests, lock and Python dependency inventory from 1.1 are unchanged.
-
-Direct versions: FastAPI 0.161.1, Pydantic 2.14.1, Uvicorn 0.54.0, asyncpg 0.32.0, Alembic 1.20.1, SQLAlchemy 2.1.6, cryptography 50.0.2; pytest 9.1.1, pytest-asyncio 1.4.0, httpx 0.28.1, Ruff 0.17.2 and mypy 2.4.0.
-
-FastAPI requires `opentelemetry-api` transitively. No OpenTelemetry SDK, collector, exporter or instrumentation was added; this does not satisfy EV-08.
-
-## Reproduce locked installation without host Python
-
-Run from the repository root. `.dockerignore` allowlists manifests and Foundation source/tests; this toolchain-only Dockerfile copies only the manifests. The image copies no instance environment or user data. The verification needs outbound HTTPS for PyPI, but no database, published ports, bind mounts or credentials.
-
-```sh
-docker build -t opengym-python-foundation-toolchain-11:local -f backend/Dockerfile.toolchain backend
-docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,exec,nosuid,nodev,mode=1777,size=1073741824 opengym-python-foundation-toolchain-11:local sh -ec '
-  mkdir /tmp/check
-  cp /opt/toolchain/* /tmp/check/
-  cd /tmp/check
-  sha256sum pyproject.toml uv.lock > /tmp/before
-  python --version
-  uv --version
-  uv lock --check
-  uv sync --locked
-  uv pip check
-  .venv/bin/python -c "import fastapi,pydantic,uvicorn,asyncpg,alembic,sqlalchemy,cryptography,pytest,pytest_asyncio,httpx,ruff,mypy; print(\"All direct imports passed\")"
-  uv lock --check --offline
-  sha256sum -c /tmp/before
-'
-```
-
-In Git Bash on Windows, prefix `docker run` with `MSYS_NO_PATHCONV=1` to preserve container paths. No such prefix is needed in PowerShell/Linux. Runtime UID/GID is 1000, root filesystem read-only, and installation/cache exist only in disposable tmpfs. **That tmpfs needs `exec` to load native wheels**; the first import check with Docker's default noexec tmpfs failed, then passed with explicit exec. Do not generalize this to future writable artifact directories.
-
-PostgreSQL binaries can be checked without starting a server:
-
-```sh
-docker run --rm --network none --read-only --user 1000:1000 --cap-drop ALL --security-opt no-new-privileges --entrypoint sh postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6 -ec 'postgres --version; pg_dump --version; pg_restore --version'
-```
-
-Remove only the local verification image when finished: `docker image rm opengym-python-foundation-toolchain-11:local`. Base images/build cache may remain; never prune unrelated resources.
-
-## License inventory and evidence
-
-[dependency-licenses.json](dependency-licenses.json) inventories **39 locked third-party distributions**, including Windows-only colorama; **38 are installed on Linux amd64**, including greenlet added with explicit 5.2 permission. Metadata comes from the exact-version PyPI JSON over verified TLS; `mypy-extensions` lacks license metadata, so its installed wheel LICENSE text is preserved as fallback. Classifiers are retained when SPDX metadata is absent. Core tool license declarations are in versions.json; uv's value is the OCI image declaration. This is a dependency inventory, not a legal opinion, OS-package SBOM or vulnerability audit.
-
-Observed prerequisite checks (1.1):
-
-- Fresh disposable resolution: stable direct pins and universal lock generated successfully with CPython 3.14.9/uv 0.13.5.
-- A separate image built from the saved manifests: `uv lock --check`, `uv sync --locked`, `uv pip check`, all direct imports and offline lock verification **passed**. SHA-256 checks confirmed pyproject/lock unchanged.
-- Additional assert-based self-check: installed names/versions exactly matched all 37 applicable inventory entries; interpreter patch and normal GIL matched; **passed**. This is a toolchain check, not behavioral RED or application coverage.
-- `postgres`, `pg_dump` and `pg_restore` from the pinned image all reported **18.6**. No server or restore was run.
-- Resolution/export initially needed corrections for conditional colorama, wheel-only license metadata and executable tmpfs. None is credited as a behavioral RED. Final clean locked installation passed without reselecting dependencies.
-
-## CLI and environment (2.2–2.3)
-
-From the repository root, with Node 22+ and a trusted Docker Engine/Compose installation:
+This package exercises the Python platform with disposable synthetic data.
+The normal application still runs Node/JSON; this is not a production API,
+a migration of user data, or an operational backup service.
+
+## Start here
+
+Run all commands from the repository root with Node 22+ and trusted Docker
+Engine Linux / Compose. Python, uv and PostgreSQL are supplied by pinned images;
+no host Python installation is needed. Builds may require network access.
 
 ```sh
 node scripts/python-foundation.mjs config
-node --test scripts/python-foundation.test.mjs
 node scripts/python-foundation.mjs run environment
 ```
 
-`config` emits effective JSON using only `compose.python-foundation.yml`, an explicit empty env file/project directory and no inherited `COMPOSE_*` overrides. No instance `.env` is read. The Python build context is allowlisted by `.dockerignore`; the root-context Node target uses `Dockerfile.contracts.dockerignore`, which admits API source/manifests and the target runner, not personal directories or host dependencies.
+The harness ignores instance dotenv files and inherited Compose overrides. It
+uses its own project, internal network, volume and private tmpfs, with UID/GID
+1000, a read-only root, dropped capabilities and no published ports or host binds.
+Never substitute the instance Compose file, credentials or data directory.
 
-`run environment` prints a unique project, builds its two labelled images, checks the Node target, starts the private disposable PostgreSQL service, runs two Python smoke tests and cleans up in `finally`. The Python tests import the source package/FastAPI, check the interpreter/GIL and exact applicable distribution inventory, then connect with bounded direct asyncpg setup to `SELECT 1`/PostgreSQL 18.6. This is **not** the future `Database` API or a transaction/privilege proof. Successful output includes `FOUNDATION_NODE_API_OK`, `FOUNDATION_NODE_TARGET_OK`, `FOUNDATION_ENVIRONMENT_OK` and `Python Foundation cleanup complete`.
-
-The Node target uses **22.23.2/npm 10.9.8**, reusing the historical immutable base recorded in `versions.json`, without modifying the historical Foundation. It installs the existing API lock with `npm ci --ignore-scripts --omit=optional`. Since 2.3 it starts the unchanged `api/server.js` as a child **before the Foundation DB is started**, with an allowlisted environment, empty private DATA_DIR under `/tmp`, no PostgreSQL configuration and coach disabled. It waits for the actual boot port (10-second deadline), asserts `/api/health` returns 200 and `{ok:true, users:0, writable:true}` (5-second HTTP limit), and confirms the synthetic secret file exists. It stops the child within 5 seconds and removes the temporary directory before emitting success. Forced shutdown fails the check. This replaces the weaker syntax-only smoke; it does not test authentication or the later FastAPI lifecycle. Optional coach SDKs, client/MCP fixtures and real contract cases belong to the contracts slice; no compatibility is credited here.
-
-`environment`, `contracts` and `pool` are implemented for their synthetic scope. `migrations` executes the complete bounded slice-5 matrix described in the 5.3 checkpoint above, including prefix and interruptions. `isolation` executes the completed 7.3 restricted-role RLS fixture above; it is not an operational RLS gate. `recovery` and `all` are recognized but **exit 1 before Docker**, explicitly unimplemented; unknown/missing groups and malformed/extra arguments also fail. Python/Node target runners likewise reject unavailable groups. Exit 0 means the selected implemented checks **and cleanup** succeeded; Docker/build/startup/test/cleanup failure returns nonzero. Docker subprocesses have a 300-second limit (captured output capped at 4 MiB), DB startup 60 seconds, pytest 60 seconds and the direct probe connection/command/close 5 seconds each. No automatic retries or missing-dependency skips.
-
-Cleanup accepts **only the exact printed** `opengym-python-foundation-test-<16 hex>` project: pass that as the sole argument after `node scripts/python-foundation.mjs cleanup`. It discovers by project label **and** scoped names/tags, checks the **entire** target set's project/marker/service/name before any removal, and refuses shared image tags. It never runs down/prune/remove-orphans. SIGINT/SIGTERM trigger the same cleanup; hard kill or an unresponsive daemon can leave owned resources requiring explicit cleanup. Base images and build caches may remain. This is not protection against a malicious Docker administrator.
-
-Observed on linux/amd64, Windows host Node **24.14.0**, Docker Engine **29.4.0**, Compose **v5.1.1**: the resumed 2.2 baseline passed **7/7**; the integrated 2.3 CLI suite passed **13/13**, zero failures/skips, in about 98 seconds with cached bases/dependencies. The contained Python smoke remains **2/2** and Node **22.23.2** now verifies actual API health without PostgreSQL. Host CLI execution under Node 22, independent clean-checkout execution and remote CI are not credited. The initial 2.2 environment launch failed because unquoted commas in a YAML flow-list tmpfs value became separate mount paths; quoting corrected it, and the repeat passed. That setup correction is not behavioral RED.
-
-Ad hoc checks inside the disposable `foundation-test` container passed: `ruff check --no-cache src tests`, `ruff format --check --no-cache src tests`, and `mypy --ignore-missing-imports --cache-dir /tmp/mypy src tests` (3 Python files). This does not check asyncpg driver stubs or provide the `all`/CI static gate of 9.2. Initial check failures prompted normalized `.py` permissions for Windows build contexts, narrow driver/OS exception handling and formatting; these are not behavioral RED.
-
-The 2.2 environment and stable-success-code cases each had an observed assertion RED before implementation/GREEN. Review-added characterization also checks mislabelled names and unavailable groups; no new RED is claimed for already-working guard behavior. 2.3 evidence follows below. Focused historical Node regression remains **5/5**; strict OpenSpec/OKF/syntax/diff checks passed. Review assumes one local operator with independent run projects, found no additional blockers for this environment slice and no now-false AGENTS rules: production authority remains Node/JSON. This is not readiness for change closeout.
-
-## Real environment verification (2.3)
-
-Reproduce with `node --test scripts/python-foundation.test.mjs`; `config` and `run environment` use the commands above. No production or historical Foundation service is started or modified.
-
-- **Actual isolation:** the suite builds the same Compose services and keeps owned probes alive for inspection. All three run UID/GID 1000, read-only root, zero effective capabilities and kernel no-new-privileges. Docker inspect and `/proc`/filesystem probes verify these settings, tmpfs flags and per-container writable `/tmp` contents that are not shared. The DB alone mounts its exact named volume, all services use the sole internal project network, and none has published ports, host binds or Docker socket. The fresh DB has zero public tables: no migration/history is reused or applied.
-- **Ownership and preflight:** project, marker, service and name mismatches reject cleanup. A deliberately added second image tag makes cleanup reject the entire live set **before** deleting verified containers/volume. All probe containers remain running; the unrelated empty sentinel volume's inspect metadata remains unchanged. Removing only that test-created alias allows exact-project cleanup, after which both project-labelled and scoped name/tag queries are empty. The sentinel is checked before its separately label-guarded test teardown.
-- **Failure cleanup:** an allowlisted temporary checkout copies only CLI/Compose/empty-env inputs and supplies two minimal pinned-image fixture targets. The Python fixture connects to the actual disposable DB, then emits `FOUNDATION_EXPECTED_TEST_FAILURE` and exits 23. The real CLI returns 1, performs automatic cleanup and preserves the sentinel, despite poisoned synthetic `.env`/Compose/password settings. This characterizes already-working failure handling; it is not a substitute for the real Python/Node success checks. A separate fixture runs the actual Node target against a valid API process that deliberately exits 23 before readiness: the target/CLI fail without success markers, do not proceed to the Python target, and clean up.
-- **Hard kill:** a second fixture announces a coordinated ready marker after connecting to DB, then waits with a finite deadline. SIGKILL of the host CLI demonstrably leaves owned resources; cleanup using the exact printed project removes them. This proves the documented manual recovery path, not graceful signal handling. Windows termination is not credited as Linux SIGINT/SIGTERM handler execution; those graceful paths remain unverified here.
-- **RED/GREEN and harness correction:** the new API-success assertion first failed because the otherwise successful environment run lacked an actual API health proof; adding the real HTTP smoke made it pass. Other additions characterize existing behavior. The first inspection incorrectly expected `HostConfig.Binds` to be empty: Docker also serializes legitimate named volumes there. The corrected test checks the exact owned volume and `Mounts.Type`; no host-bind prohibition was relaxed and no runtime/security defect or behavioral RED is claimed for that correction.
-
-Verification is synthetic and from the current working tree. It completes the slice-2 environment checkpoint, not the complete clean-checkout/Node-22-host/CI scenario or platform gates. No new dependencies, host installations, instance data, published ports, socket mounts or changes to the ordinary stack/historical Foundation. Base images/build cache may remain; final synthetic/probe-labelled container, network, volume and image listings were empty.
-
-## Historical first RED (2.1)
+## Verification groups
 
 ```sh
-node --test scripts/python-foundation.test.mjs
+node scripts/python-foundation.mjs run contracts
+node scripts/python-foundation.mjs run pool
+node scripts/python-foundation.mjs run migrations
+node scripts/python-foundation.mjs run isolation
+node scripts/python-foundation.mjs run recovery
 ```
 
-Historical result before 2.2: **exit 1, three assertion failures** on host Node 24.14.0 and Docker Engine 29.4.0. The current suite passes; this section preserves what the original RED did and did not prove.
+| Group | What it checks |
+| --- | --- |
+| `environment` | Pinned toolchain, disposable DB, factory health/lifespan and Uvicorn process lifecycle; ordinary Node health without PostgreSQL. |
+| `contracts` | Existing Node/client/MCP behavior with independent synthetic fixtures. Does not start Python or PostgreSQL. |
+| `pool` | Bounded Database transactions, cancellation, connection reuse, unknown commit outcomes and safe diagnostics. |
+| `migrations` | Controlled Alembic CLI, serialized history, interruptions and restricted roles. |
+| `isolation` | Real runtime/Training permissions, owner RLS and reuse after transaction outcomes. |
+| `recovery` | Synthetic encrypted backup/copy/restore, restricted-owner reads, history/ownership/grants/RLS equivalence, timings and unsafe bundle/path/target rejection. Not an operational recovery command. |
+| `all` | Not implemented; fails explicitly. |
 
-- Foreign cleanup with Docker absent from PATH incorrectly exits 0.
-- Config emits no effective Compose configuration. Its test prepares an allowlisted temporary checkout with synthetic root/caller `.env` files, Compose overrides and environment markers; isolation assertions are present but **not reached yet**.
-- Mixed ownership cleanup incorrectly exits 0. Real Docker inspect first confirms the owned volume, mismatched network and unrelated sentinel volume remain unchanged. These are empty resources, with no containers, data mounts or ports. The test teardown removes only resources bearing its unique probe label, even when the expected assertion fails. Preservation by a no-op does **not** prove cleanup safety.
+Required prerequisites, test failures and cleanup failures return nonzero.
+The runner bounds pytest to 60 seconds and scans captured diagnostics before
+replaying them. A passing group proves only its synthetic scope, not platform
+parity, HTTP authorization or operational acceptance.
 
-Focused historical regression: `node --test api/foundation/environment.test.mjs api/foundation/configuration.test.mjs` **passed 5/5**. Strict OpenSpec validation, OKF, syntax and diff checks passed. Probe-labelled Docker network/volume listings were empty after teardown. Scope review found no additional blockers for this RED-only task; the CLI is not ready for operational use.
+The [OpenSpec tasks](../openspec/changes/add-python-platform-foundation/tasks.md)
+own delivery state and concise execution evidence. Tests are executable proof;
+Git and PRs preserve implementation history. Keep session records out of this guide.
 
-The one-comment CLI scaffold at that point let Node execute normally, so these failures concerned missing CLI behavior, not a missing module or broken setup. No dependencies were installed during 2.1. The subsequent 2.2 request and explicit approval authorized locked installations/builds in disposable containers only; no host installation or new dependency selection occurred.
+## Synthetic recovery contract
 
-The six test seams and three clarifications are approved in [design §7](../openspec/changes/add-python-platform-foundation/design.md#7-seams-públicas-de-prueba). The bounded transaction/pool path is verified synthetically in 4.3 and migration/privilege separation in 5.3 above. Application lifecycle, parity, RLS, restore, CI execution and operational gates remain unproven. Authorization history and scope live in [tasks.md](../openspec/changes/add-python-platform-foundation/tasks.md). No later task, closeout, sync/archive or release is authorized or evidenced here.
+Only the disposable cluster is accepted. `run recovery` creates and removes all
+fixtures; do not supply instance databases or artifacts. Inside that container,
+the process interface is:
+
+```text
+python -m opengym_platform.recovery backup <bundle> <key> <revision>
+python -m opengym_platform.recovery copy <bundle> <destination-file>
+python -m opengym_platform.recovery restore <bundle> <key> <target-db>
+```
+
+The separate key is 32 random bytes, mode 0600. Artifacts must be regular,
+single-link private files below owned mode-0700 directories on `/tmp` tmpfs;
+traversal, symlinks, public permissions and overwrites are rejected. The single
+bundle contains a four-byte big-endian manifest length, JSON manifest, 12-byte
+nonce and AES-256-GCM ciphertext/tag. The manifest is authenticated as AAD and
+records application revision, Alembic history, DB/tool versions, required roles,
+SHA-256 and synthetic scope. Copy transfers only the bundle, never the key.
+Plaintext dump/spools remain only in process memory or private unnamed tmpfs files.
+
+Backup exports one repeatable-read snapshot for manifest history and custom-format
+`pg_dump`. The pinned PostgreSQL 18.6 image supplies tools and their matching
+loader/library closure under `/opt/pg-tools`, separate from the Bookworm Python
+runtime; no apt packages or lock changes are needed. Artifacts/tool output are
+capped at 32 MiB, subprocesses at 30 s, SQL/connect/close at finite limits. This
+small-fixture implementation buffers dumps in memory; it is not a streaming service.
+
+Restore authenticates before any DB connection. It accepts only
+`python_foundation_restore_<16 hex>`, owned by the synthetic bootstrap, marked
+`opengym-python-foundation-recovery-v1`, with pristine DB ACLs and no user objects.
+Tests alone provision that destination and the explicit restricted roles. Restore
+uses a session lock and `pg_restore --single-transaction --exit-on-error`, preserves
+schema ownership/grants/RLS, checks restored history and sets explicit DB grants.
+A touched destination failing restore/verification returns
+`FOUNDATION_RECOVERY_TARGET_UNUSABLE`, is marked unusable and denies new connections;
+remove it through fixture cleanup, never retry it. Other failures return the safe
+`FOUNDATION_RECOVERY_REJECTED` code without raw diagnostics.
+
+This is same-cluster, database-only synthetic recovery: no off-host durability,
+cluster loss, media/auth completeness, PITR, RPO/RTO, scheduling or production
+Recovery acceptance. The positive case checks catalog metadata independently as
+runtime in the restored DB, compares it to the source and checks source metadata
+again afterwards. Runtime and Training logins also exercise actual denials.
+
+`FOUNDATION_RECOVERY_TIMING` reports each CLI process's elapsed seconds, including
+its connection/tool/encryption/verification work but excluding external fixture
+setup and teardown. `case_seconds` includes migration, seeding and assertions
+inside the positive test, not pytest fixture setup/teardown. Pytest duration covers
+the full group and fixtures; host command wall time also includes build/startup
+and Docker cleanup. All are observations, not performance guarantees; current
+execution evidence is tracked in OpenSpec tasks.
+
+## Cleanup
+
+Each run prints an exact project `opengym-python-foundation-test-<16 hex>`.
+Normal completion and failures clean up owned resources. After a hard kill,
+use the printed project as the sole argument:
+
+```sh
+node scripts/python-foundation.mjs cleanup <exact-printed-project>
+```
+
+Cleanup validates the complete resource set's labels, services, names and tags
+before removal. It refuses foreign or shared resources. Never use a broad prune,
+remove-orphans or instance teardown to clean a test. Base images and build caches
+may remain.
+
+## Code and contracts
+
+- `src/opengym_platform/core/`: per-instance asyncpg pool and transaction handles.
+  Protected SQL uses `Database.transaction(owner_id)` with transaction-local
+  context. Expired handles reject use; unresolved commit outcomes are explicit
+  and must not be retried automatically.
+- `src/opengym_platform/health/` and `app.py`: internal live/ready probes and
+  factory/lifespan composition. Startup does not run migrations or fall back to JSON.
+- `src/opengym_platform/migrate.py` and `migrations/`: separate migration process
+  and infrastructure history. Bootstrap is restricted to this disposable cluster.
+- `tests/`: synthetic fixtures and behavior checks; fixture RLS is outside the
+  migration history and is not a production Recovery policy.
+- [CONTRACTS.md](CONTRACTS.md): current Node compatibility reference and port handoff.
+- [Platform architecture](../docs/open-gym-evolution.architecture.md): target
+  mechanisms and acceptance; the normal stack remains authoritative until cutover.
+
+## Toolchain and checks
+
+[versions.json](versions.json) owns image/tool versions and immutable references;
+[pyproject.toml](pyproject.toml) and [uv.lock](uv.lock) own Python dependencies.
+[dependency-licenses.json](dependency-licenses.json) records their license inventory.
+Builds verify the lock rather than resolving new dependencies. Evidence currently
+covers Linux/amd64; other platforms and providers need their own verification.
+
+```sh
+node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mjs api/foundation/environment.test.mjs api/foundation/configuration.test.mjs
+```
+
+These host regressions exercise the harness, ownership guards, failure propagation
+and cleanup. Full API/frontend/MCP suites and their build/locale checks are listed
+in [CONTRIBUTING.md](../CONTRIBUTING.md) and existing CI. Synthetic Foundation results
+do not replace those checks or the later recovery/CI/operational gates.
