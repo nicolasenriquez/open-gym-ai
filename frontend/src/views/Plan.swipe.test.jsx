@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import '../../test/animation-clock.js'
 // Swipe actions on Plan (v1.3.11). The routines list: toward the start deletes with an Undo (no
 // confirm), toward the end duplicates. The loop: toward the start takes the routine out, with an
 // Undo, and nothing on the other side. Weekday rows do not swipe. The rows stay keyboard buttons.

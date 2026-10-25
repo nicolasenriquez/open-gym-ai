@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import '../../test/animation-clock.js'
 // Swipe actions in the routine editor (v1.3.11): toward the start takes an exercise out, with an
 // Undo, and there is nothing on the other side. The long press still reorders, and a row it has
 // picked up does not swipe. The exercise's sheet keeps Remove, with the same Undo.
