@@ -12,7 +12,8 @@ WORKDIR /app
 RUN chown 1000:1000 /app
 USER 1000:1000
 COPY --chown=1000:1000 pyproject.toml uv.lock ./
-RUN uv lock --check && uv sync --locked --no-install-project && uv pip check && uv lock --check --offline && rm -rf /tmp/uv-cache
+RUN --mount=type=cache,id=opengym-python-foundation-uv,target=/tmp/uv-cache,uid=1000,gid=1000 \
+    uv lock --check && uv sync --locked --no-install-project && uv pip check && uv lock --check --offline
 COPY --chown=1000:1000 versions.json dependency-licenses.json ./
 COPY --chown=1000:1000 src/ ./src/
 COPY --chown=1000:1000 tests/ ./tests/
