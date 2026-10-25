@@ -14,7 +14,7 @@ Users can train without an account and discover exercises by search, filters and
 
 - Login > Continuar sin cuenta > Inicio.
 - Ejercicios tab > search, filters, exercise row, Por músculo.
-- Home > En el gimnasio Registrarse > Añadir tarjeta.
+- Home > En el gimnasio Registrarse > Añadir una tarjeta.
 
 ## Driving it with Playwright CLI
 
@@ -31,6 +31,6 @@ Preconditions: fresh session; use -s=<owned-session> on every command.
 - Catalogue includes nested Plan buttons: scope navigation to getByRole('navigation').
 - Library search is Buscar…; exercise picker search is Buscar entre <count> ejercicios…; use /Buscar entre/ rather than a fixed catalogue count.
 - Exercise names include English parentheses by default; instructions may explicitly remain English.
-- Known audit bug: detail sheet has no dialog role and focus can remain on the background after Tab.
+- Detail sheets use named native dialogs. Verify focus containment, nested-sheet focus restoration and Escape with the linked UI regression guide; do not treat historical focus failures as expected behavior.
 - Camera/card import needs a synthetic QR fixture and permission handling; do not scan a personal membership card for test data.
 

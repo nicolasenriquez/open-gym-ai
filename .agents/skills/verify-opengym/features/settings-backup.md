@@ -31,6 +31,6 @@ Preconditions: synthetic guest records from the smoke journey.
 - Spanish labels and browser download support are preconditions for supplied selectors.
 - JSON export is guest data backup; it must not be treated as proof of server account sync.
 - Never import or reset in the user's browser. Import tests need a second isolated browser and a reviewed synthetic backup.
-- Guests do not see reminders; /settings/reminders redirects to Settings. Admin and unavailable Coach redirect home, except known blank /coach/intake.
+- Guests do not see reminders; /settings/reminders redirects to Settings. /admin and unavailable /coach/intake redirect Home; web /coach/setup redirects Settings. Verify both the final route and a nonblank screen.
 - Real passkey creation, cross-device linking, push delivery, provider credentials and Capacitor shells remain conditional. No account/provider is provisioned by this skill.
 

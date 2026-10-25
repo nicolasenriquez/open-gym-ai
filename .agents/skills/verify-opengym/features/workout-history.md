@@ -31,7 +31,7 @@ Preconditions: P01 routine with squat, 3 × 10; no prior workouts in this browse
 ## Gotchas
 
 - The final set opens a sheet automatically. Clicking Terminar behind it times out correctly; resolve the sheet instead of forcing the click.
-- The routine chooser row lacks button semantics in the audited build; exact visible text is the fallback locator.
+- Routine chooser rows are native buttons. Prefer getByRole('button', {name:/E2E CLI Routine/}) and verify Tab plus Enter/Space through the linked UI regression guide.
 - 0 kg volume is valid for an unweighted bodyweight squat. Do not fabricate a load merely to obtain a nonzero chart.
 - Minutes and dates vary. Assert set counts and stored values; avoid fixed calendar dates and duration totals.
 - Native rest alarms, background delivery and device wake lock need real-device verification.

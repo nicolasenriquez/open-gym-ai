@@ -88,7 +88,7 @@ A rendered route or a screenshot alone does not prove actions or persistence.
 | X01 | Visit admin, coach/setup, reminders as guest | Safe redirect/unavailable state; no privileged access |
 | X02 | Cold guest access to coach/intake | Redirect or explicit unavailable state; no blank shell |
 | X03 | Enabled Coach; consent; provider error | No call before consent; recoverable errors; test provider required |
-| X04 | Accounts/devices/API/MCP/offline sync | Ownership/access/recovery contracts; separate authorized test stack |
+| X04 | Accounts/devices/API/offline sync | Ownership/access/recovery contracts; separate authorized test stack |
 | X05 | Installed PWA; offline; SW update | Starts offline; retains data; recoverable update |
 | X06 | Android/iOS alarms/permissions/share/backup | Real-device verification with explicit permissions |
 

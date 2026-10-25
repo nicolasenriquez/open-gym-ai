@@ -8,7 +8,7 @@ async page => {
   const modal = () => page.locator('#modal-root');
   const assert = (value, message) => { if (!value) throw new Error(message); };
   const proof = async (id, detail) => {
-    await page.screenshot({path:`${prefix}-${id}.png`, fullPage:true});
+    await page.screenshot({path:`${prefix}-${id}.png`, fullPage:true, animations:'disabled'});
     results.push({id, status:'PASS', detail, snapshot:await page.locator('body').ariaSnapshot()});
   };
   page.on('pageerror', error => errors.push(error.message));
@@ -122,7 +122,7 @@ async page => {
     assert(errors.length === 0, 'Unexpected runtime errors: ' + errors.join('; '));
     return {completed:true, prefix, health, results, errors};
   } catch (error) {
-    await page.screenshot({path:`${prefix}-FAIL.png`,fullPage:true});
+    await page.screenshot({path:`${prefix}-FAIL.png`,fullPage:true,animations:'disabled'});
     return {completed:false, prefix, results, errors, failure:String(error), snapshot:await page.locator('body').ariaSnapshot()};
   }
 }

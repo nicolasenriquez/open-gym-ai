@@ -5,7 +5,7 @@ description: Verify OpenGym web guest workflows with Playwright CLI, capture rea
 
 # Verify OpenGym
 
-Primary surface: React PWA served with the API at http://localhost:8080. API, optional read-only MCP, Capacitor shells, authenticated sync and Coach need separate verification. Read [features/README.md](features/README.md) before selecting coverage.
+Primary surface: React PWA served with the Node/JSON API at http://localhost:8080. Capacitor shells, authenticated sync and Coach need separate verification. Python Foundation is isolated synthetic tooling, not the backend serving this UI; use backend/README.md for its gates. Read [features/README.md](features/README.md) before selecting coverage.
 
 ## Launch
 
@@ -33,11 +33,13 @@ playwright-cli -s=opengym-manual open http://localhost:8080 --browser=msedge
 playwright-cli -s=opengym-manual snapshot
 playwright-cli -s=opengym-manual click "getByRole('button', { name: 'Continuar sin cuenta', exact: true })"
 ```
-Use fresh snapshot refs or the scoped selectors in the map. Scope tab buttons to navigation: catalogue rows also have buttons named Plan. Scope sheet actions to #modal-root: the background remains in the accessibility tree. Completing the last set opens a completion sheet automatically; choose its Terminar entrenamiento before ¡Genial!.
+Use fresh snapshot refs or the scoped selectors in the map. Scope tab buttons to navigation: catalogue rows also have buttons named Plan. Scope sheet actions to the top open dialog when sheets are nested; lower sheets remain in the DOM. Completing the last set opens a completion sheet automatically; choose its Terminar entrenamiento before ¡Genial!.
 
 ## Evidence
 
 The helper prints a log path under .playwright-cli/verify-opengym-<run>.log. The JSON result includes per-case ARIA snapshots, completion status, API health and errors; screenshots and a synthetic backup use timestamped .playwright-cli/opengym-* paths. The PowerShell helper fails unless completed:true, screenshots exist, and the downloaded JSON contains the created workout, routine, weight and measurement.
+
+Screenshot capture disables animations so finite transitions finish before the image is taken. Inspect the images as well as the assertions; an intermediate fade frame is not visual proof.
 
 Proof means the action plus its resulting state, a reload or second user-facing view for persistence, and an observed export for stored data. A toast or screenshot alone does not prove a save. Do not seed through localStorage setters, app stores, mocks or hidden endpoints. Keep credentials, cookies and storage-state dumps out of tracked evidence. Keep run artifacts in ignored .playwright-cli/ or CI artifacts, not in docs/. Put the verification result in the PR; integrate only reusable knowledge into its owning document. Report unexecuted paths as pending; route rendering is not full feature coverage.
 
