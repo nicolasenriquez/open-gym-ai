@@ -2,13 +2,13 @@
 
 Fuente inspeccionada: `1b2daff9199611604783faabf76cd741123cec95`. Autoridad de alcance: [arquitectura §9.1](../docs/open-gym-evolution.architecture.md#91-paridad-del-port-y-alcance-de-retirada), [spec de caracterización](../openspec/changes/add-python-platform-foundation/specs/platform-contract-characterization/spec.md) y handlers actuales. Esta página distingue inventario histórico y [ejecución sintética 3.3](#evidencia-y-cobertura-ejecutada-33); **no acredita paridad Python, G0, GP ni G3**. No se leyeron datos/configuración de instancia.
 
-Los IDs siguientes son identificadores estables de handoff, revisión `v1`, asociados a suites existentes; no son nuevos nombres de tests ni resultados ejecutados. Mantener inputs/expectativas independientes al extraer casos portables en 3.2; no duplicar suites enteras. Las filas indican como mínimo un positivo y un negativo. Todos los comandos se ejecutan desde la raíz. Se listan para 3.2–3.3, **no se ejecutaron en 3.1**; requieren el entorno sintético aislado, dependencias bloqueadas y transporte fixture. No ejecutar suites heredadas con variables de instancia heredadas.
+Los IDs siguientes identifican el baseline de compatibilidad `v1`, sus inputs y expectativas independientes. No duplicar suites enteras ni ejecutar las heredadas con variables de instancia/proveedor. Los comandos se ejecutan desde la raíz mediante el entorno sintético aislado. Los resultados históricos pertenecen a OpenSpec; esta referencia conserva contratos, fuentes y límites para el port.
 
 ## Matriz de capacidades y consumidores
 
 | Área / IDs de referencia v1 | Productor → consumidor / autoridad actual | Contrato positivo y negativo que conservar / fuentes y comandos de referencia | Límite y gate futuro |
 | --- | --- | --- | --- |
-| HTTP/OpenAPI: `http.health`, `http.bad-input` | `api/server.js` → web/móvil; handlers Node, descritos por `api/openapi.yaml` | Health vacío: 200, `{ok:true,users:0,writable:true}`; JSON inválido/cuerpo excesivo rechazado, headers/origen/CSRF y rutas conservados. `node --test api/test/openapi-routes.test.js api/test/server-bad-input.test.js api/test/server-cors.test.js`. Primer literal portable: [http.health.v1.json](contracts/http-health.v1.json), derivado del contrato independiente ya usado por `contracts-run.mjs`. | OpenAPI no sustituye observación; enumeración exhaustiva de headers/cookies/subpaths pendiente en 3.2. GP/G3 ejecutan casos contra Python. |
+| HTTP/OpenAPI: `http.health`, `http.bad-input` | `api/server.js` → web/móvil; handlers Node, descritos por `api/openapi.yaml` | Health vacío: 200, `{ok:true,users:0,writable:true}`; JSON inválido/cuerpo excesivo rechazado, headers/origen/CSRF y rutas conservados. `node --test api/test/openapi-routes.test.js api/test/server-bad-input.test.js api/test/server-cors.test.js`. Primer literal portable: [http.health.v1.json](contracts/http-health.v1.json), derivado del contrato independiente ya usado por `contracts-run.mjs`. | OpenAPI no sustituye observación; La cobertura de headers/cookies/subpaths se limita a los casos y suites declarados. GP/G3 ejecutan casos contra Python. |
 | Identidad/acceso: `identity.passkey`, `identity.revoked` | Servidor + `api/passkeys-store.js`/`api/device-link.js` → clientes/admin; usuarios/creds en db.json y desafíos en memoria | Registro/acceso permitido; desafío/credencial inválidos, revocación, disabled/roles y link ajeno rechazados. `node --test api/test/server-passkeys.test.js api/test/server-pairing.test.js api/test/device-link.test.js api/test/server-first-user-admin.test.js`. | Suites sintéticas no prueban autenticador físico ni biblioteca WebAuthn Python. Conservar IDs/contadores; deshabilitación/eliminación concurrente y material heredado son GP/G3. |
 | Passwords/sesiones: `auth.password`, `auth.invalid-session` | `api/password.js` + servidor → cookie/bearer web/móvil; hash/db, secret y reloj | Password válido/NFKC y sesión válida admitidos; password inválido, expiración/revocación y modo deshabilitado denegados. `node --test api/test/password.test.js api/test/server-password.test.js api/test/server-config-session.test.js api/test/server-token-refresh.test.js`. | Preservar formatos scrypt/firma/encoding; continuidad o reautenticación productiva requiere decisión de port. No importar JWT/bcrypt. |
 | Training/cliente: `training.sync`, `training.conflict`, `client.offline`, `client.owner` | API Training ↔ store React; coach/MCP leen servidor; invitado/active/dirty permanecen locales | GET/PUT y reconciliación; conflicto/revisión antigua/reset/stamps/primera escritura y respuesta perdida no borran cambios. `node --test api/test/sync-stamps.test.js api/test/server-data-rev.test.js api/test/server-data-reset.test.js api/test/server-data-wid.test.js`; `npm --prefix frontend test -- src/store/useStore.sync.test.jsx src/store/useStore.tabs-owner.test.jsx src/store/useStore.hold-signout.test.jsx src/lib/sync-legacy.test.js`. | Store usa API mock y DOM simulado: no es prueba integrada Node-cliente ni navegador/offline real. Añadir casos faltantes sin reimplementar sync; JSONB/restore/dos dispositivos reales pendientes para GP/G3. |
@@ -47,21 +47,19 @@ Todas las disposiciones son propuestas para el cambio de port/cutover, **ninguna
 | Exports/imports/backup elegidos por usuario; `frontend/src/lib/backup-media.js`, `mobile.js`, `frontend/src/views/Settings.jsx` | Usuario/backup → restauración/import | **Conservar** formatos y archivos externos, con alcance Training explícito. Casos import/export/client; nunca usar backups reales como fixtures ni prometer recuperación completa. |
 | DB/volumen Foundation Node y Foundation Python; `api/foundation/README.md`, `compose.python-foundation.yml` | Harness sintético → pruebas propias | **Conservar** ensayos separados descartables; no importar sus fixtures/historiales como datos productivos ni combinar migradores. Gates G1 sintético distintos de G0/GP/GO operativos. |
 
-## Comparador: evidencia histórica 3.1
+## Comparador
 
-Interfaz pública de proceso: `node backend/contracts-run.mjs compare <expected.json> <actual.json>`. La fixture `http.health.v1` fija request/setup/revisión y resultado esperado independiente; el observado sintético conserva cuerpo y cambia únicamente status 200 → 503. La prueba exige exit 1. El scaffold lee JSON válido, anuncia `FOUNDATION_CONTRACT_COMPARE_PENDING` y devuelve 0: **RED previsto, no comparador utilizable**. No se conecta a `run contracts`, Docker ni CI en 3.1.
+Interfaz pública: `node backend/contracts-run.mjs compare <expected.json> <actual.json>`.
+La fixture independiente exige que una diferencia de status, tipos, ausente/null,
+propietario, headers, cookies o stamps produzca exit 1; igualdad produce exit 0.
+No regenerar expectativas para aceptar diferencias. El historial fail-first y sus
+resultados se conservan en [OpenSpec](../openspec/changes/add-python-platform-foundation/tasks.md).
 
 ```sh
 node --test backend/contracts-compare.test.mjs
 ```
 
-Resultado 3.1: exit 1 del test, una aserción fallida `0 !== 1`; el proceso comparador terminó normalmente con exit 0. No import/setup/versión/DB fallida. Host Node 24.14.0; ejecución con Node 22 de contenedor no acreditada aquí. El baseline Node no se ejecutó ni se modificó para fabricar RED.
-
-Para 3.2, hacer GREEN este rechazo antes de ampliar un caso a la vez: tipos, ausente/null, ownership, headers/cookies semánticos y stamps. No hay normalizaciones activas ahora; toda normalización futura debe enumerar campo volátil concreto y justificación (nonce/reloj/puerto), sin ocultar diferencias semánticas ni regenerar expectativas desde actual. Incluir ID/revisión en resultados sin volcar secretos/payloads. Caso válido se verifica por separado, no por devolver siempre fallo.
-
-Discrepancias: no se observó contradicción documental mediante ejecución nueva en 3.1. Si 3.2–3.3 detecta una, registrar aquí documento, caso, resultado observado, expectativa de referencia elegida y razón; conservar comportamiento Node, diferir cambios deliberados. No interpretar este inventario como ausencia demostrada de discrepancias.
-
-## Implementación 3.2 y handoff
+## Ejecución y handoff
 
 El comparador ahora valida envelopes y compara exactamente ID y `response` (status, cuerpo completo y headers declarados). JSON inválido, archivo ausente/no regular o mayor de 64 KiB falla con código seguro; entrada válida equivalente sale 0, diferencia/entrada inválida sale 1. Los diagnósticos solo incluyen código, ID y revisión esperados validados, sin cuerpo, cookies, rutas de archivos ni errores crudos. No existe opción de regenerar expectativas.
 
@@ -73,15 +71,9 @@ Normalizaciones permitidas actualmente: **ninguna**. El orden de claves de objet
 
 Comando integrado desde la raíz: `node scripts/python-foundation.mjs run contracts`. Usa solo el target Node, red interna y tmpfs; no arranca PostgreSQL ni Python. `baseline` es el subcomando del target para verificar los seis casos HTTP de forma enfocada; `compare` conserva la interfaz pública de 3.1.
 
-Resultados enfocados 3.2: comparador PASS 10/10 en host Node 24.14.0 y contenedor Node 22.23.2; seis casos HTTP PASS en contenedor `--network none`; import-csv PASS 16, sync/import-restore PASS 29, MCP state/tools/labels PASS 95 reutilizando suites sin red externa y root read-only. Se observó RED→GREEN de rechazo original, envelopes inválidos y selección CLI contracts; la verificación de comportamiento Node/cliente/MCP es caracterización, sin fabricar RED del producto.
+Discrepancia resuelta al preparar fixtures: health usa `Content-Type: application/json` sin charset según `api/server.js:json`; se conserva ese literal como referencia, sin adoptar el default de FastAPI. No es una regresión corregida en Node ni prueba de divergencia Python. La cobertura está acotada por las fixtures y suites declaradas; cualquier discrepancia nueva requiere evidencia. Los casos existentes se conservan; no se cambian para que el runner pase.
 
-Integración 3.2: `node scripts/python-foundation.mjs run contracts` PASS, exit 0; seis casos HTTP y las tres suites del manifest reportaron OK sin skips detectados, con comando/revisión/ID. Proyecto propio `opengym-python-foundation-test-b404874bdb284358`; cleanup completo tras el run. No se publicaron puertos ni arrancaron PostgreSQL/Python. Esto verifica la integración implementada; no sustituye la auditoría de cobertura de 3.3.
-
-Discrepancia resuelta al preparar fixtures: health usa `Content-Type: application/json` sin charset según `api/server.js:json`; se conserva ese literal como referencia, sin adoptar el default de FastAPI. No es una regresión corregida en Node ni prueba de divergencia Python. La lista exhaustiva de headers/rutas y los casos positivos/negativos por área necesitan el walkthrough de 3.3, además de tratar cualquier discrepancia nueva con evidencia. Los casos existentes se conservan; no se cambian para que el runner pase.
-
-Handoff histórico de 3.2: 3.3 debía auditar cobertura por área/caso y consolidar ejecución/resultados/límites. La verificación de integración de 3.2 no acredita automáticamente el checkpoint de 3.3, paridad Python ni port/corte.
-
-## Handoff modular e inventarios 3.3
+## Handoff modular e inventarios
 
 Fuente de aplicación: `1b2daff9199611604783faabf76cd741123cec95`; revisión de archivos actuales sin cambios en `api/`, `frontend/src/` o `mcp/src/` frente a esa revisión. El manifest de pruebas es tooling del working tree, no código de aplicación de esa revisión. Los almacenes y su disposición siguen la tabla anterior, sin migrarlos. Todas las rutas de cliente de esta sección son relativas a `frontend/src/` salvo indicación.
 
@@ -127,16 +119,11 @@ El inventario es un handoff de propiedad/disposición, no una mudanza ejecutada.
 
 ## Evidencia y cobertura ejecutada 3.3
 
-Autorización: ejecutar exclusivamente 3.3 con datos sintéticos y contenedores aislados, completar inventarios/evidencia y detenerse antes de 4.1. Se reutilizan las seams ya aprobadas; no se añaden tests nuevos ni se fabrica RED del producto. Se amplió únicamente la selección declarativa del manifest con el comparador y `api/test/adapters.test.js`, ambos existentes. No cambian aplicación, dependencias, locks, CLI, Dockerfiles ni Compose.
-
-Comando desde la raíz: `node scripts/python-foundation.mjs run contracts`.
-
-- Primer run, manifest anterior: exit 0, seis casos HTTP y tres suites OK, proyecto `opengym-python-foundation-test-f52cd55136627373`.
-- Run final con manifest ampliado: **exit 0, seis casos HTTP y cuatro suites OK**, proyecto `opengym-python-foundation-test-feafd9ce288d9f11`; ningún fallo/mismatch ni skip detectado por el runner.
-- Manifest `contracts/suites.v1.json` SHA-256: `d0e1986c139a53af6198873182a728a2a204abb149977b512fd271739160f3f8`. SourceRevision Node `1b2daff9199611604783faabf76cd741123cec95`; aplicación sin diferencias frente a esa revisión en api/frontend/src/mcp/src. Esto no identifica el tooling nuevo como parte de aquel commit.
-- Target Linux/amd64, Node 22.23.2; host CLI Node 24.14.0 y Docker Engine 29.4.0. Image ID final observado antes del cleanup: `sha256:50e6fa27c608f32f50448357da9e27960a176852e3219f096faab913a9109a30`.
-- Docker inspect durante ambos runs: UID/GID 1000, root read-only, CapDrop ALL, no-new-privileges, sin binds/puertos publicados, tmpfs /tmp privado noexec/nosuid/nodev 256 MiB; red propia Internal=true. No se inicia PostgreSQL/Python; el servidor Node usa puertos efímeros internos y DATA_DIR sintético. Build reutilizó capas existentes; no demuestra la matriz de caché del slice 9.
-- Ambos runners imprimieron cleanup completo; una comprobación posterior por labels y nombres/tags confirmó cero contenedores/redes/volúmenes/imágenes propios de cada proyecto. Caché BuildKit e imágenes base pueden permanecer; no se hizo prune.
+Esta cobertura describe el baseline histórico Node y sus límites; no acredita una
+nueva ejecución ni paridad Python. El comando reproducible es
+`node scripts/python-foundation.mjs run contracts`; OpenSpec conserva el estado de
+entrega y los resultados. Las fixtures y el manifest versionados identifican la
+revisión y selección exactas, sin depender de IDs de contenedores o logs de sesión.
 
 | Ejecución final | Selección ejecutada | Resultado/límite |
 | --- | --- | --- |

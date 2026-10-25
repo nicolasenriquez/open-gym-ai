@@ -12,7 +12,17 @@
     "README.md",
     "CONTRIBUTING.md",
     "ROADMAP.md",
-    ".agents/README.md"
+    ".agents/README.md",
+    "CHANGELOG.md",
+    "backend/README.md",
+    "backend/CONTRACTS.md",
+    "mcp/README.md",
+    "helm/README.md",
+    "catalogue/README.md",
+    "catalogue/browse/README.md",
+    "website/README.md",
+    "scripts/exercise-name-sources/README.md",
+    "scripts/instruction-sources/README.md"
   ],
   "directories": {
     "docs": {

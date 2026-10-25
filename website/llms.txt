@@ -19,6 +19,7 @@
 - Developed with Claude Code (Anthropic's coding agent); changes are reviewed, tested and released by the maintainer. The app itself needs no AI service; the AI coach and MCP server are optional.
 
 ## Source & community
-- [GitHub repository](https://github.com/DuarteSantos8/openGym): code, issues, pull requests, releases
-- [GitLab mirror](https://gitlab.com/DuarteSantos8/opengym): CI, APK and image builds
+- [Fork repository](https://github.com/nicolasenriquez/open-gym-ai): code, issues, pull requests and CI; no automated publication
+- [Upstream GitHub](https://github.com/DuarteSantos8/openGym): upstream releases and project history
+- [Upstream GitLab](https://gitlab.com/DuarteSantos8/opengym): upstream release and package references
 - [Discord](https://discord.gg/e62jY6fwVb): release announcements and self-hosting help

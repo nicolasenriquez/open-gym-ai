@@ -15,7 +15,7 @@ La especificación define conceptos con YAML y `type`; reserva `index.md` y `log
 
 El bundle es **todo `docs/`**. Todo `.md` salvo los dos nombres reservados es un concepto, también los README y la evidencia histórica. Los índices describen su carpeta y enlazan a las subcarpetas documentales. `docs/index.md` declara `okf_version: "0.2"`; los índices hijos no tienen frontmatter.
 
-`AGENTS.md` es la entrada central del repositorio. Raíz, `.agents/`, `openspec/`, catálogo, documentación de paquetes y prompts del runtime quedan fuera del bundle. Se comprueban las rutas de los controles enumerados en la configuración, sin reformatearlos ni convertir sus destinos. Los artefactos no Markdown de `docs/` siguen siendo recursos enlazables.
+`AGENTS.md` es la entrada central del repositorio. Raíz, `.agents/`, `openspec/`, catálogo, documentación de paquetes y prompts del runtime quedan fuera del bundle. Se comprueban los enlaces y anclas de los controles y README enumerados en `routing`, sin exigirles metadatos de concepto, reformatearlos ni convertir sus destinos. La selección incluye el changelog, las guías de paquetes y la referencia de contratos del backend. Los artefactos no Markdown de `docs/` siguen siendo recursos enlazables.
 
 ## Reglas locales comprobables
 

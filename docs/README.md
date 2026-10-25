@@ -30,7 +30,8 @@ For documentation changes, follow the [authoring guide](operations/okf-authoring
 | Shared repository rules | [AGENTS.md](../AGENTS.md) |
 | Where to find a document | [Documentation index](index.md) |
 | Current runtime and hosting | [Root README](../README.md), [self-hosting](SELF_HOSTING.md) and current source |
-| HTTP API contract | [OpenAPI](../api/openapi.yaml); [API guide](API.md) explains it |
+| HTTP API documentation | [OpenAPI](../api/openapi.yaml); [API guide](API.md) explains it; current handlers and behavioral tests establish implemented behavior |
+| Synthetic Python development and verification | [Foundation guide](../backend/README.md); delivery state and evidence remain in OpenSpec |
 | Platform outcomes and priority | [Evolution PRD](open-gym-evolution.prd.md) |
 | Transition, mechanisms and technical gates | [Architecture](open-gym-evolution.architecture.md) and its linked references |
 | Approved platform tables, relationships, constraints and indexes | [Compatible SQL schema](reference/platform-schema.md); target contract, not executed DDL |

@@ -240,7 +240,7 @@ word-for-word.
 }
 ```
 
-On the GitLab mirror the same input is
+The upstream GitLab reference is
 `"git+https://gitlab.com/DuarteSantos8/opengym?dir=contrib/nix"`.
 
 Then `sudo nixos-rebuild switch --flake .#myhost`.

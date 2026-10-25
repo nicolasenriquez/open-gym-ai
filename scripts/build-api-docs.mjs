@@ -619,7 +619,7 @@ ${schemaCards}
     <a href="docs.html">Docs</a>
     <a href="about.html">About</a>
     <a href="https://github.com/DuarteSantos8/openGym" rel="noopener">GitHub</a>
-    <a href="https://gitlab.com/DuarteSantos8/opengym" rel="noopener">GitLab mirror</a>
+    <a href="https://gitlab.com/DuarteSantos8/opengym" rel="noopener">Upstream GitLab</a>
     <a href="https://discord.gg/e62jY6fwVb" rel="noopener">Discord</a>
     <a href="/#download">Download</a>
   </div>

@@ -21,8 +21,8 @@ downloaded at start-up. There are only a few resources to create:
   works as well), plus a cert-manager Certificate for the hostname.
 
 ```bash
-git clone https://github.com/DuarteSantos8/openGym   # or https://gitlab.com/DuarteSantos8/opengym — same repo
-cd openGym
+git clone https://github.com/nicolasenriquez/open-gym-ai
+cd open-gym-ai
 # In kubernetes/deployment.yaml, set RP_ID and ORIGIN in spec.template.spec.containers[api].env
 # to your hostname, and the hostname in kubernetes/httproute.yaml.
 kubectl apply -k kubernetes/

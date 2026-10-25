@@ -1,5 +1,22 @@
 # Changelog
 
+Future releases follow [Semantic Versioning](https://semver.org/).
+Entries are curated using [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+principles. Published entries below are preserved; see the
+[release policy](CONTRIBUTING.md#versioning-and-changelog) for compatibility rules.
+
+## Unreleased
+
+### Changed
+
+- Consolidated GitHub CI for every pull request and removed inherited GitLab,
+  Gitea, mirror, publication and deployment workflows, plus the GitLab-only
+  Renovate and merge-request policy config. Documentation distinguishes
+  this fork from upstream; existing published history and artifacts are preserved.
+- Clarified documentation ownership and current development guidance, retired
+  instructions for missing translation tools, and added documentation validation
+  in CI. The normal Node/JSON application and published release history are unchanged.
+
 ## v1.4.1 (2026-10-10)
 
 Bug fixes for v1.4.0, mostly the things you told us about on Discord and GitHub.

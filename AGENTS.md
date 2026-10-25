@@ -85,11 +85,9 @@ consulta los `package.json` para ver las dependencias actuales.
 
 ## Git y despliegue
 
-GitHub (`DuarteSantos8/openGym`) es el repositorio principal. El workflow
-`.github/workflows/mirror.yml` actualiza el mirror de GitLab; no hagas push ni
-merge manual allí. La CI de GitHub ejecuta las suites del frontend, API y MCP,
-las comprobaciones de locales y los builds de imágenes. GitLab CI produce los
-artefactos de release.
+Este repositorio es `nicolasenriquez/open-gym-ai`; el upstream es
+`DuarteSantos8/openGym`. `.github/workflows/test.yml` concentra la CI.
+No hay publicación, despliegue ni mirror automáticos.
 
 ## Skills y contexto por tarea
 

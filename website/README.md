@@ -1,7 +1,7 @@
 # opengym.ch
 
-Source of the project website — plain hand-written HTML/CSS/JS, no build step,
-served by nginx.
+Source of the upstream project website — plain hand-written HTML/CSS/JS, no build
+step, served by nginx. This fork retains the sources and has no automated deployment.
 
 Not in this folder (added at deploy time):
 
@@ -14,7 +14,7 @@ Not in this folder (added at deploy time):
 - `demo/` — the browser-only demo build of the app, embedded in the `#demo` section and
   reachable on its own at `/demo/`. Built from `../frontend` with `VITE_DEMO=1`, with the
   180 px exercise media from `../catalogue/media` staged into `demo/exercise-media/` by
-  `../scripts/catalogue/stage-media.mjs` (see the `pages` job in `../.gitlab-ci.yml`).
+  `../scripts/catalogue/stage-media.mjs`.
   Never put larger media here (see `../catalogue/media/NOTICE.md`). It has to live on
   this host: the site frames it, and `X-Frame-Options: SAMEORIGIN` would block it from
   anywhere else.

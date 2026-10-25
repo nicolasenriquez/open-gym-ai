@@ -16,9 +16,7 @@ on your phone, synced across your devices, behind your own passkey login.
 
 [![Release](https://img.shields.io/github/v/release/DuarteSantos8/openGym?style=flat-square)](https://github.com/DuarteSantos8/openGym/releases)
 [![Downloads](https://img.shields.io/github/downloads/DuarteSantos8/openGym/total?style=flat-square&label=downloads)](https://github.com/DuarteSantos8/openGym/releases)
-[![Tests](https://img.shields.io/github/actions/workflow/status/DuarteSantos8/openGym/test.yml?branch=main&label=tests&style=flat-square)](https://github.com/DuarteSantos8/openGym/actions/workflows/test.yml)
-[![Pipeline](https://gitlab.com/DuarteSantos8/opengym/badges/main/pipeline.svg?style=flat-square)](https://gitlab.com/DuarteSantos8/opengym/-/pipelines)
-[![Coverage](https://gitlab.com/DuarteSantos8/opengym/badges/main/coverage.svg?job=test:frontend&style=flat-square)](https://gitlab.com/DuarteSantos8/opengym/-/pipelines?ref=main)
+[![Tests](https://img.shields.io/github/actions/workflow/status/nicolasenriquez/open-gym-ai/test.yml?branch=main&label=tests&style=flat-square)](https://github.com/nicolasenriquez/open-gym-ai/actions/workflows/test.yml)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-a3e635?style=flat-square)](LICENSE)
 
 [Website](https://opengym.ch) ·
@@ -144,10 +142,9 @@ Traefik and nginx, and there are separate guides for
 [HTTPS on a LAN](docs/SELF_HOSTING_HTTPS.md) and [Kubernetes](docs/SELF_HOSTING_KUBERNETES.md).
 
 > [!NOTE]
-> Images are published from the same tag to `ghcr.io/duartesantos8/opengym-{api,web}`
-> (what `docker-compose.yml` pulls) and `registry.gitlab.com/duartesantos8/opengym/{api,web}`. Swap
-> the `image:` lines if you prefer GitLab's registry, or run `docker compose up -d --build` to build
-> locally. Either way you don't need Node on the host.
+> Compose references prebuilt images from the upstream project, not builds of this fork.
+> To run this repository's code, use `docker compose up -d --build`. This repository
+> has no automated image publication or deployment. Neither option needs Node on the host.
 
 <details>
 <summary><b>Configuration reference</b> (all through <code>.env</code>)</summary>
@@ -307,11 +304,11 @@ two weeks after it.
 
 ### Where the code lives
 
-GitHub is the home of the project. [gitlab.com/DuarteSantos8/opengym](https://gitlab.com/DuarteSantos8/opengym)
-is a mirror, updated by a GitHub Actions workflow on every push to `main` and every release tag. It
-exists because its CI builds the release artifacts: the signed APK, the multi-arch images and the
-SBOMs. Nothing is merged there by hand. In the changelog, `!NN` refers to a GitLab merge request
-from the weeks in August and September 2026 when the project lived there.
+This repository is maintained at https://github.com/nicolasenriquez/open-gym-ai.
+GitHub Actions runs CI; this repository has no automated publication or deployment.
+The upstream project is [DuarteSantos8/openGym](https://github.com/DuarteSantos8/openGym).
+References to its GitLab merge requests and published artifacts are retained as
+upstream history. In the changelog, `!NN` refers to an upstream GitLab merge request.
 
 ## How openGym is built
 

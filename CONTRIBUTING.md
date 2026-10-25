@@ -22,6 +22,9 @@ catalogue/ The exercise catalogue: one JSON file per exercise, translations in i
 
 ## Running for development
 
+The separate synthetic Python harness is documented in
+[backend/README.md](backend/README.md). It does not replace the normal stack below.
+
 ```bash
 cp .env.example .env
 docker compose up -d --build      # api + web on :8080
@@ -86,9 +89,35 @@ docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/so
 
 ## Documentation changes
 
+README files describe current purpose, supported commands and where to find detail.
+Keep tasks in OpenSpec/the tracker, execution artifacts outside Git, and change
+history in Git/PRs and the changelog. Do not append session permissions, task
+counters or fail-first histories to guides. Review documented commands as well as links.
+
 Start with the [documentation index](docs/index.md) and follow the
 [OKF authoring guide](docs/operations/okf-authoring-guide.md) when adding, editing
 or moving a document. Run `node scripts/docs/okf.mjs check` before submitting.
+
+## Versioning and changelog
+
+Future releases use [SemVer 2.0.0](https://semver.org/): PATCH for compatible bug
+fixes, MINOR for compatible additions or deprecations, MAJOR for incompatible
+public-contract changes. Compatibility includes supported HTTP/MCP interfaces,
+import/export formats and documented deployment/upgrade behavior. An internal
+runtime rewrite alone does not determine the version increment.
+
+Keep one curated [CHANGELOG.md](CHANGELOG.md), using
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) principles. Add implemented,
+reviewed changes under `Unreleased`, with nonempty Added, Changed, Deprecated,
+Removed, Fixed or Security categories as appropriate. Describe reader-visible
+effects; do not copy task lists, commits, test logs or planned work into it.
+
+At release time, select the version from compatibility, not cadence. Preserve
+published release entries and artifacts. Keep `## vX.Y.Z` release headings for
+continuity with published history. The Git tag `vX.Y.Z`,
+frontend/API package versions `X.Y.Z` and changelog section must agree. This policy
+supersedes the historical cadence rule in ROADMAP.md. This repository has no
+automated publication; any future release workflow needs a separate change.
 
 ## Using AI tools
 
@@ -99,21 +128,14 @@ understand the change, it is tested, and you can answer questions about it in re
 
 ## What CI does with your pull request
 
-<p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/ci-dark.png">
-  <img src="docs/diagrams/ci.png" alt="CI path: pull request on GitHub, GitHub Actions tests and image builds, review and merge into main, mirror workflow pushes to GitLab, GitLab CI builds the signed APK, images and SBOMs, GHCR images on release." width="280">
-</picture>
-</p>
+Every pull request runs the frontend, API and MCP checks, PostgreSQL Foundation
+proofs, API image checks, documentation checks and catalogue validation through
+`.github/workflows/test.yml`. Pushes to `main` and `coach` run the same workflow.
+CI does not publish images, mobile packages or the demo. Build mobile packages
+locally using [the mobile guide](docs/MOBILE.md).
 
-A pull request runs the three test suites and builds and boots both api image targets. The APK and
-the published images come from GitLab CI on the mirror, built from `main` after the merge. If your
-change needs an APK to be judged, say so in the pull request and a maintainer will run that build.
-A first-time contributor's workflows wait for a maintainer to approve them, so "no checks yet"
-just means nobody has pressed the button.
-
-Merge requests still open on the GitLab mirror are reviewed too and land on `main` here. New work
-should come as a GitHub pull request.
+A first-time contributor's workflows may wait for maintainer approval. Required
+checks are configured in GitHub branch rules, separately from the workflow.
 
 ## Good first issues
 

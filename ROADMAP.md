@@ -2,7 +2,7 @@
 
 ## OpenGym Evolution — local delivery priority
 
-**Documentary revision authorized on 2026-10-22; Python platform implementation has not started.** The local
+**The isolated Python Foundation is in development; the normal application remains Node/JSON.** The local
 Evolution direction is separate from the upstream milestones preserved below:
 
 1. Complete and accept the **Python/FastAPI/PostgreSQL platform**, with existing capabilities,
@@ -29,7 +29,12 @@ to deliver Python/FastAPI/PostgreSQL first with a controlled migration.
 Where upstream openGym is going, in the order it is likely to land. Each block is a GitHub milestone; the
 issues and pull requests attached to it are the plan, this file is the readable summary.
 
-**A release every two weeks, on a Sunday.** Each one is small on purpose: a handful of issues, one
+Historical milestones and their version assignments below are retained upstream context,
+not a current schedule. Future releases follow the
+[SemVer policy](CONTRIBUTING.md#versioning-and-changelog); published versions in
+[CHANGELOG.md](CHANGELOG.md) are not reused for future milestones.
+
+**Historical cadence: a release every two weeks, on a Sunday.** Each one is small on purpose: a handful of issues, one
 theme, so a version is out before the branch has drifted and every fix reaches phones within a
 fortnight. Whatever is not merged and tested on gym-test by the Friday before rolls into the next
 block, the date does not move. Version numbers follow the release rule, not the size of the change:

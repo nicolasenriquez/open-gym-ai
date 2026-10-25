@@ -30,17 +30,17 @@ HTTPS on a LAN without a public domain has [its own guide](SELF_HOSTING_HTTPS.md
 Requirements: [Docker](https://docs.docker.com/get-docker/) with the Compose plugin.
 
 ```bash
-git clone https://github.com/DuarteSantos8/openGym   # or https://gitlab.com/DuarteSantos8/opengym — same repo
-cd openGym
+git clone https://github.com/nicolasenriquez/open-gym-ai
+cd open-gym-ai
 cp .env.example .env
-docker compose pull   # prebuilt images from ghcr.io (amd64 + arm64; the same images are on GitLab's registry) — or skip and build from source
-docker compose up -d
+docker compose up -d --build   # build this checkout; Compose image URLs belong to upstream
 ```
 
 - The exercise stills and animations (180 px, ~80 MB) ship inside the web image; nothing is downloaded on first start. An old `media/` folder and its two volume lines from before v1.4.0 are no longer used: harmless if you keep them, safe to delete.
 - Open **http://localhost:8080** and create a profile with a passkey.
-- Rather build from source than pull prebuilt images? Skip `docker compose pull` and run
-  `docker compose up -d --build` instead — no Node needed locally either way.
+- To use published upstream images instead of this checkout, run `docker compose pull`
+  followed by `docker compose up -d`. Those images are maintained by upstream; this
+  repository does not publish images. No Node installation is needed on the host.
 
 Check it's healthy:
 

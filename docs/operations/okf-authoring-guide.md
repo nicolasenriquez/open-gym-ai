@@ -26,6 +26,11 @@ guías vigentes, contratos, requisitos, decisiones y evidencia todavía necesari
 Antes de crear una página, identificar su lector, la pregunta que resuelve y por qué
 no basta actualizar una página existente. Cada regla tiene un único propietario.
 
+Estos criterios editoriales también se aplican a los README y referencias de paquetes
+fuera del bundle OKF. Un README orienta sobre el uso actual; no conserva permisos de
+sesiones, contadores de tareas o la cronología RED/GREEN. Los checks estructurales no
+sustituyen comprobar que sus comandos y afirmaciones siguen siendo válidos.
+
 - Git, PR y releases conservan qué cambió; OpenSpec conserva el cambio seleccionado y sus tareas.
 - Los pendientes van al tracker indicado en `.agents/docs/issue-tracker.md`, no a un informe perpetuo.
 - Logs, capturas, exports sintéticos y resultados de ejecuciones quedan en temporales ignorados
@@ -87,4 +92,4 @@ Para operaciones grandes, conservar además una copia fuera del repositorio: los
 
 ## Actualizar el estándar
 
-Cambiar el pin oficial explícitamente, revisar la diferencia normativa y adaptar perfil, herramienta y fixtures. Las ejecuciones ordinarias son offline y no siguen automáticamente una rama remota. La integración futura en CI puede reutilizar `check`; no se añade despliegue ni mantenimiento programado mediante esta guía.
+Cambiar el pin oficial explícitamente, revisar la diferencia normativa y adaptar perfil, herramienta y fixtures. Las ejecuciones ordinarias son offline y no siguen automáticamente una rama remota. El job `documentation` de `.github/workflows/test.yml` ejecuta `check` y la suite de la herramienta; no publica ni despliega.
