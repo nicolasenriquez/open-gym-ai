@@ -84,7 +84,7 @@ y las piezas operativas necesarias; no crea módulos de negocio como scaffolding
 | `training` | Documento compatible, revisiones/linaje, stamps, conflictos y lectura restringida | Usa identidad para el actor autorizado y audit cuando corresponda; no depende de coach, notificaciones ni medios. |
 | `media` | Bytes, ownership, referencias, cuotas y GC seguro | Usa identidad y lectura pública de referencias Training; un fallo no equivale a referencias vacías. |
 | `notifications` | Suscripciones, recordatorios y adaptador push | Usa identidad y consultas públicas Training; secretos VAPID conservan su contrato externo. |
-| `coach` | Configuración, consentimiento, operaciones/jobs y adaptadores de proveedores actuales | Usa interfaces autorizadas de identidad/Training y medios si el contrato lo requiere; no lee sus tablas ni Recovery. |
+| `coach` | Configuración, consentimiento, operaciones/jobs y adaptadores HTTP actuales; SDK/CLI no disponibles por Q6 | Usa interfaces autorizadas de identidad/Training y medios si el contrato lo requiere; no lee sus tablas ni Recovery. |
 | `administration` | Casos de uso de administración y coordinación de operaciones entre módulos | Invoca interfaces públicas de identidad, Training, medios y audit; no toma propiedad de sus repositorios. |
 
 Catálogo y sus medios siguen empaquetados en `web`; no requieren un módulo Python
@@ -146,8 +146,13 @@ Durante la transición, `api/openapi.yaml` y los casos independientes de la matr
 son la referencia contrastada con Node. Cada ruta portada declara modelos y sus
 respuestas/errores, incluidos cookies, headers y coerciones relevantes. La salida
 OpenAPI de FastAPI se contrasta con esa referencia; no se mantienen dos contratos
-editables discordantes. El port debe seleccionar y documentar la autoridad OpenAPI
-final y actualizar sus consumidores antes de retirar la referencia legacy.
+editables discordantes. La autoridad final seleccionada es `backend/openapi.yaml`,
+trasladada desde `api/openapi.yaml` durante el port, sin dos copias editables.
+Pydantic implementa sus contratos; la generación FastAPI se contrasta, no introduce
+por defecto nuevas respuestas 422, coerciones o endpoints públicos de documentación.
+Actualizar el generador `scripts/build-api-docs.mjs`, website, checks CI y cobertura
+de rutas Python antes de retirar el YAML legacy; `--check` sigue siendo la interfaz
+de verificación del generador. El traslado todavía no está implementado.
 
 No activar `strict` o rechazo de campos extra globalmente si cambia compatibilidad.
 Registrar y probar ausente/null, números, fechas, aliases y campos Training antes
@@ -200,7 +205,7 @@ los consumidores y pruebas exactos, sin presentar esta tabla como cobertura ejec
 | Medios | `views/ProgressPhotos.jsx`, `components/CustomMediaField.jsx`, helpers `lib/media-*` y `lib/backup-media.js` | `media` con lectura pública Training: bytes/ownership y referencias seguros, también ante fallo de DB. |
 | Administración | `views/Admin.jsx`, store y transporte existentes | `administration` coordina interfaces propietarias; demostrar acciones autorizadas/denegadas sin acceso directo a tablas ajenas. |
 | Notificaciones | `views/Settings.jsx`, `lib/mobile.js`, `public/sw.js` | `notifications`: suscripción y recordatorios compatibles, aislamiento por dispositivo; diferenciar fixture de entrega push real. |
-| Coach actual | `views/CoachChat.jsx`, `views/CoachSetup.jsx`, `views/AdminCoach.jsx`, `lib/coach-api.js`, `lib/coach.js` | `coach`: consentimiento, propuesta, cancelación/fallo y proveedores actuales; sin nuevas capacidades IA. |
+| Coach actual | `views/CoachChat.jsx`, `views/CoachSetup.jsx`, `views/AdminCoach.jsx`, `lib/coach-api.js`, `lib/coach.js` | `coach`: local/HTTP, consentimiento, propuesta, cancelación/fallo; SDK/CLI no disponibles visiblemente, sin fallback/remapeo ni nuevas capacidades IA. Véase [Q6 del port](../../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica). |
 | Catálogo e import/export | `views/Library.jsx`, `views/Settings.jsx`, helpers de catálogo/importación/backup | Assets siguen en web y formatos en cliente; `training`/`media` reciben lo que corresponda con semántica preservada. |
 | Auditoría y diagnóstico | Superficie administrativa autorizada cuando corresponda; sin nuevo panel obligatorio | `audit` posee eventos duraderos; `core` diagnóstico. Probar acceso/retención y privacidad según sus contratos, sin confundir logs con audit. |
 
@@ -353,7 +358,7 @@ las plataformas reales; Foundation no demuestra proveedor, arm64 ni despliegue.
 
 ## Responsabilidad y aceptación por fase
 
-| Punto | Foundation: cambio activo | Port: cambio posterior | Operación, corte y retirada: cambio posterior |
+| Punto | Foundation: evidencia sintética archivada | Port: entrega pendiente | Operación, corte y retirada: entrega pendiente |
 | --- | --- | --- | --- |
 | JavaScript compartido | Inventario de consumidores/generadores y destino propuesto; no mover fuentes Node | Trasladar biblioteca neutral, actualizar imports/builds y demostrar coach local/paridad | G3: ningún build/import activo depende de API retirada. EV-01/05/09. |
 | Caché | Implementar y medir matriz fría/caliente/fuente/lock en imágenes de ensayo y CI | Mantener independencia entre módulos y builds al portar | Repetir matriz sobre targets entregables; demostrar inventario y digest probado. EV-03/06. |
@@ -361,9 +366,10 @@ las plataformas reales; Foundation no demuestra proveedor, arm64 ni despliegue.
 | Ambientes | Verificar aislamiento sintético y documentar matriz/handoff | Implementar ambiente dev/CI explícito para recorridos del cliente actual | Implementar combinación operativa, plataformas y recuperación; GO/G0–G3. |
 | Transacción intermodular | Probar handle compartido con colaboradores sintéticos y rollback completo | Operaciones públicas comparten transacción; probar permisos y efectos externos recuperables por caso | Verificar integridad/recuperación y audit tras corte; EV-01/02/04/09. |
 
-Son entregables y criterios pendientes, no pruebas ejecutadas en esta edición. El
-cambio activo no implementa los targets de producción, biblioteca shared o ambiente
-dev del port. Los OpenSpecs posteriores deben convertir su columna en requisitos,
+Foundation está completada y archivada dentro de su alcance sintético; las columnas
+de port y operación siguen pendientes, no son pruebas ejecutadas en esta edición.
+Foundation no entrega targets de producción, biblioteca shared ni ambiente dev del
+port. El OpenSpec de port/operación debe convertir sus columnas en requisitos,
 escenarios y tareas trazables antes de ejecutar; no basta citar este mapa para cerrar
 GP/GO/G3. No se amplían los gates ni se autoriza despliegue por editar documentación.
 

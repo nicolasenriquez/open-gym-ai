@@ -26,11 +26,74 @@ Diseño aprobado: diagnóstico privado accesible al operador local, sin envío a
 
 ## Ejecución y fallos
 
-Implementar instrumentación OpenTelemetry compatible con FastAPI y cliente DB durante port/operación; fijar versiones y probar configuración. Foundation aporta salud/logs sintéticos y handoff, sin acreditar EV-08 ni añadir SDK/exportadores por esta revisión. Backend de almacenamiento, collector y visualización se eligen para el perfil local opcional, sin imponer Grafana/Tempo/Jaeger/Sentry o alterar los tres servicios de negocio web/api/db. Probes y métricas internos; interfaces de diagnóstico solo privadas/loopback según operación local.
+Selección para esta entrega: OpenTelemetry API/SDK Python, instrumentación manual
+en middleware FastAPI, Database y transporte HTTP coach/push; exporter local a
+archivos JSONL acotados y lector CLI. No collector, base de series, dashboard ni
+servicio externo: web/api/db siguen siendo los únicos servicios permanentes. Un
+módulo local pequeño comparte escritura/rotación entre logs y señales opcionales;
+no construir un framework de exporters. El perfil diagnóstico habilita spans y
+snapshots métricos, sin abrir un puerto. Logs/estado operativo mínimo siguen
+habilitados sin perfil. Foundation no acredita EV-08.
+
+Dependencias a fijar durante delivery: `opentelemetry-api==1.45.1` y
+`opentelemetry-sdk==1.45.1`. Metadata oficial PyPI inspeccionada: Python >=3.10,
+API exacta 1.45.1 y semantic-conventions 0.66b1; lock/licencias/imagen Python 3.14
+se prueban en entrega, no se instalaron aquí. No instalar autoinstrumentación
+FastAPI/asyncpg ni exporters de red: sus defaults pueden capturar excepciones/SQL
+con valores. Spans propios usan códigos de operación; instrumentación manual no
+exime de demostrar cobertura HTTP→pool/TX/query→dependencia/job. Las dependencias
+transitivas resueltas quedan en el lock e inventario, no en otra lista editable.
+
+Se descartó usar collector fileexporter como solución automática de retención:
+[documentación upstream](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.163.0/exporter/fileexporter/README.md)
+describe formato alpha y rotación por tamaño, no por edad del archivo activo.
+No incorporarlo ni usar max_days como evidencia de borrado efectivo.
 
 Acotar buffers, exportación, timeouts y overhead. Un destino de telemetría caído no bloquea indefinidamente las peticiones ni cambia el resultado de un commit ya confirmado. Su fallo debe ser identificable sin un bucle ilimitado de logs. La política de fallo de audit se define separadamente en seguridad.
 
-Concretar muestreo, cobertura, cotas, herramientas y superficie local de avisos antes de GO; acceso y máximos de retención quedan fijados arriba. Distinguir conflicto de negocio, indisponibilidad DB y fallo externo; conflictos esperados no son todos error interno. Exponer degradación de audit y respaldo fallido/antigüedad frente a objetivos de recuperación según [operación local](platform-operations.md#respaldo-coordinado), sin servicios externos ni SLA inventado.
+### Configuración cerrada y límites iniciales
+
+| Recurso | Límite de entrega y prueba |
+| --- | --- |
+| Logs | 7 d, 256 MiB totales; registro <= 8 KiB; archivo <= 4 MiB. |
+| Traces opcionales | 24 h, 128 MiB; root sampling determinista 10 %, pruebas 100 %; 32 atributos/span, strings <= 128 caracteres. No prometer todos los errores con head sampling. |
+| Métricas opcionales | Snapshot cada 60 s, 7 d, 64 MiB; <= 1000 series, labels solo servicio/plantilla/método/status-clase/código allowlisted. |
+| Buffers | <= 2048 spans, lote <= 128, export cada 1 s en worker separado; cola de logs <= 1024; exceso descarta telemetría, nunca bloquea negocio. Export/file I/O fuera de event loop. |
+| Fallos y cierre | Deadline export 1 s, cierre <= 5 s incluido vaciado; sin reintento infinito. Contador drops/export_failed y aviso seguro rate-limited 1/min. |
+| Copias y acceso | Un volumen diagnóstico privado, directorios 0700/archivos 0600; solo API y tooling operador. Nada en backup de negocio, frontend, nginx o artefactos CI sin saneado. |
+
+Retención se aplica por instante del evento, no mtime: sellar segmentos UTC cada
+hora como máximo, retirar segmento antes de que su evento más antiguo supere la
+edad límite; puede acortar conservación hasta una hora. Ejecutar sweep cada 60 s
+mientras corre API y en inicio **antes** de habilitar lectura/exportación. Los tests
+usan reloj controlado y margen de sweep explícito, incluyen archivo activo poco
+usado, reinicio, reloj retrocedido (no extender edad) y cuota. Mantener metadato de
+límite temporal monotónico observado; no renombrar datos viejos para rejuvenecerlos.
+La tarea operativa horaria `diagnostics-retain` limpia incluso con API detenida;
+host apagado no puede borrar físicamente: limpiar antes de volver a operar, sin
+anunciar retención temporal garantizada durante apagado. No backups del volumen ni
+copias Docker duraderas: `logging.driver: none` en combinación ops para los tres
+servicios, access logs nginx off; diagnósticos app al sink privado y stdout/stderr
+no capturado por Docker. DB/nginx mantienen probes/códigos de tooling y sin query/
+URL logging persistente. Documentar esta diferencia respecto de `compose logs`.
+
+Cada request genera request_id/trace_id internos aleatorios; ignorar traceparent,
+baggage y X-Request-ID externos, sin reflejarlos ni añadir headers públicos nuevos.
+Propagar solo dentro del proceso/job; no enviar contexto de diagnóstico a proveedores.
+Allowlist: revisión/servicio, plantilla de ruta, método, resultado/código, duración,
+operación DB sin SQL ni valores. No record_exception ni stack/message crudos.
+Health pública conserva su cuerpo; live/ready/métricas permanecen internos.
+
+Superficie operador: comando futuro `ops diagnose --config /run/operator/config.json`
+con el prefijo Compose O del [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md#commands-and-safety-contract)
+imprime códigos, estado/redacted readiness, ocupación pool,
+drops/audit_degraded y último backup verificado/antigüedad. `--trace <hex32>` permite
+leer spans saneados del volumen, sin buscar por owner/nombre. Diagnóstico general
+sale 0 saludable, 1 degradado, 2 configuración/error de uso. Último backup ausente,
+fallido o edad > 3 h produce advertencia; > 6 h marca objetivo RPO incumplido.
+No depende del muestreo ni del perfil para esas señales mínimas. No abre rutas
+públicas ni se confunde con audit/historia. Errores de negocio 409 se distinguen de
+5xx DB y timeout/proveedor; éxito de commit no cambia por fallo del sink.
 
 ## Evidencia para GO
 

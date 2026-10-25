@@ -3,6 +3,13 @@
 ### Requirement: Phase-bounded compatible capability port
 The platform SHALL port the current capabilities into the approved Python modular monolith, preserving the existing frontend, local/offline Training, catalogue, formats, access and authorized consumers. It SHALL use the approved platform-schema reference as the physical contract and platform-modularity as ownership authority. Each slice SHALL identify contracts, actor/resource permissions, owning tables/stores, public collaborations, transaction scope and existing client path. Business implementation SHALL follow Foundation acceptance and explicit slice authorization; this specification SHALL NOT credit implementation or extend Foundation to business tables.
 
+Before delivery, each slice SHALL have a bounded behavioral task sequence, an independent first failing proof for new runtime behavior, an observable checkpoint and exact focused verification commands. Changes to admitted capabilities, clients, authorization guarantees or recovery objectives SHALL require promoter approval rather than being treated as technical implementation choices. Retired MCP SHALL NOT cause creation of consumer-token tables or adapters.
+
+#### Scenario: Slice preparation is incomplete
+- **WHEN** a proposed slice lacks executable verification, permission/error cases or a resolved material compatibility question
+- **THEN** its delivery remains blocked while technical investigation and specification refinement proceed within their authorized scope
+- **AND** another prepared slice does not authorize the whole transition or silently approve new test seams
+
 #### Scenario: Training pilot follows identity
 - **WHEN** the first functional Training slice is prepared
 - **THEN** it requires compatible identity and declares HTTP, schemas, operation/repository, owner transaction, client reconciliation and positive/failure evidence
@@ -21,6 +28,19 @@ Identity SHALL preserve textual IDs, nonunique display names, normalized login a
 - **THEN** independent vectors prove formats, counters, expiry, disabled-account rejection and version revocation
 - **AND** passkey limits, last-way-in protection and one-time link consumption survive concurrent requests
 
+### Requirement: Executable schema and privileged functions
+Delivery SHALL implement the schema reference's ordered p001–p005 Alembic chain incrementally with its owning operation, including exact constraints, generated projections, FK deletion rules, indexes and explicit function grants. The security reference's typed SQL catalog, executor policies and global lock order SHALL govern preauthentication, administration and global coach/notification operations. Functions SHALL NOT accept arbitrary SQL, roles or table names; SECURITY DEFINER SHALL NOT be treated as bypassing FORCE RLS. DDL and data import SHALL remain separate, with forward-only operational repairs and no artificial stamp or destructive downgrade.
+
+#### Scenario: Migration failure and function grants
+- **WHEN** migration is attempted from empty/previous head, interrupted or raced by another migrator, or runtime invokes privileged SQL
+- **THEN** the dedicated lock bounds concurrency, failed revisions do not advance history and runtime cannot assume owner/executor roles or execute ungranted functions
+- **AND** real metadata and behavior prove safe function owners/search_path/ACL, generated-column type rejection and explicit RLS policies, including backup visibility without runtime bypass
+
+#### Scenario: Existing administrative Training projection is preserved
+- **WHEN** an active administrator requests the current user list or user drill-down
+- **THEN** explicit actor/target authorization permits exactly the legacy summary/history projection through Training's interface, without impersonating target owner
+- **AND** media references, internal document metadata, credentials and future Recovery data are not exposed; non-admin and revoked actors are denied
+
 ### Requirement: Canonical compatible Training persistence
 Training SHALL store the full compatible document as canonical JSONB with revision/write-id GENERATED STORED projections, validated without rounding or converting incompatible legacy types. It SHALL preserve missing versus null, internal stamps/lineage/reset metadata, allowed legacy writes, conflicts and local active-session behavior. The initiating transaction SHALL serialize by owner including an absent first document, revalidate access, compare bases and commit one document update.
 
@@ -37,6 +57,11 @@ Training SHALL store the full compatible document as canonical JSONB with revisi
 ### Requirement: Compatible notification and coach state
 The platform SHALL preserve push endpoint/device semantics, ownership, limits and local delivery dates while leaving preferences in Training. Coach SHALL separate settings, current jobs, pending proposals, history events and UTC usage counters according to the physical contract. Enqueue SHALL atomically enforce caps and count usage with job creation. It SHALL preserve single-flight, two global executions in the initial runtime, bounded 20-event personal/100-result instance history, lazy proposal expiry and no automatic replay after restart.
 
+#### Scenario: Notification ownership and local dates
+- **WHEN** subscription upsert, reminder/nudge delivery or activity/rest-timer operations run for authorized owners and devices
+- **THEN** endpoint transfer, original creation date, valid device fallback, cap 20 and SSRF protections preserve their current contracts, while foreign unsubscribe/timer cancellation is denied
+- **AND** local dates and Training preferences govern internal delivery, failures remain observable and process restart does not invent durable presence/timers or exactly-once external delivery
+
 #### Scenario: Atomic limits and repeated job events
 - **WHEN** concurrent enqueue attempts approach user/instance limits and a proposal later becomes applied/dismissed/expired
 - **THEN** committed counters and current jobs remain consistent and multiple events may reference the same job without overwriting each other
@@ -46,6 +71,26 @@ The platform SHALL preserve push endpoint/device semantics, ownership, limits an
 - **WHEN** consent is withdrawn, coach content is forgotten or an owner is deleted while a provider runs
 - **THEN** owner/consent/generation checks prevent late content resurrection and stale Training sync cannot reenable sharing
 - **AND** forget preserves only applicable daily consumption, deletion removes owner usage and the instance aggregate has no personal link
+
+#### Scenario: Provider feasibility before business port
+- **WHEN** preparation reviews the first Python delivery
+- **THEN** admitted server providers are anthropic, openai, gemini and compatible over HTTP, with a deterministic fixture for synthetic verification and the existing local client coach preserved
+- **AND** claude (Agent SDK) and codex (CLI) are explicitly deferred by promoter decision, not silently replaced by an HTTP provider with a similar brand name
+
+### Requirement: Explicitly bounded coach delivery
+The first Python delivery SHALL preserve existing local and HTTP coach behavior, consent, ownership, proposal validation/approval, quotas, cancellation and forget semantics without adding agent tools or frameworks. It SHALL NOT deliver Claude Agent SDK, Codex CLI, their subprocess launchers or a custom seccomp profile. LangChain/LangGraph, new tools, memory and agent orchestration SHALL remain separate future work without speculative adapters, tables or dependencies.
+
+Deferred provider selections and non-secret configuration SHALL remain identifiable during import without silent fallback, conversion or deletion. Required original credential material SHALL remain protected under the existing origin-retention policy, outside active runtime mounts; this SHALL NOT promise future credential reuse or authorize deleting originals. Runtime SHALL NOT execute, refresh, reconnect or enqueue work for deferred providers, including scheduled work. Their unavailable state and the compatibility exception SHALL be visible to operators and clients. User attempts SHALL use the compatible unavailable response (503/code off), create no job and consume no quota. Existing provider IDs SHALL NOT be reassigned.
+
+#### Scenario: Imported deferred provider remains unavailable
+- **WHEN** imported settings select claude or codex or an older client requests work using that selection
+- **THEN** availability reports it unavailable, user work is rejected before enqueue/quota consumption and scheduled work does not invoke it
+- **AND** no Node fallback, automatic switch to anthropic/openai, credential reinterpretation or exposure occurs; preserved history/proposals and permitted HTTP/local workflows retain their contracts
+
+#### Scenario: Accepted delivery excludes agent infrastructure
+- **WHEN** the first Python runtime, Compose configuration and capability checks are accepted
+- **THEN** they contain no SDK/CLI launcher, custom coach seccomp profile, runtime Node dependency or LangChain/LangGraph scaffolding
+- **AND** published compatibility evidence names deferred providers as unavailable rather than claiming complete parity with all legacy providers
 
 ### Requirement: Least-privilege access
 The platform SHALL implement the security reference's separate owner/migrator/runtime/executor/backup privileges, explicit RLS and transaction-local owner context. Preauthentication SHALL expose only bounded credential verification operations; administration SHALL authorize concrete actor/resource actions without arbitrary owner impersonation.
@@ -109,7 +154,27 @@ Schema evolution and data import SHALL be separate. Import SHALL retain IDs, cre
 - **THEN** import and cutover stop without silently rewriting or dropping data
 - **AND** the discrepancy is resolved explicitly before equivalent fixtures can pass
 
+#### Scenario: OpenAPI authority moves without contract drift
+- **WHEN** the public API contract is moved from the legacy API tree to the Python backend
+- **THEN** one editable canonical YAML remains, its generator and consumers use the new location and Python route/response checks plus independent HTTP cases verify the preserved contract
+- **AND** framework-generated documentation or validation defaults do not silently introduce new public endpoints, status codes, coercions or cookie/header behavior
+
 #### Scenario: Parity after removing the replaced backend
 - **WHEN** the old business API and file readers are retired
 - **THEN** current client, coach, media, formats and security scenarios still pass on Python/PostgreSQL
 - **AND** relevant web/mobile bundles and generators no longer import the retired API tree while the neutral JavaScript library remains available
+
+### Requirement: Bounded legacy and temporary artifact cleanup
+The port SHALL include an explicit cleanup checkpoint after equivalent cutover and before platform acceptance. A reviewed path/consumer inventory SHALL classify artifacts as remove, retain with current purpose, or protected recovery material. Cleanup SHALL remove replaced business code, exclusive legacy readers/writers/configuration/dependencies and superseded temporary scaffolds rather than leave a disabled second implementation. Applicable behavioral tests SHALL be preserved or adapted before obsolete implementation-specific tests are removed. Required neutral JavaScript, catalogue assets, current operational tooling and still-useful Foundation evidence SHALL NOT be removed merely for being JavaScript, JSON or historical. Removal SHALL be based on obsolete purpose and verified consumers, not programming language.
+
+Cleanup SHALL use exact owned paths/resources, preserve unrelated work and user/client data, and avoid broad prune or directory deletion without consumer review. Protected origin/release/configuration/secrets SHALL remain outside active dependencies for the agreed recovery window; its expiry SHALL NOT authorize their deletion. Temporary logs, captures and synthetic artifacts SHALL be removed only after necessary sanitized evidence is retained in the appropriate delivery/CI location; no duplicate permanent cleanup report SHALL be created. Post-cleanup builds, parity, security, restore and dependency checks SHALL pass before G3/GO acceptance.
+
+#### Scenario: Active dependency prevents removal
+- **WHEN** a cleanup candidate is still imported by a supported client, generator, test or operational command
+- **THEN** the consumer is migrated and verified before removal, or the artifact is retained with an explicit current purpose
+- **AND** cleanup cannot pass by leaving a required dependency broken or replacing behavioral coverage with documentation
+
+#### Scenario: Cleanup preserves recovery and foreign artifacts
+- **WHEN** cleanup runs with synthetic owned artifacts, a foreign sentinel and protected recovery material present
+- **THEN** only reviewed obsolete owned artifacts are removed, the sentinel and protected material remain intact and no original user data is deleted
+- **AND** clean-checkout builds and post-retirement capability/security/restore checks still pass without active imports of the retired backend

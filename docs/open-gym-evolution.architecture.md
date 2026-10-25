@@ -132,7 +132,7 @@ Mantener inicialmente un solo proceso/réplica API. PostgreSQL no distribuye aut
 | Coach | Lectura exclusivamente autorizada de Training; sin privilegios sobre Recovery. |
 | Operación | Migraciones, backups, restauración, secretos y control de versión compatible. |
 
-Las filas Recovery describen contratos de la entrega posterior; no autorizan crear su esquema o interfaz durante plataforma. Node puede mantenerse como herramienta de build y dependencia auxiliar opcional expresamente justificada del coach; no como API HTTP de negocio necesaria para cerrar plataforma. Antes del cierre se debe demostrar la viabilidad de cada proveedor/SDK/CLI y su sandbox, o resolver explícitamente su tratamiento sin eliminar capacidades silenciosamente.
+Las filas Recovery describen contratos de la entrega posterior; no autorizan crear su esquema o interfaz durante plataforma. Node puede mantenerse como herramienta de build y dependencia auxiliar opcional expresamente justificada del coach; no como API HTTP de negocio necesaria para cerrar plataforma. La primera entrega conserva coach local y los cuatro proveedores HTTP; Claude Agent SDK (`claude`) y Codex CLI (`codex`) quedan temporalmente no disponibles por decisión expresa Q6 del [port](../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica). No se entrega su auxiliar Node, launcher ni perfil seccomp; no hay fallback ni remapeo a proveedores HTTP. Esta excepción debe figurar en cliente/administración y evidencia de compatibilidad; no se anuncia paridad total con todos los proveedores heredados.
 
 Para reutilización futura de catálogo/controles y aislamiento de datos Recovery, leer [interfaz y componentes](reference/recovery-contracts.md#reutilización-e-interfaz).
 
@@ -142,7 +142,7 @@ Separación modular no equivale a sandbox frente al administrador del host ni a 
 
 La [propuesta modular](reference/platform-modularity.md) es la fuente propietaria del mapa de módulos, árboles objetivo, reglas de dependencia, contratos Pydantic, correspondencia frontend, composición Docker y evidencia por slice. Concentra cada caso de uso en su módulo; evita nuevos directorios globales de controllers/services/repositories que dispersen una misma funcionalidad. Los archivos se crean por necesidad, sin capas de paso.
 
-Foundation implementará solo infraestructura y salud cuando se autorice. El port posterior usará como piloto la lectura/guardado Training compatible, con identidad previa, transacción, conflictos y reconciliación del frontend actual. El mapa completo no autoriza crear módulos vacíos, nuevas tablas de negocio o Recovery durante Foundation. La aceptación EV-09 se incorpora a GP/GO/G3, sin nuevo gate ni reemplazo de paridad.
+Foundation Python está completada y archivada con alcance de infraestructura y salud sintéticas. El port posterior usará como piloto la lectura/guardado Training compatible, con identidad previa, transacción, conflictos y reconciliación del frontend actual. El mapa completo no autoriza crear módulos vacíos, nuevas tablas de negocio o Recovery durante Foundation. La aceptación EV-09 se incorpora a GP/GO/G3, sin nuevo gate ni reemplazo de paridad.
 
 El [contrato transaccional intermodular](reference/platform-modularity.md#transacción-entre-operaciones-de-módulos) fija un iniciador y un handle compartido sin commits internos; Foundation prueba colaboradores sintéticos y el port casos reales. La [biblioteca JS neutral](reference/platform-modularity.md#biblioteca-javascript-compartida-y-retirada-de-api) conserva coach local y generadores antes de retirar `api/`: su destino es `shared/coach-core/`, sin API Node de negocio permanente. No eliminar el árbol legacy hasta verificar imports y builds actualizados.
 
@@ -230,9 +230,9 @@ La matriz de consumidores anterior cubre persistencia; la sustitución Node → 
 | Training y cliente | Contratos §7, validaciones legacy admitidas, campos internos, números/fechas, ausente/null, sesión activa local, invitado/offline y pendientes | Pruebas de paridad, JSONB, primera escritura concurrente, stamps, conflictos, reset, respuesta perdida y reconciliación tras restore. |
 | Administración/push | Invitaciones, audit, suscripciones, recordatorios/rest timers y estado por dispositivo | Casos habilitados/deshabilitados y permisos; inventario del estado en memoria y persistente. |
 | Medios/import/export/catálogo | Ownership, referencias/GC, IDs, formatos e interpretación del historial | Error DB conserva medios; import/export y restore mantienen significado. No presentar export Training como backup de plataforma completa. |
-| Coach actual | Proveedores, propuestas/aprobación, consentimiento, jobs/config/credenciales, límites y sandbox | Fixtures sin llamadas reales, fuente Training nueva y prueba de cada SDK/CLI necesario o tratamiento expresamente resuelto. |
+| Coach actual | Local y HTTP, propuestas/aprobación, consentimiento, jobs/config/credenciales y límites; SDK/CLI diferidos por Q6 | Fixtures sin llamadas reales y fuente Training nueva; probar SDK/CLI no disponibles sin job/cuota/fallback, con selección/historia preservadas y originales protegidos. |
 
-Node puede continuar para build frontend. Los helpers compartidos frontend no se portan por anticipación; la lógica servidor que pase a Python necesita equivalencia verificable. La excepción de un runtime auxiliar opcional del coach requiere alcance y evidencia: no convierte otra API Node en destino admitido ni autoriza perder proveedores silenciosamente.
+Node puede continuar para build frontend. Los helpers compartidos frontend no se portan por anticipación; la lógica servidor que pase a Python necesita equivalencia verificable. Q6 no incorpora runtime auxiliar del coach: build/tooling Node y JS neutral no implican Node en la imagen API. Una futura reintroducción de SDK/CLI necesita su propio alcance, seguridad y evidencia; no permite otra API Node ni pérdida silenciosa de proveedores.
 
 No basta cambiar `/api/data`. JSON de entrenamiento congelado no puede seguir siendo leído como verdad por coach.
 
@@ -301,7 +301,7 @@ La retirada del código y la eliminación de los datos originales son operacione
 
 La ventana acordada conserva origen, release/configuración y secretos protegidos al menos 30 días después del corte aceptado; su vencimiento no autoriza eliminación automática.
 
-Antes de nuevas escrituras, rollback al origen es directo tras validación. Después, requiere exportación inversa validada o corrección hacia adelante; recuperar el backup anterior pierde cambios y exige autorización explícita. No habilitar doble escritura como seguro aparente.
+Antes de nuevas escrituras, rollback al origen es directo tras validación. Después, la estrategia base aprobada es reparación hacia adelante de Python/PostgreSQL preservando las nuevas escrituras; el exportador inverso a Node requiere aprobación expresa adicional. El procedimiento y su bloqueo ante un ensayo fallido se definen en [operación local](reference/platform-operations.md#corte-retirada-y-conservación). Recuperar el backup anterior pierde cambios y exige autorización explícita; no equivale a reparar sin pérdida ni convierte el RPO acordado en cero. No habilitar doble escritura como seguro aparente.
 
 PostgreSQL JSONB reordena claves y cambia representación. Validar equivalencia semántica, tipos/números y renderización/merge, no solo bytes. Prevalidar documentos con claves duplicadas, caracteres o valores no representables fielmente y datos corruptos; no normalizarlos silenciosamente al importar.
 
@@ -335,7 +335,7 @@ Pruebas obligatorias para plataforma (G0–G3/GP/GO):
 - Autenticación existente: passkeys, contadores, revocación, usuarios deshabilitados, roles, contraseñas opcionales y sesiones; no reidentificar usuarios.
 - Training: revisiones/linaje, primer documento concurrente, stamps legacy, reset, importación, polling, pérdida de respuesta y dos dispositivos.
 - Offline Training, sesión activa local y cambios pendientes: reconciliación tras migración/restauración sin sobrescritura silenciosa.
-- Paridad Python de §9.1, incluyendo auth y coerciones/serialización, errores HTTP, runtime de proveedores coach.
+- Paridad Python de §9.1, incluyendo auth y coerciones/serialización, errores HTTP y coach local/HTTP; verificar y declarar SDK/CLI no disponibles por Q6.
 - Casos de [seguridad](reference/platform-security.md#evidencia-de-aceptación) y [observabilidad](reference/platform-observability.md#evidencia-para-go), con fixtures sintéticas y sin credenciales ni contenido privado emitido.
 - RLS Foundation: fixtures de propietarios, contexto ausente y pool reutilizado tras commit/rollback; roles restringidos reales, sin tablas Recovery anticipadas.
 - Medios: caída de BD no equivale a referencias vacías ni dispara GC destructivo.
@@ -378,7 +378,7 @@ El [protocolo responsive Recovery](reference/recovery-contracts.md#validación-w
 
 ## 14. Secuencia conceptual confirmada de futuras OpenSpecs y handoff
 
-**Estado:** Foundation Node está archivada; plataforma Python completa y Recovery siguen pendientes. Foundation Python conserva su cambio activo. Los tramos de port/operación ya tienen un [OpenSpec planificado](../openspec/changes/port-compatible-platform/proposal.md) con tareas runtime pendientes, dependiente de Foundation; los posteriores siguen siendo handoffs conceptuales. Esta revisión no autoriza ejecución ni modifica evidencia entregada:
+**Estado:** Foundation Node está archivada; plataforma Python completa y Recovery siguen pendientes. Foundation Python está completada y archivada como evidencia sintética. Los tramos de port/operación ya tienen un [OpenSpec planificado](../openspec/changes/port-compatible-platform/proposal.md) con tareas runtime pendientes, dependiente de Foundation; los posteriores siguen siendo handoffs conceptuales. Esta revisión no autoriza ejecución ni modifica evidencia entregada:
 
 1. **Caracterización y Foundation Python/PostgreSQL:** contratos de referencia, entorno sintético, pool/lifespan, roles, Alembic, recuperación y CI. Añadir inventario JS compartido, prueba transaccional de colaboradores sintéticos y matriz de caché sobre imágenes de ensayo. Reutilizar requisitos/escenarios históricos, aportando evidencia nueva de G1 para Python sin acreditar operación.
 2. **Port de capacidades y migración ensayada:** backend Python compatible por módulos, identidad mínima previa al slice piloto Training y luego consumidores §9.1; frontend actual operando en el entorno nuevo, importación equivalente y recuperación representativa. Trasladar biblioteca JS neutral y adaptar generadores/builds; implementar desarrollo/CI y transacciones intermodulares de negocio. Cada OpenSpec de port declara contratos, dependencias y componentes del recorrido según §5.1. GP, EV-09 y parte previa de GO.
@@ -423,7 +423,7 @@ Esos resultados no fueron reejecutados en esta edición. No acreditan proveedor,
 | Tooling en el entorno objetivo | Ensayos nuevos Python sobre PostgreSQL real: pool, contexto/roles, locking, interrupción y restore; evidencia Node como antecedente únicamente | G1 operativo |
 | Entorno/major PostgreSQL | Definir Compose local y despliegue objetivo, versión, conexiones, TLS/pooler, backup/PITR si corresponde, coste y ubicación | G1 operativo/GO y corte; no obliga a adelantar VPS |
 | Paridad auth y clientes | Biblioteca WebAuthn/material heredado, scrypt/NFKC, sesiones existentes o reautenticación controlada y clientes nativos admitidos | GP y continuidad de acceso |
-| Coach | Probar proveedores/SDK/CLI/sandbox, lectura restringida autorizada; delimitar autoridad/salida de cada almacén | GP/G3 y retirada completa |
+| Coach | Probar local/HTTP, lectura restringida autorizada y SDK/CLI no disponibles (Q6); delimitar autoridad/salida de cada almacén, sin launcher/perfil seccomp | GP/G3 con excepción explícita y retirada completa |
 | Demostrar RPO 6 h / RTO 24 h | Objetivos aceptados, no garantías; medir restauración representativa conforme a operación local | GO y uso real con garantías de recuperación |
 | Configurar/verificar backup acordado | Disco independiente, cifrado/clave separada, 30 días y cadencia definidos; ubicación física, acceso y señales se verifican antes del corte | GO y recuperación operativa |
 | Inventario de clientes | Identificar perfiles/orígenes/cuentas, teléfonos utilizados, sesión activa y datos pendientes; backups comprobados | G0 y corte |

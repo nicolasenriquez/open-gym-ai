@@ -15,7 +15,9 @@ description: Resultados y aceptación de plataforma antes de Recovery, Garmin e 
 
 ## Resumen ejecutivo
 
-OpenGym Evolution busca una base mantenible y operable sobre la que ampliar la herramienta sin perder el acceso, los datos ni las capacidades actuales. La primera entrega sustituye la aplicación servidor heredada, preservando Training, autenticación, catálogo, medios, administración, notificaciones, coach dentro de sus contratos vigentes.
+OpenGym Evolution busca una base mantenible y operable sobre la que ampliar la herramienta sin perder el acceso, los datos ni las capacidades actuales. La primera entrega sustituye la aplicación servidor heredada, preservando Training, autenticación, catálogo, medios, administración, notificaciones y coach dentro del alcance compatible expresamente acordado.
+
+**Excepción aprobada Q6:** conservar coach local y proveedores HTTP actuales; Claude Agent SDK y Codex CLI quedan temporalmente no disponibles en la primera entrega Python, sin fallback Node ni cambio automático a otro proveedor. Conservar selección/configuración no secreta e historial, proteger originales y comunicar la limitación al cliente/administración; no anunciar paridad completa con esos proveedores. La evolución agéntica (incluido un eventual LangChain/LangGraph) se decide después, sin introducir dependencias anticipadas. El [diseño del port](../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica) concreta esta excepción.
 
 Por decisión del promotor, la plataforma objetivo utiliza Python/FastAPI y PostgreSQL, con desarrollo y despliegue basados en contenedores. Es una restricción estratégica del proyecto, no una prueba de que ese stack sea por sí solo más seguro o de que Node sea inadecuado. La arquitectura desarrolla la transición y sus comprobaciones.
 
@@ -118,7 +120,7 @@ El cierre requiere **todos** estos resultados. No exige ausencia de toda deuda h
 
 ## 8. Exclusiones y entregas posteriores
 
-- Nuevas funciones de Recovery/kinesiología, Garmin Connect y ampliaciones del coach o IA. Preservar el coach actual sí pertenece a EV-01.
+- Nuevas funciones de Recovery/kinesiología, Garmin Connect y ampliaciones del coach o IA. Preservar el coach local/HTTP actual y hacer explícita la indisponibilidad SDK/CLI aprobada en Q6 sí pertenece a EV-01.
 - Rediseño o sustitución del frontend, conversión general a TypeScript, cambio de gestor frontend o modificación de reglas de progresión sin una necesidad independiente.
 - Normalización completa de Training, microservicios, sistemas de colas, búsqueda vectorial o frameworks de agentes por anticipación.
 - Nuevos builds nativos, publicación en tiendas o despliegue definitivo en VPS como requisito del primer ensayo local. La compatibilidad de clientes existentes debe tratarse expresamente.
@@ -135,7 +137,7 @@ El cierre requiere **todos** estos resultados. No exige ausencia de toda deuda h
 | Correspondencia de módulos, contratos y componentes por recorrido | Propuesta modular y OpenSpecs de Foundation/port; evidencia del slice piloto | EV-09; Foundation aporta estructura parcial, no aceptación de módulos funcionales. |
 | Biblioteca JS neutral, transacciones colaborativas y entrega operativa | Responsabilidad por fase de la propuesta modular; escenarios Foundation y posteriores OpenSpecs de port/operación | EV-01/02/03/05/06/09; no retirar fuentes compartidas ni aceptar operación sin verificar sus imágenes, ambientes y soporte. |
 | Validar el esquema y continuidad de acceso ya diseñados | Esquema SQL aprobado, seguridad y OpenSpec de port; DDL y pruebas pendientes | Alias/credenciales compatibles, proyecciones Training, RLS demostrados; no solo tablas dibujadas. |
-| Viabilidad de cada proveedor/runtime del coach | Arquitectura y ensayos acotados | Retirada completa sin pérdida de capacidades. |
+| Compatibilidad del coach local/HTTP y excepción SDK/CLI Q6 | Arquitectura, port y ensayos acotados | Retirada completa con contratos admitidos verificados y proveedores diferidos explícitamente no disponibles. |
 | Inventario real y demostrar operación/recuperación aceptadas | Operación local y OpenSpec de port/operación; destino físico y ensayo previos al corte | Migración real y EV-02/04: objetivos acordados no equivalen a garantías; bloqueos de reconciliación y clientes resueltos. |
 | Implementar/verificar diagnóstico privado y su retención | Contrato de observabilidad y operación | EV-08/GO: instrumentación, cotas y eliminación real pendientes; sin elegir herramientas en este PRD. |
 

@@ -57,6 +57,136 @@ interfaces propietarias con el handle compartido, sin SET owner arbitrario.
 - Deshabilitación/eliminación incluyen estado relacionado y, cuando exista Recovery, sus datos; limpieza de archivos externos recuperable y sin GC destructivo ante error DB.
 - SQL parametrizado, validación acotada, límites de cuerpo/rate limits, respuestas privadas/no-store y errores sin payloads personales.
 
+## Catálogo SQL y contexto transaccional
+
+Contrato de funciones a entregar mediante Alembic, no funciones existentes. Ninguna
+función acepta SQL, nombre de tabla, rol o owner de contexto suministrado por cliente.
+`api_runtime` solo tiene EXECUTE exacto en este catálogo y DML propietario descrito
+abajo. La firma HMAC/selección cookie-bearer y la criptografía permanecen en Python;
+una función SQL no convierte un owner recibido en sesión autenticada.
+
+| Función objetivo / firma semántica | Rol definidor y resultado acotado | Condiciones/efectos |
+| --- | --- | --- |
+| `identity.lookup_password(alias_key text)` | identity_executor; cero/una fila owner, hash scrypt, disabled, session_version | Lookup correo/nombre compatible; sin listado ni perfil/Training. Dummy hash y rate limit también para inexistente; no respuesta pública distinguible. |
+| `identity.lookup_passkey(credential_id text)` | identity_executor; cero/una fila owner, clave pública, counter, transports, disabled, session_version | Exact ID, nunca enumeración global. Challenge de proceso de uso único y biblioteca verifican firma fuera de TX. |
+| `identity.lookup_reset(code_digest bytea)` / `lookup_device_link(code_digest bytea)` | identity_executor; cero/una fila owner, expiración y versión/estado | Digest de tamaño esperado, sin devolver código original; verificación final revalida fila/expiración bajo lock. Pairing/challenges efímeros no adquieren durabilidad nueva. |
+| `identity.lock_actor(owner text, expected_sv bigint, expires_at timestamptz)` | identity_executor; id, is_admin, session_version | SELECT users FOR UPDATE; deniega ausente/disabled/versión distinta o expiry <= clock_timestamp() después de espera. Solo con owner derivado por identidad verificada; conserva lock hasta commit/rollback del iniciador. |
+| `identity.register_password(owner text, display_name text, alias_key text, email_key text, scrypt_hash text, invite_code text, created_at timestamptz)` / `register_passkey(owner text, display_name text, invite_code text, credential_id text, public_key bytea, counter bigint, transports text[], created_at timestamptz)` | identity_executor; nuevo id y metadatos públicos mínimos | Parámetros tipados de registro, alias ya normalizados y evidencia criptográfica interna; lock namespace, invitación vigente, primer-admin atómico, usuario/credential/claims/consumo juntos. No aceptar is_admin del cliente. |
+| `identity.finish_password_login(owner text, observed_hash text, observed_sv bigint)` / `finish_passkey_login(credential_id text, observed_key bytea, observed_counter bigint, new_counter bigint, observed_sv bigint)` | identity_executor; actor apto para emitir sesión | Releer bajo lock; comparar material/versión observado tras trabajo criptográfico; no usar resultado obsoleto. Passkey actualiza counter/last_used_at solo según resultado WebAuthn verificado. |
+| `identity.finish_reset(owner text, digest bytea, new_hash text)` / `finish_device_link(owner text, digest bytea, credential_id text, public_key bytea, counter bigint, transports text[], label text)` | identity_executor; actor mínimo | Consumo único y expiración revalidada; límites/última vía. Reset revoca sesiones/enlaces y reserva/alias conjuntamente; link agrega solo la passkey verificada, nunca hash elegido por anónimo sin código vigente. |
+| `administration.list_users(actor text, sv bigint, exp timestamptz, page_size integer, after_id text)` / `inspect_user(actor text, sv bigint, exp timestamptz, target text)` | administration_executor; proyección admin compatible | Revalidar actor admin activo y límites antes de leer otro recurso; devuelve parte identity. Handler coordina proyección Training admin vigente mediante su interfaz, nunca documento interno completo ni secretos. Paginación interna no cambia respuesta pública vigente. |
+| `administration.set_disabled(actor text, sv bigint, exp timestamptz, target text, disabled boolean)` / `delete_user(actor text, sv bigint, exp timestamptz, target text, task_id uuid)` | administration_executor; resultado mínimo | Namespace y owners ordenados, actor revalidado; disable rechaza cualquier admin, delete rechaza propio actor y último admin, conforme a Node. Coordinador Python usa interfaces propietarias con mismo handle; delete exige vínculo coach desconectado y realiza cascadas + tarea externa. Solo el iniciador confirma. |
+| `administration.issue_reset(actor text, sv bigint, exp timestamptz, target text, digest bytea, expiry timestamptz)` / `create_invitation(actor text, sv bigint, exp timestamptz, code text, note text, created_at timestamptz)` / `revoke_invitation(actor text, sv bigint, exp timestamptz, code text)` | administration_executor; resultado admin vigente | Sin cambio implícito de flags; reset/versión/enlaces/alias en misma TX. Invitación consumida persiste y no se reabre al eliminar cuenta. Código de reset solo sale al operador autorizado, nunca a telemetría. |
+| `audit.append_event(at timestamptz, event text, ok boolean, actor_id text, target_id text, actor_name text, target_name text, message text, action text, ip text)` / `read_events(actor text, sv bigint, exp timestamptz, after_id bigint, page_size integer)` / `clear_events(actor text, sv bigint, exp timestamptz)` | administration_executor; append sin filas retornadas; read/clear solo admin activo | Campos tipados/allowlisted y tamaño acotado; append en TX separada, secuencia no se reinicia al clear. Retención aplica 90 d/5000 o configuración compatible; fallo separado no revierte negocio. |
+
+En las firmas, argumentos opcionales admiten SQL NULL expresamente; el resto se
+rechaza si falta. Resultados son proyecciones explícitas, nunca SETOF tabla con
+secretos o SELECT *. page_size queda entre 1 y 500 (solo lotes internos para
+componer la respuesta pública compatible), after_id nullable. Errores esperados
+usan códigos internos estables de acceso/colisión/expiración; los handlers conservan
+status/code/cuerpo Node, no exponen SQLSTATE. No nuevas variantes ni catch-all. Funciones owner normales (renombrar passkey, contraseña/email propios,
+logout/all, Training, push, coach) usan repositorios bajo RLS; cambios de credenciales
+además revalidan prueba de acceso vigente y conservan última vía. Las funciones
+privilegiadas no hacen HTTP, scrypt, filesystem ni commit interno.
+
+**DDL de privilegios:** revocar CREATE de PUBLIC en public, CONNECT público a BD
+operativa, todos los EXECUTE públicos/default EXECUTE de funciones y grants de
+objetos nuevos. Funciones definer pertenecen al executor NOLOGIN correspondiente,
+con `SET search_path = pg_catalog, pg_temp`, objetos siempre cualificados y sin SQL
+dinámico. Migrator/owner pueden definirlas; runtime no es miembro de executor/owner
+ni puede CREATE/ALTER/SET ROLE a ellos. Executor tiene solo SELECT/INSERT/UPDATE/DELETE
+de las tablas usadas por su catálogo y USAGE de secuencias necesarias; ninguna
+concesión a otros esquemas por defecto. Las firmas exactas se conceden explícitamente,
+no `ALL FUNCTIONS`. Tests inspeccionan pg_proc.prosecdef/proconfig/ACL y pg_roles.
+
+ENABLE y FORCE RLS en todas las tablas de negocio. Para api_runtime, políticas
+USING y WITH CHECK `owner_id = nullif(current_setting('app.owner_id', true), '')`
+en datos por propietario; users usa `id` en vez de owner_id. Ningún contexto o
+cadena vacía concede filas. Runtime SELECT de users solo proyección pública propia;
+no lectura directa de hashes/aliases/credenciales globales, invitaciones, audit,
+settings globales ni deletion_tasks. Repositorios propios de credenciales reciben
+DML por columna/owner indispensable, no autorización administrativa general.
+Settings/config/resultados globales coach y subscription endpoint global usan el
+catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía runtime):
+
+- `coach.read_instance(actor text, sv bigint, exp timestamptz)` y
+  `coach.write_instance(actor text, sv bigint, exp timestamptz, settings jsonb,
+  providers jsonb)` pertenecen a coach_executor, requieren admin activo y devuelven
+  únicamente vista admin sin secretos. JSONB tiene exactamente la estructura
+  settings/provider_settings aprobada, sin claves extra ni material secreto; no es
+  un dispatcher. Bound owner anterior/nuevo se bloquean antes de singleton.
+- `coach.reserve_job(actor text, sv bigint, exp timestamptz, job_id text, kind text,
+  trigger text, expected_generation bigint, at timestamptz)` pertenece a
+  coach_executor; revalida actor, disponibilidad, consentimiento y generación bajo
+  mismo handle, crea/incrementa filas UTC de consumo y job atómicamente. Retorna
+  solo job_id/estado. Cap cero ilimitado; colisión/sin consentimiento/diferido no
+  cambia cuotas. El límite de dos ejecuciones usa semáforo del único worker, no
+  transacción abierta durante HTTP.
+- `coach.disconnect_owner(actor text, sv bigint, exp timestamptz, target text)`
+  permite propio owner o admin activo, conserva referencia de limpieza y desconecta
+  sin transformar una credencial personal en compartida. `coach.read_results(actor
+  text, sv bigint, exp timestamptz)` requiere admin y devuelve últimos 100 resultados
+  mínimos. No concede lectura global de Training ni secretos al executor.
+- `notifications.upsert_subscription(actor text, sv bigint, exp timestamptz,
+  endpoint text, p256dh text, auth text, device_id text, created_at timestamptz)`
+  pertenece a notifications_executor, revalida propietario y aplica transferencia
+  global de endpoint/poda compatibles sin revelar propietario anterior; no cambia
+  fecha original ni device_id válido si se omite el nuevo. La autorización/SSRF y
+  parámetros criptográficos se validan también antes del SQL. Lock advisory xact
+  728324 antes de owners, luego fila endpoint; releer propietarios bajo ese orden.
+  `notifications.delivery_candidates(at timestamptz)` retorna solo IDs candidatos
+  al scheduler interno; no credenciales, documentos ni preferencias. Para cada ID,
+  el service deriva contexto de trabajo desde esa lista autorizada, vuelve a
+  comprobar cuenta/preferencias bajo owner lock y reclama fecha/envía por su
+  interfaz, nunca desde un owner recibido por HTTP anónimo.
+
+- `coach.public_disclosure()` devuelve solo enabled/provider/auth_mode/community
+  compatibles sin actor/secreto, aplicando disponibilidad Q6. `coach.cohort_candidates
+  (actor text, sv bigint, exp timestamptz)` exige actor vigente y participación
+  consentida, devuelve solo IDs candidatos opt-in a la colaboración interna, nunca
+  esos IDs al cliente. Revalidar consentimiento bajo cada owner lock al preparar
+  agregados y conservar umbrales/supresión del cohort actual.
+- `training.read_admin_summary(actor text, sv bigint, exp timestamptz, target text)`
+  y `training.read_admin_detail(actor text, sv bigint, exp timestamptz, target text)`
+  pertenecen a administration_executor con SELECT/política explícita sobre documents.
+  Verifican admin activo/actor-target y retornan exclusivamente las proyecciones
+  actuales de `GET /api/admin/users` y `/api/admin/user`: conteo/último workout/sync
+  y detalle unit/routines resumidas/bodyweight/workouts sin media, respectivamente.
+  No SET owner=target ni acceso Recovery. Esto preserva una facultad existente,
+  no inventa exportación global ni elimina silenciosamente el drill-down admin.
+
+Las políticas executor permiten solo las tablas necesarias para estas operaciones;
+no lectura directa de Training global: la colaboración Training recibe contexto
+interno explícito autorizado. Cambios de grant/catálogo se prueban por función y
+rol, no se solventan con una política global para api_runtime. Executor necesita políticas TO executor USING/WITH CHECK
+true únicamente sobre sus tablas de catálogo: SECURITY DEFINER no evita FORCE RLS.
+Backup tiene SELECT y políticas completas explícitas, sin BYPASSRLS/superusuario;
+usa `pg_dump --enable-row-security` y verifica conteos/digests de todos los owners.
+Pruebas demuestran ausencia de TRUNCATE, DDL, GRANT o SET ROLE para runtime.
+
+Orden único: lease de barrera operativa → lock namespace identity si hay cambios
+credenciales/claims/admin → lock endpoint 728324 si corresponde → users afectados
+en orden `id COLLATE C` → singleton/
+contadores coach → recursos propios. Namespace usa advisory xact lock 728323;
+no usar hash de owner como único lock: users FOR UPDATE serializa incluso sin
+Training. Operaciones admin bloquean actor/target en orden, no siempre actor primero.
+No adquirir namespace después de owner. Si cambia un vínculo mientras se calcula
+el conjunto de locks, abortar/reintentar acotadamente con nueva lectura, sin mantener
+TX durante cálculo criptográfico/red. Errores esperados se traducen al contrato
+HTTP vigente; detalle SQL/constraints/parámetros nunca sale al cliente ni al tracing.
+
+`set_config('app.owner_id', actor.id, true)` ocurre únicamente después de verificar
+firma, selección de credencial y lock_actor con expiración/versión vigentes. Actor
+admin no se sustituye por target; contexto actor/versión/expiración también se fija
+transaccionalmente para funciones globales, no por headers/body. PostgreSQL confía
+en el backend para esos valores: RLS evita errores de alcance y no protege de una
+API comprometida capaz de ejecutar SQL arbitrario. Un handle compartido se invalida
+al terminar TX; pool max=1 debe quedar sin contexto tras todos los desenlaces.
+El orden de lock decide revocación concurrente: si revocación confirma primero,
+trabajo viejo falla; si trabajo autoriza primero bajo lock puede confirmar antes
+de la revocación. Expiración se comprueba tras cada espera previa a autorización,
+no se promete deshacer un commit ya reconocido.
+
 ## Secretos y conexiones
 
 

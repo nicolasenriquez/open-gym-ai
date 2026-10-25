@@ -24,7 +24,7 @@ formaliza los escenarios futuros. Foundation mantiene solo infraestructura y fix
 
 ```text
 identity.users
-  +--< identity.login_aliases / passkeys / consumer_credentials
+  +--< identity.login_aliases / passkeys
   +--- identity.password_credentials / password_resets / device_links
   +--- training.documents
   +--< notifications.subscriptions
@@ -42,7 +42,8 @@ administration.deletion_tasks: limpieza externa pendiente tras borrar cuenta
 `PK` identifica filas; `FK` relaciona tablas; `UNIQUE` evita duplicados y `CHECK`
 restringe valores. Esquemas SQL por módulo, una BD y un historial Alembic. Los nombres
 de tabla/columna de esta referencia son el destino acordado; un cambio debe explicar
-qué sustituye. El DDL literal y las funciones se revisan y prueban en el port.
+qué sustituye. La especificación DDL siguiente fija decisiones de entrega; escribir
+y ejecutar migraciones pertenece al port, no a esta revisión.
 
 - IDs heredados: `text`, sin conversión obligatoria a UUID ni restricciones nuevas
   de formato que rechacen identificadores válidos existentes.
@@ -67,8 +68,12 @@ qué sustituye. El DDL literal y las funciones se revisan y prueban en el port.
 | `identity.password_resets` | `owner_id text PK/FK`, `code_digest bytea`, `expires_at timestamptz`, `issued_by text` | Un reset por usuario, plazo actual de 24 h y consumo único. Emisor histórico sin FK destructiva. |
 | `identity.passkeys` | `credential_id text PK`, `owner_id text FK`, `public_key bytea`, `counter bigint`, `transports text[]`, `label text NULL`, `created_at timestamptz NULL`, `last_used_at timestamptz NULL` | Decodificación/serialización WebAuthn compatible. Máximo 20 y conservación de última vía válida mediante operación serializada. No inventar contador de una credencial legacy inválida. |
 | `identity.device_links` | `code_digest bytea PK`, `owner_id text UNIQUE/FK`, `created_at timestamptz`, `expires_at timestamptz` | Diez minutos, uso único. Nuevo enlace reemplaza anterior; revocación elimina pendientes. |
-| `identity.consumer_credentials` | `id text PK`, `owner_id text FK`, `token_digest bytea UNIQUE`, `scope text`, `issued_session_version bigint`, `created_at timestamptz`, `expires_at timestamptz`, `revoked_at timestamptz NULL` | Scope limitado a `training:read`; emisión y validación según seguridad. Token en claro solo al emitir. |
 | `identity.invitations` | `code text PK`, `note text`, `created_by text`, `created_at timestamptz NULL`, `consumed boolean`, `used_by text NULL`, `used_at timestamptz NULL`, `revoked boolean` | Aceptar códigos legacy sin exigir longitud nueva. `consumed` persiste aunque desaparezca cuenta. Creador/usuario históricos sin FK destructiva. `usedByName` se resuelve, no se duplica. |
+
+MCP está retirado del fork y no tiene un consumidor vigente de tokens dedicados.
+No crear `identity.consumer_credentials`, scopes `training:read` ni adaptadores MCP
+como scaffolding del port. Cookie/bearer compatibles siguen siendo las sesiones
+firmadas actuales, no un nuevo sistema de credenciales de consumidor.
 
 ### Alias y cambios de credenciales
 
@@ -147,6 +152,13 @@ atribuye durabilidad adicional ni se crean tablas por anticipación.
 | `coach.instance_daily_usage` | `day date PK`, `count bigint` | Agregado UTC sin propietario; no derivarlo del historial podado. |
 | `coach.instance_results` | `event_id bigint IDENTITY PK`, `occurred_at timestamptz`, `kind text`, `trigger text`, `outcome text`, `error_class text NULL`, `duration_ms bigint`, `summary jsonb` | Últimos 100 resultados sin contenido personal, prompts ni reading. |
 
+La [excepción Q6 del port](../../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica)
+conserva selecciones/configuración no secreta `claude`/`codex` sin convertirlas a
+HTTP, pero no habilita ejecución ni lectura/refresh de sus credenciales. Sus IDs
+siguen representables en settings; no crear tablas o adaptadores futuros para ello.
+Comprobar disponibilidad antes de crear job o consumir cuota, incluso si `enabled`
+fue importado como true; credenciales originales protegidas fuera del runtime.
+
 Encolar actualiza ambos contadores y crea el trabajo bajo una transacción con orden
 de bloqueos consistente. Tipos y estados tienen CHECK explícitos según contratos
 caracterizados; el runtime único limita a dos ejecuciones globales. No mantener
@@ -189,7 +201,6 @@ por PK/índice con propietario como prefijo adecuado.
 | `users` | Parcial `(invited_by) WHERE invited_by IS NOT NULL` | Soportar FK/procedencia por invitación. Sin UNIQUE display_name. |
 | `passkeys` | `(owner_id)` | Listar, contar y borrar credenciales propias. |
 | `device_links` | UNIQUE `(owner_id)` | Un pendiente por usuario. |
-| `consumer_credentials` | UNIQUE `(token_digest)`, `(owner_id)` | Verificación y revocación por propietario. |
 | `subscriptions` | `(owner_id,created_at)` | Envíos por usuario y poda de antiguas. |
 | `history_events` | `(owner_id,event_id DESC)` | Últimos 20 y poda. |
 | `provider_settings` | Parcial `(bound_owner_id) WHERE bound_owner_id IS NOT NULL` | Comprobar/desconectar credenciales ligadas antes del borrado. |
@@ -200,6 +211,91 @@ Auditoría y resultados generales recorren sus PK en sentido descendente; con su
 límites iniciales no se añaden índices por filtro. No GIN general Training, índice
 de last_used ni índices de expiración masiva sin consulta/volumen demostrado.
 El port debe verificar planes y límites con fixtures representativas.
+
+## Especificación DDL y evolución
+
+Una cadena nueva de plataforma, sin reutilizar tablas/revisiones sintéticas Foundation:
+`p000_bootstrap` → familia `p001_identity_audit` → `p002_training` → `p003_coach` →
+`p004_deletion_tasks` → `p005_notifications`. Son revisiones/familias objetivo, no
+archivos existentes. Bootstrap de BD/roles y lock de migrador preceden al historial;
+p000 contiene solo infraestructura necesaria. Cada familia empieza al consumir su
+primer objeto y entrega tablas/funciones/grants incrementalmente por operación;
+si una tarea posterior añade DDL, revisión nueva `pNNN_<grupo>_<tarea>` con parent
+head real inmediato, nunca editar una revisión ya verificada ni crear revisión vacía.
+Los prefijos indican propietario, no orden lexicográfico de aplicación: el piloto
+Training puede preceder al resto de operaciones identity; su revisión posterior
+identity tiene como parent el head Training vigente. Así una función posterior no
+obliga a modificar p001 tras su primer checkpoint.
+Cada revisión incluye políticas/tests del propietario activo; no crear tablas de
+una capacidad posterior por comodidad. Medios no necesita una tabla
+nueva; sus referencias siguen en Training. `p001` incluye invitaciones necesarias
+para registro y audit necesario para login, aunque sus rutas admin lleguen después.
+
+- Todo campo de las tablas anteriores es NOT NULL salvo `NULL` expreso y los
+  campos opcionales de audit (`actor_id`, `target_id`, nombres, message/action/ip).
+  `timestamptz` usa precisión 3; timestamps requeridos los suministra la operación,
+  no `now()` de importación. `counter`, `session_version`, generaciones, consumos y
+  attempts llevan CHECK >= 0. No defaults de fecha histórica ni filas singleton
+  hasta configurarlas explícitamente. Indicadores de usuarios false y versión 0
+  solo son defaults para altas nuevas, no para corregir una importación inválida.
+- `login_aliases` usa collation `C` para igualdad/PK de `alias_key` y CHECK
+  `email_claim OR password_name_claim OR reset_name_until IS NOT NULL`.
+  `owner_id` y su FK son obligatorios. Normalización Unicode ocurre fuera de SQL;
+  la operación libera el claim temporal expirado, elimina filas sin propósito y
+  aplica los dos UNIQUE parciales antes descritos dentro del mismo lock namespace.
+- `training.revision_of(jsonb) RETURNS bigint` y
+  `training.write_id_of(jsonb) RETURNS text` son funciones IMMUTABLE, STRICT,
+  invoker, sin lectura de tablas/tiempo/contexto. Reciben el documento completo:
+  ausente o JSON null proyecta 0/null respectivamente; `_rev` numérico debe ser
+  integral, entre 0 y 9007199254740991, antes del cast numeric→bigint; `_wid`
+  presente debe ser string. Rechazar tipos inválidos con SQLSTATE 22023, no cast
+  permisivo. CHECK `jsonb_typeof(document) = 'object'`; expresiones GENERATED ALWAYS
+  AS (`training.revision_of(document)`) STORED y equivalente para write_id.
+  Revisión al límite es representable al importar; guardar exige margen +2 y
+  preserva el error compatible sin modificar nada. No convertir revisiones string.
+- `coach.proposal_id_of`, `proposal_kind_of`, `proposal_expiry_of` reciben JSONB,
+  son IMMUTABLE STRICT invoker y proyectan `id`, `kind`, `expiresAt`. El validador
+  canónico comprueba objeto, strings y epoch-ms integral JS-seguro antes del cast.
+  Los tres valores son GENERATED ALWAYS STORED; no se insertan aparte. El contrato
+  de propuesta completo (planHash/iteration/etc.) se valida además en domain.
+- Coach jobs CHECK kind IN ('create','review','debrief'), trigger IN
+  ('manual','scheduled'), state IN ('queued','running'); job_id UNIQUE además de
+  PK owner. Historial admite outcomes vigentes `ready`, `nochange`, `failed`,
+  `applied`, `dismissed`, `expired`; valores heredados distintos bloquean import
+  hasta caracterización/resolución, no se descartan. `auth_mode` IN ('instance',
+  'profile'); caps >= 0, cero conserva ilimitado; max_message_len/max_output_tokens
+  > 0 sujetos a los límites caracterizados de config, sin nuevo máximo arbitrario.
+  `settings.provider` FK RESTRICT a provider_settings; no CHECK que excluya IDs
+  diferidos. Los metadatos de secretos externos por perfil conservan su formato
+  cifrado y vínculo al propietario; no inventar una tabla de tokens o guardarlos
+  en Training. Acceso exclusivamente por interfaz coach, nunca por ID cliente.
+- `deletion_tasks.status` IN ('pending','retry','done'), attempts >= 0; ID UUID
+  generado en aplicación sin extensión SQL. Error contiene solo código allowlisted.
+  `done` se elimina al verificar bytes/secretos ausentes; fallo mantiene pending/retry.
+- FKs operativas owner→users ON DELETE CASCADE. Excepciones: users.invited_by→
+  invitations.code RESTRICT; provider_settings.bound_owner_id→users RESTRICT;
+  las referencias históricas de invitación/audit y deleted_owner_id no tienen FK.
+  Desconectar vínculo secreto antes de eliminar usuario; nunca ON DELETE SET NULL
+  para convertir una credencial personal en compartida. No indexar doble device_links:
+  UNIQUE owner ya cubre FK/lookup. No GIN Training ni índices sin consulta propietaria.
+
+La revisión anterior es el único `down_revision`; varias heads o historia desconocida
+bloquean migración/readiness. Lock de sesión 728322 en conexión dedicada desde antes
+de leer historial hasta terminar; plazo de adquisición 5 s, lock_timeout 2 s,
+statement_timeout DDL 60 s. Una revisión transaccional fallida no adelanta historial.
+Índices de tablas nuevas van en su CREATE/revisión normal; no usar CONCURRENTLY sin
+necesidad. Para tabla poblada futura, ensayar el lock y usar revisión dedicada
+CONCURRENTLY cuando proceda, sin simular atomicidad transaccional de ese comando.
+Producción es forward-only: corrección por revisión nueva, no downgrade destructivo
+ni `stamp` para fingir éxito. En BD sintética se prueba recreación desde vacío y
+upgrade desde cada revisión previa, incluida interrupción y repetición segura.
+Importador separado carga datos explícitos, adelanta secuencias audit/history/results
+y nunca altera migraciones para admitir datos incompatibles.
+
+Funciones privilegiadas y matriz de grants tienen una sola autoridad:
+[seguridad — catálogo SQL](platform-security.md#catálogo-sql-y-contexto-transaccional).
+Las suites futuras de DDL/funciones y slices se fijan en el
+[plan ejecutable del port](../../openspec/changes/port-compatible-platform/execution-plan.md).
 
 ## Evidencia requerida
 

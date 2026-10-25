@@ -13,24 +13,39 @@ la aprobación documental como implementación.
 - Implementar en su fase el esquema aprobado, sus restricciones/índices, contratos
   de autorización, limpieza externa recuperable.
 - Conservar JS neutral en shared/coach-core, catálogo, import/export, offline,
-  providers coach y clientes admitidos con diferencias expresamente resueltas.
+  coach local y proveedores HTTP actuales; Claude Agent SDK/Codex CLI quedan
+  temporalmente no disponibles por aprobación expresa Q6, sin fallback Node ni
+  conversión de credenciales o selección a otros proveedores.
 - Entregar imágenes/ambientes locales separados, diagnóstico privado, backup y
   restauración coordinados; ensayar corte, autoridad única y retirada posterior.
+- Aplicar las decisiones confirmadas: revisión manual verificable por acceso tras
+  restore y reparación hacia adelante tras nuevas escrituras; sin ledger nuevo ni
+  exportador inverso a Node salvo aprobación expresa.
+- Entregar cleanup revisado del código sustituido y temporales propios antes de
+  aceptación, preservando biblioteca neutral, pruebas útiles y recuperación protegida;
+  no basta desactivar la implementación anterior ni se autoriza borrar originales.
 - Mantener Recovery, Garmin, IA ampliada, despliegue remoto y arm64 fuera de la
-  primera aceptación, tratando soporte/clientes actuales expresamente.
+  primera aceptación, tratando soporte/clientes actuales expresamente. No entregar
+  launcher SDK/CLI, perfil seccomp coach ni scaffolding LangChain/LangGraph; mostrar
+  la excepción en cliente/administración y conservar configuración e historia de los
+  diferidos y originales protegidos sin activar sus credenciales.
 
-**Estado:** cambio planificado; solo creación/actualización documental autorizada.
-Todas sus tareas runtime están pendientes. Depende de terminar Foundation y preparar
-los casos/seams de cada slice; no se declara Implementation Ready por validar
-Markdown. Inventario real, acceso a datos, ejecución del corte o borrado requieren
-su autorización operativa posterior. No cambia el estado de trabajo de Foundation.
+**Estado:** cambio planificado; autoría documental y diagnóstico sintético acotado
+Q4/Q5 autorizados, no implementación.
+Todas sus tareas runtime están pendientes. Usa el handoff de Foundation archivada;
+el [plan ejecutable](execution-plan.md) concreta S1–S11 con 57 tareas, casos/seams,
+comandos futuros y checkpoints. DDL/funciones, cotas/herramientas de diagnóstico y
+procedimientos de recuperación están especificados en sus referencias propietarias;
+la revisión semántica de readiness es distinta de validar Markdown. Inventario real, acceso a datos, ejecución del corte o borrado requieren
+su autorización operativa posterior. No reabre ni modifica la evidencia de Foundation.
 
 ## Capabilities
 
 ### New Capabilities
 
 - `compatible-platform-persistence`: esquema y port modular compatible de identidad,
-  Training, notificaciones, coach, auditoría y consumidores.
+  Training, notificaciones, coach, auditoría y consumidores vigentes, con cleanup
+  verificable; sin reconstruir el consumidor MCP retirado.
 - `local-platform-operation`: ambientes/roles/imágenes, respaldo, restauración,
   diagnóstico, corte y retirada verificables para la instancia personal local.
 
@@ -42,9 +57,10 @@ vigentes se conservan; estas deltas no acreditan entrega ni cambian el runtime a
 ## Impact
 
 Futura implementación en backend Python, frontend intervenido por recorrido, shared,
-Alembic, contenedores, CI y documentación operativa. Esta revisión escribe
-únicamente documentación/OpenSpec; no añade dependencias, código, SQL ejecutable,
-credenciales, programaciones, migraciones, imágenes ni datos reales.
+Alembic, contenedores, CI y documentación operativa. Esta revisión modifica solo
+documentación/OpenSpec en el repositorio; los diagnósticos Q4/Q5 usan scripts temporales
+e imágenes desechables fuera del producto. No añade dependencias ni código de
+producto, SQL entregable, credenciales, programaciones, migraciones o datos reales.
 
 Autoridad: [PRD](../../../docs/open-gym-evolution.prd.md),
 [arquitectura](../../../docs/open-gym-evolution.architecture.md),
