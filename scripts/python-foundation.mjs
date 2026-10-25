@@ -11,9 +11,11 @@ dockerEnv.COMPOSE_DISABLE_ENV_FILE = 'true';
 const compose = project => ['compose', '--project-directory', root, '--env-file', emptyEnv, '-f', composeFile, '-p', project];
 let activeChild;
 
-function docker(args, live = false) {
+const docker = (args, live = false) => execute('docker', args, live);
+
+function execute(program, args, live = false) {
   return new Promise((resolve, reject) => {
-    const child = spawn('docker', args, { cwd: root, env: dockerEnv, timeout: 300_000, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(program, args, { cwd: root, env: dockerEnv, timeout: 300_000, stdio: ['ignore', 'pipe', 'pipe'] });
     activeChild = child;
     const chunks = [];
     let size = 0;
@@ -26,12 +28,18 @@ function docker(args, live = false) {
         else chunks.push(data);
       }
     });
-    child.stderr.on('data', data => { if (live) process.stderr.write(data); });
-    child.on('error', () => reject(new Error('Docker unavailable')));
+    child.stderr.on('data', data => {
+      if (live) process.stderr.write(data);
+      else {
+        size += data.length;
+        if (size > 4 * 1024 * 1024) { overflow = true; child.kill('SIGTERM'); }
+      }
+    });
+    child.on('error', () => reject(new Error(program === 'docker' ? 'Docker unavailable' : 'Foundation harness unavailable')));
     child.on('close', code => {
       activeChild = undefined;
       if (code === 0 && !overflow) resolve(Buffer.concat(chunks).toString('utf8'));
-      else reject(new Error(`Docker ${args[0]} failed`));
+      else reject(new Error(program === 'docker' ? `Docker ${args[0]} failed` : 'Foundation Docker regressions failed; run node --test scripts/python-foundation.test.mjs'));
     });
   });
 }
@@ -84,7 +92,15 @@ async function cleanup(project) {
 }
 
 async function run(group) {
-  if (!['environment', 'contracts', 'pool', 'migrations', 'isolation', 'recovery'].includes(group)) throw new Error(`Python Foundation group not implemented: ${group}`);
+  if (group === 'all') {
+    for (const proof of ['contracts', 'environment', 'pool', 'migrations', 'isolation', 'recovery', 'checks']) await run(proof);
+    const output = await execute(process.execPath, ['--test', 'scripts/python-foundation.test.mjs']);
+    if (/\bskipped [1-9]\d*|\b[1-9]\d* skipped\b/.test(output)) throw new Error('Required Docker proof skipped');
+    console.log(JSON.stringify({ code: 'FOUNDATION_DOCKER_REGRESSIONS_OK' }));
+    console.log(JSON.stringify({ code: 'FOUNDATION_ALL_OK' }));
+    return;
+  }
+  if (!['environment', 'contracts', 'pool', 'migrations', 'isolation', 'recovery', 'checks'].includes(group)) throw new Error(`Python Foundation group not implemented: ${group}`);
   const project = `opengym-python-foundation-test-${randomBytes(8).toString('hex')}`;
   console.log(`Python Foundation project: ${project}`);
   if ((await resources(project)).length) throw new Error('Refusing an existing Python Foundation project');
@@ -99,9 +115,10 @@ async function run(group) {
   process.on('SIGTERM', stop);
   try {
     await step(['config', '--quiet']);
-    if (group === 'contracts') {
-      await step(['build', 'foundation-contracts']);
-      await step(['run', '--rm', '--no-deps', 'foundation-contracts', group]);
+    if (['contracts', 'checks'].includes(group)) {
+      const service = group === 'contracts' ? 'foundation-contracts' : 'foundation-test';
+      await step(['build', service]);
+      await step(['run', '--rm', '--no-deps', service, group]);
     } else {
       await step(['build', 'foundation-test', ...(group === 'environment' ? ['foundation-contracts'] : [])]);
       if (group === 'environment') await step(['run', '--rm', '--no-deps', 'foundation-contracts', 'environment']);

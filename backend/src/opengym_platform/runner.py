@@ -54,29 +54,45 @@ def main() -> int:
         "isolation": ("tests/test_isolation.py",),
         "recovery": ("tests/test_recovery.py",),
     }
-    if len(sys.argv) != 2 or sys.argv[1] not in tests:
+    if len(sys.argv) != 2 or sys.argv[1] not in (*tests, "checks"):
         print(json.dumps({"code": "FOUNDATION_GROUP_UNAVAILABLE"}))
         return 1
     group = sys.argv[1]
+    commands = (
+        [
+            ["uv", "lock", "--check", "--offline"],
+            ["uv", "pip", "check"],
+            ["ruff", "check", "--no-cache", "src", "tests"],
+            ["ruff", "format", "--check", "--no-cache", "src", "tests"],
+            ["mypy", "--cache-dir", "/dev/null", "src", "tests"],
+        ]
+        if group == "checks"
+        else [
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                "--tb=short",
+                *tests[group],
+            ]
+        ]
+    )
     try:
         # Private tmpfs spools bound memory even when a failed child is noisy.
         with TemporaryFile() as stdout, TemporaryFile() as stderr:
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "pytest",
-                    "-q",
-                    "-p",
-                    "no:cacheprovider",
-                    "--tb=short",
-                    *tests[group],
-                ],
-                check=False,
-                timeout=60,
-                stdout=stdout,
-                stderr=stderr,
-            )
+            for command in commands:
+                result = subprocess.run(
+                    command,
+                    check=False,
+                    timeout=60,
+                    stdout=stdout,
+                    stderr=stderr,
+                )
+                if result.returncode != 0:
+                    break
             if stdout.tell() + stderr.tell() > _MAX_OUTPUT:
                 print(json.dumps({"code": "FOUNDATION_OUTPUT_LIMIT"}))
                 return 1
@@ -90,6 +106,9 @@ def main() -> int:
             print(
                 json.dumps({"code": "FOUNDATION_DIAGNOSTIC_LEAK", "category": category})
             )
+            return 1
+        if re.search(r"\b[1-9]\d* (?:skipped|xfailed|xpassed|deselected)\b", captured):
+            print(json.dumps({"code": "FOUNDATION_REQUIRED_PROOF_SKIPPED"}))
             return 1
         sys.stdout.write(output)
         sys.stderr.write(diagnostic)

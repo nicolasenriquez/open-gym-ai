@@ -23,6 +23,11 @@ dev = [
   "mypy==2.4.0",
 ]
 
+# asyncpg ships no typing marker; keep the exception local to that driver.
+[[tool.mypy.overrides]]
+module = ["asyncpg", "asyncpg.*"]
+ignore_missing_imports = true
+
 [tool.uv]
 package = false
 

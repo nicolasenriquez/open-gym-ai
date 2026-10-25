@@ -217,11 +217,44 @@ test('contracts fails explicitly when its Docker endpoint is unavailable', () =>
   assert.match(result.stderr, /Docker (container failed|unavailable)/);
 });
 
-test('known unfinished groups fail explicitly instead of reporting successful proofs', () => {
-  for (const group of ['all']) {
-    const result = invoke(cli, ['run', group], { env: { ...process.env, PATH: '' } });
-    assert.equal(result.status, 1, group);
-    assert.match(result.stderr, /group not implemented/);
+test('all fails on an unavailable real database without crediting proofs and cleans up', t => {
+  const entry = failureCheckout(t, "raise SystemExit('FOUNDATION_DATABASE_PROOF_MUST_NOT_RUN')");
+  const config = join(dirname(dirname(entry)), 'compose.python-foundation.yml');
+  writeFileSync(config, readFileSync(config, 'utf8').replace('  foundation-db:\n',
+    '  foundation-db:\n    entrypoint: ["sh", "-c", "exit 23"]\n'));
+  const result = invoke(entry, ['run', 'all'], { timeout: 600_000, maxBuffer: 8 * 1024 * 1024 });
+  const project = result.stdout.match(/Python Foundation project: (opengym-python-foundation-test-[a-f0-9]{16})/)?.[1];
+  assert.equal(result.status, 1);
+  assert.ok(project, 'all must attempt its real prerequisite, not reject an unimplemented group');
+  assert.match(result.stderr, /exited \(23\)[\s\S]*Docker compose failed/);
+  assert.doesNotMatch(result.stdout + result.stderr, /FOUNDATION_(?:ALL_OK|DATABASE_PROOF_MUST_NOT_RUN)|\bskipped\b/i);
+  assert.match(result.stdout, /Python Foundation cleanup complete/);
+  for (const [, owned] of result.stdout.matchAll(/Python Foundation project: (opengym-python-foundation-test-[a-f0-9]{16})/g)) assertProjectEmpty(owned);
+});
+
+test('workflow selects Python Foundation for environment-only changes without weakening existing jobs', () => {
+  const legacy = readFileSync(join(root, '.github/workflows/test.yml'), 'utf8');
+  const workflow = readFileSync(join(root, '.github/workflows/python-foundation.yml'), 'utf8');
+  assert.match(workflow, /^  python-foundation:\s*$/m);
+  const job = workflow.split(/^  python-foundation:\s*$/m)[1].split(/^  [\w-]+:\s*$/m)[0];
+  // Dedicated workflow filters must cover PR and push, including environment-only edits.
+  for (const path of ['backend/**', 'scripts/python-foundation*', 'compose.python-foundation.yml', 'openspec/**',
+    'api/**', 'frontend/**', 'mcp/**', '.github/workflows/python-foundation.yml', '.dockerignore', 'scripts/build-api-docs.mjs', 'LICENSE']) {
+    assert.equal(workflow.split(`- '${path}'`).length - 1, 2, `select ${path} on both events`);
+  }
+  assert.doesNotMatch(workflow, /paths-ignore:/);
+  assert.doesNotMatch(job, /^\s+(?:if|continue-on-error):/m);
+  assert.match(job, /run: node scripts\/python-foundation\.mjs run all/);
+  const versions = JSON.parse(readFileSync(join(root, 'backend/versions.json'), 'utf8'));
+  assert.ok(job.includes(`driver-opts: image=${versions.buildkitImage}`));
+  for (const scope of ['python-foundation-test', 'python-foundation-contracts']) {
+    assert.ok(job.includes(`cache-from: type=gha,scope=${scope}`));
+    assert.ok(job.includes(`cache-to: type=gha,scope=${scope},mode=max`));
+  }
+  assert.equal(job.match(/push: false/g)?.length, 2);
+  assert.doesNotMatch(job, /push: true|continue-on-error/);
+  for (const name of ['foundation', 'test', 'mcp', 'api', 'api-image']) {
+    assert.match(legacy, new RegExp(`^  ${name}:`, 'm'));
   }
 });
 
@@ -358,7 +391,7 @@ test('real containers enforce isolation and cleanup refuses a shared image befor
   console.log('Real isolation: UID/GID 1000, read-only root, private tmpfs/network/volume; shared-tag preflight and sentinel preserved');
 });
 
-test('a deliberate test failure after DB startup returns nonzero, cleans up and preserves a foreign sentinel', t => {
+for (const group of ['environment', 'all']) test(`${group}: a deliberate test failure after DB startup returns nonzero, cleans up and preserves a foreign sentinel`, t => {
   const entry = failureCheckout(t, "import socket,sys; socket.create_connection(('foundation-db',5432),5).close(); print('FOUNDATION_EXPECTED_TEST_FAILURE',file=sys.stderr,flush=True); sys.exit(23)");
   const token = randomBytes(8).toString('hex');
   const sentinel = `opengym-python-foundation-sentinel-${token}`;
@@ -378,7 +411,7 @@ test('a deliberate test failure after DB startup returns nonzero, cleans up and 
       ok(docker('volume', 'rm', sentinel));
     }
   });
-  const result = invoke(entry, ['run', 'environment'], { timeout: 600_000, maxBuffer: 8 * 1024 * 1024,
+  const result = invoke(entry, ['run', group], { timeout: 600_000, maxBuffer: 8 * 1024 * 1024,
     env: { ...process.env, COMPOSE_FILE: 'foreign-compose.yml', COMPOSE_PROJECT_NAME: 'opengym-personal',
       POSTGRES_PASSWORD: 'synthetic-poison-not-used', DATA_DIR: '/not-a-real-data-directory' } });
   project = result.stdout.match(/Python Foundation project: (opengym-python-foundation-test-[a-f0-9]{16})/)?.[1];
@@ -388,7 +421,7 @@ test('a deliberate test failure after DB startup returns nonzero, cleans up and 
   assert.match(result.stdout, /FOUNDATION_FIXTURE_NODE_OK/);
   assert.match(result.stdout, /Python Foundation cleanup complete/);
   assert.doesNotMatch(result.stdout, /FOUNDATION_ENVIRONMENT_OK/);
-  assertProjectEmpty(project);
+  for (const [, owned] of result.stdout.matchAll(/Python Foundation project: (opengym-python-foundation-test-[a-f0-9]{16})/g)) assertProjectEmpty(owned);
   assert.deepEqual(inspect('volume', sentinel), snapshot);
   console.log('Deliberate target failure after a real DB connection: exit 1, automatic cleanup, sentinel unchanged');
 });
@@ -417,6 +450,54 @@ test('the real Node target rejects an API process that exits before readiness wi
   assert.doesNotMatch(result.stderr, /FOUNDATION_PYTHON_MUST_NOT_RUN/);
   assert.match(result.stdout, /Python Foundation cleanup complete/);
   assertProjectEmpty(project);
+});
+
+test('a successful target cannot hide cleanup failure and preserves a shared image', async t => {
+  const entry = failureCheckout(t, 'raise SystemExit(23)');
+  const checkout = dirname(dirname(entry));
+  const versions = JSON.parse(readFileSync(join(root, 'backend/versions.json'), 'utf8'));
+  const script = "process.on('SIGTERM',()=>process.exit(0)); console.log('FOUNDATION_CLEANUP_PROBE_READY'); setInterval(()=>{},1000)";
+  writeFileSync(join(checkout, 'backend/Dockerfile.contracts'), `FROM ${versions.nodeImage}\nENTRYPOINT ["node", "-e", ${JSON.stringify(script)}]\n`);
+  const child = spawn(process.execPath, [entry, 'run', 'contracts'], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const closed = new Promise(resolve => child.once('close', (code, signal) => resolve({ code, signal })));
+  let project;
+  let output = '';
+  let diagnostic = '';
+  const alias = `opengym-python-foundation-probe-${randomBytes(8).toString('hex')}:alias`;
+  let tagged = false;
+  t.after(async () => {
+    child.kill('SIGKILL');
+    await closed;
+    if (tagged) ok(docker('image', 'rm', alias));
+    if (project) {
+      assert.equal(invoke(cli, ['cleanup', project]).status, 0);
+      assertProjectEmpty(project);
+    }
+  });
+  child.stderr.on('data', chunk => { diagnostic += chunk; });
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Cleanup probe startup deadline')), 180_000);
+    child.once('error', error => { clearTimeout(timer); reject(error); });
+    child.once('exit', () => { clearTimeout(timer); reject(new Error('Cleanup probe exited early')); });
+    child.stdout.on('data', chunk => {
+      output += chunk;
+      project ??= output.match(/Python Foundation project: (opengym-python-foundation-test-[a-f0-9]{16})/)?.[1];
+      if (output.includes('FOUNDATION_CLEANUP_PROBE_READY')) { clearTimeout(timer); resolve(); }
+    });
+  });
+  assert.ok(project);
+  const image = `${project}-foundation-contracts:local`;
+  ok(docker('image', 'tag', image, alias));
+  tagged = true;
+  const snapshot = inspect('image', image);
+  const container = ok(docker('container', 'ls', '--quiet', '--filter', `label=com.docker.compose.project=${project}`,
+    '--filter', 'label=com.docker.compose.service=foundation-contracts'));
+  assert.ok(container);
+  ok(docker('container', 'kill', '--signal', 'SIGTERM', container));
+  assert.equal((await closed).code, 1, 'a successful target must still fail when cleanup refuses ownership');
+  assert.match(diagnostic, /Refusing unverified .*resource/);
+  assert.doesNotMatch(output, /Python Foundation cleanup complete|FOUNDATION_ALL_OK/);
+  assert.deepEqual(inspect('image', image), snapshot);
 });
 
 test('hard kill leaves only its own resources and the printed project supports explicit cleanup', async t => {
