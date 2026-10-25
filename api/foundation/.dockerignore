@@ -1,7 +1,8 @@
 **
 !Dockerfile
 !package.json
-!package-lock.json
+!pnpm-lock.yaml
+!dependency-licenses.json
 !versions.json
 !*.mjs
 !migrations/

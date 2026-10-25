@@ -234,15 +234,12 @@ test('all fails on an unavailable real database without crediting proofs and cle
 
 test('workflow selects Python Foundation for environment-only changes without weakening existing jobs', () => {
   const legacy = readFileSync(join(root, '.github/workflows/test.yml'), 'utf8');
-  const workflow = readFileSync(join(root, '.github/workflows/python-foundation.yml'), 'utf8');
+  const workflow = legacy;
   assert.match(workflow, /^  python-foundation:\s*$/m);
   const job = workflow.split(/^  python-foundation:\s*$/m)[1].split(/^  [\w-]+:\s*$/m)[0];
-  // Dedicated workflow filters must cover PR and push, including environment-only edits.
-  for (const path of ['backend/**', 'scripts/python-foundation*', 'compose.python-foundation.yml', 'openspec/**',
-    'api/**', 'frontend/**', 'mcp/**', '.github/workflows/python-foundation.yml', '.dockerignore', 'scripts/build-api-docs.mjs', 'LICENSE']) {
-    assert.equal(workflow.split(`- '${path}'`).length - 1, 2, `select ${path} on both events`);
-  }
-  assert.doesNotMatch(workflow, /paths-ignore:/);
+  assert.match(workflow, /pull_request:/);
+  assert.match(workflow, /branches: \[main, coach\]/);
+  assert.doesNotMatch(workflow, /paths:|paths-ignore:/);
   assert.doesNotMatch(job, /^\s+(?:if|continue-on-error):/m);
   assert.match(job, /run: node scripts\/python-foundation\.mjs run all/);
   const versions = JSON.parse(readFileSync(join(root, 'backend/versions.json'), 'utf8'));
@@ -253,7 +250,7 @@ test('workflow selects Python Foundation for environment-only changes without we
   }
   assert.equal(job.match(/push: false/g)?.length, 2);
   assert.doesNotMatch(job, /push: true|continue-on-error/);
-  for (const name of ['foundation', 'test', 'mcp', 'api', 'api-image']) {
+  for (const name of ['foundation', 'test', 'api', 'api-image']) {
     assert.match(legacy, new RegExp(`^  ${name}:`, 'm'));
   }
 });

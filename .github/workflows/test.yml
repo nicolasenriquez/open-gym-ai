@@ -14,15 +14,74 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.34.8
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run lint:ci
+      - run: node --test scripts/ci/*.test.mjs
+      - name: Audit every JavaScript lock, including optional Coach dependencies
+        run: |
+          pnpm audit
+          pnpm --dir frontend audit
+          pnpm --dir api audit
+          pnpm --dir api/foundation audit
+      - run: docker build -f backend/Dockerfile.security -t opengym-security:ci .
+      - name: Workflow security (offline)
+        run: docker run --rm --network none --read-only --tmpfs /tmp opengym-security:ci zizmor --offline .github/workflows
+      - name: Python source security
+        run: docker run --rm --network none --read-only --tmpfs /tmp opengym-security:ci bandit -r src -ll -ii
+      - name: Audit locked Python application, development and security dependencies
+        run: |
+          docker run --rm --read-only --tmpfs /tmp opengym-security:ci sh -ec '
+            uv export --locked --all-groups --no-emit-project --output-file /tmp/application.txt >/dev/null
+            uv export --project /tools --locked --no-emit-project --output-file /tmp/security.txt >/dev/null
+            pip-audit --require-hashes --disable-pip -r /tmp/application.txt
+            pip-audit --require-hashes --disable-pip -r /tmp/security.txt
+          '
+
+  codeql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      # CodeQL uploads SARIF to code scanning; no other job gets write access.
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+
   documentation:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.34.8
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
-      - run: npm ci --ignore-scripts --include=dev
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node scripts/docs/okf.mjs check
       - run: node --test scripts/docs/okf.test.mjs
 
@@ -30,14 +89,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
       - name: Validate the catalogue
         run: node scripts/catalogue/validate.mjs
       - name: Generated files are up to date
         run: node scripts/catalogue/build.mjs --check
+      - run: node --test scripts/catalogue/build.test.mjs
       - name: Media stay within 180 px (licence)
         run: node scripts/catalogue/check-media.mjs
 
@@ -45,8 +107,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22.23.2'
       - name: Synthetic PostgreSQL proofs (same entry as local)
@@ -56,20 +120,26 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.34.8
       # node:22-alpine in web/Dockerfile and api/Dockerfile — CI must match production.
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-      - run: npm ci
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile --ignore-scripts
         working-directory: frontend
-      - run: npm test
+      - run: pnpm test
         working-directory: frontend
       # A broken import or bad JSX fails the build long before any test covers it.
-      - run: npm run build
+      - run: pnpm run build
         working-directory: frontend
       - run: node scripts/check-locales.mjs
         working-directory: frontend
@@ -80,53 +150,39 @@ jobs:
         working-directory: frontend
       # The fatigue model must never read higher after a rest day than before it.
       # Property probe over ~108k comparisons; too slow for the unit suite, cheap here.
-      - run: npm run test:fatigue-probe
+      - run: pnpm run test:fatigue-probe
         working-directory: frontend
 
 
-  mcp:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: mcp/package-lock.json
-      - run: npm ci
-        working-directory: mcp
-      - run: npm test
-        working-directory: mcp
-      # The one check the vitest suite structurally cannot make. The MCP server is a bare node
-      # process, but vitest runs its tests through Vite — import.meta.glob, .jsx imports and
-      # ?raw all resolve happily there. That is how a Vite-only import reached a shared lib
-      # module with 33 green tests standing over a server that died on startup.
-      - run: npm run check:node-loadable
-        working-directory: mcp
-
   api:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.34.8
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: api/package-lock.json
+          cache: pnpm
+          cache-dependency-path: api/pnpm-lock.yaml
       # The Coach tests run on node:test and drive the in-repo fixture provider plus a local mock
       # of the Chat Completions shape, so the job needs no AI account and no network — but it does
       # need the api's own dependencies since the server-side fetch moved onto undici (the
       # Agent SDK is optional and stays out).
-      - run: npm ci --omit=optional
+      - run: pnpm install --frozen-lockfile --no-optional --ignore-scripts
         working-directory: api
-      - run: npm test
+      - run: pnpm test
         working-directory: api
       # The api's copy of the exercise catalogue is generated and committed. A dataset change
       # that forgets to regenerate it would otherwise only surface as "the Coach can't find
       # that exercise" on somebody's instance.
       - run: node scripts/build-coach-assets.mjs --check
       # website/api.html is generated from api/openapi.yaml and committed. Same reason.
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node scripts/build-api-docs.mjs --check
       - run: node api/scripts/check-core-loadable.mjs
 
@@ -136,37 +192,26 @@ jobs:
   # resolves the Agent SDK's per-platform runtime (musl on this base), which is the one thing
   # that cannot be checked from the source tree.
   api-image:
+    needs: [quality, test, api]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
+      - run: docker build -f web/Dockerfile -t opengym-web:ci .
       - run: docker build --target default -t opengym-api:default ./api
       - run: docker build --target coach   -t opengym-api:coach   ./api
       # An untargeted build uses the last Dockerfile stage. Verify it remains runtime-free
       # for consumers building without --target, independently of the explicit default build.
       - run: docker build -t opengym-api:published ./api
 
-      - name: the image published as :latest has no AI runtime either
-        run: |
-          docker run --rm opengym-api:published node -e \
-            'import("@anthropic-ai/claude-agent-sdk").then(()=>{console.error("AI runtime present in the published image -- the last Dockerfile stage is no longer the runtime-free one");process.exit(1)},()=>process.exit(0))'
-          ! docker run --rm opengym-api:published codex --version
-          ! docker run --rm opengym-api:published bwrap --version
+      - name: The untargeted image excludes AI packages and executables
+        run: docker run --rm -i opengym-api:published node --input-type=module < scripts/ci/assert-no-ai-executables.mjs
 
-      - name: the default image boots and serves, with no AI runtime in it
-        run: |
-          docker run -d --name api-default -e DATA_DIR=/data -p 3000:3000 opengym-api:default
-          for i in $(seq 1 30); do
-            curl -fsS http://localhost:3000/api/config >/dev/null 2>&1 && break
-            sleep 1
-          done
-          curl -fsS http://localhost:3000/api/config | tee /dev/stderr | grep -q '"invite_only"'
-          # Absent by construction, not by accident: --omit=optional is the only thing keeping
-          # the AI dependency out of the image an owner gets when they never asked for it.
-          docker run --rm opengym-api:default node -e \
-            'import("@anthropic-ai/claude-agent-sdk").then(()=>{console.error("AI runtime present in the default image");process.exit(1)},()=>process.exit(0))'
-          docker rm -f api-default
-
+      - name: Packaged web/API smoke
+        run: node scripts/ci/smoke-web-api.mjs
       - name: the coach image carries a runnable Agent SDK
         run: |
           docker run --rm opengym-api:coach node --input-type=module -e '
@@ -178,21 +223,62 @@ jobs:
 
       - name: the coach image carries the Codex runtime and its sandbox
         run: |
-          docker run --rm opengym-api:coach codex --version
+          docker run --rm --network none -e DATA_DIR=/tmp opengym-api:coach node --input-type=module -e '
+            const cfg = await import("./coach/config.js");
+            const { adapterFor } = await import("./coach/adapters/index.js");
+            cfg.save({ provider: "codex" });
+            const result = await adapterFor("codex").check(cfg.load(), cfg.jobEnv("/tmp"));
+            if (!result.ok) { console.error(result.error); process.exit(1); }
+            console.log(result.version);
+          '
           docker run --rm opengym-api:coach bwrap --version
           # Owned by the user jobs drop to, and 0700 — a credential cache readable by anything
           # else in the container would undo the point of dropping privileges at all.
           test "$(docker run --rm opengym-api:coach stat -c '%U %a' /coach-auth)" = "coach 700"
 
-      - name: neither Codex nor its sandbox is in the default image
+      - name: the default image excludes AI packages and executables
         run: |
           # bubblewrap is a Codex requirement, so an owner who never opted in should not be
           # carrying it. Both commands must fail.
-          ! docker run --rm opengym-api:default codex --version 2>/dev/null
-          ! docker run --rm opengym-api:default bwrap --version 2>/dev/null
+          docker run --rm -i opengym-api:default node --input-type=module < scripts/ci/assert-no-ai-executables.mjs
 
       - name: the privilege drop can actually be performed in the image
         run: |
           # canDropPrivileges() fails closed, so a missing `coach` user disables every job —
           # including the fixture provider. Cheaper to assert here than to discover on an instance.
           docker run --rm opengym-api:default id coach
+
+  python-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22.23.2'
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        id: foundation-builder
+        with:
+          driver-opts: image=moby/buildkit:v0.29.0@sha256:0039c1d47e8748b5afea56f4e85f14febaf34452bd99d9552d2daa82262b5cc5
+      # Layer caches are image-scoped; download cache mounts stay builder-local.
+      # No image is pushed. A cache failure never bypasses the proofs.
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: false
+          cache-from: type=gha,scope=python-foundation-test
+          cache-to: type=gha,scope=python-foundation-test,mode=max
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: backend/Dockerfile.contracts
+          push: false
+          cache-from: type=gha,scope=python-foundation-contracts
+          cache-to: type=gha,scope=python-foundation-contracts,mode=max
+      - run: node scripts/python-foundation.mjs run all
+        env:
+          BUILDX_BUILDER: ${{ steps.foundation-builder.outputs.name }}
+      - run: node --test scripts/python-foundation-build.test.mjs

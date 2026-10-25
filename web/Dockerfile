@@ -4,7 +4,7 @@
 # --platform=$BUILDPLATFORM pins the build stage to the host's native arch even when
 # cross-building for other targets (e.g. amd64 host building an arm64 image). The build
 # output (static JS/CSS/HTML) is arch-independent, so there's no reason to run it under
-# QEMU — and QEMU-emulated npm installs are known to corrupt esbuild/rollup's platform-
+# QEMU — and QEMU-emulated package installs are known to corrupt esbuild/rollup's platform-
 # specific native binaries, which is what breaks `vite build` with unrelated-looking
 # module-resolution errors.
 FROM --platform=$BUILDPLATFORM node:22-alpine AS build
@@ -12,19 +12,20 @@ FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 # api/coach/core and is imported from frontend/src as ../../../api/coach/core/*, so the two
 # have to keep the same relative position they have in the repository. Copying frontend/ alone
 # is exactly what made the v1.2.15 web image fail to build.
+RUN corepack enable && corepack prepare pnpm@10.34.8 --activate
 WORKDIR /app/frontend
-COPY frontend/package.json frontend/package-lock.json* ./
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
 # --ignore-scripts: the web image only needs `vite build`; the one heavy postinstall in this tree
 # (@capacitor/assets -> sharp, a libvips download from GitHub) is for drawing app icons and has
 # timed out on the shared runners — a lockfile-ignoring `npm install` fallback is no answer to that.
-RUN npm ci --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY api/coach/core/ /app/api/coach/core/
 COPY frontend/ ./
 # Which build this is, shown in the app as "1.3.8+<build>" next to the version. Without it every
 # image built between two releases calls itself the same thing, and "which build are you running?"
 # cannot be answered from the phone. Unset, the app reports package.json's version as before.
 ARG APP_BUILD=""
-RUN APP_BUILD="$APP_BUILD" npm run build
+RUN APP_BUILD="$APP_BUILD" pnpm run build
 
 FROM nginxinc/nginx-unprivileged:alpine
 # Same reason as in api/Dockerfile: alpine fixes land faster than the nginx image is rebuilt.

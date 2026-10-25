@@ -1,29 +1,23 @@
 FROM node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9 AS base
-RUN mkdir -p /app/api /app/frontend /app/mcp && chown -R node:node /app
+RUN corepack enable && corepack prepare pnpm@10.34.8 --activate
+RUN mkdir -p /app/api /app/frontend && chown -R node:node /app
 USER node
 
 FROM base AS api-deps
 WORKDIR /app/api
-COPY --chown=node:node api/package.json api/package-lock.json ./
-RUN --mount=type=cache,id=opengym-python-foundation-npm,target=/home/node/.npm,uid=1000,gid=1000 \
-    npm ci --ignore-scripts --omit=optional --engine-strict --no-audit --no-fund && test "$(node --version)" = v22.23.2 && test "$(npm --version)" = 10.9.8
+COPY --chown=node:node api/package.json api/pnpm-lock.yaml ./
+RUN --mount=type=cache,id=opengym-python-foundation-pnpm,target=/home/node/.local/share/pnpm/store,uid=1000,gid=1000 \
+    pnpm install --frozen-lockfile --ignore-scripts --engine-strict --no-optional --package-import-method=copy && test "$(node --version)" = v22.23.2 && test "$(pnpm --version)" = 10.34.8
 
 FROM base AS frontend-deps
 WORKDIR /app/frontend
-COPY --chown=node:node frontend/package.json frontend/package-lock.json ./
-RUN --mount=type=cache,id=opengym-python-foundation-npm,target=/home/node/.npm,uid=1000,gid=1000 \
-    npm ci --ignore-scripts --engine-strict --no-audit --no-fund
-
-FROM base AS mcp-deps
-WORKDIR /app/mcp
-COPY --chown=node:node mcp/package.json mcp/package-lock.json ./
-RUN --mount=type=cache,id=opengym-python-foundation-npm,target=/home/node/.npm,uid=1000,gid=1000 \
-    npm ci --ignore-scripts --engine-strict --no-audit --no-fund
+COPY --chown=node:node frontend/package.json frontend/pnpm-lock.yaml ./
+RUN --mount=type=cache,id=opengym-python-foundation-pnpm,target=/home/node/.local/share/pnpm/store,uid=1000,gid=1000 \
+    pnpm install --frozen-lockfile --ignore-scripts --engine-strict --package-import-method=copy
 
 FROM base
 COPY --from=api-deps --chown=node:node /app/api/ /app/api/
 COPY --from=frontend-deps --chown=node:node /app/frontend/ /app/frontend/
-COPY --from=mcp-deps --chown=node:node /app/mcp/ /app/mcp/
 WORKDIR /app/api
 COPY --chown=node:node api/*.js ./
 COPY --chown=node:node api/coach/ ./coach/
@@ -32,9 +26,6 @@ COPY --chown=node:node api/openapi.yaml ./
 COPY --chown=node:node frontend/src/ /app/frontend/src/
 COPY --chown=node:node frontend/scripts/ /app/frontend/scripts/
 COPY --chown=node:node frontend/vite.config.js /app/frontend/
-COPY --chown=node:node mcp/src/ /app/mcp/src/
-COPY --chown=node:node mcp/test/ /app/mcp/test/
-COPY --chown=node:node mcp/vitest.config.js /app/mcp/
 COPY --chown=node:node scripts/build-api-docs.mjs /app/scripts/
 COPY --chown=node:node backend/contracts/ /app/contracts/
 COPY --chown=node:node backend/contracts-run.mjs backend/contracts-compare.test.mjs backend/versions.json LICENSE /app/

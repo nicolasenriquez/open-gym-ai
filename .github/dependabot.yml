@@ -1,7 +1,7 @@
 # Dependency updates, deliberately quiet.
 #
 # openGym is dependency-light on purpose: the frontend is React + Router + Zustand, and api/
-# has two runtime dependencies. A default Dependabot setup would still open a PR per package
+# has a small runtime dependency set. A default Dependabot setup would still open a PR per package
 # per week, which on a solo project means the alerts stop being read — the opposite of what
 # this is for. So: monthly, everything in an ecosystem grouped into a single PR, and a low
 # cap on open PRs. Security advisories are unaffected by any of this; GitHub raises those
@@ -35,10 +35,10 @@ updates:
         patterns: ['*']
         update-types: ['major']
     ignore:
-      # Capacitor 8 needs Node >= 22 (its own `engines` field) and the build host is on 20, and
+      # Capacitor 8 needs Node >= 22 (its own `engines` field) and upgrading also changes native shells;
       # `frontend/android` + `frontend/ios` are committed, so a major also means migrating the
       # native projects — Gradle/AGP, the Podfile. That is a deliberate piece of work, not a
-      # dependency bump. Drop this ignore once the build host is on Node 22 and you want it.
+      # dependency bump. Drop this ignore only for an intentional native-platform migration.
       - dependency-name: '@capacitor/*'
         update-types: ['version-update:semver-major']
 
@@ -52,7 +52,7 @@ updates:
       api:
         patterns: ['*']
         update-types: ['minor', 'patch']
-      # Two dependencies, but one of them verifies passkeys — a major there is worth reading on
+      # One dependency verifies passkeys — a major there is worth reading on
       # its own rather than alongside anything else.
       api-major:
         patterns: ['*']
@@ -100,3 +100,34 @@ updates:
       actions-major:
         patterns: ['*']
         update-types: ['major']
+
+  # pnpm uses Dependabot's npm ecosystem; keep tooling and synthetic harnesses covered.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      documentation-quality:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /api/foundation
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      node-foundation:
+        patterns: ['*']
+  - package-ecosystem: uv
+    directories: [/backend, /backend/security]
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      python-foundation:
+        patterns: ['*']
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1

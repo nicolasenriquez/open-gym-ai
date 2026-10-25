@@ -2,6 +2,11 @@
   "devDependencies": {
     "github-slugger": "^2.0.0",
     "js-yaml": "^4.1.0",
-    "markdown-it": "^15.0.3"
+    "markdown-it": "^15.0.3",
+    "oxlint": "1.63.0"
+  },
+  "packageManager": "pnpm@10.34.8",
+  "scripts": {
+    "lint:ci": "oxlint frontend/src api scripts backend"
   }
 }

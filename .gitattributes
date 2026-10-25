@@ -19,3 +19,6 @@ docker-compose*.yml text eol=lf
 docs/dev/personal-recovery-discovery.md text eol=lf
 docs/research/*.md text eol=lf
 scripts/docs/*.mjs text eol=lf
+
+# The Node Foundation inventory verifies this lock's SHA-256 inside Docker.
+api/foundation/pnpm-lock.yaml text eol=lf

@@ -1,0 +1,73 @@
+{
+  "sourceRevision": "1b2daff9199611604783faabf76cd741123cec95",
+  "suites": [
+    {
+      "id": "comparator.reference.v1",
+      "cwd": "api",
+      "args": [
+        "--test",
+        "../contracts-compare.test.mjs"
+      ]
+    },
+    {
+      "id": "node.reference.v1",
+      "cwd": "api",
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "test/openapi-routes.test.js",
+        "test/server-bad-input.test.js",
+        "test/server-cors.test.js",
+        "test/server-passkeys.test.js",
+        "test/server-pairing.test.js",
+        "test/device-link.test.js",
+        "test/password.test.js",
+        "test/server-password.test.js",
+        "test/server-config-session.test.js",
+        "test/server-token-refresh.test.js",
+        "test/sync-stamps.test.js",
+        "test/server-data-rev.test.js",
+        "test/server-data-reset.test.js",
+        "test/server-data-wid.test.js",
+        "test/server-admin-state.test.js",
+        "test/server-admin-delete.test.js",
+        "test/server-first-user-admin.test.js",
+        "test/server-push-status.test.js",
+        "test/server-push-filter.test.js",
+        "test/server-reminder.test.js",
+        "test/server-media.test.js",
+        "test/media-refs.test.js",
+        "test/media-gc.test.js",
+        "test/jobs.test.js",
+        "test/config-migration.test.js",
+        "test/adapters.test.js",
+        "test/adapters-http.test.js",
+        "test/payload.test.js"
+      ]
+    },
+    {
+      "id": "client.reference.v1",
+      "cwd": "frontend",
+      "args": [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--configLoader",
+        "runner",
+        "--maxWorkers=1",
+        "src/store/useStore.sync.test.jsx",
+        "src/store/useStore.tabs-owner.test.jsx",
+        "src/store/useStore.hold-signout.test.jsx",
+        "src/lib/sync-legacy.test.js",
+        "src/lib/catalogue-continuity.test.js",
+        "src/lib/import-csv.test.js",
+        "src/lib/import-csv.hostile.test.js",
+        "src/store/useStore.import-restore.test.jsx",
+        "src/lib/backup-media.test.js",
+        "src/lib/fit-export.test.js",
+        "src/lib/coach.test.js",
+        "src/lib/coach-secrets.test.js"
+      ]
+    }
+  ],
+  "scope": "Fork selection: MCP retired; retained upstream expectations unchanged"
+}

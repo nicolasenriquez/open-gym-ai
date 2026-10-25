@@ -31,7 +31,7 @@ node api/foundation/environment.mjs run pool
 
 Host Node only orchestrates Docker. The image runs pinned **Node 22.23.2 as UID
 1000**, PostgreSQL/tools **18.6**; exact digests in `versions.json`. First build
-uses verified TLS and `npm ci --ignore-scripts --engine-strict`, followed by
+uses verified TLS and `pnpm install --frozen-lockfile --ignore-scripts --engine-strict`, followed by
 `check:toolchain`. No host installation. Missing Docker/BD, unknown groups,
 unhealthy startup, failed tests or cleanup return nonzero, never skip silently.
 
@@ -183,33 +183,21 @@ the exact image assertions requires recreating that check.
 
 ## Reproduce toolchain verification
 
-`package-lock.json` v3 fixes 36 packages and license/engine metadata; direct pg
-8.23.1/node-pg-migrate 9.0.0 MIT. All declared licenses MIT/ISC/BlueOak-1.0.0;
-retain notices. No legal/OS package audit claimed. Optional @types/pg/pg-native
-absent by design. npm audit reported zero vulnerabilities at execution time only.
+`pnpm-lock.yaml` fixes the dependency graph. `dependency-licenses.json` preserves
+its reviewed package versions, license/engine metadata and lock SHA-256. Direct pg
+8.23.1/node-pg-migrate 9.0.0 use MIT; retain notices. This is not a legal or OS audit.
+The Docker build runs `pnpm run check:toolchain` with pinned Node/pnpm, verified
+TLS and a frozen install. To reproduce it without a host Node installation:
 
 ```bash
-foundation_source="$(cd api/foundation && (pwd -W 2>/dev/null || pwd))"
-node_image="$(node -p 'require("./api/foundation/versions.json").nodeImage')"
-MSYS_NO_PATHCONV=1 docker run --rm --user 1000:1000 \
-  --mount "type=bind,source=$foundation_source,target=/source,readonly" \
-  --workdir /tmp "$node_image" sh -ec '
-    work=$(mktemp -d)
-    cd "$work"
-    cp /source/package*.json /source/versions.json /source/check-toolchain.mjs .
-    node --version
-    npm --version
-    npm config get strict-ssl
-    npm ci --ignore-scripts --engine-strict --no-audit --no-fund
-    npm run check:toolchain
-    npm ls --all
-    npm audit --json
-  '
+docker build -t opengym-node-foundation:local api/foundation
+node api/foundation/environment.mjs run all
 ```
 
-Use existing lock, never re-resolve for reproduction or disable TLS. Checker must
-run via npm to verify npm version. node-pg-migrate CLI reports unknown version;
-use installed/locked metadata. Pull/cache/version inspection is not DB proof.
+The checker verifies installed package metadata, the lock hash and ESM exports.
+A successful image build is not PostgreSQL proof; the second command executes
+the synthetic database checks. Never disable TLS or regenerate the lock merely
+to reproduce verification.
 
 No real-instance configuration or data was modified. Provider/TLS/pooler sizing,
 representative recovery and production gates require separate authorization and

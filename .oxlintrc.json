@@ -1,0 +1,11 @@
+{
+  "categories": { "correctness": "off" },
+  "rules": {
+    "no-debugger": "error",
+    "no-duplicate-case": "error",
+    "no-unreachable": "error",
+    "valid-typeof": "error",
+    "no-unsafe-finally": "error"
+  },
+  "ignorePatterns": ["**/node_modules/**", "**/dist/**", "frontend/android/**", "frontend/ios/**", "api/coach/exercises-data.js"]
+}

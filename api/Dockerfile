@@ -1,7 +1,7 @@
 # Two targets from one file.
 #
 #   default (built when no --target is given) — what every instance has always got. No AI
-#           runtime, no AI dependency: `npm ci --omit=optional` skips the Agent SDK and its
+#           runtime, no AI dependency: `pnpm install --frozen-lockfile --no-optional` skips the Agent SDK and its
 #           platform runtime entirely, so an owner who never wanted the Coach carries none of it.
 #   coach                                     — the same image plus the Claude Agent SDK.
 #
@@ -12,6 +12,9 @@
 # deliberately last and `coach` sits above it.
 
 FROM node:22-alpine AS base
+ENV PNPM_HOME=/pnpm
+ENV PATH=/pnpm:$PATH
+RUN corepack enable && corepack prepare pnpm@10.34.8 --activate
 
 # Declared on the base stage so both targets inherit the labels and the healthcheck.
 ARG VERSION=dev
@@ -45,11 +48,11 @@ RUN apk upgrade --no-cache
 # an account is connected. It costs one line and no bytes worth measuring.
 RUN adduser -D -H -s /sbin/nologin coach
 
-COPY package.json package-lock.json* ./
-# `npm ci` rather than `npm install`: the lockfile is the point of committing one, and the SDK's
+COPY package.json pnpm-lock.yaml ./
+# A frozen pnpm install: the lockfile is the point of committing one, and the SDK's
 # per-platform runtime is resolved from it (musl on this base) rather than from whatever the
 # build host happened to be.
-RUN npm ci --omit=dev --omit=optional && npm cache clean --force
+RUN pnpm install --frozen-lockfile --prod --no-optional --ignore-scripts
 
 # Every module server.js imports from the api root has to be named here: the image carries nothing
 # else, and one that is missing only shows at boot, as ERR_MODULE_NOT_FOUND.
@@ -66,18 +69,17 @@ HEALTHCHECK --interval=5m \
             CMD wget --spider -q "http://127.0.0.1:${PORT}/api/health" || exit 1
 
 # ---------------------------------------------------------------------------------------------
-# The opt-in target. Dropping --omit=optional is the whole difference: it pulls in
+# The opt-in target. Dropping --no-optional is the whole difference: it pulls in
 # @anthropic-ai/claude-agent-sdk together with the one platform runtime this base needs
 # (linux-*-musl), both pinned by the lockfile.
 FROM base AS coach
-RUN npm ci --omit=dev && npm cache clean --force
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # Codex ships as a CLI rather than a library, so it is installed rather than resolved, and
 # bubblewrap is its sandbox — a Codex requirement, which is why neither appears in the default
 # target or anywhere in this tree until now.
 RUN apk add --no-cache bubblewrap \
- && npm install -g @openai/codex@0.160.0 \
- && npm cache clean --force
+ && pnpm add --global --global-bin-dir=/usr/local/bin @openai/codex@0.160.0 --ignore-scripts
 
 # Where Codex keeps its refreshable login cache. Deliberately a sibling of /data rather than a
 # path inside it: docs/SELF_HOSTING tells owners to back up with `tar czf … data/`, and a live
@@ -92,5 +94,6 @@ FROM base AS default
 # npm itself is only a build-time tool here: the server is started with `node server.js` and
 # nothing in it spawns npm. Its bundled dependency tree (tar, brace-expansion, ...) is where
 # every vulnerability the image scan ever reported lived — none of them was in a package the
-# app uses. Gone from the published image; the coach target keeps npm for the Codex CLI.
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+# app uses. Gone from the published image; the coach target keeps pnpm for the Codex CLI.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /root/.cache/node/corepack /pnpm \
+ && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm /usr/local/bin/pnpx /usr/local/bin/corepack

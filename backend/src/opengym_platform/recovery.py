@@ -39,9 +39,11 @@ def parent(path):
     ):
         raise ValueError()
     with open("/proc/mounts") as mounts:
-        if not any(line.split()[1:3] == ["/tmp", "tmpfs"] for line in mounts):
+        # Require the isolated tmpfs; this is a mount check, not a temporary filename.
+        if not any(line.split()[1:3] == ["/tmp", "tmpfs"] for line in mounts):  # nosec B108
             raise ValueError()
-    descriptor = os.open("/tmp", os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    # Traverse via directory descriptors without following links; never create a file here.
+    descriptor = os.open("/tmp", os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)  # nosec B108
     try:
         for part in parts[2:-1]:
             child = os.open(

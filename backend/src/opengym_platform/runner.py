@@ -87,7 +87,8 @@ def main() -> int:
                 result = subprocess.run(
                     command,
                     check=False,
-                    timeout=60,
+                    # The migration CLI matrix takes ~59 s before container overhead.
+                    timeout=180 if group == "migrations" else 60,
                     stdout=stdout,
                     stderr=stderr,
                 )

@@ -6,6 +6,6 @@ set -e
 cd "$(dirname "$0")"
 for f in *.mmd; do
   n=${f%.mmd}
-  npx -y -p @mermaid-js/mermaid-cli@11 mmdc ${PUPPETEER_CONFIG:+-p "$PUPPETEER_CONFIG"} -i "$f" -o "$n.png" -t default -b white -s 2
-  npx -y -p @mermaid-js/mermaid-cli@11 mmdc ${PUPPETEER_CONFIG:+-p "$PUPPETEER_CONFIG"} -i "$f" -o "$n-dark.png" -t dark -b '#0d1117' -s 2
+  pnpm --package=@mermaid-js/mermaid-cli@11 dlx mmdc ${PUPPETEER_CONFIG:+-p "$PUPPETEER_CONFIG"} -i "$f" -o "$n.png" -t default -b white -s 2
+  pnpm --package=@mermaid-js/mermaid-cli@11 dlx mmdc ${PUPPETEER_CONFIG:+-p "$PUPPETEER_CONFIG"} -i "$f" -o "$n-dark.png" -t dark -b '#0d1117' -s 2
 done

@@ -1,0 +1,14 @@
+**
+!backend/
+!backend/security/
+!backend/security/pyproject.toml
+!backend/security/uv.lock
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/src/
+!backend/src/**
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
+**/__pycache__
+**/.env*

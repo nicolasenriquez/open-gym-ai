@@ -34,7 +34,7 @@ node scripts/python-foundation.mjs run recovery
 | Group | What it checks |
 | --- | --- |
 | `environment` | Pinned toolchain, disposable DB, factory health/lifespan and Uvicorn process lifecycle; ordinary Node health without PostgreSQL. |
-| `contracts` | Existing Node/client/MCP behavior with independent synthetic fixtures. Does not start Python or PostgreSQL. |
+| `contracts` | Existing Node/client behavior with independent synthetic fixtures. Does not start Python or PostgreSQL. |
 | `pool` | Bounded Database transactions, cancellation, connection reuse, unknown commit outcomes and safe diagnostics. |
 | `migrations` | Controlled Alembic CLI, serialized history, interruptions and restricted roles. |
 | `isolation` | Real runtime/Training permissions, owner RLS and reuse after transaction outcomes. |
@@ -154,15 +154,15 @@ node --test scripts/python-foundation.test.mjs backend/contracts-compare.test.mj
 ```
 
 These host regressions exercise the harness, ownership guards, failure propagation
-and cleanup. Full API/frontend/MCP suites and their build/locale checks are listed
+and cleanup. Full API/frontend suites and their build/locale checks are listed
 in [CONTRIBUTING.md](../CONTRIBUTING.md) and existing CI. Synthetic Foundation results
 do not replace those checks or operational gates.
 
 ## Builds and CI
 
-Dependency manifests precede source/test copies. Node API, frontend and MCP
+Dependency manifests precede source/test copies. Node API and frontend
 install in independent stages so a changed API manifest does not reinstall the
-other projects. UID/GID-1000 BuildKit mounts cache uv/npm downloads outside image
+other projects. UID/GID-1000 BuildKit mounts cache uv/pnpm downloads outside image
 layers. The pinned BuildKit builder is test tooling, not the application runtime.
 
 ```sh
@@ -171,7 +171,7 @@ node --test scripts/python-foundation-build.test.mjs
 ```
 
 The first command independently checks the complete `all` result. The build
-probes use owned temporary tracked-input fixtures and fresh builders: cold and
+probes use owned temporary fixtures of selected non-ignored build inputs and fresh builders: cold and
 repeated builds, isolated source/test/image-metadata edits, coherent manifest/lock
 constraint changes with the same installed versions, and rejected inconsistent
 locks. They retain command/revision/platform/cache-state/timing/log evidence in a
@@ -182,7 +182,7 @@ A hard-killed build probe may leave its printed builder and probe-tagged images;
 inspect their token against the retained commands before exact removal. The normal
 Foundation `cleanup` command does not own these separate build-probe resources.
 
-[Python Foundation CI](../.github/workflows/python-foundation.yml) selects tooling,
+[Consolidated CI](../.github/workflows/test.yml) runs on every pull request, including tooling,
 Compose, backend, contract-consumer and OpenSpec changes on PR/push. Its job has no
 continue-on-error and runs the same `all` and build-probe commands. Buildx imports
 and exports GHA layer caches separately for each test image; download mounts are

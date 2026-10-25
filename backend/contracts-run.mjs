@@ -31,9 +31,9 @@ function readContract(path) {
 }
 
 async function contractSuites() {
-  const manifest = readContract(new URL('./contracts/suites.v1.json', import.meta.url));
+  const manifest = readContract(new URL('./contracts/suites.v2.json', import.meta.url));
   for (const suite of manifest.suites) {
-    assert.ok(['api', 'frontend', 'mcp'].includes(suite.cwd));
+    assert.ok(['api', 'frontend'].includes(suite.cwd));
     await new Promise((resolve, reject) => {
       const child = spawn(process.execPath, suite.args, {
         cwd: new URL(`./${suite.cwd}/`, import.meta.url), timeout: 180_000,

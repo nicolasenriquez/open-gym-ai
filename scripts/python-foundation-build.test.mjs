@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,9 +44,9 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     }
     assert.equal(ok(invoke('docker', ['image', 'ls', '--quiet', '--filter', `label=org.opengym.python-foundation.build-probe=${token}`])), '');
   });
-  // Only versioned build inputs, never dotenv, ignored files or personal data.
-  const files = ok(invoke('git', ['ls-files', '-z'])).split('\0').filter(Boolean);
-  const allowed = /^(?:backend\/|api\/(?:[^/]+\.(?:js|json|yaml)$|coach\/|test\/)|frontend\/(?:package(?:-lock)?\.json$|vite\.config\.js$|src\/|scripts\/)|mcp\/(?:package(?:-lock)?\.json$|vitest\.config\.js$|src\/|test\/)|scripts\/build-api-docs\.mjs$|LICENSE$|\.dockerignore$)/;
+  // Only selected non-ignored build inputs, never dotenv, ignored files or personal data.
+  const files = ok(invoke('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])).split('\0').filter(file => file && existsSync(join(root, file)));
+  const allowed = /^(?:backend\/|api\/(?:[^/]+\.(?:js|json|yaml)$|coach\/|test\/)|frontend\/(?:(?:package\.json|pnpm-lock\.yaml)$|vite\.config\.js$|src\/|scripts\/)|scripts\/build-api-docs\.mjs$|LICENSE$|\.dockerignore$)/;
   for (const file of files.filter(file => allowed.test(file))) {
     assert.ok(lstatSync(join(root, file)).isFile(), 'build inputs must not follow links');
     mkdirSync(dirname(join(fixture, file)), { recursive: true });
@@ -57,7 +57,7 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
   created = true;
   const revision = ok(invoke('git', ['rev-parse', 'HEAD']));
   writeFileSync(join(evidence, 'context.json'), JSON.stringify({ revision, target, builder,
-    platform: 'linux/amd64', versions, scope: 'tracked working inputs plus probe-only mutations; no shared cache or production proof' }, null, 2));
+    platform: 'linux/amd64', versions, scope: 'selected working inputs plus probe-only mutations; no shared cache or production proof' }, null, 2));
   const context = target === 'python' ? join(fixture, 'backend') : fixture;
   const dockerfile = join(fixture, 'backend', target === 'python' ? 'Dockerfile' : 'Dockerfile.contracts');
   function build(phase, cached, expected = 0) {
@@ -74,14 +74,14 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     if (result.status === 0) tags.add(tag);
     assert.equal(result.status, expected, `${target}/${phase}: inspect ${evidence}`);
     if (expected !== 0) {
-      assert.match(log, target === 'python' ? /lockfile.*needs to be updated|lockfile.*not up.to.date/i : /can only install packages|Invalid:.*lock file|Missing:.*from lock file/i);
+      assert.match(log, target === 'python' ? /lockfile.*needs to be updated|lockfile.*not up.to.date/i : /OUTDATED_LOCKFILE|outdated lockfile|not up.to.date|doesn.t match/i);
       return;
     }
-    const installs = [...new Map([...log.matchAll(/^#(\d+) .*RUN --mount=.*(?:uv lock --check|npm ci).*$/gm)]
+    const installs = [...new Map([...log.matchAll(/^#(\d+) .*RUN --mount=.*(?:uv lock --check|pnpm install).*$/gm)]
       .map(match => [match[1], match])).values()];
-    assert.equal(installs.length, target === 'python' ? 1 : 3, 'identify actual dependency steps, not timing guesses');
+    assert.equal(installs.length, target === 'python' ? 1 : 2, 'identify actual dependency steps, not timing guesses');
     for (const match of installs) {
-      const expectedCache = phase === 'manifest' && target === 'contracts' ? !match[0].includes('--omit=optional') : cached;
+      const expectedCache = phase === 'manifest' && target === 'contracts' ? !match[0].includes('--no-optional') : cached;
       assert.equal(new RegExp(`^#${match[1]} CACHED$`, 'm').test(log), expectedCache, `${phase}: dependency layer ${match[1]}`);
     }
     ok(invoke('docker', ['run', '--rm', '--network', 'none', '--user', '1000:1000', '--read-only',
@@ -104,7 +104,7 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     try { build(phase, true); } finally { writeFileSync(path, original); }
   }
   const manifest = join(fixture, target === 'python' ? 'backend/pyproject.toml' : 'api/package.json');
-  const lock = join(fixture, target === 'python' ? 'backend/uv.lock' : 'api/package-lock.json');
+  const lock = join(fixture, target === 'python' ? 'backend/uv.lock' : 'api/pnpm-lock.yaml');
   const originalManifest = readFileSync(manifest, 'utf8');
   const originalLock = readFileSync(lock, 'utf8');
   if (target === 'python') {
@@ -112,11 +112,18 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     writeFileSync(lock, originalLock.replace('name = "fastapi", specifier = "==0.161.1"', 'name = "fastapi", specifier = "===0.161.1"'));
   } else {
     const pkg = JSON.parse(originalManifest);
-    const locked = JSON.parse(originalLock);
-    pkg.dependencies.undici = locked.packages['node_modules/undici'].version;
-    locked.packages[''].dependencies.undici = pkg.dependencies.undici;
+    const entries = [...originalLock.matchAll(
+      /^      undici:\r?\n        specifier: ([^\r\n]+)\r?\n        version: (\d+\.\d+\.\d+)\r?$/gm
+    )];
+    assert.equal(entries.length, 1, 'expected one supported Undici importer entry');
+    const [entry, specifier, version] = entries[0];
+    assert.equal(specifier, pkg.dependencies.undici);
+    const exact = specifier === version ? `=${version}` : version;
+    pkg.dependencies.undici = exact;
     writeFileSync(manifest, JSON.stringify(pkg, null, 2));
-    writeFileSync(lock, JSON.stringify(locked, null, 2));
+    writeFileSync(lock, originalLock.replace(
+      entry, entry.replace(`specifier: ${specifier}`, `specifier: ${exact}`)
+    ));
   }
   try {
     // Same installed versions, coherent changed constraints: no dependency upgrade.
@@ -125,8 +132,13 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     writeFileSync(manifest, originalManifest);
     writeFileSync(lock, originalLock);
   }
-  writeFileSync(manifest, target === 'python' ? originalManifest.replace('version = "0.0.0"', 'version = "0.0.1"') :
-    originalManifest.replace('"undici": "^7.29.0"', '"undici": "7.0.0"'));
+  if (target === 'python') {
+    writeFileSync(manifest, originalManifest.replace('version = "0.0.0"', 'version = "0.0.1"'));
+  } else {
+    const pkg = JSON.parse(originalManifest);
+    delete pkg.dependencies.undici;
+    writeFileSync(manifest, JSON.stringify(pkg, null, 2));
+  }
   build('inconsistent', false, 1);
   assert.equal(readFileSync(lock, 'utf8'), originalLock, 'failed frozen build must not update its lock');
 });
