@@ -16,11 +16,17 @@ la aprobación documental como implementación.
   coach local y proveedores HTTP actuales; Claude Agent SDK/Codex CLI quedan
   temporalmente no disponibles por aprobación expresa Q6, sin fallback Node ni
   conversión de credenciales o selección a otros proveedores.
-- Entregar imágenes/ambientes locales separados, diagnóstico privado, backup y
-  restauración coordinados; ensayar corte, autoridad única y retirada posterior.
-- Aplicar las decisiones confirmadas: revisión manual verificable por acceso tras
-  restore y reparación hacia adelante tras nuevas escrituras; sin ledger nuevo ni
-  exportador inverso a Node salvo aprobación expresa.
+- Entregar imágenes/ambientes separados, logging estándar/diagnóstico privado y
+  backup con parada controlada de escritores por wrapper host; mantener copias
+  cada 3 h, al arranque si vencidas y antes de migrar, cifrado/retención/restore.
+- Extender el harness Foundation por slice sin duplicar cleanup; no anticipar
+  browser ni exporter/almacén de telemetría propios.
+- Entregar port funcional y operación local recuperable como checkpoints separados;
+  ensayar corte/retirada sintéticos y transferir S11 a cambio operativo autorizado.
+- Restore: continuidad con evidencia o nueva vía local explícitamente autorizada,
+  sin reactivar credenciales históricas dudosas ni elevar roles. Especificar
+  autorización/entrega privada antes de ese slice; sin ledger nuevo. Conservar
+  reparación hacia adelante tras nuevas escrituras, sin exportador inverso a Node.
 - Entregar cleanup revisado del código sustituido y temporales propios antes de
   aceptación, preservando biblioteca neutral, pruebas útiles y recuperación protegida;
   no basta desactivar la implementación anterior ni se autoriza borrar originales.
@@ -33,10 +39,13 @@ la aprobación documental como implementación.
 **Estado:** cambio planificado; autoría documental y diagnóstico sintético acotado
 Q4/Q5 autorizados, no implementación.
 Todas sus tareas runtime están pendientes. Usa el handoff de Foundation archivada;
-el [plan ejecutable](execution-plan.md) concreta S1–S11 con 57 tareas, casos/seams,
-comandos futuros y checkpoints. DDL/funciones, cotas/herramientas de diagnóstico y
-procedimientos de recuperación están especificados en sus referencias propietarias;
-la revisión semántica de readiness es distinta de validar Markdown. Inventario real, acceso a datos, ejecución del corte o borrado requieren
+el [plan ejecutable](execution-plan.md) conserva casos y trazabilidad con readiness
+por slice. S11 queda pendiente de transferencia explícita antes de archive; completar
+ensayos no acepta plataforma ni autoriza Recovery. DDL/funciones conservan permisos;
+no duplicar reglas Python/SQL ni funciones por simetría. Selección/configuración de
+retención estándar y autorización/entrega privada de acceso nuevo son prerrequisitos
+pendientes antes de S9/10.5, no requisitos del harness inicial. Validar Markdown no
+resuelve esos contratos ni demuestra producto. Inventario real, acceso a datos, ejecución del corte o borrado requieren
 su autorización operativa posterior. No reabre ni modifica la evidencia de Foundation.
 
 ## Capabilities
@@ -58,7 +67,8 @@ vigentes se conservan; estas deltas no acreditan entrega ni cambian el runtime a
 
 Futura implementación en backend Python, frontend intervenido por recorrido, shared,
 Alembic, contenedores, CI y documentación operativa. Esta revisión modifica solo
-documentación/OpenSpec en el repositorio; los diagnósticos Q4/Q5 usan scripts temporales
+documentación/OpenSpec en el repositorio; prevé Node 22+ host para el wrapper de
+operación, no en API, sin autorizar su instalación. Los diagnósticos históricos Q4/Q5 usan scripts temporales
 e imágenes desechables fuera del producto. No añade dependencias ni código de
 producto, SQL entregable, credenciales, programaciones, migraciones o datos reales.
 

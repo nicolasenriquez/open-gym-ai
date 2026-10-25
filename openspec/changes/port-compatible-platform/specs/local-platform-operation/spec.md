@@ -24,17 +24,17 @@ Runtime API SHALL run without root privileges, added coach capabilities, a Docke
 - **AND** recovery and shutdown are observable using internal probes without publishing diagnostic data
 
 ### Requirement: Coordinated encrypted recovery points
-Operation SHALL provide backup every three hours, startup catch-up when overdue, pre-migration backup and monthly isolated restore rehearsal. Retention SHALL be 30 days on storage independent of the instance disk, with bundle key separate. PostgreSQL/media/configuration/required secrets SHALL form a verified coherent recovery point, using an explicit relevant-write barrier during capture and encryption/transfer outside that pause. RPO six hours/RTO 24 hours SHALL remain accepted objectives until measured, not guarantees or claims of PITR/off-host disaster coverage.
+Operation SHALL provide backup every three hours, startup catch-up when overdue, pre-migration backup and monthly isolated restore rehearsal. Retention SHALL be 30 days on storage independent of the instance disk, with bundle key separate. PostgreSQL/media/configuration/required secrets SHALL form a verified coherent recovery point. A host wrapper SHALL exclusively coordinate clean shutdown of the API and every application writer before capture, keep PostgreSQL available, and restore only previously running services after capture processes have stopped and schema compatibility is established. Encryption/transfer SHALL occur outside that pause. No application lease protocol, maintenance control socket or container Docker socket SHALL be introduced. RPO six hours/RTO 24 hours SHALL remain accepted objectives until measured, not guarantees or claims of PITR/off-host disaster coverage.
 
 #### Scenario: Capture with internal writers and failed transfer
 - **WHEN** clients, coach or internal metadata writers compete with backup capture and transfer later fails
-- **THEN** the barrier establishes a coherent SQL/files recovery set, client pending work is preserved and its duration/deadlines are recorded
+- **THEN** clean writer shutdown establishes a coherent SQL/files recovery set, client pending work is preserved and pause duration/deadlines are recorded
 - **AND** incomplete/corrupt/untransferred artifacts are not credited as verified recovery points and degradation is visible locally
 
 #### Scenario: Interrupted capture remains controlled
-- **WHEN** API, capture supervisor or a writer fails during drain/capture, or the capture budget expires
-- **THEN** incomplete captures never become recovery points, owned subprocesses stop and restart honors the fail-closed maintenance marker
-- **AND** explicit owned-operation recovery verifies mutex and process termination before reopening writes, without TTL-only release or global cleanup
+- **WHEN** shutdown/capture/restart fails, the host wrapper dies or the capture budget expires
+- **THEN** incomplete captures never become recovery points and a private operation journal prevents unsafe startup until capture termination and compatibility are verified
+- **AND** explicit owned-operation recovery takes exclusive ownership, verifies process termination and restores only previously running services; no TTL-only release, recursive startup backup or global cleanup is allowed
 
 #### Scenario: Scheduled failures do not satisfy recovery objectives
 - **WHEN** scheduled/startup/pre-migration backup or monthly rehearsal is overdue, fails or has no valid verified bundle
@@ -47,7 +47,7 @@ Operation SHALL provide backup every three hours, startup catch-up when overdue,
 - **AND** evidence reports whether the accepted RPO/RTO objectives were met without inventing guarantees from scheduling alone
 
 ### Requirement: Restore preserves later security decisions
-Restore SHALL remain isolated with external effects disabled, invalidate restored sessions/pairings and reconcile subsequent deletions/revocations including passkeys using sufficiently protected later information. A snapshot SHALL NOT be treated as proof of current authorization. The initial procedure SHALL require explicit manual operator review for each restored access, identifying the account/credential, snapshot, protected later evidence, coverage, decision and verification result without recording secrets. A snapshot, successful login or deletable best-effort audit alone SHALL NOT establish sufficient evidence. Unverifiable access SHALL remain blocked; operator review alone SHALL NOT override missing evidence. A new persistent security ledger or automated reconciliation store SHALL require separate promoter approval. The full review and verification time SHALL be included in measured RTO. Stale clients SHALL NOT silently overwrite restored Training or lose pending work.
+Restore SHALL remain isolated with external effects disabled, invalidate restored sessions/pairings and reconcile subsequent deletions/revocations including passkeys using sufficiently protected later information. A snapshot SHALL NOT be treated as proof of current authorization. The initial procedure SHALL require explicit manual operator review for each restored access, identifying the account/credential, snapshot, protected later evidence, coverage, decision and verification result without recording secrets. A snapshot, successful login or deletable best-effort audit alone SHALL NOT establish sufficient evidence. Unverifiable historical credentials SHALL remain blocked; operator review alone SHALL NOT override missing evidence. An explicitly authorized local access-recovery procedure MAY establish a new access path for a selected, verified account on the isolated restored target without reactivating doubtful historical credentials, changing account identity/roles or introducing public recovery endpoints or automatic administrator creation. Authorization and private delivery of the new path SHALL be specified and tested before implementing that procedure. A new persistent security ledger or automated reconciliation store SHALL require separate promoter approval. The full review and verification time SHALL be included in measured RTO. Stale clients SHALL NOT silently overwrite restored Training or lose pending work.
 
 #### Scenario: Session invalidation does not destroy coach decryption
 - **WHEN** an isolated restore invalidates sessions issued before or after the snapshot
@@ -64,22 +64,30 @@ Restore SHALL remain isolated with external effects disabled, invalidate restore
 - **THEN** the operator records the scope and result of each review in protected recovery evidence and enables only the verified access after isolated checks
 - **AND** the unresolved access remains blocked, no new security ledger is introduced implicitly and measured recovery time includes review and verification
 
-### Requirement: Private bounded diagnostic operation
-Operation SHALL provide private operator diagnosis without external telemetry services, structured bounded logs up to seven days and an optional local profile with traces up to 24 hours and metrics up to seven days. Storage caps and effective age deletion SHALL be tested for all durable copies. Probes/metrics SHALL remain internal or diagnostic interfaces loopback-private. Credentials, notes, prompts, personal history and SQL values SHALL be excluded. Exporter failure SHALL NOT change committed results or block requests indefinitely; audit remains separately governed.
+#### Scenario: Historical access cannot be established
+- **WHEN** restored data is valid but sufficient evidence for a historical credential is unavailable
+- **THEN** that credential remains blocked and local access recovery requires an explicit operator decision for a verified account on the isolated target
+- **AND** a new path does not reactivate other credentials, revive deleted/disabled accounts automatically or elevate roles; account identity and business data are preserved
+- **AND** authorization, private credential delivery and negative cases must pass before traffic is enabled; otherwise recovery remains blocked and RTO is not credited
 
-Delivery SHALL use the observability reference's fixed local OpenTelemetry/manual instrumentation and bounded JSONL/CLI design without an external collector/dashboard service. Logs SHALL be bounded to 256 MiB/seven days, optional traces to 128 MiB/24 hours and optional metrics to 64 MiB/seven days, with bounded queues/export/shutdown. Age enforcement SHALL cover active/rotated files, startup and stopped-API retention tasks, not only size rotation. Operator status SHALL remain available without sampled traces. Physical deletion while the host is off SHALL NOT be promised; expiry cleanup SHALL precede resumed diagnostic access.
+### Requirement: Private bounded diagnostic operation
+Operation SHALL provide private diagnosis using standard structured logging, internal request_id correlation and point-in-time status for DB/schema, pool, audit degradation and verified-backup age. Logs SHALL be bounded to 256 MiB/seven days with standard rotation/retention tooling selected and pinned before the diagnostic slice. Credentials, notes, prompts, personal history and SQL values SHALL be excluded. No OpenTelemetry, custom exporter, span store, sampling or metric snapshot subsystem SHALL be delivered in this change. Audit remains separately governed.
+
+Age/space enforcement SHALL cover every durable copy, active/rotated files, startup and stopped-API retention tasks. Sink failure SHALL NOT change committed results or block requests indefinitely. Diagnostic interfaces SHALL remain private. Physical deletion while the host is off SHALL NOT be promised; expiry cleanup SHALL precede resumed diagnostic access.
 
 #### Scenario: Local diagnosis has fixed tools and limits
-- **WHEN** the operator diagnoses a known synthetic HTTP/DB/provider operation with the diagnostic profile on or off
-- **THEN** private CLI reports health, bounded pool/export status, audit degradation and verified-backup age without requiring public endpoints or sampled traces for minimum status
-- **AND** with the profile enabled, sanitized correlated spans and bounded metric snapshots prove the relevant causal path; no external service or accidental Docker log copy bypasses retention
+- **WHEN** the operator diagnoses a known synthetic HTTP/DB/provider operation
+- **THEN** private CLI reports differentiated health, pool status, audit degradation and verified-backup age without public endpoints or an exporter
+- **AND** sanitized records correlate HTTP, DB and simulated dependency by request_id, result and duration; no external service or accidental Docker log copy bypasses retention
 
-#### Scenario: Age expiry sensitive fixture and unavailable exporter
-- **WHEN** signals exceed age/space limits, contain synthetic sensitive markers or the exporter is unavailable
-- **THEN** retention and bounded-failure behavior are verified and no sensitive marker appears in emitted diagnostics
-- **AND** size-only Docker rotation is not credited as age deletion and health/logging alone is not EV-08 acceptance
+#### Scenario: Age expiry sensitive fixture and unavailable sink
+- **WHEN** logs exceed age/space limits, contain synthetic sensitive markers or the sink is full/unavailable
+- **THEN** retention and bounded-failure behavior are verified and no sensitive marker appears in diagnostics
+- **AND** size-only Docker rotation is not credited as age deletion; passing health alone does not prove correlated diagnosis or retention
 
 ### Requirement: Single-authority cutover and verified retirement
+This change SHALL deliver functional port and recoverable local operation on synthetic resources, including cutover/retirement rehearsals. Actual cutover, legacy retirement and platform acceptance SHALL belong to a separately authorized operational change. S11 obligations SHALL remain traceable and SHALL be transferred explicitly before archive; synthetic completion SHALL NOT establish actual G0/G2/G3 or authorize Recovery.
+
 Real cutover SHALL require G0 inventory/backups and prior G1/GP/GO evidence, an agreed rehearsed maintenance window, all writers paused and equivalent import before enabling PostgreSQL as the only authority. Origin/release/configuration/secrets SHALL remain frozen/protected for at least 30 days after accepted cutover without automatic deletion. Before new writes rollback SHALL use validated origin; after new writes the baseline SHALL be rehearsed forward repair of Python/PostgreSQL preserving new writes, never automatic return to the frozen Node origin or silent loss. Reverse export to Node SHALL be excluded unless separately approved by the promoter. If forward repair cannot preserve required writes in the agreed failure scenario, cutover SHALL remain blocked pending an explicit decision; periodic backups SHALL NOT be presented as zero RPO. G3/GO SHALL be demonstrated again after removing replaced dependencies before Recovery implementation begins.
 
 #### Scenario: New writes followed by rollback request

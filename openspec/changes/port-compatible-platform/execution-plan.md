@@ -5,7 +5,8 @@
 Documentation-only preparation. No product implementation, migrations, runtime
 experiments or operational actions were performed by writing this plan. All tasks
 remain unchecked in [tasks](tasks.md), the only progress ledger. Q1–Q3 and Q6 remain
-binding; Q4/Q5 are concluded diagnostic evidence, not delivery acceptance.
+binding with the revised Q1 two-path recovery and controlled-stop backup below;
+Q4/Q5 are concluded diagnostic evidence, not delivery acceptance.
 
 This plan closes technical preparation, not GP/GO/G3 or permission to cut over.
 Physical backup location, real-client inventory, measured times and operational
@@ -17,6 +18,20 @@ Authoritative detail: [DDL](../../../docs/reference/platform-schema.md#especific
 [diagnostics](../../../docs/reference/platform-observability.md#configuración-cerrada-y-límites-iniciales),
 [recovery](../../../docs/reference/platform-operations.md#procedimientos-operativos-especificados).
 Do not duplicate editable SQL schemas or operating procedures here.
+
+## Delivery checkpoints
+
+1. Functional port: preserved frontend on Python/PostgreSQL with admitted
+   capabilities; first tracer is login → read → save → reload → PG persistence.
+2. Recoverable local operation: identified images, migrations, scheduled/startup/
+   pre-migration backup and isolated restore pass on synthetic resources.
+3. Authorized migration and retirement: real cutover and actual G0/G2/G3 acceptance
+   belong to a separately authorized operational change, not this synthetic delivery.
+
+This change delivers 1/2 and rehearses 3 on disposable resources. S11 remains the
+pending operational handoff; explicitly transfer its requirements/tests/permissions
+before archive. Neither handoff nor archive establishes platform acceptance or
+permission to begin Recovery. No runtime task is completed by this revision.
 
 ## Commands and safety contract
 
@@ -47,8 +62,13 @@ For migration/infra tasks the proof is a real rejected/failed configuration or
 schema operation; for final acceptance it is independent evidence inspection,
 not an artificial runtime RED.
 
-A suite/case manifest must map each case to requirement/scenario, setup, command,
-expected proof and checkpoint; absent/empty mapping or silent skip blocks the runner.
+A suite/case manifest maps delivered cases to requirement/scenario, setup, command,
+expected proof and checkpoint. Add mappings/images with their implementing slice,
+not empty placeholders for the entire port. Unknown or undelivered suites/cases
+return exit 2; absent/empty mapping or silent skip cannot pass.
+Reuse Foundation execution/ownership mechanisms without sharing instance settings.
+Extract only behavior needed by both harnesses; preserve their separate resource
+namespaces and rerun Foundation regressions. Do not duplicate cleanup engines.
 Runner requirements: same ownership guards as Foundation, unique synthetic Compose
 project/labels, disposable PG and tmp volumes, no user environment/config inheritance,
 no real secrets, no published DB/API, no network to real providers, no privileged
@@ -64,9 +84,10 @@ Python suites live in `backend/tests/platform/test_<suite>.py`, through real Pyt
 HTTP + disposable PostgreSQL using api_runtime; privileged setup/independent observer
 is separate. Pure vectors live under `backend/contracts/` and test domain helpers.
 Browser suites live in `frontend/e2e/platform/`, driving the preserved frontend
-against Python, not mocked API. Task 1.2 delivers this explicit mapping and test
-image/browser pins; no host browser/dependency installation is implied. Operational
-suites run the actual `ops` commands against synthetic projects, not mock-only CLI.
+against Python, not mocked API. Task 1.2 delivers initial harness mapping/image;
+browser pins/image arrive with 3.4 before browser verification, not in bootstrap.
+No host browser/dependency installation is implied. Operational suites run the
+actual host wrapper and ops commands on synthetic projects, not mock-only CLI.
 
 **Future operating prefix O**, a textual abbreviation, not a shell function or
 installed binary (replace only the explicit operator.env placeholder):
@@ -78,22 +99,27 @@ docker compose --env-file <absolute-operator.env> -p opengym-ops -f compose.plat
 Append one command below; ops image entrypoint is
 `python -m opengym_platform.operations`. Operator env contains only non-secret
 configuration/file refs; `/run/operator/config.json` is mounted read-only. Secrets
-are distinct restricted file mounts. A Node host is required for the synthetic
-verification runner, not for operating the delivered stack. Commands are contracts
-of task delivery, not permission to create operator.env or run them now.
+are distinct restricted file mounts. The revised operation also requires Node 22+
+on the host for the small Compose wrapper, not in API images. Wrapper contract:
+`node scripts/platform.mjs operate <backup|migrate|maintenance-recover> --config
+<absolute-operator.json>`; backup also requires `--reason scheduled|startup|pre-migration`.
+It owns host exclusion, writer stop/start and private journal; ops owns capture and
+cryptographic tools. Direct ops backup/migrate must reject absent writer-stop proof.
+Commands are future contracts, not permission to install Node or run operations.
 
 | Future command appended to O | Preconditions and result |
 | --- | --- |
 | `preflight --config /run/operator/config.json` | Validate instance ownership, paths/devices, tools, digests, keys and isolation; no mutation. 0 valid, 1 blocked, 2 usage/config error. |
 | `migrate --config /run/operator/config.json` | Pre-migration verified backup for populated instance, exclusive lock, explicit known head; nonzero prevents ready/up. |
 | `import --config /run/operator/config.json --source /run/import/source --target <new-id>` | Frozen read-only source; new owned target only, prevalidate then import/compare. Nonzero leaves target unexposed, never edits source. |
-| `backup --config /run/operator/config.json --reason scheduled` | Private maintenance control, exclusive lock, coherent capture and verified encrypted destination; only exit 0 advances recovery-point state. reason also accepts startup/pre-migration. |
+| `backup --config /run/operator/config.json --reason scheduled` | Called by host wrapper after verified writer stop; exclusive lock, coherent capture and verified encrypted destination. Only exit 0 advances recovery-point state; reason also accepts startup/pre-migration. |
 | `restore --config /run/operator/config.json --bundle <id> --target <new-id>` | New isolated target, full verification and blocked restored access; not permission to open traffic. |
 | `restore-review --config /run/operator/config.json --target <id> --review /run/review/review.json` | Protected Q1 evidence and explicit per-credential decision; reject missing coverage, no new security ledger. |
 | `restore-rehearse --config /run/operator/config.json --bundle <id> --target <new-id> --review /run/review/review.json` | Full isolated monthly sequence, timed including review; reports objective pass/fail and unresolved access, no automatic production promotion. |
 | `forward-repair --config /run/operator/config.json --incident <id> --release <compatible-digest>` | Surviving destination and independently verified acknowledged writes; nonzero keeps maintenance/no-go. |
-| `maintenance-recover --config /run/operator/config.json --operation <id>` | Confirm owned interrupted capture, mutex free and subprocesses stopped before releasing fail-closed marker. |
-| `diagnose --config /run/operator/config.json` | Private redacted status; optional `--trace <hex32>`; exit 1 degraded and 2 invalid config/usage. |
+| `maintenance-recover --config /run/operator/config.json --operation <id>` | Host wrapper verifies journal ownership, exclusion, stopped capture processes and compatible schema before restoring only previously running services. |
+| `restore-access-recover --config /run/operator/config.json --target <id> --review /run/review/review.json` | New path on isolated restored target for explicitly selected verified account; historical doubtful credentials stay blocked, no role elevation. Authorization/private delivery contract must be resolved before 10.5. |
+| `diagnose --config /run/operator/config.json` | Private redacted status; optional `--request <hex32>`; exit 1 degraded and 2 invalid config/usage. |
 | `diagnostics-retain --config /run/operator/config.json` | Exact owned diagnostic volume only; age/space cleanup even when API is stopped, no business backups touched. |
 
 `<id>` is a validated opaque identifier resolved under configured roots, not an
@@ -115,7 +141,8 @@ is not proof of authenticity or human acceptance; final review remains manual.
 Paths below are future module roots under `backend/src/opengym_platform/` unless
 explicitly frontend/shared. No empty modules/tables are created in advance. Services
 own transactions; collaborators receive the same handle. External network/filesystem
-work occurs outside SQL transactions, under the operation/write-gate discipline.
+work occurs outside SQL transactions. Backup captures only after all application
+writers have stopped; no application lease/socket protocol is introduced.
 All protected routes test unauthenticated, own A, foreign B and admin as applicable;
 body/query/header owner forgery never establishes identity. Expected HTTP bodies,
 status, cookies and headers come from the independent Node baseline/OpenAPI, not
@@ -265,38 +292,49 @@ faking hasPush or introducing a forward dependency on an uncreated table in S6.
 
 ### S9 — delivered images and diagnosis (tasks 9.*)
 
-- Scope: dev/ops overlays, test/runtime/migrate/ops images, `core/telemetry` and
-  diagnostic volume. No extra permanent service or exposed diagnostic endpoint.
-- Proofs: cold/repeat/source-only/lock-change/test-only builds establish actual cache
-  behavior; incompatible DB fails readiness, recovery reconnects, shutdown bounded.
-  Trace links HTTP→pool/TX/query→fake external call; missing/false success is failure.
-  Synthetic secret/history/SQL markers absent from every sink, error and durable copy.
-  Active-file expiry, stopped API sweep, disk cap, exporter outage and queue overflow
-  meet the reference without changing confirmed commits. Measure overhead versus
-  profile off (report p50/p95/RSS/drop counts, no unapproved performance SLA).
-- Checkpoint: private CLI finds a known synthetic trace and distinct 409/DB/external
-  failure; logs-only health green is insufficient. Test log-driver/config inventory
-  so an unnoticed Docker copy cannot invalidate age limits.
+- Scope: delivered images, standard structured logging and private diagnose;
+  no OpenTelemetry, custom exporter, span store or metric snapshots.
+- Prerequisite: select/pin standard rotation and age/space retention tooling and
+  enumerate all durable copies, including Docker/nginx/PG. Resolve before S9 code;
+  this revision does not claim a tested tool/configuration.
+- Proofs: cold/repeat/source-only/lock-change/test-only builds; DB/schema readiness,
+  reconnect and bounded shutdown. Follow HTTP→DB→fake external call using request_id,
+  safe result and duration. Synthetic sensitive markers absent from every copy.
+  Active-file expiry, restart, stopped API sweep and full/unavailable sink preserve
+  HTTP/commit contract, bounded buffers and shutdown.
+- Checkpoint: CLI distinguishes 409, DB failure and external timeout by correlated
+  records; green health alone is insufficient. No advanced tracing is claimed.
 
 ### S10 — faithful import and recovery (tasks 10.*)
 
-- Scope: `operations/` CLI, ops image, manifest/age/staging/control volume; no business
-  router migration at startup. Tests call actual commands with synthetic bundles.
+- Scope: host Compose wrapper, `operations/` CLI, ops image, manifest/age/staging and
+  private operation journal; no business router migration at startup. Test actual
+  commands with synthetic bundles. Stop/start uses host Docker CLI, never a container
+  socket. Preserve previously stopped service state.
 - Proofs: invalid Unicode/duplicate JSON keys or ownership mismatch blocks untouched
   source/new target; valid import preserves internal state/types/sequences/secret refs.
-  Concurrent client/internal writers cross write barrier coherently. Wrong key,
-  truncation, failed copy/disk full and supervisor death never advance recovery point;
-  interrupted capture is fail-closed and explicitly recoverable, with no orphan worker.
+  Writer shutdown before SQL/files capture is independently observed; unknown external
+  writers block backup. Wrong key, truncation, disk full and wrapper/host death never
+  advance recovery point. Journal recovery waits for capture processes to stop;
+  schema mismatch prevents API startup. Pre-migration backup stays stopped through
+  DDL; startup check never recursively triggers another backup.
   Q1 fixture has post-snapshot revocation/deletion/counter evidence and unknown access;
   new signing key rejects all old tokens without losing coach decryption. Restore
-  covers roles/RLS/media/client lineage and full timed review. Q2 independent W1/W2
+  covers roles/RLS/media/client lineage and full timed review. Q1 also proves new-path
+  recovery without reviving doubtful credentials or elevating roles; specify local
+  authorization and private credential delivery before implementing 10.5.
+  Q2 independent W1/W2
   receipts survive bad API image, failed migration and uncertain reply; W3 works after
   compatible forward repair, incompatible repair remains no-go.
 - Checkpoint: measured pause, snapshot/verified age and complete RTO scope including
   manual review. Synthetic result never claims physical independent disk, real keys,
   successful production recovery, zero RPO or universal failure preservation.
 
-### S11 — authorization-gated cutover and clean acceptance (tasks 11.*)
+### S11 — pending operational handoff (tasks 11.*)
+
+The actual obligations below belong to the separately authorized operational change.
+Only their synthetic cutover/cleanup rehearsals run here. Transfer explicitly with
+traceability before archive; do not check off real gates using synthetic evidence.
 
 - Precondition: all synthetic cases pass; actual G0 inventory/origins/RP ID, destination
   disk/key/config, protected later-access source and maintenance window verified under
@@ -325,9 +363,12 @@ fixture/fault/clock coordinates, independent observation, result and limitation.
 Retention of run artifacts is not another permanent documentation report. A failed
 critical check stops the dependent task; no checkbox is completed by drafting tests.
 
-Planning readiness requires: every task has case+suite, dependencies resolve, SQL/
-role/lock/retention/recovery choices are fixed, Q6 is explicit, seams remain within
-Q3. Delivery prerequisites (actual tools, built images, initial RED, measurements,
+Readiness is slice-local: delivered task has executable case+suite, prerequisites
+and decisions resolved, Q6 explicit and seams within Q3. Initial harness does not
+require future browser/diagnostic tooling. S9 is blocked until standard retention
+selection/configuration is fixed; 10.5 until local recovery authorization/private
+delivery is specified and tested. This documentary revision does not resolve those
+prerequisites or claim whole-change Implementation Ready. Delivery prerequisites (actual tools, built images, initial RED, measurements,
 operator config and real-data permission) are obligations of the tasks, not claimed
 results here. Material changes in client support, security, recovery guarantees or
 seams require renewed promoter decision; implementation still needs an explicit

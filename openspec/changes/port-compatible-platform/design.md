@@ -4,9 +4,10 @@ Diseño confirmado mediante rondas Q1–Q20 y consolidado posterior. Se autoriza
 autoría documental y los diagnósticos sintéticos acotados de Q4/Q5, no implementación;
 el runtime actual continúa Node/JSON. Foundation Python está
 completada y archivada; su harness, fixtures y evidencia no son producto operativo.
-La revisión posterior confirma Q1 (revisión manual de accesos restaurados) y Q2
-(reparación hacia adelante, sin exportador inverso por defecto), y exige cleanup
-verificado del código sustituido. Estas decisiones no autorizan implementación.
+La revisión de alcance conserva Q2 y cleanup verificado. Revisa Q1: continuidad
+con evidencia o vía nueva local explícitamente autorizada, sin reactivar credenciales
+dudosas. Autorización/entrega privada se especifican antes del slice. Se acepta pausa
+de backup y logging estándar, no leases/socket ni subsistema OpenTelemetry. Estas decisiones no autorizan implementación.
 
 El contrato físico vive en [platform-schema](../../../docs/reference/platform-schema.md),
 roles/auth/audit en [seguridad](../../../docs/reference/platform-security.md),
@@ -35,7 +36,9 @@ después medios, administración/notificaciones, coach y formatos/builds cliente
 Cada slice declara entrada/salida/errores, actor/recurso, tablas/almacenes, operación
 iniciadora/participantes y recorrido frontend. Service posee transacción; repository
 SQL propio; domain puro. Colaboración pública con handle compartido, sin commits
-internos ni import de repositorios ajenos.
+internos ni import de repositorios ajenos. Python posee transporte, criptografía y
+coordinación; SQL constraints, autorización privilegiada e invariantes concurrentes.
+No duplicar reglas ni añadir funciones por simetría; firmas/grants/RLS se conservan.
 
 ### 2. Esquema físico e importación
 
@@ -68,21 +71,23 @@ Red app con egress autorizado y DB internal. Overlays dev/ops y datos distintos;
 targets test/runtime/migrate y herramientas puntuales, sin instalar al arrancar.
 Un historial/lock Alembic y migrador previo al tráfico, no startup migration.
 
-Captura coordinada mediante barrera de escrituras relevantes, incluidos internos;
-cifrado/transferencia fuera de pausa. Backup cada 3 h/arranque vencido/pre-migración,
-30 días y disco independiente, clave separada; restore mensual. RPO 6 h/RTO 24 h
-son objetivos por demostrar. Destino físico y duración de pausa se verifican antes
-del corte; no se presumen off-host/PITR ni pérdida completa de equipo cubierta.
+Captura con parada limpia de API/escritores por wrapper host con exclusión/journal;
+PG sigue disponible. Sin leases ni socket de mantenimiento. Recuperar solo servicios
+antes activos tras cese de captura y esquema compatible; interrupción exige
+recuperación explícita. Cifrado/transferencia fuera de pausa. Backup cada 3 h,
+arranque vencido/pre-migración, retención 30 días, disco independiente y clave
+separada; restore mensual. RPO 6 h/RTO 24 h y pausa requieren medición, no prometen
+PITR, off-host ni pérdida completa del equipo cubierta.
 
-Restore aislado sin efectos: invalidar sesiones/tokens, reconciliar bajas/revocaciones
-posteriores con información protegida y bloquear acceso no resoluble. Q1 confirmada:
-revisión manual explícita por acceso con snapshot, evidencia posterior protegida,
-cobertura, decisión y comprobación aislada. Backup, login correcto o audit
-borrable/best effort no bastan como prueba de vigencia. Sin evidencia suficiente,
-la revisión no habilita acceso; se mantiene bloqueado. Incluir revisión y verificación
-en RTO. No convertir esta condición en un ledger/event sourcing no aprobado.
-Diagnóstico privado, logs 7 d/traces 24 h/métricas 7 d con cotas y borrado por edad
-verificables.
+Q1 invalida sesiones y bloquea credenciales dudosas. Permite continuidad con evidencia
+suficiente o nueva vía local autorizada para cuenta verificada, sin cambiar ID/rol,
+resucitar credenciales ni bootstrap admin. Backup/login/audit best effort no prueban
+vigencia. Especificar autorización y entrega privada antes de implementar 10.5;
+sin salida completa probada no se acredita recuperación. Incluir revisión/verificación
+en RTO; no crear ledger.
+Diagnóstico privado con logging estándar, request_id, resultados/duraciones, salud,
+pool y backup; logs 7 d/256 MiB. Seleccionar/fijar retención estándar antes de S9.
+Sin OpenTelemetry, spans, sampling ni snapshots métricos.
 
 ### 5. Gates y autorización
 
@@ -114,9 +119,11 @@ sobre el árbol limpio; un sentinel ajeno y material protegido deben sobrevivir 
 
 ### 7. Preparación por slice y seams aprobados
 
-El [plan ejecutable](execution-plan.md) concreta S1–S11 con 57 tareas pendientes,
-secuencia prueba conductual → implementación → verificación, rutas/errores,
-actores/recursos, tablas, checkpoints y comandos. Los comandos futuros se entregan
+El [plan ejecutable](execution-plan.md) conserva trazabilidad y checkpoints de port
+funcional y operación local recuperable. S11 es handoff de corte/retirada reales a
+cambio operativo separado; aquí solo ensayos sintéticos. Transferir obligaciones
+antes de archive, sin acreditar G0/G2/G3 ni autorizar Recovery. Harness incremental
+reutiliza ownership/ejecución Foundation sin duplicar cleanup ni anticipar browser. Los comandos futuros se entregan
 con el runner y tooling del propio slice; no existen por escribirlos aquí. La
 aprobación de planificación no es permiso de ejecución global.
 
@@ -141,8 +148,8 @@ Q4 permite instalaciones solo en imágenes diagnósticas desechables, no en el h
 ni en producto; no permite llamadas a proveedores reales. Elegir detalles técnicos compatibles
 no exige al promotor escoger bibliotecas. Pérdida de soporte, sandbox debilitado,
 reautenticación excepcional, nuevo almacén de seguridad o cambios de recuperación
-sí requieren decisión expresa. Los comandos de cada slice deben quedar concretados
-antes de declarar readiness; comandos futuros se distinguen de los ya disponibles.
+sí requieren decisión expresa. Los comandos y prerrequisitos de cada slice se concretan
+antes de su readiness; comandos futuros se distinguen de los disponibles.
 
 ### 8. Autoridad OpenAPI y compatibilidad de transporte
 
@@ -343,15 +350,14 @@ Decisiones técnicas, no requisitos funcionales nuevos:
   diseñar preauth/admin. Preservar proyección Training admin existente sin SET owner
   ajeno; no eliminar esa capacidad ni ampliar acceso a Recovery.
 - [Diagnóstico](../../../docs/reference/platform-observability.md#configuración-cerrada-y-límites-iniciales):
-  OpenTelemetry manual, archivos JSONL acotados/CLI y sin collector/dashboard. Frente
-  a stack adicional o autoinstrumentación se priorizan privacidad, tres servicios
-  permanentes y cotas comprobables; exige probar exporter local/edad activa y pierde
-  visualización avanzada. No es scaffolding agéntico.
+  logging estándar/correlación y diagnose privado, sin OpenTelemetry/exporter propio.
+  Seleccionar/fijar retención estándar antes de S9; probar todas las copias. Se
+  difieren tracing avanzado e históricos métricos, no privacidad ni audit.
 - [Recuperación](../../../docs/reference/platform-operations.md#procedimientos-operativos-especificados):
-  age streaming, control de barrera privado, estado fail-closed recuperable, backup
-  verificado, firma de sesión nueva separada de decrypt coach en restore y ensayo
-  Q2 con expectativas W1/W2 externas. Se descartan cifrado propio de bundles grandes,
-  TTL que reabre capturas huérfanas y vuelta a un snapshot viejo tras nuevos commits.
+  age streaming y backup con parada por wrapper host/exclusión/journal, sin leases
+  ni socket. Firma nueva separada de decrypt coach y Q1 con continuidad comprobada
+  o vía nueva autorizada; Q2 mantiene W1/W2 independientes. Se descartan cifrado
+  propio, apertura por TTL y snapshot viejo tras nuevos commits.
 
 Estas elecciones permanecen dentro de Q3: vectores, HTTP+PG real, navegador y
 comandos/checkout desechables; no reabren Q4/Q5 ni permiten operaciones reales.
@@ -380,30 +386,29 @@ evidencia previa e inventario real. Esta autoría no ejecuta los pasos.
 
 ## Open Questions
 
-**Decisiones cerradas:** stack, alcance compatible, Q1 manual con bloqueo verificable,
+**Decisiones conservadas/revisadas:** stack, alcance compatible, Q1 con credenciales
+dudosas bloqueadas y continuidad o recuperación local explícita,
 Q2 reparación hacia adelante, Q3 cinco fronteras de prueba, Q4/Q5 diagnósticos
 acotados, Q6 aplazamiento explícito de SDK/CLI (§11) y cleanup sin borrar material
 protegido automáticamente.
 No volver a abrirlas por defecto.
 
-**Los cuatro puntos técnicos de preparación quedan especificados:** slices/casos/
-comandos/checkpoints en execution-plan, DDL y catálogo SQL en sus referencias,
-herramientas/cotas de observabilidad y procedimientos de recuperación/medición.
-OpenAPI final está decidido en §8. No quedan decisiones materiales abiertas de esos
-cuatro puntos; integración de librerías, RED/GREEN, imágenes y ensayos medidos son
-obligaciones de entrega pendientes, no resultados documentales. Q5 no se adopta.
+**Prerrequisitos localizados pendientes:** selección/configuración del tooling estándar
+de retención antes de S9 y autorización/entrega privada de vía nueva antes de 10.5.
+No impiden el harness inicial ni autorizan implementar esos mecanismos sin resolverlos.
+DDL/catálogo y OpenAPI §8 se conservan; Q5 no se adopta. RED/GREEN, imágenes y ensayos
+son obligaciones de entrega, no resultados de esta revisión.
 
 **Prerrequisitos operativos:** fuente protegida y cobertura de reconciliación manual,
 inventario real, disco/rutas/claves, clientes/orígenes, ventana medida, ensayo de
 reparación posterior a nuevas escrituras y evidencia G0/GP/GO. Sin ellos no hay corte.
 
-**Estado de readiness: Implementation Ready para entrega sintética autorizable.**
-Revisión documental/semántica: 57 tareas pendientes, orden completo sin ciclos,
-trazabilidad de los 42 escenarios, primeros casos/comandos y checkpoints definidos,
-catálogo/DDL/diagnóstico/recuperación concretados y seams dentro de Q3 con exclusión
-Q6. OpenSpec estricto, OKF, tests documentales y diff-check verifican artefactos, no
-producto. No quedan decisiones materiales abiertas de planificación de estos cuatro
-puntos. Integración, pruebas runtime y G0/GP/GO/G2/G3 siguen sin acreditar.
+**Readiness por slice, no aceptación global de implementación.**
+Antes de S9 resolver selección/configuración de retención estándar; antes de 10.5
+especificar autorización local y entrega privada de acceso nuevo. Esos slices están
+bloqueados por sus prerrequisitos; harness inicial no requiere tooling futuro.
+OpenSpec/OKF/diff-check comprueban artefactos, no producto. No se han ejecutado pruebas
+runtime ni acreditado G0/GP/GO/G2/G3 por esta revisión. Transferir S11 antes de archive.
 
 STOP antes de implementación. Especificación preparada no autoriza código ni
 transición autónoma: entrega requiere solicitud explícita, y corte/datos reales/
