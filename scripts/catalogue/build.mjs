@@ -111,7 +111,7 @@ let stale = []
 for (const [rel, body] of Object.entries(files)) {
   const p = path.join(ROOT, rel)
   const cur = fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null
-  if (cur === body) continue
+  if (cur?.replace(/\r\n/g, '\n') === body) continue
   stale.push(rel)
   if (!check) { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, body) }
 }
