@@ -1,0 +1,18 @@
+# No build/reload/source mounts: each reference must identify an already tested image.
+name: opengym-ops
+services:
+  api:
+    image: sha256:${PLATFORM_RUNTIME_DIGEST:?set tested local runtime image ID}
+    pull_policy: never
+  web:
+    image: sha256:${PLATFORM_WEB_DIGEST:?set tested local web image ID}
+    pull_policy: never
+  migrate:
+    image: sha256:${PLATFORM_MIGRATE_DIGEST:?set tested local migrator image ID}
+    pull_policy: never
+  bootstrap:
+    image: sha256:${PLATFORM_MIGRATE_DIGEST:?set tested local migrator image ID}
+    pull_policy: never
+  ops:
+    image: sha256:${PLATFORM_OPS_DIGEST:?set tested local operations image ID}
+    pull_policy: never

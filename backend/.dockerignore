@@ -4,6 +4,7 @@
 !uv.lock
 !dependency-licenses.json
 !Dockerfile
+!pg-tool.sh
 !versions.json
 !src/
 !src/**

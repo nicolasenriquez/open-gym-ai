@@ -1,0 +1,27 @@
+name: opengym-dev
+services:
+  api:
+    image: opengym-platform-runtime:dev
+    build: {context: ./backend, target: dev}
+    command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--reload"]
+    environment: {PLATFORM_ENV: dev, PLATFORM_DB_NAME: opengym_dev}
+    volumes:
+      - {type: bind, source: ./backend/src, target: /app/src, read_only: true}
+  db:
+    environment: {POSTGRES_DB: opengym_dev}
+    healthcheck:
+      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, opengym_dev]
+  bootstrap:
+    image: opengym-platform-migrate:dev
+    build: {context: ./backend, target: migrate}
+    environment: {PLATFORM_ENV: dev, PLATFORM_DB_NAME: opengym_dev}
+  migrate:
+    image: opengym-platform-migrate:dev
+    build: {context: ./backend, target: migrate}
+    environment: {PLATFORM_ENV: dev, PLATFORM_DB_NAME: opengym_dev}
+  ops:
+    image: opengym-platform-ops:dev
+    build: {context: ./backend, target: ops}
+volumes:
+  postgres-data:
+    name: ${COMPOSE_PROJECT_NAME}_dev-postgres-data

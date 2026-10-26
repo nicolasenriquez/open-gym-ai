@@ -1,0 +1,105 @@
+# Select an explicit dev/ops overlay and --env-file; never combine with the Node stack.
+name: opengym-ops
+x-database: &database
+  PLATFORM_ENV: ops
+  PLATFORM_DB_MODE: local_compose
+  PLATFORM_DB_HOST: db
+  PLATFORM_DB_PORT: "5432"
+  PLATFORM_DB_NAME: opengym
+  PLATFORM_DB_TLS: disable
+  PLATFORM_DB_PASSWORD_FILE: /run/secrets/database_password
+x-python: &python
+  platform: linux/amd64
+  user: "1000:1000"
+  read_only: true
+  tmpfs: ["/tmp:rw,noexec,nosuid,nodev,mode=1777,size=67108864"]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: "no"
+services:
+  web:
+    image: ${PLATFORM_WEB_IMAGE:-opengym-platform-web:unselected}
+    platform: linux/amd64
+    user: "101:101"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,mode=1777,size=67108864
+      - /etc/nginx/conf.d:rw,noexec,nosuid,nodev,mode=1777,size=1048576
+      - /var/cache/nginx:rw,noexec,nosuid,nodev,mode=1777,size=16777216
+    environment: {BACKEND: api, PORT: "3000", NGINX_PORT: "80"}
+    ports: ["127.0.0.1:8080:80"]
+    networks: [app]
+    restart: "no"
+  api:
+    <<: *python
+    image: ${PLATFORM_RUNTIME_IMAGE:-opengym-platform-runtime:unselected}
+    # Factory is delivered in 1.3; no Foundation app or startup migration fallback.
+    command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--workers", "1"]
+    environment: *database
+    secrets:
+      - {source: runtime_password, target: database_password}
+    networks: [app, database]
+    depends_on:
+      db: {condition: service_healthy}
+  db:
+    <<: *python
+    image: postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+    environment:
+      POSTGRES_USER: opengym_platform_bootstrap
+      POSTGRES_DB: opengym
+      POSTGRES_PASSWORD_FILE: /run/secrets/database_password
+    secrets:
+      - {source: bootstrap_password, target: database_password}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,mode=1777,size=67108864
+      - /var/run/postgresql:rw,noexec,nosuid,nodev,mode=1777,size=16777216
+    volumes: [postgres-data:/var/lib/postgresql]
+    networks: [database]
+    healthcheck:
+      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, opengym]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+  migrate:
+    <<: *python
+    image: ${PLATFORM_MIGRATE_IMAGE:-opengym-platform-migrate:unselected}
+    profiles: [tools]
+    environment: *database
+    secrets:
+      - {source: migrator_password, target: database_password}
+    networks: [database]
+    depends_on:
+      db: {condition: service_healthy}
+  bootstrap:
+    <<: *python
+    image: ${PLATFORM_MIGRATE_IMAGE:-opengym-platform-migrate:unselected}
+    profiles: [setup]
+    command: ["--deployment", "bootstrap"]
+    environment:
+      <<: *database
+      PLATFORM_MIGRATOR_PASSWORD_FILE: /run/secrets/migrator_password
+      PLATFORM_RUNTIME_PASSWORD_FILE: /run/secrets/runtime_password
+    secrets:
+      - {source: bootstrap_password, target: database_password}
+      - migrator_password
+      - runtime_password
+    networks: [database]
+    depends_on:
+      db: {condition: service_healthy}
+  ops:
+    <<: *python
+    image: ${PLATFORM_OPS_IMAGE:-opengym-platform-ops:unselected}
+    profiles: [tools]
+    networks: [database]
+networks:
+  app: {}
+  database: {internal: true}
+volumes:
+  postgres-data:
+    name: ${COMPOSE_PROJECT_NAME}_ops-postgres-data
+secrets:
+  bootstrap_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/bootstrap_password"}
+  migrator_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/migrator_password"}
+  runtime_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/runtime_password"}
