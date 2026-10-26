@@ -2,14 +2,14 @@
 
 Plan revisado de entrega sintética futura; ningún checkbox está implementado o
 aceptado por la revisión documental original. Las solicitudes posteriores autorizan
-1.1–1.5 y, en esta entrega, únicamente 2.1 en recursos sintéticos; el estado y evidencia
+1.1–1.5 y 2.1 y, en esta entrega, únicamente 2.2 en recursos sintéticos; el estado y evidencia
 actuales figuran junto a esas tareas.
 Checkpoints: port funcional → operación local recuperable
 → corte/retirada reales en cambio operativo separado. S11 conserva las obligaciones
 de handoff: no ejecutarlas ni marcarlas completas por un ensayo sintético. Antes de
 archivar, transferirlas explícitamente con trazabilidad; no autorizar Recovery por
-cierre de este cambio. El permiso de entrega actual cubre 1.1–1.5 y 2.1;
-2.2 y las tareas posteriores siguen fuera del alcance autorizado.
+cierre de este cambio. El permiso de entrega actual añade únicamente 2.2 a 1.1–1.5 y 2.1;
+2.3 y las tareas posteriores siguen fuera del alcance autorizado.
 Se acepta diseñar backup con pausa; la autorización/entrega privada de la vía nueva
 Q1 y la selección del tooling estándar de retención son prerrequisitos de sus slices,
 no hechos resueltos ni permiso para implementarlos.
@@ -23,7 +23,8 @@ implementación de 1.1/1.2 ni aceptación operativa; todos los checkboxes siguen
 El [plan ejecutable](execution-plan.md) fija alcance, actores/rutas,
 almacenes, primera prueba conductual, errores y checkpoint de cada slice S1–S11.
 Los comandos `verify` salvo `harness/ownership`, `contracts/baseline`, `schema/history_lock`,
-`images/isolation` y `lifecycle/readiness` siguen siendo **futuros**. Cada slice añade
+`images/isolation`, `lifecycle/readiness`, `identity_session/actor`,
+`identity_password/login`, `database/pool` y `checks/toolchain` siguen siendo **futuros**. Cada slice añade
 su mapeo/imagen antes de verificar. Solo 1.1 usa el comando Foundation existente antes
 de ese runner. Cada tarea ejecuta primero su caso RED válido, después implementación,
 caso GREEN y suite afectada completa. No adelantar toda la implementación a las pruebas.
@@ -72,9 +73,14 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
   Notes (integración): p001 crea users/invitations y funciones consumidas ahora, sin credenciales/audit futuros ni editar p000; upgrade p000→p001 real probado. Executor NOLOGIN sin membresía runtime, FORCE RLS, grants por columna, ACL/search_path de funciones inspeccionados. `identity.public_user_count()` conserva health sin SELECT global runtime; catálogo actualizado. Clave original de firma por fichero separado, sin generación/rotación; Compose API monta solo runtime password y esa clave. Runtime incluye Identity, no fixtures/tests.
   Notes (regresiones): schema 12, lifecycle 14, database 20, checks 12, images, harness y contracts PASS; comandos `node scripts/platform.mjs verify <suite>`. Build/layout PASS 4/4 (`delivered-build-retry.log`), incluye caché fría/repetida/fuente/tests/metadata/lock y limpieza propia. Primer intento de esa repetición excedió el timeout externo: no se acredita PASS; builder/imágenes propios comprobados y retirados antes del retry (`interrupted-build-cleanup.log`). Evidencia con digests/resultados en `.scratch/platform-identity/{delivered-*,accepted-schema,accepted-lifecycle,database,harness,contracts}.log`. Lint, OKF + 41 tests, OpenSpec estricto y diff-check PASS. Revisión ponytail del diff y archivos nuevos sin bloqueantes tras corregir clave vacía.
   Notes (límites): Ready for closeout de 2.1 solamente. Sin login/registro/Training, prueba de navegador/TLS real, dispositivo/autenticador, datos reales ni aceptación operativa; matrix HTTP aplica configuración de cookie HTTPS, no acredita terminación TLS. La suite completa max-one/errores/cancelación HTTP de Identity sigue en 2.9; no se marca por esta entrega. Sin nuevas dependencias, commit/push, sync/archive ni inicio de 2.2; los dos directorios specs no rastreados preexistentes se conservan intactos.
-- [ ] 2.2 Entregar login password con scrypt/NFKC y respuestas/cookie/token vigentes, dummy hash y fallo seguro; revalidar hash/versión tras trabajo criptográfico.
+- [x] 2.2 Entregar login password con scrypt/NFKC y respuestas/cookie/token vigentes, dummy hash y fallo seguro; revalidar hash/versión tras trabajo criptográfico.
   Traceability: compatible-platform-persistence / Legacy-compatible identity namespace and credentials / Credential and account access continuity.
   Proof/Check: `node scripts/platform.mjs verify identity_password --case login`.
+  Notes: Entrega sobre `5e8fc9579` más diff, Linux/amd64 y recursos sintéticos propios. RED conductuales conservados en `.scratch/platform-password/`: ruta 404 frente a 400 (`red-missing.log`), identificador desconocido 400 frente a 401 (`red-unknown.log`), CSRF y Max-Age exponencial (`red-csrf.log`), intentos concurrentes sin pausa (`red-throttle.log`), JSON NaN aceptado (`red-invalid-json.log`), identificador NUL con 500 (`red-unicode.log`) y flags de proxy (`red-proxy.log`). Errores de preparación de tests, formato y configuración no cuentan como RED.
+  Notes (prueba vigente): caso y suite `identity_password` PASS, 26 tests cada uno y cero skips (`accepted-case.log`, `accepted-suite.log`). Vectores independientes Node en `backend/contracts/identity-passwords.v1.json`, generador separado sin cambiar baseline congelado: scrypt actual/legacy/key-length, NFKC sin trim, alias ECMAScript y texto numérico. HTTP Uvicorn real con api_runtime prueba campos actuales/legacy, cookie HTTP/HTTPS y retiro legacy, bearer emitido verificable por `/api/me`, off=404, errores/missing/límite 5 MiB, CSRF, disabled, rehash sin inventar fechas, budgets cuenta/correo/dirección/burst y fallo DB sin emitir cookie. Locks/observador PG coordinan hash/versión/disable/delete/alias cambiados antes de autorización; el caso vigente conserva acceso y el siguiente propietario no hereda contexto. Crypto stdlib controlada en el seam prueba dummy work, dos workers + cola 32, saturación, cancelación sin liberar un worker activo y fallo sin resultado positivo.
+  Notes (integración/revisión): revisión forward-only `p001_password_login` añade solo aliases/password_credentials y lookup/finish consumidos ahora, con FORCE RLS, FK/índice/grants acotados y ACL definer inspeccionadas; p000 y p001 anteriores intactos. Upgrade genuino desde la revisión de sesiones conserva identidad/fecha nula. La revisión ponytail encontró que Uvicorn confiaba por defecto en X-Forwarded-For desde loopback: los intentos `delivered-*` fallidos no acreditan PASS. `--no-proxy-headers` en Docker/Compose y el servidor de pruebas deja esa decisión exclusivamente a TRUST_PROXY; `accepted-*` demuestra el negativo y los flags compatibles. Revisión final del diff completo/archivos nuevos y consumidores, bajo un worker e instancia personal, sin bloqueantes.
+  Notes (regresiones): `verify identity_session` 26, schema 12, lifecycle 14, checks 12 e images PASS (`accepted-*.log`); database 20, harness y contracts/baseline PASS (`database.log`, `harness.log`, `contracts.log`). Layout/context Docker 8/8, lint, OKF + 41 tests, OpenSpec estricto y diff-check PASS; evidencia en `.scratch/platform-password/`. Dependencias/pins/locks sin cambios; formatter existente usado solo en contenedor propio. Harness limpia recursos propios, sin recursos sintéticos restantes; imagen auxiliar retirada tras comprobar label.
+  Notes (límites): Ready for closeout de 2.2 solamente, 7/57 tareas completas. Sin registro, gestión de cuenta/audit, Training, navegador, terminación TLS/dispositivo reales, datos personales ni aceptación operativa. Throttles de proceso se reinician como en Node; la suite max-one/cancelación HTTP integral queda en 2.9. CI remota, matriz completa de caché y pruebas de slow-body/red no ejecutadas aquí. No commit/push, sync/archive, despliegue ni inicio de 2.3/S3.
 - [ ] 2.3 Entregar registro password/alias/invitación y primer-admin atómicos; p001 conserva namespace Unicode y fechas históricas sin inventar datos.
   Traceability: compatible-platform-persistence / Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Executable schema and privileged functions / Migration failure and function grants.
   Proof/Check: `node scripts/platform.mjs verify identity_register --case concurrent_claim`.
