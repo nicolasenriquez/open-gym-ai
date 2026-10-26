@@ -1,4 +1,15 @@
 {
+  "identity_password": [
+    {
+      "id": "login",
+      "requirement": "Legacy-compatible identity namespace and credentials / Credential and account access continuity",
+      "setup": "Independent Node scrypt/NFKC vectors, real Uvicorn and restricted PostgreSQL with separate setup/observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_password.py"],
+      "proof": "Compatible login, dummy work, bounded attempts, cookie and lock-time credential/version revalidation",
+      "checkpoint": "2.2 only; no registration or account management"
+    }
+  ],
   "identity_session": [
     {
       "id": "actor",

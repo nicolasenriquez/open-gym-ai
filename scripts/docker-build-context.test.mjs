@@ -30,7 +30,7 @@ const scenarios = [
     name: 'python', ignore: 'backend/.dockerignore', dockerfile: 'Dockerfile',
     required: ['pyproject.toml', 'uv.lock', 'versions.json', 'dependency-licenses.json', 'pg-tool.sh',
       'src/opengym_platform/application.py', 'tests/platform/test_lifecycle.py',
-      'contracts/identity-sessions.v1.json'],
+      'contracts/identity-sessions.v1.json', 'contracts/identity-passwords.v1.json'],
     excluded: ['.venv/bin/python', '.env', 'dev.env', 'src/local.env',
       'src/opengym_platform/__pycache__/application.pyc', 'data/users.json'],
   },

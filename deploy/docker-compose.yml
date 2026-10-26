@@ -35,7 +35,7 @@ services:
   api:
     <<: *python
     image: ${PLATFORM_RUNTIME_IMAGE:-opengym-platform-runtime:unselected}
-    command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--workers", "1", "--no-access-log"]
+    command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--workers", "1", "--no-access-log", "--no-proxy-headers"]
     environment:
       <<: *database
       PLATFORM_SESSION_SECRET_FILE: /run/secrets/session_secret

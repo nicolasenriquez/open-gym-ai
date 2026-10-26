@@ -56,8 +56,18 @@ A failed bootstrap/migration stops the Dev recipe before API/web startup.
 `GET /api/me` now verifies compatible cookie/bearer sessions and authorizes the actor
 under a PostgreSQL row lock before installing transaction-local RLS ownership.
 `ORIGIN` selects the current cookie name (`__Host-gymsid` on HTTPS); `SESSION_DAYS`
-controls bearer renewal. These values retain their Node defaults. Password login,
-registration and account-management routes are not yet delivered.
+controls bearer renewal. These values retain their Node defaults.
+With `PASSWORD_LOGIN=1`, `POST /api/login/password` accepts the current identifier
+and legacy name/email inputs, verifies compatible scrypt/NFKC credentials and
+issues the same signed cookie. HTTPS also expires the legacy unprefixed cookie.
+Crypto runs outside database leases with two workers and a queue of 32; credentials
+and session version are rechecked under the account lock before issuance. Password
+attempt/address budgets are process-local and reset on restart, as in Node.
+`TRUST_PROXY=1` trusts the proxy-supplied client address; enable it only behind a
+proxy that overwrites those headers. The supplied Uvicorn commands disable its
+implicit proxy-header processing so it cannot bypass this flag.
+Registration, account-management and audit
+routes are not yet delivered.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -79,6 +89,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `schema` | Current Alembic history, locking and restricted roles. |
 | `lifecycle` | HTTP health/readiness, schema compatibility and shutdown. |
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
+| `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
 | `images` | Runtime/tool separation, dev/prod topology and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 

@@ -123,6 +123,7 @@ async def server(environment):
             "--port",
             str(port),
             "--no-access-log",
+            "--no-proxy-headers",
             env=runtime,
             stdout=output,
             stderr=output,
@@ -190,7 +191,7 @@ async def test_public_health_and_config_match_empty_node_instance(deployment):
         assert config.headers["cache-control"] == "no-store"
         assert (
             await observer.fetchval("SELECT version_num FROM public.alembic_version")
-            == "p001_identity_session"
+            == "p001_password_login"
         )
 
 
@@ -259,9 +260,7 @@ async def test_read_only_database_cannot_advertise_writable_or_ready(deployment)
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "history", [[], ["unknown"], ["p001_identity_session", "extra"]]
-)
+@pytest.mark.parametrize("history", [[], ["unknown"], ["p001_password_login", "extra"]])
 async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, history):
     observer, environment = deployment
     await migration(environment, "up")
@@ -288,7 +287,7 @@ async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, hi
         assert (await client.get("/health/live")).status_code == 200
         await observer.execute("DELETE FROM public.alembic_version")
         await observer.execute(
-            "INSERT INTO public.alembic_version VALUES ('p001_identity_session')"
+            "INSERT INTO public.alembic_version VALUES ('p001_password_login')"
         )
         assert (await client.get("/health/ready")).status_code == 200
 
@@ -408,6 +407,7 @@ async def test_runtime_startup_rejects_unsafe_config_or_database_access(
             "--port",
             "0",
             "--no-access-log",
+            "--no-proxy-headers",
             env=environment,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,

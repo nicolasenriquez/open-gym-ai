@@ -383,7 +383,12 @@ async def test_identity_acl_rls_and_public_count_are_bounded(identities):
             EXISTS (SELECT FROM aclexplode(p.proacl) a WHERE a.grantee=0 AND a.privilege_type='EXECUTE') AS public
         FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='identity'
     """)
-    assert {row["proname"] for row in functions} == {"lock_actor", "public_user_count"}
+    assert {row["proname"] for row in functions} == {
+        "lock_actor",
+        "public_user_count",
+        "lookup_password",
+        "finish_password_login",
+    }
     for row in functions:
         assert row["prosecdef"] and row["owner"] == "opengym_identity_executor"
         assert row["runtime"] and not row["public"]
@@ -407,7 +412,9 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
-        ignore=shutil.ignore_patterns("p001_identity_session.py"),
+        ignore=shutil.ignore_patterns(
+            "p001_identity_session.py", "p001_password_login.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
     assert (
@@ -417,7 +424,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_identity_session"
+        == "p001_password_login"
     )
 
 
