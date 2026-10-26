@@ -60,8 +60,9 @@ su autorización operativa posterior. No reabre ni modifica la evidencia de Foun
 
 ### Modified Capabilities
 
-Ninguna sincronizada todavía. La Foundation PostgreSQL histórica y sus specs
-vigentes se conservan; estas deltas no acreditan entrega ni cambian el runtime actual.
+Sincronizadas en `openspec/specs/` sin acreditar entrega; 2.1 no cambia el
+runtime actual de la aplicación Node. La Foundation PostgreSQL histórica y sus
+specs vigentes se conservan.
 
 ## Impact
 
