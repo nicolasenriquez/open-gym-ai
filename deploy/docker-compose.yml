@@ -40,6 +40,7 @@ services:
       <<: *database
       PLATFORM_SESSION_SECRET_FILE: /run/secrets/session_secret
       ORIGIN: ${ORIGIN:-http://localhost:8080}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
       SESSION_DAYS: ${SESSION_DAYS:-90}
       INVITE_ONLY: ${INVITE_ONLY:-0}
       ALLOW_GUEST: ${ALLOW_GUEST:-1}

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -103,6 +104,17 @@ async function deploymentProof({ project, image, docker }) {
       });
       const args = ['compose', '--project-directory', root, '--env-file', envFile, '-p', instance, '--profile', '*',
         '-f', join(root, 'deploy/docker-compose.yml'), '-f', join(root, `deploy/docker-compose.${environment === 'ops' ? 'prod' : 'dev'}.yml`)];
+      for (const trustProxy of [undefined, '', '0', '1']) {
+        const env = { ...process.env };
+        delete env.TRUST_PROXY;
+        if (trustProxy !== undefined) env.TRUST_PROXY = trustProxy;
+        const resolved = JSON.parse(execFileSync(
+          'docker', [...args, 'config', '--format', 'json'],
+          { cwd: root, env, encoding: 'utf8', timeout: 30000 },
+        ));
+        assert.equal(resolved.services.api.environment.TRUST_PROXY, trustProxy || '0');
+        assert.ok(resolved.services.api.command.includes('--no-proxy-headers'));
+      }
       const config = JSON.parse(await docker([...args, 'config', '--format', 'json']));
       assert.equal(config.services.db.image, versions.postgresImage);
       assert.equal(config.networks.database.internal, true);
