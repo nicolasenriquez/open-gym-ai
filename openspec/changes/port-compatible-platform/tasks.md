@@ -2,13 +2,14 @@
 
 Plan revisado de entrega sintética futura; ningún checkbox está implementado o
 aceptado por la revisión documental original. Las solicitudes posteriores autorizan
-1.1–1.5 en recursos sintéticos; el estado y evidencia actuales figuran junto a esas tareas.
+1.1–1.5 y, en esta entrega, únicamente 2.1 en recursos sintéticos; el estado y evidencia
+actuales figuran junto a esas tareas.
 Checkpoints: port funcional → operación local recuperable
 → corte/retirada reales en cambio operativo separado. S11 conserva las obligaciones
 de handoff: no ejecutarlas ni marcarlas completas por un ensayo sintético. Antes de
 archivar, transferirlas explícitamente con trazabilidad; no autorizar Recovery por
-cierre de este cambio. El permiso de entrega actual cubre 1.1–1.5;
-las tareas posteriores siguen fuera del alcance autorizado.
+cierre de este cambio. El permiso de entrega actual cubre 1.1–1.5 y 2.1;
+2.2 y las tareas posteriores siguen fuera del alcance autorizado.
 Se acepta diseñar backup con pausa; la autorización/entrega privada de la vía nueva
 Q1 y la selección del tooling estándar de retención son prerrequisitos de sus slices,
 no hechos resueltos ni permiso para implementarlos.
@@ -63,9 +64,14 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
 
 ## 2. Identidad compatible por operaciones — S2
 
-- [ ] 2.1 Entregar verificación/selección cookie-bearer y lock_actor de p001; probar versiones, expiración/duplicados/forgery y revocación durante espera sin acceso ajeno.
+- [x] 2.1 Entregar verificación/selección cookie-bearer y lock_actor de p001; probar versiones, expiración/duplicados/forgery y revocación durante espera sin acceso ajeno.
   Traceability: compatible-platform-persistence / Authenticated session to RLS ownership / Mixed credentials and duplicate cookies resolve one actor; Invalid sessions never establish protected ownership; Session expires while waiting for protected work; Concurrent revocation is serialized with protected work.
   Proof/Check: `node scripts/platform.mjs verify identity_session --case actor`.
+  Notes: Entrega sobre `58378cbd8` más diff de trabajo, Linux/amd64 y recursos sintéticos propios. RED conductuales: `/api/me` 404 frente a 401 (`.scratch/platform-identity/red.log`), falta de lock_actor (`red-lock.log`) y sesión válida denegada (`red-actor.log`); GREEN posteriores observados. Revisión encontró clave solo-espacios aceptada: `red-empty-key.log` observa DID NOT RAISE y el rechazo tras recorte queda cubierto en GREEN. Los fallos intermedios de preparación/SQL/imports/build no se cuentan como RED conductual.
+  Notes (prueba vigente): caso actor y suite completa PASS, 26 tests cada uno, cero skips (`delivered-actor.log`, `delivered-suite.log` bajo `.scratch/platform-identity/`). Vectores Node independientes en `backend/contracts/identity-sessions.v1.json`; HTTP Uvicorn real con api_runtime, selección A/B en ambos órdenes, cookies actuales/legacy/duplicadas y bearer, versión/expiry/firma/disabled/deleted, owner forjado por body/query/header, renovación bearer y rechazo tras revocación. Esperas coordinadas con locks/clock PostgreSQL prueban expiry tras pool y owner lock, cambio de versión/disable/delete antes de autorizar y trabajo autorizado primero que retiene su lock; RLS y contexto local observados por interfaz de autorización y conexión independiente.
+  Notes (integración): p001 crea users/invitations y funciones consumidas ahora, sin credenciales/audit futuros ni editar p000; upgrade p000→p001 real probado. Executor NOLOGIN sin membresía runtime, FORCE RLS, grants por columna, ACL/search_path de funciones inspeccionados. `identity.public_user_count()` conserva health sin SELECT global runtime; catálogo actualizado. Clave original de firma por fichero separado, sin generación/rotación; Compose API monta solo runtime password y esa clave. Runtime incluye Identity, no fixtures/tests.
+  Notes (regresiones): schema 12, lifecycle 14, database 20, checks 12, images, harness y contracts PASS; comandos `node scripts/platform.mjs verify <suite>`. Build/layout PASS 4/4 (`delivered-build-retry.log`), incluye caché fría/repetida/fuente/tests/metadata/lock y limpieza propia. Primer intento de esa repetición excedió el timeout externo: no se acredita PASS; builder/imágenes propios comprobados y retirados antes del retry (`interrupted-build-cleanup.log`). Evidencia con digests/resultados en `.scratch/platform-identity/{delivered-*,accepted-schema,accepted-lifecycle,database,harness,contracts}.log`. Lint, OKF + 41 tests, OpenSpec estricto y diff-check PASS. Revisión ponytail del diff y archivos nuevos sin bloqueantes tras corregir clave vacía.
+  Notes (límites): Ready for closeout de 2.1 solamente. Sin login/registro/Training, prueba de navegador/TLS real, dispositivo/autenticador, datos reales ni aceptación operativa; matrix HTTP aplica configuración de cookie HTTPS, no acredita terminación TLS. La suite completa max-one/errores/cancelación HTTP de Identity sigue en 2.9; no se marca por esta entrega. Sin nuevas dependencias, commit/push, sync/archive ni inicio de 2.2; los dos directorios specs no rastreados preexistentes se conservan intactos.
 - [ ] 2.2 Entregar login password con scrypt/NFKC y respuestas/cookie/token vigentes, dummy hash y fallo seguro; revalidar hash/versión tras trabajo criptográfico.
   Traceability: compatible-platform-persistence / Legacy-compatible identity namespace and credentials / Credential and account access continuity.
   Proof/Check: `node scripts/platform.mjs verify identity_password --case login`.
