@@ -12,3 +12,5 @@
 !.github/workflows/*.yml
 **/__pycache__
 **/.env*
+**/*.env
+**/*.env.*

@@ -18,7 +18,8 @@ COPY frontend/package.json frontend/pnpm-lock.yaml ./
 # --ignore-scripts: the web image only needs `vite build`; the one heavy postinstall in this tree
 # (@capacitor/assets -> sharp, a libvips download from GitHub) is for drawing app icons and has
 # timed out on the shared runners — a lockfile-ignoring `npm install` fallback is no answer to that.
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN --mount=type=cache,id=opengym-web-pnpm,target=/pnpm/store,sharing=locked \
+    pnpm install --frozen-lockfile --ignore-scripts --store-dir=/pnpm/store --package-import-method=copy
 COPY api/coach/core/ /app/api/coach/core/
 COPY frontend/ ./
 # Which build this is, shown in the app as "1.3.8+<build>" next to the version. Without it every

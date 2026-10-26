@@ -94,6 +94,16 @@ Cold/warm/source/manifest cache and lockfile regressions live in
 and their frozen [inventory](CONTRACTS.md) are unchanged; historical paths there are
 not current launch instructions and must not be regenerated to admit drift.
 
+Build contexts are allowlisted: root `.dockerignore` serves the web image,
+`api/.dockerignore` serves Node, and `backend/.dockerignore` serves Python.
+The contracts/security Dockerfiles have their own ignore files, which override the
+root filter. Keep each allowlist aligned with its Dockerfile's `COPY` inputs;
+exercise media and the shared coach core remain required web inputs.
+`.gitignore` protects Git only; it does not filter Docker contexts. Local env files,
+provider credentials, host dependencies and caches are excluded separately.
+Node/web dependency installs use builder-local pnpm cache mounts with frozen locks;
+the package store is not copied into images or mixed with application data.
+
 ## Retired transition tooling
 
 Standalone Node/Python Foundation stacks, runners and their exclusive prototype

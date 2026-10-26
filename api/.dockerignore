@@ -1,0 +1,17 @@
+# Keep the Node API context limited to the runtime source and frozen dependency inputs.
+**
+!Dockerfile
+!package.json
+!pnpm-lock.yaml
+!*.js
+!coach/
+!coach/**
+
+**/node_modules
+**/.env*
+**/*.env
+**/*.env.*
+**/.cache
+**/coverage
+**/test-results
+**/*.log

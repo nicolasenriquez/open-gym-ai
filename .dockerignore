@@ -1,7 +1,30 @@
+# Root context is the web image. Other root-context Dockerfiles use their own ignore files.
+**
+!frontend/
+!frontend/**
+!api/
+!api/coach/
+!api/coach/core/
+!api/coach/core/**
+!web/
+!web/Dockerfile
+!web/nginx.conf.template
+!web/05-check-base-path.sh
+!catalogue/
+!catalogue/media/
+!catalogue/media/**
+
+# Host dependencies, native shells and private/local files are never build inputs.
 **/node_modules
 frontend/dist
-media
-data
-.env
-.git
-*.log
+frontend/android
+frontend/ios
+**/.env*
+**/*.env
+**/*.env.*
+**/.cache
+**/.vite
+**/coverage
+**/test-results
+**/__pycache__
+**/*.log

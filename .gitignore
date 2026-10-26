@@ -8,6 +8,23 @@ data/
 
 # Local config
 .env
+.env.*
+*.env
+!.env.example
+!.env.*.example
+!*.env.example
+!backend/empty.env
+
+# Refreshable provider credentials are separate from application backups.
+/coach-auth/
+
+# Host Python environments and caches are not project source.
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 # Build output / deps
 frontend/dist/

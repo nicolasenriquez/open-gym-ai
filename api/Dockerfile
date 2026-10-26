@@ -52,7 +52,8 @@ COPY package.json pnpm-lock.yaml ./
 # A frozen pnpm install: the lockfile is the point of committing one, and the SDK's
 # per-platform runtime is resolved from it (musl on this base) rather than from whatever the
 # build host happened to be.
-RUN pnpm install --frozen-lockfile --prod --no-optional --ignore-scripts
+RUN --mount=type=cache,id=opengym-api-pnpm,target=/pnpm/store,sharing=locked \
+    pnpm install --frozen-lockfile --prod --no-optional --ignore-scripts --store-dir=/pnpm/store --package-import-method=copy
 
 # Every module server.js imports from the api root has to be named here: the image carries nothing
 # else, and one that is missing only shows at boot, as ERR_MODULE_NOT_FOUND.
@@ -73,13 +74,15 @@ HEALTHCHECK --interval=5m \
 # @anthropic-ai/claude-agent-sdk together with the one platform runtime this base needs
 # (linux-*-musl), both pinned by the lockfile.
 FROM base AS coach
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+RUN --mount=type=cache,id=opengym-api-pnpm,target=/pnpm/store,sharing=locked \
+    pnpm install --frozen-lockfile --prod --ignore-scripts --store-dir=/pnpm/store --package-import-method=copy
 
 # Codex ships as a CLI rather than a library, so it is installed rather than resolved, and
 # bubblewrap is its sandbox — a Codex requirement, which is why neither appears in the default
 # target or anywhere in this tree until now.
-RUN apk add --no-cache bubblewrap \
- && pnpm add --global --global-bin-dir=/usr/local/bin @openai/codex@0.160.0 --ignore-scripts
+RUN --mount=type=cache,id=opengym-api-pnpm,target=/pnpm/store,sharing=locked \
+    apk add --no-cache bubblewrap \
+ && pnpm add --global --global-bin-dir=/usr/local/bin @openai/codex@0.160.0 --ignore-scripts --store-dir=/pnpm/store --package-import-method=copy
 
 # Where Codex keeps its refreshable login cache. Deliberately a sibling of /data rather than a
 # path inside it: docs/SELF_HOSTING tells owners to back up with `tar czf … data/`, and a live
