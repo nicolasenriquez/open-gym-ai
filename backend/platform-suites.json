@@ -1,4 +1,15 @@
 {
+  "identity_session": [
+    {
+      "id": "actor",
+      "requirement": "Authenticated session to RLS ownership / Mixed credentials and duplicate cookies resolve one actor; Invalid sessions never establish protected ownership; Session expires while waiting for protected work; Concurrent revocation is serialized with protected work",
+      "setup": "Independent signed vectors, real Uvicorn and disposable PostgreSQL; restricted runtime, separate setup/observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_session.py"],
+      "proof": "One selected verified actor, lock-time expiry/version checks, RLS ownership and concurrent revocation ordering",
+      "checkpoint": "2.1 only; no password login, Training or full pool acceptance"
+    }
+  ],
   "lifecycle": [
     {
       "id": "readiness",

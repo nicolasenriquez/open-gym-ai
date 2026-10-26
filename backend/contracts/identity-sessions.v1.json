@@ -1,0 +1,7 @@
+{
+  "source": "Independent Node node:crypto HMAC-SHA256 base64url vectors; synthetic data only",
+  "secret": "synthetic-session-signing-key-only-0123456789",
+  "a": "A:4102444800000:0.bzIaCfl-HBdi1hNUozJ1KvoX3iuNvQlU4lsMjHTTgoM",
+  "b": "B:4102444800000:3.bnIHnDX1EThhBW28CEd3RxWE2wyCSW71gNIZKHlrt-I",
+  "legacy": "A:4102444800000.C1O2RHKPjiCNBmQweN8Dixi97cbEgp9szhDF8fBxTKI"
+}

@@ -49,6 +49,9 @@ async def deployment(tmp_path):
         secret = tmp_path / name
         secret.write_text(f"synthetic-lifecycle-{name}-password-only")
         environment[variable] = str(secret)
+    session_secret = tmp_path / "session_secret"
+    session_secret.write_text("synthetic-session-signing-key-only-0123456789")
+    environment["PLATFORM_SESSION_SECRET_FILE"] = str(session_secret)
     database = await asyncpg.connect(
         host="platform-db",
         database="opengym_dev",
@@ -65,7 +68,8 @@ async def deployment(tmp_path):
         await database.close(timeout=5)
         await observer.execute("DROP DATABASE opengym_dev WITH (FORCE)")
         await observer.execute(
-            "DROP ROLE IF EXISTS opengym_migrator, opengym_api_runtime, opengym_schema_owner"
+            "DROP ROLE IF EXISTS opengym_migrator, opengym_api_runtime, "
+            "opengym_schema_owner, opengym_identity_executor"
         )
         await observer.execute(
             "ALTER ROLE opengym_platform_bootstrap PASSWORD 'synthetic-opengym-platform-only'"
@@ -186,7 +190,7 @@ async def test_public_health_and_config_match_empty_node_instance(deployment):
         assert config.headers["cache-control"] == "no-store"
         assert (
             await observer.fetchval("SELECT version_num FROM public.alembic_version")
-            == "p000_bootstrap"
+            == "p001_identity_session"
         )
 
 
@@ -255,7 +259,9 @@ async def test_read_only_database_cannot_advertise_writable_or_ready(deployment)
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("history", [[], ["unknown"], ["p000_bootstrap", "extra"]])
+@pytest.mark.parametrize(
+    "history", [[], ["unknown"], ["p001_identity_session", "extra"]]
+)
 async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, history):
     observer, environment = deployment
     await migration(environment, "up")
@@ -282,7 +288,7 @@ async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, hi
         assert (await client.get("/health/live")).status_code == 200
         await observer.execute("DELETE FROM public.alembic_version")
         await observer.execute(
-            "INSERT INTO public.alembic_version VALUES ('p000_bootstrap')"
+            "INSERT INTO public.alembic_version VALUES ('p001_identity_session')"
         )
         assert (await client.get("/health/ready")).status_code == 200
 

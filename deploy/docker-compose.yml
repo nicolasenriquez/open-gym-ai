@@ -38,6 +38,9 @@ services:
     command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--workers", "1", "--no-access-log"]
     environment:
       <<: *database
+      PLATFORM_SESSION_SECRET_FILE: /run/secrets/session_secret
+      ORIGIN: ${ORIGIN:-http://localhost:8080}
+      SESSION_DAYS: ${SESSION_DAYS:-90}
       INVITE_ONLY: ${INVITE_ONLY:-0}
       ALLOW_GUEST: ${ALLOW_GUEST:-1}
       PASSWORD_LOGIN: ${PASSWORD_LOGIN:-0}
@@ -50,6 +53,7 @@ services:
       MEDIA_VIDEO_MAX_SEC: ${MEDIA_VIDEO_MAX_SEC:-60}
     secrets:
       - {source: runtime_password, target: database_password}
+      - session_secret
     networks: [app, database]
     depends_on:
       db: {condition: service_healthy}
@@ -119,3 +123,4 @@ secrets:
   bootstrap_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/bootstrap_password"}
   migrator_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/migrator_password"}
   runtime_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/runtime_password"}
+  session_secret: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/session_secret"}

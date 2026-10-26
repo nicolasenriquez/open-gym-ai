@@ -62,6 +62,9 @@ async def _bootstrap(target):
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{SCHEMA_OWNER}') THEN
                         CREATE ROLE {SCHEMA_OWNER} NOLOGIN;
                     END IF;
+                    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'opengym_identity_executor') THEN
+                        CREATE ROLE opengym_identity_executor NOLOGIN;
+                    END IF;
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{MIGRATOR}') THEN
                         CREATE ROLE {MIGRATOR} LOGIN;
                     END IF;
@@ -71,6 +74,9 @@ async def _bootstrap(target):
                 END $$;
                 ALTER ROLE {SCHEMA_OWNER} NOSUPERUSER NOBYPASSRLS NOCREATEDB
                     NOCREATEROLE NOREPLICATION NOINHERIT;
+                ALTER ROLE opengym_identity_executor NOLOGIN NOSUPERUSER NOBYPASSRLS
+                    NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
+                GRANT opengym_identity_executor TO {SCHEMA_OWNER};
                 ALTER ROLE {MIGRATOR} NOSUPERUSER NOBYPASSRLS NOCREATEDB
                     NOCREATEROLE NOREPLICATION NOINHERIT;
                 ALTER ROLE {RUNTIME} NOSUPERUSER NOBYPASSRLS NOCREATEDB
@@ -104,9 +110,13 @@ async def _bootstrap(target):
             memberships = await connection.fetchval(f"""
                 SELECT count(*) FROM pg_auth_members m
                 JOIN pg_roles member ON member.oid = m.member
-                WHERE member.rolname IN ('{SCHEMA_OWNER}', '{MIGRATOR}', '{RUNTIME}')
+                WHERE member.rolname IN ('{SCHEMA_OWNER}', '{MIGRATOR}', '{RUNTIME}',
+                    'opengym_identity_executor')
                   AND NOT (member.rolname = '{MIGRATOR}' AND m.roleid = (
                       SELECT oid FROM pg_roles WHERE rolname = '{SCHEMA_OWNER}'
+                  ))
+                  AND NOT (member.rolname = '{SCHEMA_OWNER}' AND m.roleid = (
+                      SELECT oid FROM pg_roles WHERE rolname = 'opengym_identity_executor'
                   ))
             """)
             if memberships:

@@ -85,7 +85,7 @@ async function deploymentProof({ project, image, docker }) {
     for (const environment of ['dev', 'ops']) {
       const secretRoot = join(temporary, environment);
       mkdirSync(secretRoot, { mode: 0o700 });
-      for (const file of ['bootstrap_password', 'migrator_password', 'runtime_password']) {
+      for (const file of ['bootstrap_password', 'migrator_password', 'runtime_password', 'session_secret']) {
         writeFileSync(join(secretRoot, file), `synthetic-${environment}-${file}-${randomBytes(20).toString('hex')}'$$`, { mode: 0o444 });
       }
       writeFileSync(envFile, [
@@ -122,8 +122,7 @@ async function deploymentProof({ project, image, docker }) {
           assert.ok(!definition.volumes?.some(volume => volume.type === 'bind'));
         }
       }
-      assert.equal(config.services.api.secrets.length, 1);
-      assert.equal(config.services.api.secrets[0].source, 'runtime_password');
+      assert.deepEqual(config.services.api.secrets.map(secret => secret.source), ['runtime_password', 'session_secret']);
       assert.equal(config.services.migrate.secrets.length, 1);
       assert.equal(config.services.migrate.secrets[0].source, 'migrator_password');
       assert.ok(!config.services.ops.secrets?.length);
@@ -183,7 +182,7 @@ async def check():
     connection = await asyncpg.connect(host=target.host, database=target.database, user=target.user, password=target.password, ssl=False, timeout=5)
     try:
         assert await connection.fetchval('SELECT current_user') == 'opengym_api_runtime'
-        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p000_bootstrap'
+        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p001_identity_session'
         try:
             await connection.execute('SET ROLE opengym_schema_owner')
         except asyncpg.InsufficientPrivilegeError:

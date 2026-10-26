@@ -77,6 +77,16 @@ def load_database(role):
         raise ValueError("PLATFORM_DATABASE_CONFIG_INVALID") from None
 
 
+def load_session_secret():
+    try:
+        secret = _secret("PLATFORM_SESSION_SECRET_FILE").strip()
+        if len(secret) < 32:
+            raise ValueError
+        return secret
+    except OSError, ValueError, UnicodeError:
+        raise ValueError("PLATFORM_SESSION_CONFIG_INVALID") from None
+
+
 def load_public_config():
     enabled = {"1", "true", "yes", "on"}
     disabled = {"0", "false", "no", "off"}

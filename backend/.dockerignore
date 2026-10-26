@@ -10,5 +10,7 @@
 !src/**
 !tests/
 !tests/**
+!contracts/
+!contracts/identity-sessions.v1.json
 **/__pycache__
 **/.env*
