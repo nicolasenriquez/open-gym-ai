@@ -1,6 +1,8 @@
 """Explicit local Compose database configuration, separate from Foundation."""
 
+import math
 import os
+import re
 import stat
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -71,5 +73,44 @@ def load_database(role):
             if role == "bootstrap"
             else "",
         )
-    except (OSError, ValueError, KeyError, UnicodeError):
+    except OSError, ValueError, KeyError, UnicodeError:
         raise ValueError("PLATFORM_DATABASE_CONFIG_INVALID") from None
+
+
+def load_public_config():
+    enabled = {"1", "true", "yes", "on"}
+    disabled = {"0", "false", "no", "off"}
+    config: dict[str, object] = {
+        "invite_only": os.environ.get("INVITE_ONLY", "").lower() in enabled,
+        "allow_guest": os.environ.get("ALLOW_GUEST", "").lower() not in disabled,
+    }
+    if os.environ.get("PASSWORD_LOGIN", "").lower() in enabled:
+        config["password_login"] = True
+    language = os.environ.get("DEFAULT_LANG", "").strip()
+    if re.fullmatch(r"[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})?", language):
+        config["default_lang"] = language
+    if os.environ.get("MEDIA_UPLOADS", "").strip().lower() not in disabled:
+        media: dict[str, object] = {"workouts": True}
+        for field, variable, default, minimum in (
+            ("quotaMB", "MEDIA_QUOTA_MB", 200, 0),
+            ("imageMB", "MEDIA_IMAGE_MAX_MB", 2, 0.001),
+            ("gifMB", "MEDIA_GIF_MAX_MB", 8, 0.001),
+            ("videoMB", "MEDIA_VIDEO_MAX_MB", 40, 0.001),
+            ("videoSec", "MEDIA_VIDEO_MAX_SEC", 60, 1),
+        ):
+            raw = os.environ.get(variable, "").strip()
+            value = float(default)
+            if re.fullmatch(
+                r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?", raw
+            ):
+                value = float(raw)
+            elif re.fullmatch(r"0(?:[xX][0-9a-fA-F]+|[bB][01]+|[oO][0-7]+)", raw):
+                try:
+                    value = float(int(raw, 0))
+                except OverflowError:
+                    value = float(default)
+            media[field] = (
+                value if math.isfinite(value) and value >= minimum else default
+            )
+        config["media"] = media
+    return config

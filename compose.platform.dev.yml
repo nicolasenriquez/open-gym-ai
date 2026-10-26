@@ -3,7 +3,7 @@ services:
   api:
     image: opengym-platform-runtime:dev
     build: {context: ./backend, target: dev}
-    command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--reload"]
+    command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--reload", "--no-access-log"]
     environment: {PLATFORM_ENV: dev, PLATFORM_DB_NAME: opengym_dev}
     volumes:
       - {type: bind, source: ./backend/src, target: /app/src, read_only: true}

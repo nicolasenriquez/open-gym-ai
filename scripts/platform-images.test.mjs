@@ -92,6 +92,7 @@ async function deploymentProof({ project, image, docker }) {
         `PLATFORM_SECRETS_DIR=${secretRoot.replaceAll('\\', '/')}`,
         `PLATFORM_WEB_DIGEST=${images.runtime}`, `PLATFORM_RUNTIME_DIGEST=${images.runtime}`,
         `PLATFORM_MIGRATE_DIGEST=${images.migrate}`, `PLATFORM_OPS_DIGEST=${images.ops}`,
+        'INVITE_ONLY=1', 'ALLOW_GUEST=0', 'PASSWORD_LOGIN=true', 'DEFAULT_LANG=es-CL', 'MEDIA_UPLOADS=0',
       ].join('\n'));
       const instance = `opengym-platform-test-${randomBytes(8).toString('hex')}`;
       const owner = syntheticHarness({
@@ -151,6 +152,24 @@ async function deploymentProof({ project, image, docker }) {
         await docker([...compose, 'up', '-d', '--wait', '--wait-timeout', '60', 'db'], true);
         await docker([...compose, 'run', '--rm', '--no-deps', 'bootstrap'], true);
         await docker([...compose, 'run', '--rm', '--no-deps', 'migrate'], true);
+        await docker([...compose, 'up', '-d', '--no-deps', 'api'], true);
+        await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', `
+import json, time, urllib.request, urllib.error
+for attempt in range(100):
+    try:
+        with urllib.request.urlopen('http://127.0.0.1:3000/health/ready', timeout=1) as response:
+            assert json.load(response) == {'code': 'PLATFORM_READY_OK'}
+        break
+    except (OSError, urllib.error.URLError):
+        time.sleep(0.1)
+else:
+    raise AssertionError('platform HTTP did not become ready')
+with urllib.request.urlopen('http://127.0.0.1:3000/api/health', timeout=1) as response:
+    assert json.load(response) == {'ok': True, 'users': 0, 'writable': True}
+with urllib.request.urlopen('http://127.0.0.1:3000/api/config', timeout=1) as response:
+    assert json.load(response) == {'invite_only': True, 'allow_guest': False, 'password_login': True, 'default_lang': 'es-CL'}
+print('PLATFORM_COMPOSE_HTTP_OK')
+`], true);
         await docker([...compose, 'run', '--rm', '--no-deps', '--entrypoint', '/app/.venv/bin/python', 'api', '-c', `
 import asyncio, pathlib, asyncpg
 from opengym_platform.core.platform_settings import load_database

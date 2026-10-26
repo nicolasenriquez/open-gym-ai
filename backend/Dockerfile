@@ -35,13 +35,14 @@ WORKDIR /app
 COPY --from=production-deps /app/.venv/ /app/.venv/
 COPY src/opengym_platform/__init__.py /app/src/opengym_platform/
 COPY src/opengym_platform/core/ /app/src/opengym_platform/core/
+COPY src/opengym_platform/application.py /app/src/opengym_platform/
 USER 1000:1000
 ENTRYPOINT ["/app/.venv/bin/python"]
-CMD ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--workers", "1"]
+CMD ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--workers", "1", "--no-access-log"]
 
 FROM runtime AS dev
 # Uvicorn's stat reloader needs no extra watcher dependency.
-CMD ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--reload"]
+CMD ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--reload", "--no-access-log"]
 
 FROM runtime AS migrate
 COPY src/opengym_platform/platform_migrate.py /app/src/opengym_platform/

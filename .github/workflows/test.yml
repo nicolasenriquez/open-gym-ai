@@ -284,5 +284,6 @@ jobs:
       - run: node scripts/platform-baseline.mjs
       - run: node scripts/platform.mjs verify harness
       - run: node scripts/platform.mjs verify schema
+      - run: node scripts/platform.mjs verify lifecycle
       - run: node scripts/platform.mjs verify images
       - run: node --test scripts/python-foundation-build.test.mjs

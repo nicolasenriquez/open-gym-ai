@@ -123,6 +123,25 @@ class Database:
     @classmethod
     async def open(cls, settings):
         settings, context = _configuration(settings)
+        return await cls._open(settings, context)
+
+    @classmethod
+    async def open_platform(cls):
+        from opengym_platform.core.platform_settings import load_database
+
+        target = load_database("runtime")
+        settings = _Settings(
+            host=target.host,
+            port=5432,
+            database=target.database,
+            user=target.user,
+            password=SecretStr(target.password),
+            tls=False,
+        )
+        return await cls._open(settings, False)
+
+    @classmethod
+    async def _open(cls, settings, context):
         try:
             pool = await asyncpg.create_pool(
                 host=settings.host,

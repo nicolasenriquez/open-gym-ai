@@ -16,7 +16,9 @@ services:
       POSTGRES_DB: opengym_platform_test
     labels:
       org.opengym.platform: synthetic
-    networks: [private]
+    networks:
+      private:
+        aliases: [db]
     volumes:
       - postgres-data:/var/lib/postgresql
     healthcheck:
