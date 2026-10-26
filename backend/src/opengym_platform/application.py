@@ -1,6 +1,5 @@
 """Platform HTTP composition and lifecycle."""
 
-import json
 import math
 import os
 from contextlib import asynccontextmanager
@@ -14,15 +13,9 @@ from opengym_platform.core.platform_settings import (
     load_public_config,
     load_session_secret,
 )
-from opengym_platform.identity.passwords import BusyError, Passwords
-from opengym_platform.identity.service import password_login as login_password
-from opengym_platform.identity.service import profile
-from opengym_platform.identity.sessions import verify
-from opengym_platform.identity.throttle import LockedError, Throttle, limit_address
-
-
-def invalid_json_constant(value):
-    raise ValueError("invalid json")
+from opengym_platform.identity.passwords import Passwords
+from opengym_platform.identity.router import create_router
+from opengym_platform.identity.throttle import Throttle
 
 
 def create_app():
@@ -38,17 +31,6 @@ def create_app():
 
     passwords = Passwords()
     throttle = Throttle()
-
-    def locked_response(error):
-        return JSONResponse(
-            {
-                "error": "too many attempts, try again later",
-                "code": "locked",
-                "retryAfter": error.seconds,
-            },
-            status_code=429,
-            headers={"Cache-Control": "no-store", "Retry-After": str(error.seconds)},
-        )
 
     @asynccontextmanager
     async def lifespan(app):
@@ -156,122 +138,16 @@ def create_app():
             headers={"Cache-Control": "no-store"},
         )
 
-    @app.get("/api/me")
-    async def me(request: Request):
-        headers = {"Cache-Control": "no-store"}
-        session = verify(
-            ";".join(request.headers.getlist("cookie")),
-            request.headers.get("authorization", ""),
-            secure,
-            secret,
+    app.include_router(
+        create_router(
+            secret=secret,
+            secure=secure,
+            session_days=session_days,
+            passwords=passwords,
+            throttle=throttle,
+            password_login_enabled=bool(public_config.get("password_login")),
         )
-        if session is None:
-            return JSONResponse(
-                {"error": "not signed in"}, status_code=401, headers=headers
-            )
-        try:
-            result = await profile(
-                request.app.state.database, session, secret, session_days
-            )
-            if result is None:
-                return JSONResponse(
-                    {"error": "not signed in"}, status_code=401, headers=headers
-                )
-            return JSONResponse(result, headers=headers)
-        except DatabaseError:
-            return JSONResponse(
-                {"error": "server error"}, status_code=500, headers=headers
-            )
-
-    if public_config.get("password_login"):
-
-        @app.post("/api/login/password")
-        async def password_login(request: Request):
-            headers = {"Cache-Control": "no-store"}
-            site = request.headers.get("sec-fetch-site")
-            origin = request.headers.get("origin")
-            if not request.headers.get("authorization", "").startswith("Bearer "):
-                allowed = (
-                    site in {"same-origin", "none"}
-                    if site
-                    else not origin
-                    or origin.rstrip("/")
-                    == os.environ.get("ORIGIN", "http://localhost:8080").rstrip("/")
-                )
-                if not allowed:
-                    return JSONResponse(
-                        {"error": "cross-origin request refused"},
-                        status_code=403,
-                        headers=headers,
-                    )
-            address = limit_address(
-                request,
-                os.environ.get("TRUST_PROXY", "").lower() in {"1", "true", "yes", "on"},
-            )
-            try:
-                throttle.entry(address)
-            except LockedError as error:
-                return locked_response(error)
-            try:
-                raw = bytearray()
-                async for chunk in request.stream():
-                    raw.extend(chunk)
-                    if len(raw) > 5 * 1024 * 1024:
-                        return JSONResponse(
-                            {"error": "body too large"},
-                            status_code=413,
-                            headers=headers,
-                        )
-                body = (
-                    json.loads(
-                        raw.decode("utf-8", errors="replace"),
-                        parse_constant=invalid_json_constant,
-                    )
-                    if raw
-                    else {}
-                )
-                if not isinstance(body, dict):
-                    raise TypeError
-            except ValueError, TypeError, RecursionError:
-                return JSONResponse(
-                    {"error": "invalid json"}, status_code=400, headers=headers
-                )
-            try:
-                status, result, token = await login_password(
-                    request.app.state.database,
-                    passwords,
-                    throttle,
-                    address,
-                    body,
-                    secret,
-                    session_days,
-                )
-                response = JSONResponse(result, status_code=status, headers=headers)
-                if token:
-                    name = "__Host-gymsid" if secure else "gymsid"
-                    flags = f"; Path=/; Max-Age={format(session_days * 86400, '.15f').rstrip('0').rstrip('.')}; HttpOnly;{' Secure;' if secure else ''} SameSite=Lax"
-                    response.headers.append("Set-Cookie", f"{name}={token}{flags}")
-                    if secure:
-                        response.headers.append(
-                            "Set-Cookie",
-                            "gymsid=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax",
-                        )
-                return response
-            except LockedError as error:
-                return locked_response(error)
-            except BusyError:
-                return JSONResponse(
-                    {
-                        "error": "the server is busy, try again in a moment",
-                        "code": "busy",
-                    },
-                    status_code=503,
-                    headers={**headers, "Retry-After": "2"},
-                )
-            except DatabaseError, ValueError, OverflowError:
-                return JSONResponse(
-                    {"error": "server error"}, status_code=500, headers=headers
-                )
+    )
 
     @app.get("/api/config")
     async def config():

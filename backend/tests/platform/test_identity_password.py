@@ -6,6 +6,7 @@ import shutil
 import threading
 from pathlib import Path
 
+import httpx
 import pytest
 import pytest_asyncio
 from test_identity_session import identities as identities  # noqa: PLC0414
@@ -39,6 +40,97 @@ async def accounts(identities):
         ('alice','A',false,true,NULL), ('a@example.test','A',true,false,NULL),
         ('bob','B',false,true,NULL)""")
     return identities
+
+
+@pytest.mark.asyncio
+async def test_identity_routes_keep_factory_configuration_and_collaborators_local(
+    monkeypatch,
+):
+    from opengym_platform.application import create_app
+    from opengym_platform.identity.sessions import sign
+
+    calls = []
+
+    async def login(database, passwords, throttle, address, body, secret, days):
+        calls.append((database, passwords, throttle, secret, days))
+        return 200, {"user": {"id": "A"}}, "synthetic-token"
+
+    async def read_profile(database, session, secret, days):
+        return {"user": {"id": session.owner}}
+
+    monkeypatch.setattr("opengym_platform.identity.router.login_password", login)
+    monkeypatch.setattr("opengym_platform.identity.router.profile", read_profile)
+    monkeypatch.setattr(
+        "opengym_platform.application.load_public_config",
+        lambda: {"password_login": True},
+    )
+    monkeypatch.setattr(
+        "opengym_platform.application.load_session_secret", lambda: "a" * 32
+    )
+    monkeypatch.setenv("ORIGIN", "http://localhost:8080")
+    monkeypatch.setenv("SESSION_DAYS", "2")
+    first = create_app()
+    first.state.database = object()
+
+    monkeypatch.setattr(
+        "opengym_platform.application.load_session_secret", lambda: "b" * 32
+    )
+    monkeypatch.setenv("ORIGIN", "https://gym.example")
+    monkeypatch.setenv("SESSION_DAYS", "4")
+    second = create_app()
+    second.state.database = object()
+
+    monkeypatch.setattr("opengym_platform.application.load_public_config", dict)
+    disabled = create_app()
+    async with (
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=first), base_url="http://test"
+        ) as a,
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=second), base_url="http://test"
+        ) as b,
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=disabled), base_url="http://test"
+        ) as off,
+    ):
+        for client in (a, b, a):
+            response = await client.post("/api/login/password", json={})
+            assert response.status_code == 200
+            assert response.headers["cache-control"] == "no-store"
+            cookies = response.headers.get_list("set-cookie")
+            if client is a:
+                assert len(cookies) == 1
+                assert cookies[0].startswith("gymsid=synthetic-token;")
+                assert "Max-Age=172800;" in cookies[0]
+                assert "; Secure;" not in cookies[0]
+            else:
+                assert len(cookies) == 2
+                assert cookies[0].startswith("__Host-gymsid=synthetic-token;")
+                assert "Max-Age=345600;" in cookies[0]
+                assert "; Secure;" in cookies[0]
+        assert calls[0] == calls[2]
+        assert calls[0][0] is first.state.database
+        assert calls[1][0] is second.state.database
+        assert calls[0][1] is not calls[1][1]
+        assert calls[0][2] is not calls[1][2]
+        assert calls[0][3:] == ("a" * 32, 2)
+        assert calls[1][3:] == ("b" * 32, 4)
+        a.cookies.clear()
+        b.cookies.clear()
+        token = sign("A:4102444800000:0", "a" * 32)
+        assert (
+            await a.get("/api/me", headers={"Authorization": f"Bearer {token}"})
+        ).json() == {"user": {"id": "A"}}
+        assert (
+            await b.get("/api/me", headers={"Authorization": f"Bearer {token}"})
+        ).status_code == 401
+        for path in ("/api/me/", "/api/login/password/"):
+            response = await a.request("GET" if path == "/api/me/" else "POST", path)
+            assert response.status_code == 404
+            assert "location" not in response.headers
+        response = await off.post("/api/login/password", json={})
+        assert response.status_code == 404
+        assert response.json() == {"error": "not found"}
 
 
 @pytest.mark.asyncio
