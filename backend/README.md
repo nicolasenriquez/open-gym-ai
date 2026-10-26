@@ -36,18 +36,28 @@ in the private Dev env-file. The default web port is 8080 for permanent operatio
 API 3000 and PostgreSQL 5432 stay private. Dev and prod use distinct database/volume
 names even if given the same project name. Keep their secrets separate as well.
 
-Prepare three different UTF-8 files: `bootstrap_password`, `migrator_password`
-and `runtime_password`, each 32–4096 bytes, without BOM, CR/NUL or embedded newline.
+Prepare four different UTF-8 files: `bootstrap_password`, `migrator_password`,
+`runtime_password` and `session_secret`, each 32–4096 bytes, without BOM, CR/NUL or embedded newline.
 A terminal LF is supported. Protect the directory using permissions/ACLs; on Linux
 UID 1000 must be able to read the mounted files. Secret contents never belong in env
-files, image arguments, Git or evidence. API mounts only its runtime password;
-migrate mounts only its own, and bootstrap mounts all three. Ops mounts none yet.
+files, image arguments, Git or evidence. API mounts only its runtime password and
+session-signing key; migrate mounts only its own password, and bootstrap mounts the
+three database passwords. Ops mounts none yet. `PLATFORM_SESSION_SECRET_FILE` points
+to the API's key mount. For compatible session continuity, provision the original
+signing key explicitly; never generate or rotate it implicitly during startup or port.
+Keep it separate from all database passwords and future coach decryption material.
 
 Prod uses `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
 `PLATFORM_MIGRATE_DIGEST` and `PLATFORM_OPS_DIGEST`: the hex suffix of tested local
 image IDs, not tags or registry manifest digests. `just prod-config <absolute-prod.env>`
 validates configuration without starting services. API never migrates at startup.
 A failed bootstrap/migration stops the Dev recipe before API/web startup.
+
+`GET /api/me` now verifies compatible cookie/bearer sessions and authorizes the actor
+under a PostgreSQL row lock before installing transaction-local RLS ownership.
+`ORIGIN` selects the current cookie name (`__Host-gymsid` on HTTPS); `SESSION_DAYS`
+controls bearer renewal. These values retain their Node defaults. Password login,
+registration and account-management routes are not yet delivered.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -68,6 +78,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `database` | Pool, cancellation, rollback, owner isolation and commit uncertainty. |
 | `schema` | Current Alembic history, locking and restricted roles. |
 | `lifecycle` | HTTP health/readiness, schema compatibility and shutdown. |
+| `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
 | `images` | Runtime/tool separation, dev/prod topology and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
