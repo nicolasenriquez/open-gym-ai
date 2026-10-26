@@ -35,6 +35,7 @@ node scripts/platform.mjs verify harness --case ownership
 node scripts/platform.mjs verify contracts --case baseline
 node scripts/platform.mjs verify schema --case history_lock
 node scripts/platform.mjs verify images --case isolation
+node scripts/platform.mjs verify lifecycle --case readiness
 ```
 
 Omitting `--case` runs every delivered case in the selected suite.
@@ -48,8 +49,9 @@ It rejects Foundation projects, foreign labels and shared images before removal.
 The initial contract target reuses `Dockerfile.contracts` and its pinned Node/pnpm
 toolchain, private network and tmpfs. The schema case builds `platform-test` from
 `backend/Dockerfile` and starts a private disposable PostgreSQL (`platform-db`);
-nothing binds host sources, datasets or ports. There is no platform HTTP API or
-browser image yet. Node is a test dependency here, not a Python runtime dependency.
+nothing binds host sources, datasets or ports. The lifecycle case exercises the
+platform bootstrap HTTP factory; authenticated/business routes and a browser image
+remain undelivered. Node is a test dependency here, not a Python runtime dependency.
 These checks establish only the Node/client reference and verifier safety, never
 Python parity or operational gates.
 
@@ -61,14 +63,31 @@ cannot run DDL or assume owner/migrator roles. No business table is created; the
 next revision belongs to the identity slice. `python -m
 opengym_platform.platform_migrate bootstrap|up` accepts only the synthetic
 `opengym_platform_test` target without `--deployment`. The explicit deployment
-mode below uses separate file-backed credentials. HTTP startup/readiness remains
-pending in task 1.3; no public Python API is claimed by the image checks.
+mode below uses separate file-backed credentials.
+
+The lifecycle case starts real Uvicorn on container loopback with the restricted
+runtime role. `/health/live` reports process liveness; `/health/ready` requires the
+single known `p000_bootstrap` head, an accessible primary and read-write transaction
+mode. Missing/unknown history, lost DB access and read-only mode return 503 without
+migrating or repairing history. Connection recovery needs no process restart;
+shutdown closes the bounded Foundation pool. Deployment settings have their own
+file-secret loader; Foundation's synthetic destination guards are unchanged.
+
+`/api/health` preserves the empty-instance JSON shape and no-store header, returning
+503 when readiness fails. This bootstrap has no identities: its zero users applies
+only to p000; Identity must supply the real count when its schema lands. The probe
+checks connection/schema/write mode, not a business write or disk-full durability.
+`/api/config` exposes compatible public flags, language and media limits, with no
+coach disclosure or session interpretation yet. CORS/preflight and unknown-route
+responses retain the public Node contract. `/docs` and `/openapi.json` stay absent;
+nginx forwards only `/api`, keeping the `/health` probes internal. This is bootstrap
+HTTP compatibility, not identity/media functionality or operational acceptance.
 
 ### Platform images and Compose
 
 `backend/Dockerfile` supplies `dev`, `test`, `runtime`, `migrate` and `ops` targets
 from the same Python/uv/PostgreSQL pins and `uv.lock`. Its default remains the
-Foundation verifier. Runtime contains production dependencies and shared core only:
+Foundation verifier. Runtime contains production dependencies, shared core and the bootstrap factory:
 no tests, uv/pip, Node, SDK/CLI launcher or PostgreSQL tools. The migrator adds its
 controlled Alembic chain; ops adds the matching `pg_dump`/`pg_restore` tools. No
 container installs packages at startup. The ops default prints the tool version;
@@ -88,12 +107,18 @@ stay private. Web is on `app`, DB on internal `database`, API on both. Dev/ops u
 different database and volume names even when the same project name is supplied.
 Keep their secrets in different private directories as well.
 
-The env file contains only references: `PLATFORM_SECRETS_DIR` (absolute directory)
+The env file contains references and non-secret configuration: `PLATFORM_SECRETS_DIR` (absolute directory)
 and, for ops, `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
 `PLATFORM_MIGRATE_DIGEST`, `PLATFORM_OPS_DIGEST` (the hex suffix of each tested local
 image's `.Id`, not a tag or a registry manifest digest). Dev can use
 `PLATFORM_WEB_IMAGE` to identify its existing web image; API/tool image tags come
 from the dev overlay. Inspect images with `docker image inspect <owned-tag>`.
+Public API settings use the existing `INVITE_ONLY`, `ALLOW_GUEST`, `PASSWORD_LOGIN`,
+`DEFAULT_LANG`, `MEDIA_UPLOADS`, `MEDIA_QUOTA_MB`, `MEDIA_IMAGE_MAX_MB`,
+`MEDIA_GIF_MAX_MB`, `MEDIA_VIDEO_MAX_MB` and `MEDIA_VIDEO_MAX_SEC` names/defaults.
+These advertise configuration; their business routes arrive in their owning slices.
+Uvicorn access logging is disabled to avoid logging request URLs; structured
+operational diagnostics remain a later slice.
 
 Provide three distinct secret files named `bootstrap_password`,
 `migrator_password`, `runtime_password`, each with at least 32 characters and at
@@ -120,10 +145,11 @@ Only on an explicitly authorized new disposable target: `up -d --wait db`,
 missing roles without rotating existing credentials; up uses only the migrator
 credential and the existing history lock. API never performs either operation.
 Use `stop` to preserve data; no global prune/volume cleanup is part of this workflow.
-Do not run `up api/web` yet: their declared factory
-`opengym_platform.application:create_app` belongs to task 1.3. It is intentionally
-not replaced by the Foundation app. This slice proves images, config, permissions
-and database connectivity, not an operational service or a recovery gate.
+After migration on that disposable target, `up -d api` starts the bootstrap factory
+`opengym_platform.application:create_app`. Dev uses reload; ops uses one worker.
+The images case starts both resolved combinations and checks HTTP from inside API;
+web remains a network probe. It does not certify nginx/UI, an operational service
+or a recovery gate. The normal Node instance remains authoritative.
 
 `contracts/port-baseline.v1.json` freezes the independent fixture/test expectations,
 OpenAPI, source revision and Foundation handoff revision. The route/error view is

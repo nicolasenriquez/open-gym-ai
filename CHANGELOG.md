@@ -15,7 +15,9 @@ principles. Published entries below are preserved; see the
 ### Added
 
 - Separate platform dev/ops Compose definitions, file-backed database credentials,
-  and non-root runtime, migration and operations image targets. Python HTTP startup remains pending.
+  and non-root runtime, migration and operations image targets. The bootstrap HTTP
+  factory provides public health/config and internal live/ready probes without
+  startup migrations; identity and business routes remain pending.
 - An isolated platform schema verifier and synthetic migration bootstrap: one
   Alembic history under a single migrator lock, a least-privilege role baseline and
   a runtime login that reads history without DDL or owner elevation. Business DDL

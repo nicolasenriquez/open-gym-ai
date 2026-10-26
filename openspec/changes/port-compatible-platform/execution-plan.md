@@ -46,7 +46,8 @@ git -c core.safecrlf=false diff --check
 
 **Incremental delivery command**: task 1.2 supplies `harness/ownership` and
 `contracts/baseline`; task 1.4 adds `schema/history_lock` with its disposable
-PostgreSQL and test image. Other suites below remain future contracts:
+PostgreSQL and test image; 1.5 adds `images/isolation`, and 1.3 adds
+`lifecycle/readiness` with real bootstrap HTTP. Other suites below remain future contracts:
 
 ```sh
 node scripts/platform.mjs verify <suite> --case <case>
