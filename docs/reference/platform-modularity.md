@@ -336,13 +336,13 @@ siempre con `-f`, sin combinar automáticamente la instancia legacy con Foundati
 
 | Ambiente | Entrada y configuración | Montajes, red y datos | Alcance de soporte |
 | --- | --- | --- | --- |
-| Foundation actual | CLI `scripts/python-foundation.mjs`, `compose.python-foundation.yml`, env vacío y parámetros sintéticos allowlisted | Proyecto/red/volumen desechables propios; sin puertos ni mounts personales; pruebas en contenedor | Evidencia Linux/amd64; host Node y Docker según el contrato de la CLI. |
-| Desarrollo del port | Base objetivo `compose.platform.yml` + `compose.platform.dev.yml`, configuración sintética explícita | Sources del área en recarga y biblioteca shared con rutas compatibles; dependencias/cachés Linux separadas del host; volumen dev exclusivo; un origen web estable, sin exponer DB por defecto | Conservar React/Vite y semántica passkeys/origen; nunca usar credenciales ni volumen de operación. |
+| Verificación actual | CLI `scripts/platform.mjs verify <suite>`, `deploy/docker-compose.test.yml`, env vacío y parámetros sintéticos allowlisted | Proyecto/red/volumen desechables propios; sin puertos ni mounts personales; pruebas en contenedor | Evidencia Linux/amd64; host Node y Docker según el contrato de la CLI. |
+| Desarrollo del port | Base objetivo `deploy/docker-compose.yml` + `deploy/docker-compose.dev.yml`, configuración sintética explícita | Sources del área en recarga y biblioteca shared con rutas compatibles; dependencias/cachés Linux separadas del host; volumen dev exclusivo; un origen web estable, sin exponer DB por defecto | Conservar React/Vite y semántica passkeys/origen; nunca usar credenciales ni volumen de operación. |
 | CI | Foundation usa su CLI; el port valida además los targets desde checkout limpio con configuración sintética | Sin binds de dependencias host ni datos personales; cachés BuildKit separadas de volúmenes DB; cleanup propio | Linux/amd64 obligatorio inicialmente; no acreditar arm64 solo por emulación o una base multiarch. |
-| Operación | Base objetivo `compose.platform.yml` + `compose.platform.ops.yml`, imágenes probadas por digest y configuración explícita de instancia | Sin recarga ni binds de fuentes/node_modules/.venv; DB privada, almacenamiento duradero y secretos protegidos; migrador puntual antes de tráfico | Proveedor/TLS/backup/restore y plataformas soportadas validados antes de corte; arm64 requiere prueba y decisión expresa, sin retirar soporte previo silenciosamente. |
+| Operación | Base objetivo `deploy/docker-compose.yml` + `deploy/docker-compose.prod.yml`, imágenes probadas por digest y configuración explícita de instancia | Sin recarga ni binds de fuentes/node_modules/.venv; DB privada, almacenamiento duradero y secretos protegidos; migrador puntual antes de tráfico | Proveedor/TLS/backup/restore y plataformas soportadas validados antes de corte; arm64 requiere prueba y decisión expresa, sin retirar soporte previo silenciosamente. |
 
-Comandos objetivo de inspección: `docker compose -f compose.platform.yml -f
-compose.platform.dev.yml config` y equivalente con `compose.platform.ops.yml`.
+Comandos objetivo de inspección: `docker compose --project-directory . -f deploy/docker-compose.yml -f
+deploy/docker-compose.dev.yml config` y equivalente con `deploy/docker-compose.prod.yml`.
 Documentar en la entrega sus comandos de build/up/stop/migrate/backup/restore y
 los archivos de configuración requeridos; para operación, migración controlada
 con éxito antes de `up` compatible. La base debe ser segura sin overlay dev.

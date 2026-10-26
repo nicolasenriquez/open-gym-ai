@@ -99,7 +99,7 @@ A first-time contributor's workflows may wait for maintainer approval.
 Required checks are configured separately in GitHub branch rules.
 
 Run `pnpm install --frozen-lockfile --ignore-scripts` at the root, then
-`pnpm run lint:ci`. Run `pnpm audit` at root, frontend, api and api/foundation.
+`pnpm run lint:ci`. Run `pnpm audit` at root, frontend and api.
 Audit failures, including an unavailable advisory service, block CI. API's scoped
 Zod override corrects the optional SDK's pinned vulnerable dependency; remove it
 when the SDK supplies a fixed version and adapter/image checks pass.

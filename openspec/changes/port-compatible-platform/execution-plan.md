@@ -96,7 +96,7 @@ actual host wrapper and ops commands on synthetic projects, not mock-only CLI.
 installed binary (replace only the explicit operator.env placeholder):
 
 ```sh
-docker compose --env-file <absolute-operator.env> -p opengym-ops -f compose.platform.yml -f compose.platform.ops.yml run --rm ops
+docker compose --project-directory . --env-file <absolute-operator.env> -p opengym-ops -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml run --rm ops
 ```
 
 Append one command below; ops image entrypoint is

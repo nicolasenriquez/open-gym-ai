@@ -1,7 +1,7 @@
 [project]
 name = "opengym-platform"
 version = "0.0.0"
-description = "Isolated synthetic Python Foundation tooling"
+description = "OpenGym Python platform"
 requires-python = ">=3.14,<3.15"
 license = "AGPL-3.0-or-later"
 dependencies = [
@@ -11,7 +11,6 @@ dependencies = [
   "asyncpg==0.32.0",
   "alembic==1.20.1",
   "sqlalchemy[asyncio]==2.1.6",
-  "cryptography==50.0.2",
 ]
 
 [dependency-groups]

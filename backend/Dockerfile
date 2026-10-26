@@ -12,20 +12,18 @@ WORKDIR /app
 RUN chown 1000:1000 /app
 USER 1000:1000
 COPY --chown=1000:1000 pyproject.toml uv.lock ./
-RUN --mount=type=cache,id=opengym-python-foundation-uv,target=/tmp/uv-cache,uid=1000,gid=1000 \
+RUN --mount=type=cache,id=opengym-platform-uv,target=/tmp/uv-cache,uid=1000,gid=1000 \
     uv lock --check && uv sync --locked --no-install-project && uv pip check && uv lock --check --offline
-FROM dependencies AS foundation-base
+FROM dependencies AS test-base
 COPY --chown=1000:1000 versions.json dependency-licenses.json ./
 COPY --chown=1000:1000 src/ ./src/
 COPY --chown=1000:1000 tests/ ./tests/
 # Windows build contexts may otherwise mark Python source as executable.
 RUN find src tests -type f -name '*.py' -exec chmod 0644 {} +
 ENV PYTHONPATH=/app/src PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH=/app/.venv/bin:$PATH
-ENTRYPOINT ["/app/.venv/bin/python", "-m", "opengym_platform.runner"]
-CMD ["environment"]
 
 FROM dependencies AS production-deps
-RUN --mount=type=cache,id=opengym-python-foundation-uv,target=/tmp/uv-cache,uid=1000,gid=1000 \
+RUN --mount=type=cache,id=opengym-platform-uv,target=/tmp/uv-cache,uid=1000,gid=1000 \
     uv sync --locked --no-dev --no-install-project && uv pip check
 
 FROM python:3.14.9-slim-bookworm@sha256:945c2676dc2b18e0c1f16879244122c57c0ffede60006bf3df159c507a31bcae AS runtime
@@ -56,8 +54,10 @@ COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_dump
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_restore
 CMD ["-c", "import subprocess; subprocess.run(['pg_dump', '--version'], check=True)"]
 
-FROM foundation-base AS test
+FROM test-base AS test
 ENTRYPOINT ["/app/.venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--tb=short"]
 
-# Preserve the existing Foundation command and default image exactly.
-FROM foundation-base AS foundation
+CMD ["tests"]
+
+# Untargeted builds produce the runtime, not transition tooling.
+FROM runtime AS default

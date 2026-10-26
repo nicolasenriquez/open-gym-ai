@@ -1,9 +1,0 @@
-**
-!Dockerfile
-!package.json
-!pnpm-lock.yaml
-!dependency-licenses.json
-!versions.json
-!*.mjs
-!migrations/
-!migrations/*.cjs

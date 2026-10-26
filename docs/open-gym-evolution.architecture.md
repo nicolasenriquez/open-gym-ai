@@ -397,7 +397,7 @@ Trabajos duraderos, LangChain/LangGraph, pgvector y colas requieren una necesida
 
 ### 14.1 Evidencia histórica: `add-postgres-foundation`
 
-**Estado:** [OpenSpec archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/proposal.md), con 18/18 tareas sintéticas completadas y sync/archive autorizado el 2026-10-22. El [tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md), la [evidencia consolidada](../openspec/changes/archive/2026-10-22-add-postgres-foundation/design.md#evidencia-consolidada-de-entrega), el [README](../api/foundation/README.md) y el [contrato vigente de esa capacidad](../openspec/specs/postgres-foundation/spec.md) conservan su trazabilidad.
+**Estado:** [OpenSpec archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/proposal.md), con 18/18 tareas sintéticas completadas y sync/archive autorizado el 2026-10-22. El [tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md), la [evidencia consolidada](../openspec/changes/archive/2026-10-22-add-postgres-foundation/design.md#evidencia-consolidada-de-entrega), el [nota de retiro](../backend/README.md#retired-transition-tooling) y el [contrato vigente de esa capacidad](../openspec/specs/postgres-foundation/spec.md) conservan su trazabilidad.
 
 La entrega probó Node 22.23.2, `pg` 8.23.1, `node-pg-migrate` 9.0.0 y PostgreSQL 18.6 en un stack sintético aislado. Registra pool, migraciones, roles/RLS con fixtures, backup cifrado/restore separado, CI y resultados históricos de compatibilidad. No está importada por `api/server.js` ni por la imagen normal y no migró autoridad.
 

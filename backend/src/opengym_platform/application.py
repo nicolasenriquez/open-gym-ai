@@ -1,4 +1,4 @@
-"""Platform HTTP composition, separate from the synthetic Foundation factory."""
+"""Platform HTTP composition and lifecycle."""
 
 from contextlib import asynccontextmanager
 

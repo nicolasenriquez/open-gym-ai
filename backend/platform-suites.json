@@ -29,7 +29,7 @@
       "target": "host",
       "command": ["--test", "scripts/platform.test.mjs", "scripts/platform-ownership.test.mjs"],
       "proof": "Foreign labels, config, namespace and shared images rejected; owned cleanup only; missing suites exit 2",
-      "checkpoint": "1.2; Foundation regressions must also pass"
+      "checkpoint": "1.2; retained pool and required-proof coverage runs in database/checks"
     }
   ],
   "schema": [
@@ -52,6 +52,22 @@
       "command": ["contracts"],
       "proof": "SHA-256 expectations unchanged; six HTTP literals and all declared Node/client suites pass without skips",
       "checkpoint": "1.1–1.2 only; not Python parity or platform acceptance"
+    }
+  ],
+  "database": [
+    {
+      "id": "pool",
+      "target": "platform-test",
+      "command": ["tests/core/test_database.py"],
+      "proof": "Retained pool, transaction rollback, owner isolation, cancellation and commit uncertainty on the current disposable Platform database"
+    }
+  ],
+  "checks": [
+    {
+      "id": "toolchain",
+      "target": "platform-test",
+      "command": ["tests/platform/test_toolchain.py", "tests/platform/test_proof_policy.py"],
+      "proof": "Locked dependencies, lint, formatting and types in the current test target"
     }
   ]
 }

@@ -12,11 +12,11 @@ from _commit_relay import commit_relay
 from opengym_platform.core.database import Database, DatabaseError
 
 SETTINGS = {
-    "host": "foundation-db",
+    "host": "platform-db",
     "port": 5432,
-    "database": "python_foundation_test",
-    "user": "python_foundation_pool_runtime",
-    "password": "synthetic-python-foundation-pool-only",
+    "database": "opengym_platform_test",
+    "user": "platform_pool_runtime",
+    "password": "synthetic-platform-pool-only",
     "tls": False,
     "max_size": 1,
 }
@@ -27,26 +27,26 @@ async def database_fixture():
     assert tuple(
         os.environ.get(key)
         for key in (
-            "FOUNDATION_DB_HOST",
-            "FOUNDATION_DB_PORT",
-            "FOUNDATION_DB_NAME",
-            "FOUNDATION_DB_USER",
-            "FOUNDATION_DB_PASSWORD",
+            "PLATFORM_DB_HOST",
+            "PLATFORM_DB_PORT",
+            "PLATFORM_DB_NAME",
+            "PLATFORM_DB_USER",
+            "PLATFORM_DB_PASSWORD",
         )
     ) == (
-        "foundation-db",
+        "platform-db",
         "5432",
-        "python_foundation_test",
-        "python_foundation_bootstrap",
-        "synthetic-python-foundation-only",
+        "opengym_platform_test",
+        "opengym_platform_bootstrap",
+        "synthetic-opengym-platform-only",
     )
     async with AsyncExitStack() as cleanup:
         bootstrap = await asyncpg.connect(
-            host="foundation-db",
+            host="platform-db",
             port=5432,
-            database="python_foundation_test",
-            user="python_foundation_bootstrap",
-            password="synthetic-python-foundation-only",
+            database="opengym_platform_test",
+            user="opengym_platform_bootstrap",
+            password="synthetic-opengym-platform-only",
             ssl=False,
             timeout=5,
             command_timeout=5,
@@ -54,29 +54,29 @@ async def database_fixture():
         cleanup.push_async_callback(bootstrap.close, timeout=5)
         async with bootstrap.transaction():
             await bootstrap.execute("""
-                CREATE ROLE python_foundation_pool_runtime LOGIN
+                CREATE ROLE platform_pool_runtime LOGIN
                     NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS
-                    PASSWORD 'synthetic-python-foundation-pool-only';
+                    PASSWORD 'synthetic-platform-pool-only';
                 CREATE SCHEMA pool_fixture;
                 CREATE TABLE pool_fixture.rollback_probe (id integer PRIMARY KEY);
                 CREATE TABLE pool_fixture.deferred_probe (
                     id integer UNIQUE DEFERRABLE INITIALLY DEFERRED
                 );
                 REVOKE ALL ON SCHEMA pool_fixture FROM PUBLIC;
-                GRANT USAGE ON SCHEMA pool_fixture TO python_foundation_pool_runtime;
+                GRANT USAGE ON SCHEMA pool_fixture TO platform_pool_runtime;
                 GRANT SELECT, INSERT ON pool_fixture.rollback_probe, pool_fixture.deferred_probe
-                    TO python_foundation_pool_runtime;
+                    TO platform_pool_runtime;
             """)
         cleanup.push_async_callback(
             bootstrap.execute,
-            "DROP SCHEMA pool_fixture CASCADE; DROP ROLE python_foundation_pool_runtime;",
+            "DROP SCHEMA pool_fixture CASCADE; DROP ROLE platform_pool_runtime;",
         )
         observer = await asyncpg.connect(
-            host="foundation-db",
+            host="platform-db",
             port=5432,
-            database="python_foundation_test",
-            user="python_foundation_pool_runtime",
-            password="synthetic-python-foundation-pool-only",
+            database="opengym_platform_test",
+            user="platform_pool_runtime",
+            password="synthetic-platform-pool-only",
             ssl=False,
             timeout=5,
             command_timeout=5,
@@ -97,7 +97,7 @@ async def first_collaborator(handle):
 
 async def second_collaborator(handle):
     await handle.execute("INSERT INTO pool_fixture.rollback_probe VALUES ($1)", 2)
-    raise CollaboratorFailure("FOUNDATION_EXPECTED_COLLABORATOR_FAILURE")
+    raise CollaboratorFailure("PLATFORM_EXPECTED_COLLABORATOR_FAILURE")
 
 
 async def successful_second_collaborator(handle):
@@ -112,7 +112,7 @@ async def test_failed_collaboration_rolls_back_before_same_connection_is_reused(
     initial = await observer.fetchval(
         "SELECT count(*) FROM pool_fixture.rollback_probe"
     )
-    assert initial == 0, "FOUNDATION_FIXTURE_MUST_START_EMPTY"
+    assert initial == 0, "PLATFORM_FIXTURE_MUST_START_EMPTY"
     with pytest.raises(CollaboratorFailure):
         async with database.transaction(owner_id="owner-a") as handle:
             before = (await handle.fetch("SELECT pg_backend_pid() AS pid"))[0]["pid"]
@@ -120,7 +120,7 @@ async def test_failed_collaboration_rolls_back_before_same_connection_is_reused(
             await second_collaborator(handle)
 
     after = (await database.fetch("SELECT pg_backend_pid() AS pid"))[0]["pid"]
-    assert after == before, "FOUNDATION_MAX_ONE_MUST_REUSE_CONNECTION"
+    assert after == before, "PLATFORM_MAX_ONE_MUST_REUSE_CONNECTION"
     observed = await observer.fetchval(
         "SELECT count(*) FROM pool_fixture.rollback_probe"
     )
@@ -472,7 +472,7 @@ async def test_configuration_rejects_unsafe_options_and_tls_bypass(
         with pytest.raises(ValueError, match="^DATABASE_CONFIG_INVALID$") as failure:
             await Database.open({**SETTINGS, **override})
         assert failure.value.__cause__ is None and failure.value.__context__ is None
-    monkeypatch.delenv("FOUNDATION_DB_HOST")
+    monkeypatch.delenv("PLATFORM_DB_HOST")
     with pytest.raises(ValueError, match="^DATABASE_CONFIG_INVALID$"):
         await Database.open(SETTINGS)
 

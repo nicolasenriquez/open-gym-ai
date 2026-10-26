@@ -1,4 +1,4 @@
-# Synthetic verification only; deliberately separate from Foundation and instance settings.
+# Disposable Platform verification only; use scripts/platform.mjs, never instance settings.
 name: opengym-platform-test
 services:
   platform-db:
@@ -33,6 +33,7 @@ services:
     platform: linux/amd64
     build:
       context: ./backend
+      target: test
       labels:
         org.opengym.platform: synthetic
         com.docker.compose.project: ${COMPOSE_PROJECT_NAME}

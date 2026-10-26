@@ -24,7 +24,7 @@ class CommitRelay:
         committing = False
         try:
             remote, upstream = await asyncio.wait_for(
-                asyncio.open_connection("foundation-db", 5432), 5
+                asyncio.open_connection("platform-db", 5432), 5
             )
             size = await reader.readexactly(4)
             length = int.from_bytes(size, "big")

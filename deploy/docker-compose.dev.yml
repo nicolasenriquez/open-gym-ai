@@ -1,5 +1,15 @@
 name: opengym-dev
 services:
+  web:
+    image: opengym-platform-web:dev
+    build: {context: ., dockerfile: web/Dockerfile}
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      interval: 2s
+      timeout: 3s
+      start_period: 5s
+      retries: 30
   api:
     image: opengym-platform-runtime:dev
     build: {context: ./backend, target: dev}

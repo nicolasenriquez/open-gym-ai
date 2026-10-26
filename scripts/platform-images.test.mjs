@@ -89,6 +89,7 @@ async function deploymentProof({ project, image, docker }) {
         writeFileSync(join(secretRoot, file), `synthetic-${environment}-${file}-${randomBytes(20).toString('hex')}'$$`, { mode: 0o444 });
       }
       writeFileSync(envFile, [
+        `PLATFORM_WEB_PORT=${environment === 'dev' ? 8081 : 8080}`,
         `PLATFORM_SECRETS_DIR=${secretRoot.replaceAll('\\', '/')}`,
         `PLATFORM_WEB_DIGEST=${images.runtime}`, `PLATFORM_RUNTIME_DIGEST=${images.runtime}`,
         `PLATFORM_MIGRATE_DIGEST=${images.migrate}`, `PLATFORM_OPS_DIGEST=${images.ops}`,
@@ -101,7 +102,7 @@ async function deploymentProof({ project, image, docker }) {
         networkNames: ['app', 'database'], volumeName: `${environment}-postgres-data`,
       });
       const args = ['compose', '--project-directory', root, '--env-file', envFile, '-p', instance, '--profile', '*',
-        '-f', join(root, 'compose.platform.yml'), '-f', join(root, `compose.platform.${environment}.yml`)];
+        '-f', join(root, 'deploy/docker-compose.yml'), '-f', join(root, `deploy/docker-compose.${environment === 'ops' ? 'prod' : 'dev'}.yml`)];
       const config = JSON.parse(await docker([...args, 'config', '--format', 'json']));
       assert.equal(config.services.db.image, versions.postgresImage);
       assert.equal(config.networks.database.internal, true);
@@ -109,7 +110,7 @@ async function deploymentProof({ project, image, docker }) {
       assert.deepEqual(Object.keys(config.services.web.networks), ['app']);
       assert.deepEqual(Object.keys(config.services.db.networks), ['database']);
       assert.deepEqual(Object.keys(config.services.api.networks).sort(), ['app', 'database']);
-      assert.deepEqual(config.services.web.ports.map(port => [port.host_ip, port.published, port.target]), [['127.0.0.1', '8080', 80]]);
+      assert.deepEqual(config.services.web.ports.map(port => [port.host_ip, port.published, port.target]), [['127.0.0.1', environment === 'dev' ? '8081' : '8080', 80]]);
       for (const [service, definition] of Object.entries(config.services)) {
         assert.ok(!definition.privileged && !definition.cap_add?.length);
         assert.ok(definition.read_only && definition.user !== '0');
@@ -127,6 +128,8 @@ async function deploymentProof({ project, image, docker }) {
       assert.equal(config.services.migrate.secrets[0].source, 'migrator_password');
       assert.ok(!config.services.ops.secrets?.length);
       if (environment === 'dev') {
+        assert.equal(config.services.web.build.context, root.replace(/[\\/]$/, ''));
+        assert.equal(config.services.web.build.dockerfile, 'web/Dockerfile');
         assert.ok(config.services.api.command.includes('--reload'));
         assert.deepEqual(config.services.api.volumes.map(volume => volume.target), ['/app/src']);
       } else assert.ok(!config.services.api.command.includes('--reload'));

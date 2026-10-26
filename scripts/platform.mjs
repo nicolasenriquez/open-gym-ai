@@ -6,7 +6,7 @@ import { checkBaseline } from './platform-baseline.mjs';
 const [action, suite, ...options] = process.argv.slice(2);
 const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
   root: fileURLToPath(new URL('../', import.meta.url)),
-  composeFile: fileURLToPath(new URL('../compose.platform-verify.yml', import.meta.url)),
+  composeFile: fileURLToPath(new URL('../deploy/docker-compose.test.yml', import.meta.url)),
   emptyEnv: fileURLToPath(new URL('../backend/empty.env', import.meta.url)),
   namespace: 'opengym-platform-test', label: 'org.opengym.platform', name: 'Platform',
   services: ['platform-contracts', 'platform-db', 'platform-test'], images: ['platform-contracts', 'platform-test'], database: 'platform-db',

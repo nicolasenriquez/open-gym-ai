@@ -48,7 +48,7 @@ verificación específica; no atribuirle aceptación por una imagen multiarch.
 ## Ambientes, imágenes y almacenamiento
 
 Mantener la [matriz por fase](platform-modularity.md#matriz-de-ambientes-y-comandos-objetivo):
-Foundation aislada; futuro `compose.platform.yml` con selección explícita de overlay
+Foundation aislada; futuro `deploy/docker-compose.yml` con selección explícita de overlay
 dev u ops. Desarrollo usa fuentes en recarga, dependencias Linux y datos sintéticos
 separados. Operación usa imágenes identificadas por digest, sin bind de fuentes,
 node_modules o .venv ni instalaciones al arrancar. Misma revisión/lock para targets

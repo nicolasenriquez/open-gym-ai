@@ -41,3 +41,6 @@ docs/superpowers/plans/
 .playwright-cli/
 # Local Windows junction to the shared verification skill (keep one tracked source).
 .codex/skills/verify-opengym/
+
+# Disposable Docker verification scripts and evidence
+.scratch/docker-layout/

@@ -6,13 +6,13 @@ USER node
 FROM base AS api-deps
 WORKDIR /app/api
 COPY --chown=node:node api/package.json api/pnpm-lock.yaml ./
-RUN --mount=type=cache,id=opengym-python-foundation-pnpm,target=/home/node/.local/share/pnpm/store,uid=1000,gid=1000 \
+RUN --mount=type=cache,id=opengym-platform-pnpm,target=/home/node/.local/share/pnpm/store,uid=1000,gid=1000 \
     pnpm install --frozen-lockfile --ignore-scripts --engine-strict --no-optional --package-import-method=copy && test "$(node --version)" = v22.23.2 && test "$(pnpm --version)" = 10.34.8
 
 FROM base AS frontend-deps
 WORKDIR /app/frontend
 COPY --chown=node:node frontend/package.json frontend/pnpm-lock.yaml ./
-RUN --mount=type=cache,id=opengym-python-foundation-pnpm,target=/home/node/.local/share/pnpm/store,uid=1000,gid=1000 \
+RUN --mount=type=cache,id=opengym-platform-pnpm,target=/home/node/.local/share/pnpm/store,uid=1000,gid=1000 \
     pnpm install --frozen-lockfile --ignore-scripts --engine-strict --package-import-method=copy
 
 FROM base

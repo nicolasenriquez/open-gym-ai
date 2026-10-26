@@ -38,7 +38,7 @@ La necesidad inmediata es conservar una herramienta utilizable y contar con una 
 | Prioridad explícita de completar Python/FastAPI/PostgreSQL antes de nuevas funcionalidades | Solicitud del usuario y autorización de estos ajustes documentales el 2026-10-22. |
 | Identidad y Training servidor almacenados en archivos; consumidores adicionales leen esos datos | `api/server.js` y `api/coach/jobs.js`, inspeccionados en la revisión. Es evidencia de acoplamiento, no de pérdida de datos. |
 | Cliente con persistencia local, sincronización y sesión activa propias | `frontend/src/store/useStore.js`; conservar pantallas no basta para preservar comportamiento. |
-| PostgreSQL Foundation completada como ensayo separado en Node | [Tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md) y [README Foundation](../api/foundation/README.md). No sustituye la aplicación ni demuestra el backend Python. |
+| PostgreSQL Foundation completada como ensayo separado en Node | [Tracker archivado](../openspec/changes/archive/2026-10-22-add-postgres-foundation/tasks.md) y [retiro del tooling](../backend/README.md#retired-transition-tooling). No sustituye la aplicación ni demuestra el backend Python. |
 | AI Tutor ofrece patrones de desarrollo y operación pertinentes | [Fuentes y límites](research/evolution-architecture-evidence.md#23-ai-tutor-como-referencia); no acredita que su topología o dominio deban copiarse. |
 
 **Hipótesis:** una plataforma modular y reproducible facilitará las ampliaciones posteriores. La aceptación inicial solo puede demostrar continuidad funcional, recuperación y operabilidad; una mejora de productividad exige observación posterior. No se presenta como demanda comercial validada.

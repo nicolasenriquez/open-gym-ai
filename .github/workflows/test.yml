@@ -35,7 +35,6 @@ jobs:
           pnpm audit
           pnpm --dir frontend audit
           pnpm --dir api audit
-          pnpm --dir api/foundation audit
       - run: docker build -f backend/Dockerfile.security -t opengym-security:ci .
       - name: Workflow security (offline)
         run: docker run --rm --network none --read-only --tmpfs /tmp opengym-security:ci zizmor --offline .github/workflows
@@ -103,20 +102,6 @@ jobs:
       - name: Media stay within 180 px (licence)
         run: node scripts/catalogue/check-media.mjs
 
-  foundation:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '22.23.2'
-      - name: Synthetic PostgreSQL proofs (same entry as local)
-        run: node api/foundation/environment.mjs run all
-      - name: Target, configuration, cleanup and unavailable-database regressions
-        run: node --test api/foundation/environment.test.mjs api/foundation/configuration.test.mjs api/foundation/environment-docker.test.mjs
 
   test:
     runs-on: ubuntu-latest
@@ -248,7 +233,7 @@ jobs:
           # including the fixture provider. Cheaper to assert here than to discover on an instance.
           docker run --rm opengym-api:default id coach
 
-  python-foundation:
+  platform:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -259,7 +244,7 @@ jobs:
         with:
           node-version: '22.23.2'
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-        id: foundation-builder
+        id: platform-builder
         with:
           driver-opts: image=moby/buildkit:v0.29.0@sha256:0039c1d47e8748b5afea56f4e85f14febaf34452bd99d9552d2daa82262b5cc5
       # Layer caches are image-scoped; download cache mounts stay builder-local.
@@ -268,22 +253,24 @@ jobs:
         with:
           context: backend
           file: backend/Dockerfile
+          target: test
           push: false
-          cache-from: type=gha,scope=python-foundation-test
-          cache-to: type=gha,scope=python-foundation-test,mode=max
+          cache-from: type=gha,scope=platform-test
+          cache-to: type=gha,scope=platform-test,mode=max
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: backend/Dockerfile.contracts
           push: false
-          cache-from: type=gha,scope=python-foundation-contracts
-          cache-to: type=gha,scope=python-foundation-contracts,mode=max
-      - run: node scripts/python-foundation.mjs run all
-        env:
-          BUILDX_BUILDER: ${{ steps.foundation-builder.outputs.name }}
+          cache-from: type=gha,scope=platform-contracts
+          cache-to: type=gha,scope=platform-contracts,mode=max
       - run: node scripts/platform-baseline.mjs
+      - run: node --test scripts/docker-layout.test.mjs
       - run: node scripts/platform.mjs verify harness
+      - run: node scripts/platform.mjs verify database
+      - run: node scripts/platform.mjs verify checks
       - run: node scripts/platform.mjs verify schema
       - run: node scripts/platform.mjs verify lifecycle
       - run: node scripts/platform.mjs verify images
-      - run: node --test scripts/python-foundation-build.test.mjs
+      - run: node scripts/platform.mjs verify contracts --case baseline
+      - run: node --test scripts/platform-build.test.mjs

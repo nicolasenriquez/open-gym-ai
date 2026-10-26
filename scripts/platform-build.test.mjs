@@ -20,17 +20,17 @@ const ok = result => {
 
 for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeated/source/test/metadata/manifest cache probes`, t => {
   const token = randomBytes(8).toString('hex');
-  const builder = `opengym-python-foundation-build-${token}`;
-  const fixture = mkdtempSync(join(tmpdir(), 'opengym-foundation-build-'));
-  const evidence = mkdtempSync(join(tmpdir(), `opengym-foundation-${target}-evidence-`));
-  console.log(JSON.stringify({ code: 'FOUNDATION_BUILD_EVIDENCE', target, builder, evidence }));
+  const builder = `opengym-platform-build-${token}`;
+  const fixture = mkdtempSync(join(tmpdir(), 'opengym-platform-build-'));
+  const evidence = mkdtempSync(join(tmpdir(), `opengym-platform-${target}-evidence-`));
+  console.log(JSON.stringify({ code: 'PLATFORM_BUILD_EVIDENCE', target, builder, evidence }));
   const tags = new Set();
   let created = false;
   t.after(() => {
     try {
       for (const tag of tags) {
         const image = JSON.parse(ok(invoke('docker', ['image', 'inspect', tag])))[0];
-        assert.equal(image.Config.Labels['org.opengym.python-foundation.build-probe'], token);
+        assert.equal(image.Config.Labels['org.opengym.platform.build-probe'], token);
         assert.ok(image.RepoTags.every(name => tags.has(name)), 'refuse a shared probe image');
         ok(invoke('docker', ['image', 'rm', tag]));
       }
@@ -42,7 +42,7 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
       assert.equal(ok(invoke('docker', [type, 'ls', '--quiet', ...(type === 'container' ? ['--all'] : []),
         '--filter', `name=buildx_buildkit_${builder}`])), '');
     }
-    assert.equal(ok(invoke('docker', ['image', 'ls', '--quiet', '--filter', `label=org.opengym.python-foundation.build-probe=${token}`])), '');
+    assert.equal(ok(invoke('docker', ['image', 'ls', '--quiet', '--filter', `label=org.opengym.platform.build-probe=${token}`])), '');
   });
   // Only selected non-ignored build inputs, never dotenv, ignored files or personal data.
   const files = ok(invoke('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])).split('\0').filter(file => file && existsSync(join(root, file)));
@@ -61,9 +61,9 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
   const context = target === 'python' ? join(fixture, 'backend') : fixture;
   const dockerfile = join(fixture, 'backend', target === 'python' ? 'Dockerfile' : 'Dockerfile.contracts');
   function build(phase, cached, expected = 0) {
-    const tag = `opengym-python-foundation-build-${token}:${phase}`;
+    const tag = `opengym-platform-build-${token}:${phase}`;
     const args = ['buildx', 'build', '--builder', builder, '--platform', 'linux/amd64', '--progress=plain',
-      '--load', '--tag', tag, '--label', `org.opengym.python-foundation.build-probe=${token}`, '-f', dockerfile, context];
+      ...(target === 'python' ? ['--target', 'test'] : []), '--load', '--tag', tag, '--label', `org.opengym.platform.build-probe=${token}`, '-f', dockerfile, context];
     const started = performance.now();
     const result = invoke('docker', args);
     const log = result.stdout + result.stderr;
@@ -87,14 +87,14 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     ok(invoke('docker', ['run', '--rm', '--network', 'none', '--user', '1000:1000', '--read-only',
       '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true', '--tmpfs', '/tmp:rw,noexec,nosuid,nodev,size=67108864',
       '--entrypoint', target === 'python' ? '/app/.venv/bin/python' : 'node', tag,
-      ...(target === 'python' ? ['-c', "import asyncpg,cryptography,fastapi; from opengym_platform.app import create_app"] :
+      ...(target === 'python' ? ['-c', "import asyncpg,fastapi; from opengym_platform.application import create_app"] :
         ['-e', "require('node:assert/strict').equal(process.versions.node, '22.23.2'); require('/app/api/node_modules/undici')"]) ]));
   }
   build('cold', false);
   build('repeat', true);
   for (const [phase, file] of [
     ['source', target === 'python' ? 'backend/src/opengym_platform/core/database.py' : 'api/server.js'],
-    ['test', target === 'python' ? 'backend/tests/test_environment.py' : 'api/test/password.test.js'],
+    ['test', target === 'python' ? 'backend/tests/platform/test_lifecycle.py' : 'api/test/password.test.js'],
     ['metadata', target === 'python' ? 'backend/Dockerfile' : 'backend/Dockerfile.contracts'],
   ]) {
     const path = join(fixture, file);

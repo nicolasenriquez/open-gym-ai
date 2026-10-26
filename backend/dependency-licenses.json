@@ -60,14 +60,6 @@
     "installedLinuxAmd64": true
   },
   {
-    "name": "cffi",
-    "version": "2.1.1",
-    "license": "MIT-0",
-    "classifiers": [],
-    "licenseTextFallback": null,
-    "installedLinuxAmd64": true
-  },
-  {
     "name": "click",
     "version": "8.5.0",
     "license": "BSD-3-Clause",
@@ -84,14 +76,6 @@
     ],
     "licenseTextFallback": null,
     "installedLinuxAmd64": false
-  },
-  {
-    "name": "cryptography",
-    "version": "50.0.2",
-    "license": "Apache-2.0 OR BSD-3-Clause",
-    "classifiers": [],
-    "licenseTextFallback": null,
-    "installedLinuxAmd64": true
   },
   {
     "name": "fastapi",
@@ -228,14 +212,6 @@
     "classifiers": [
       "License :: OSI Approved :: MIT License"
     ],
-    "licenseTextFallback": null,
-    "installedLinuxAmd64": true
-  },
-  {
-    "name": "pycparser",
-    "version": "3.12",
-    "license": "BSD-3-Clause",
-    "classifiers": [],
     "licenseTextFallback": null,
     "installedLinuxAmd64": true
   },

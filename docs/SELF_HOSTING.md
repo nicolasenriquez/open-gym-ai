@@ -51,6 +51,21 @@ curl http://localhost:8080/api/health      # {"ok":true,...}
 
 Logs: `docker compose logs -f`. Stop: `docker compose down`.
 
+With `just` installed, run `just` to list commands, `just up` to build/start this
+local instance, `just logs` for logs and `just stop` to stop without removing
+containers or data. These shortcuts explicitly target the local project `opengym`;
+custom project names should keep their existing Compose commands.
+
+The root `docker-compose.yml` remains the current Node application. Python Dev
+and future permanent deployment definitions are grouped under `deploy/`; see
+[backend deployment guidance](../backend/README.md#platform-images-and-compose)
+for independent data, secrets and ports. They do not replace this instance.
+`just status` lists all Compose projects on the Docker host, including stopped
+projects and unrelated applications. The platform verifier creates temporary
+projects; a visible project may still be active. After confirming its execution has
+ended, clean only its exact identifier with `node scripts/platform.mjs cleanup <project>`.
+These commands validate resource ownership; do not substitute global pruning.
+
 ## 2. Understand the passkey requirement (important)
 
 openGym signs you in with **passkeys** (WebAuthn). Browsers enforce two rules:

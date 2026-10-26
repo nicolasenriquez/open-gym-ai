@@ -95,7 +95,7 @@ test('ownership: resolved config ignores foreign dotenv/Compose settings and has
   const root = mkdtempSync(join(tmpdir(), 'opengym-platform-config-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   for (const path of ['scripts/platform.mjs', 'scripts/platform-baseline.mjs', 'scripts/synthetic-harness.mjs',
-    'compose.platform-verify.yml', 'backend/empty.env']) {
+    'deploy/docker-compose.test.yml', 'backend/empty.env']) {
     mkdirSync(join(root, path, '..'), { recursive: true });
     cpSync(path, join(root, path));
   }

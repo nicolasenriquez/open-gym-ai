@@ -1,4 +1,4 @@
-"""Synthetic Database implementation in incremental 4.2 delivery."""
+"""Bounded platform database lifecycle and transaction handling."""
 
 import asyncio
 import os
@@ -45,16 +45,13 @@ def _configuration(raw):
         if settings.min_size > settings.max_size:
             raise ValueError
         synthetic = (
-            os.environ.get("FOUNDATION_DB_HOST") == "foundation-db"
-            and os.environ.get("FOUNDATION_DB_NAME") == "python_foundation_test"
-            and settings.database == "python_foundation_test"
+            os.environ.get("PLATFORM_DB_HOST") == "platform-db"
+            and os.environ.get("PLATFORM_DB_NAME") == "opengym_platform_test"
+            and settings.database == "opengym_platform_test"
         )
         private_destination = (
-            settings.host == "foundation-db" and settings.port == 5432
-        ) or (
-            settings.host == "127.0.0.1"
-            and settings.user == "python_foundation_pool_runtime"
-        )
+            settings.host == "platform-db" and settings.port == 5432
+        ) or (settings.host == "127.0.0.1" and settings.user == "platform_pool_runtime")
         if not settings.tls and (
             not synthetic or not private_destination or settings.ca_file is not None
         ):
