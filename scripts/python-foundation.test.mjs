@@ -34,7 +34,7 @@ function assertProjectEmpty(project) {
 function failureCheckout(t, python) {
   const checkout = mkdtempSync(join(tmpdir(), 'python-foundation-failure-'));
   t.after(() => rmSync(checkout, { recursive: true, force: true }));
-  for (const file of ['scripts/python-foundation.mjs', 'compose.python-foundation.yml', 'backend/empty.env']) {
+  for (const file of ['scripts/python-foundation.mjs', 'scripts/synthetic-harness.mjs', 'compose.python-foundation.yml', 'backend/empty.env']) {
     mkdirSync(dirname(join(checkout, file)), { recursive: true });
     copyFileSync(join(root, file), join(checkout, file));
   }
@@ -72,7 +72,7 @@ test('config excludes instance dotenv, Compose overrides, personal mounts and pu
   const checkout = mkdtempSync(join(tmpdir(), 'python-foundation-config-'));
   t.after(() => rmSync(checkout, { recursive: true, force: true }));
   // Copy only CLI/config inputs; never expose the real checkout's .env to Compose.
-  for (const path of ['scripts/python-foundation.mjs', 'compose.python-foundation.yml',
+  for (const path of ['scripts/python-foundation.mjs', 'scripts/synthetic-harness.mjs', 'compose.python-foundation.yml',
     'backend/empty.env', 'backend/versions.json', 'api/foundation/versions.json']) {
     if (!existsSync(join(root, path))) continue;
     mkdirSync(dirname(join(checkout, path)), { recursive: true });

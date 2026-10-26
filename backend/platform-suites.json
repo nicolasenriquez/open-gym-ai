@@ -1,0 +1,46 @@
+{
+  "images": [
+    {
+      "id": "isolation",
+      "requirement": "Isolated local Compose operation / Resolved topology and environment isolation; Controlled images migrations and lifecycle / Deferred coach runtimes do not expand operation",
+      "setup": "Owned images and explicit disposable dev/ops Compose configuration, no instance settings or secrets",
+      "target": "host",
+      "command": ["--test", "scripts/platform-images.test.mjs"],
+      "proof": "Pinned targets, no-root runtime without test/Node/SDK/CLI tooling; separate networks/data and file secrets",
+      "checkpoint": "1.5 only; HTTP readiness remains 1.3"
+    }
+  ],
+  "harness": [
+    {
+      "id": "ownership",
+      "requirement": "Bounded legacy and temporary artifact cleanup / Cleanup preserves recovery and foreign artifacts; Isolated local Compose operation / Resolved topology and environment isolation",
+      "setup": "Unique synthetic Docker resources and foreign sentinel; no instance config or data",
+      "target": "host",
+      "command": ["--test", "scripts/platform.test.mjs", "scripts/platform-ownership.test.mjs"],
+      "proof": "Foreign labels, config, namespace and shared images rejected; owned cleanup only; missing suites exit 2",
+      "checkpoint": "1.2; Foundation regressions must also pass"
+    }
+  ],
+  "schema": [
+    {
+      "id": "history_lock",
+      "requirement": "compatible-platform-persistence / Executable schema and privileged functions / Migration failure and function grants; local-platform-operation / Controlled images migrations and lifecycle / Incompatible schema or failed migration",
+      "setup": "Fresh disposable PostgreSQL, pinned Python image, no instance config or data",
+      "target": "platform-test",
+      "command": ["tests/platform/test_schema.py"],
+      "proof": "Empty and genuine previous revisions reach p000 under one lock; interrupted/failed runs never advance head; bootstrap roles are least privilege, runtime reads history but has no DDL or role elevation",
+      "checkpoint": "1.4 only; no business DDL, HTTP API or operational gate"
+    }
+  ],
+  "contracts": [
+    {
+      "id": "baseline",
+      "requirement": "Phase-bounded compatible capability port / Training pilot follows identity; Faithful import and retirement parity / OpenAPI authority moves without contract drift",
+      "setup": "Frozen independent Node/client expectations, two synthetic owners, private network/tmpfs",
+      "target": "platform-contracts",
+      "command": ["contracts"],
+      "proof": "SHA-256 expectations unchanged; six HTTP literals and all declared Node/client suites pass without skips",
+      "checkpoint": "1.1–1.2 only; not Python parity or platform acceptance"
+    }
+  ]
+}

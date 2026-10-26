@@ -1,1 +1,1 @@
-"""Isolated synthetic Python Foundation, not the ordinary application API."""
+"""OpenGym platform infrastructure and isolated synthetic verification."""

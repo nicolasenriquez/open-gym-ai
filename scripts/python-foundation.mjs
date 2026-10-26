@@ -1,95 +1,15 @@
-import { spawn } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { syntheticHarness } from './synthetic-harness.mjs';
 
 const [action, value, ...extra] = process.argv.slice(2);
 const root = fileURLToPath(new URL('../', import.meta.url));
-const composeFile = fileURLToPath(new URL('../compose.python-foundation.yml', import.meta.url));
-const emptyEnv = fileURLToPath(new URL('../backend/empty.env', import.meta.url));
-const dockerEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toUpperCase().startsWith('COMPOSE_')));
-dockerEnv.COMPOSE_DISABLE_ENV_FILE = 'true';
-const compose = project => ['compose', '--project-directory', root, '--env-file', emptyEnv, '-f', composeFile, '-p', project];
-let activeChild;
-
-const docker = (args, live = false) => execute('docker', args, live);
-
-function execute(program, args, live = false) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(program, args, { cwd: root, env: dockerEnv, timeout: 300_000, stdio: ['ignore', 'pipe', 'pipe'] });
-    activeChild = child;
-    const chunks = [];
-    let size = 0;
-    let overflow = false;
-    child.stdout.on('data', data => {
-      if (live) process.stdout.write(data);
-      else if (!overflow) {
-        size += data.length;
-        if (size > 4 * 1024 * 1024) { overflow = true; child.kill('SIGTERM'); }
-        else chunks.push(data);
-      }
-    });
-    child.stderr.on('data', data => {
-      if (live) process.stderr.write(data);
-      else {
-        size += data.length;
-        if (size > 4 * 1024 * 1024) { overflow = true; child.kill('SIGTERM'); }
-      }
-    });
-    child.on('error', () => reject(new Error(program === 'docker' ? 'Docker unavailable' : 'Foundation harness unavailable')));
-    child.on('close', code => {
-      activeChild = undefined;
-      if (code === 0 && !overflow) resolve(Buffer.concat(chunks).toString('utf8'));
-      else reject(new Error(program === 'docker' ? `Docker ${args[0]} failed` : 'Foundation Docker regressions failed; run node --test scripts/python-foundation.test.mjs'));
-    });
-  });
-}
-
-async function resources(project) {
-  const result = [];
-  for (const type of ['container', 'volume', 'network', 'image']) {
-    const selected = new Set();
-    for (const filter of [`label=com.docker.compose.project=${project}`,
-      type === 'image' ? `reference=${project}-*` : `name=^/?${project}[-_]`]) {
-      const ids = await docker([type, 'ls', '--quiet', ...(type === 'container' ? ['--all'] : []), '--filter', filter]);
-      for (const id of ids.trim().split(/\s+/).filter(Boolean)) selected.add(id);
-    }
-    if (selected.size) {
-      for (const item of JSON.parse(await docker([type, 'inspect', ...selected]))) result.push({ type, item });
-    }
-  }
-  return result;
-}
-
-async function cleanup(project) {
-  const targets = [];
-  for (const { type, item } of await resources(project)) {
-    const labels = ['container', 'image'].includes(type) ? item.Config.Labels : item.Labels;
-    const service = labels?.['com.docker.compose.service'];
-    let valid = labels?.['com.docker.compose.project'] === project
-      && labels?.['org.opengym.python-foundation'] === 'synthetic';
-    let id = item.Id;
-    if (type === 'container') {
-      valid &&= ['foundation-db', 'foundation-test', 'foundation-contracts'].includes(service)
-        && new RegExp(`^/${project}-${service}-(?:[1-9][0-9]*|run-[a-f0-9]{12})$`).test(item.Name);
-    } else if (type === 'volume') {
-      valid &&= service === 'foundation-db' && item.Name === `${project}_postgres-data`
-        && labels['com.docker.compose.volume'] === 'postgres-data';
-      id = item.Name;
-    } else if (type === 'network') {
-      valid &&= service === 'private' && item.Name === `${project}_private`
-        && labels['com.docker.compose.network'] === 'private';
-    } else {
-      id = `${project}-${service}:local`;
-      valid &&= ['foundation-test', 'foundation-contracts'].includes(service)
-        && item.RepoTags?.length === 1 && item.RepoTags[0] === id;
-    }
-    if (!valid) throw new Error('Refusing unverified Python Foundation resource; nothing removed');
-    targets.push({ type, id });
-  }
-  // Validate the complete set before the first removal; never down, prune or remove-orphans.
-  for (const { type, id } of targets) await docker([type, 'rm', ...(type === 'container' ? ['--force'] : []), id]);
-  console.log('Python Foundation cleanup complete');
-}
+const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
+  root, composeFile: fileURLToPath(new URL('../compose.python-foundation.yml', import.meta.url)),
+  emptyEnv: fileURLToPath(new URL('../backend/empty.env', import.meta.url)),
+  namespace: 'opengym-python-foundation-test', label: 'org.opengym.python-foundation', name: 'Python Foundation',
+  services: ['foundation-db', 'foundation-test', 'foundation-contracts'],
+  images: ['foundation-test', 'foundation-contracts'], database: 'foundation-db',
+});
 
 async function run(group) {
   if (group === 'all') {
@@ -101,19 +21,7 @@ async function run(group) {
     return;
   }
   if (!['environment', 'contracts', 'pool', 'migrations', 'isolation', 'recovery', 'checks'].includes(group)) throw new Error(`Python Foundation group not implemented: ${group}`);
-  const project = `opengym-python-foundation-test-${randomBytes(8).toString('hex')}`;
-  console.log(`Python Foundation project: ${project}`);
-  if ((await resources(project)).length) throw new Error('Refusing an existing Python Foundation project');
-  let interrupted = false;
-  const stop = () => { interrupted = true; activeChild?.kill('SIGTERM'); };
-  const step = async args => {
-    if (interrupted) throw new Error('Python Foundation interrupted');
-    await docker([...compose(project), ...args], true);
-    if (interrupted) throw new Error('Python Foundation interrupted');
-  };
-  process.on('SIGINT', stop);
-  process.on('SIGTERM', stop);
-  try {
+  await runProject(async step => {
     await step(['config', '--quiet']);
     if (['contracts', 'checks'].includes(group)) {
       const service = group === 'contracts' ? 'foundation-contracts' : 'foundation-test';
@@ -125,13 +33,7 @@ async function run(group) {
       await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'foundation-db']);
       await step(['run', '--rm', '--no-deps', 'foundation-test', group]);
     }
-  } finally {
-    try { await cleanup(project); }
-    finally {
-      process.off('SIGINT', stop);
-      process.off('SIGTERM', stop);
-    }
-  }
+  });
 }
 
 try {

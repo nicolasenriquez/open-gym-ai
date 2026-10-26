@@ -1,1 +1,1 @@
-"""Shared Foundation infrastructure; no application or business dependencies."""
+"""Shared infrastructure; no application or business dependencies."""
