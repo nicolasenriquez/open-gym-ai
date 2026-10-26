@@ -23,6 +23,117 @@ Never substitute the instance Compose file, credentials or data directory.
 
 ## Verification groups
 
+### Incremental platform verification
+
+The platform port reuses Foundation's Docker execution and ownership checks through
+`scripts/synthetic-harness.mjs`, with a separate `opengym-platform-test-<hex16>`
+namespace and `org.opengym.platform=synthetic` labels. From the repository root:
+
+```sh
+node scripts/platform-baseline.mjs
+node scripts/platform.mjs verify harness --case ownership
+node scripts/platform.mjs verify contracts --case baseline
+node scripts/platform.mjs verify schema --case history_lock
+node scripts/platform.mjs verify images --case isolation
+```
+
+Omitting `--case` runs every delivered case in the selected suite.
+`backend/platform-suites.json` maps each case to its requirement, setup, command,
+proof and checkpoint. Unknown or undelivered suites/cases return 2; failed proofs,
+missing prerequisites or cleanup return 1. No skips count as success.
+`config` displays the isolated configuration; `cleanup opengym-platform-test-<hex16>`
+accepts only a verified synthetic project's exact resources after interruption.
+It rejects Foundation projects, foreign labels and shared images before removal.
+
+The initial contract target reuses `Dockerfile.contracts` and its pinned Node/pnpm
+toolchain, private network and tmpfs. The schema case builds `platform-test` from
+`backend/Dockerfile` and starts a private disposable PostgreSQL (`platform-db`);
+nothing binds host sources, datasets or ports. There is no platform HTTP API or
+browser image yet. Node is a test dependency here, not a Python runtime dependency.
+These checks establish only the Node/client reference and verifier safety, never
+Python parity or operational gates.
+
+The schema case runs `tests/platform/test_schema.py` inside that image. It proves
+role bootstrap, the `p000_bootstrap` privilege baseline, one Alembic history under
+the shared migrator lock, genuine previous revisions, interrupted or failed
+revisions that never advance head, and a runtime login that can read history but
+cannot run DDL or assume owner/migrator roles. No business table is created; the
+next revision belongs to the identity slice. `python -m
+opengym_platform.platform_migrate bootstrap|up` accepts only the synthetic
+`opengym_platform_test` target without `--deployment`. The explicit deployment
+mode below uses separate file-backed credentials. HTTP startup/readiness remains
+pending in task 1.3; no public Python API is claimed by the image checks.
+
+### Platform images and Compose
+
+`backend/Dockerfile` supplies `dev`, `test`, `runtime`, `migrate` and `ops` targets
+from the same Python/uv/PostgreSQL pins and `uv.lock`. Its default remains the
+Foundation verifier. Runtime contains production dependencies and shared core only:
+no tests, uv/pip, Node, SDK/CLI launcher or PostgreSQL tools. The migrator adds its
+controlled Alembic chain; ops adds the matching `pg_dump`/`pg_restore` tools. No
+container installs packages at startup. The ops default prints the tool version;
+backup/restore orchestration is still pending.
+
+Use `compose.platform.yml` with exactly one of `compose.platform.dev.yml` or
+`compose.platform.ops.yml`, always with an explicit absolute `--env-file`. Do not
+combine these files with the Node instance or Foundation. Dev mounts only backend
+sources read-only for reload, with dependencies in the image. Ops has no source
+binds/build and selects tested local image IDs (`sha256:<hex64>`), with no pull.
+Build the existing frontend separately with `web/Dockerfile` when a web image is
+needed; the image/network check substitutes a Python network probe for web and
+does not certify a frontend build or browser flow.
+
+Both combinations expose only `127.0.0.1:8080` (web port 80); API 3000 and DB 5432
+stay private. Web is on `app`, DB on internal `database`, API on both. Dev/ops use
+different database and volume names even when the same project name is supplied.
+Keep their secrets in different private directories as well.
+
+The env file contains only references: `PLATFORM_SECRETS_DIR` (absolute directory)
+and, for ops, `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
+`PLATFORM_MIGRATE_DIGEST`, `PLATFORM_OPS_DIGEST` (the hex suffix of each tested local
+image's `.Id`, not a tag or a registry manifest digest). Dev can use
+`PLATFORM_WEB_IMAGE` to identify its existing web image; API/tool image tags come
+from the dev overlay. Inspect images with `docker image inspect <owned-tag>`.
+
+Provide three distinct secret files named `bootstrap_password`,
+`migrator_password`, `runtime_password`, each with at least 32 characters and at
+most 4096 UTF-8 bytes, no CR/NUL
+or embedded newline. Prefer no trailing newline; terminal LF is supported. On
+Windows, generate without a BOM/CRLF (for example with `File.WriteAllText` and
+`UTF8Encoding(false)`). Protect the host directory with filesystem permissions/ACLs;
+on Linux ensure UID 1000 can read each mounted file. Compose file-backed secrets
+do not reliably apply `uid`/`gid`/`mode` overrides. API mounts only its password;
+migrate only its own; bootstrap explicitly mounts all three; ops mounts none yet.
+Secret contents never belong in env files, image args, Git or evidence.
+
+Inspect a dev configuration from the root (substitute the env path; use the ops
+overlay for the equivalent operation):
+
+```sh
+docker compose --env-file <absolute-dev.env> -f compose.platform.yml -f compose.platform.dev.yml --profile '*' config
+docker compose --env-file <absolute-dev.env> -f compose.platform.yml -f compose.platform.dev.yml build api migrate ops
+```
+
+Only on an explicitly authorized new disposable target: `up -d --wait db`,
+`run --rm bootstrap`, then `run --rm migrate`. The latter invokes
+`python -m opengym_platform.platform_migrate --deployment up`. Bootstrap initializes
+missing roles without rotating existing credentials; up uses only the migrator
+credential and the existing history lock. API never performs either operation.
+Use `stop` to preserve data; no global prune/volume cleanup is part of this workflow.
+Do not run `up api/web` yet: their declared factory
+`opengym_platform.application:create_app` belongs to task 1.3. It is intentionally
+not replaced by the Foundation app. This slice proves images, config, permissions
+and database connectivity, not an operational service or a recovery gate.
+
+`contracts/port-baseline.v1.json` freezes the independent fixture/test expectations,
+OpenAPI, source revision and Foundation handoff revision. The route/error view is
+the frozen OpenAPI; capability/consumer/store relationships are in
+[CONTRACTS.md](CONTRACTS.md). The checker tolerates checkout CRLF/LF only. There is
+no regeneration mode: a divergence requires explicit contract review, never an
+expectation update merely to make the port pass.
+
+### Foundation commands
+
 ```sh
 node scripts/python-foundation.mjs run contracts
 node scripts/python-foundation.mjs run pool

@@ -1,16 +1,19 @@
 ## Estado y límites
 
 Plan revisado de entrega sintética futura; ningún checkbox está implementado o
-aceptado por esta edición. Checkpoints: port funcional → operación local recuperable
+aceptado por la revisión documental original. Las solicitudes posteriores autorizan
+1.1–1.2 y 1.4 en recursos sintéticos; el estado y evidencia actuales figuran junto a esas tareas.
+Checkpoints: port funcional → operación local recuperable
 → corte/retirada reales en cambio operativo separado. S11 conserva las obligaciones
 de handoff: no ejecutarlas ni marcarlas completas por un ensayo sintético. Antes de
 archivar, transferirlas explícitamente con trazabilidad; no autorizar Recovery por
-cierre de este cambio. La autorización actual cubre solo esta revisión documental.
+cierre de este cambio. El permiso de entrega actual cubre 1.1–1.2 y 1.4; 1.3, 1.5
+y las tareas posteriores siguen fuera del alcance autorizado.
 Se acepta diseñar backup con pausa; la autorización/entrega privada de la vía nueva
 Q1 y la selección del tooling estándar de retención son prerrequisitos de sus slices,
 no hechos resueltos ni permiso para implementarlos.
 
-Notes: revisión documental de los seis hallazgos aplicada. PASS: `openspec validate
+Notes (revisión documental anterior a delivery): revisión de los seis hallazgos aplicada. PASS: `openspec validate
 port-compatible-platform --strict --no-interactive`, `node scripts/docs/okf.mjs check`,
 `node --test scripts/docs/okf.test.mjs` (41/41, cero skips) y
 `git -c core.safecrlf=false diff --check`. Sin pruebas runtime, instalaciones,
@@ -18,9 +21,10 @@ implementación de 1.1/1.2 ni aceptación operativa; todos los checkboxes siguen
 
 El [plan ejecutable](execution-plan.md) fija alcance, actores/rutas,
 almacenes, primera prueba conductual, errores y checkpoint de cada slice S1–S11.
-Todos los comandos `verify` siguientes son **futuros**; 1.2 entrega solo el runner
-mínimo y sus casos iniciales. Cada slice añade su mapeo/imagen antes de verificar;
-ningún comando futuro se acredita por esta edición. Solo 1.1 usa el comando Foundation existente antes de ese runner. Cada tarea ejecuta primero su caso RED válido, después implementación,
+Los comandos `verify` salvo `harness/ownership` y `contracts/baseline` siguen siendo
+**futuros**; 1.2 entrega solo el runner mínimo y sus casos iniciales. Cada slice añade
+su mapeo/imagen antes de verificar. Solo 1.1 usa el comando Foundation existente antes
+de ese runner. Cada tarea ejecuta primero su caso RED válido, después implementación,
 caso GREEN y suite afectada completa. No adelantar toda la implementación a las pruebas.
 
 Q3 cubre los seams de contrato/HTTP+PG/navegador/operación; Q6 excluye SDK/CLI.
@@ -31,18 +35,21 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
 
 ## 1. Bootstrap y verificador sintético — S1
 
-- [ ] 1.1 Congelar baseline independiente y revisión fuente, handoff Foundation y matriz de rutas/errores/consumidores; impedir cambiar expectativas para admitir divergencias.
+- [x] 1.1 Congelar baseline independiente y revisión fuente, handoff Foundation y matriz de rutas/errores/consumidores; impedir cambiar expectativas para admitir divergencias.
   Traceability: compatible-platform-persistence / Phase-bounded compatible capability port / Training pilot follows identity; Faithful import and retirement parity / OpenAPI authority moves without contract drift.
   Proof/Check: `node scripts/python-foundation.mjs run contracts` (comando existente para baseline sintético, solo bajo autorización de entrega; sin RED runtime artificial).
-- [ ] 1.2 Entregar runner verify mínimo reutilizando ejecución/ownership Foundation sin duplicar cleanup; mapeo e imagen iniciales, suite futura/desconocida exit 2 y regresiones Foundation tras extracción. Browser pins se entregan en 3.4.
+  Notes: PASS del comando existente: seis casos HTTP, comparador y suites Node/cliente, sin skips; cleanup propio terminado. `backend/contracts/port-baseline.v1.json` congela revisión fuente, handoff y SHA-256 de expectativas/OpenAPI; `node scripts/platform-baseline.mjs` PASS y prueba de alteración de error rechazada. Matriz de métodos/rutas/errores: OpenAPI congelado; consumidores/almacenes/límites: `backend/CONTRACTS.md`, sin segunda especificación editable. No RED artificial de caracterización ni paridad Python.
+- [x] 1.2 Entregar runner verify mínimo reutilizando ejecución/ownership Foundation sin duplicar cleanup; mapeo e imagen iniciales, suite futura/desconocida exit 2 y regresiones Foundation tras extracción. Browser pins se entregan en 3.4.
   Traceability: local-platform-operation / Isolated local Compose operation / Resolved topology and environment isolation; compatible-platform-persistence / Bounded legacy and temporary artifact cleanup / Cleanup preserves recovery and foreign artifacts; Phase-bounded compatible capability port / Slice preparation is incomplete.
   Proof/Check: `node scripts/platform.mjs verify harness --case ownership`.
+  Notes: PASS del caso y suite completa (9 tests, cero skips), `verify contracts --case baseline` y `node scripts/python-foundation.mjs run all` hasta FOUNDATION_ALL_OK (siete grupos y 17 regresiones Docker). Extracción caracterizada; RED conductual del rechazo de cleanup ajeno antes de GREEN. El negativo de ejecutable ausente descubrió un timer pendiente; deadline sin retener el proceso GREEN. Mapeo en `backend/platform-suites.json`; imagen fijada reutilizada mediante `compose.platform-verify.yml`, sin nuevo motor de cleanup. Sentinels, etiquetas ajenas, imagen compartida, configuración contaminada, suites futuras exit 2 y pruebas vacías/omitidas/fallidas verificados. Evidencia local ignorada: `.scratch/platform-bootstrap/{contracts,harness,harness-tests,foundation-all,okf-tests}.log`. Lint (813 archivos), OKF, suite OKF 41/41, OpenSpec estricto y diff-check PASS; revisión ponytail del diff completo sin bloqueantes. Sin nuevas dependencias, DDL, API funcional, browser, datos reales ni gates operativos. CI remoto/cache matrix no ejecutados; 1.3+ sigue fuera del alcance autorizado. Ready for closeout de 1.1–1.2 solamente; sin sync/archive/commit.
 - [ ] 1.3 Entregar arranque HTTP dev aislado, health/config compatibles y readiness interna sin migración automática; rechazar esquema desconocido.
   Traceability: local-platform-operation / Controlled images migrations and lifecycle / Incompatible schema or failed migration.
   Proof/Check: `node scripts/platform.mjs verify lifecycle --case readiness`.
-- [ ] 1.4 Entregar bootstrap de roles e historial/lock Alembic, vacío/revisión anterior, interrupción y fallo sin adelantar head; DDL de negocio solo con su slice.
+- [x] 1.4 Entregar bootstrap de roles e historial/lock Alembic, vacío/revisión anterior, interrupción y fallo sin adelantar head; DDL de negocio solo con su slice.
   Traceability: compatible-platform-persistence / Executable schema and privileged functions / Migration failure and function grants; local-platform-operation / Controlled images migrations and lifecycle / Incompatible schema or failed migration.
   Proof/Check: `node scripts/platform.mjs verify schema --case history_lock`.
+  Notes: RED: el caso arrancó PostgreSQL/imagen sintéticos y falló por ausencia del CLI/historial de plataforma. GREEN: caso y suite `schema` completos (12 tests, cero skips), `verify harness` y `verify contracts` PASS; ruff/mypy PASS y formato aplicado. `platform_migrate.py` restringe el target sintético, crea schema_owner/migrator/api_runtime con lock 728322 y rechaza memberships elevadas; `p000_bootstrap` solo fija ACL/ownership, lectura de historial para runtime y revoca el EXECUTE público por defecto (forma global, porque `IN SCHEMA` no aplica el revoke en este PostgreSQL). `platform_migrations/` es una cadena nueva, sin revisiones Foundation. El runner mapea `platform-test` + `platform-db` sin cleanup duplicado; pruebas cubren vacío, prefijo real, interrupción, fallo y desconocido sin avanzar head, segundo migrador y runtime sin DDL/rol. Sin DDL de negocio, HTTP, datos reales, CI remota ni gates operativos; 1.3/1.5 pendientes. Evidencia local ignorada: `.scratch/platform-schema/{red,green4,harness,contracts,checks}.log`. Revisión final pendiente.
 - [ ] 1.5 Entregar base/overlays dev/ops y targets runtime/migrate/ops sobre pins comunes; configurar secretos por ficheros y no-root sin SDK/CLI/Node runtime.
   Traceability: local-platform-operation / Isolated local Compose operation / Resolved topology and environment isolation; Controlled images migrations and lifecycle / Deferred coach runtimes do not expand operation.
   Proof/Check: `node scripts/platform.mjs verify images --case isolation`.

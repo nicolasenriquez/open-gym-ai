@@ -2,9 +2,9 @@
 
 ## Status and authority
 
-Documentation-only preparation. No product implementation, migrations, runtime
-experiments or operational actions were performed by writing this plan. All tasks
-remain unchecked in [tasks](tasks.md), the only progress ledger. Q1–Q3 and Q6 remain
+Writing this plan performed no product implementation, migrations, runtime
+experiments or operational actions. Subsequent delivery is limited to the explicitly
+selected tasks; [tasks](tasks.md) is the only progress ledger. Q1–Q3 and Q6 remain
 binding with the revised Q1 two-path recovery and controlled-stop backup below;
 Q4/Q5 are concluded diagnostic evidence, not delivery acceptance.
 
@@ -44,7 +44,9 @@ node --test scripts/docs/okf.test.mjs
 git -c core.safecrlf=false diff --check
 ```
 
-**Future delivery command**, to be implemented by task 1.2, not available now:
+**Incremental delivery command**: task 1.2 supplies `harness/ownership` and
+`contracts/baseline`; task 1.4 adds `schema/history_lock` with its disposable
+PostgreSQL and test image. Other suites below remain future contracts:
 
 ```sh
 node scripts/platform.mjs verify <suite> --case <case>

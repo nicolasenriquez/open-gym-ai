@@ -14,6 +14,14 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Separate platform dev/ops Compose definitions, file-backed database credentials,
+  and non-root runtime, migration and operations image targets. Python HTTP startup remains pending.
+- An isolated platform schema verifier and synthetic migration bootstrap: one
+  Alembic history under a single migrator lock, a least-privilege role baseline and
+  a runtime login that reads history without DDL or owner elevation. Business DDL
+  and the API remain undelivered; the product still runs Node/JSON.
+- An incremental platform verification runner with frozen compatibility expectations
+  and shared, ownership-checked synthetic Docker tooling. The application still uses Node/JSON.
 - A complete isolated Python Foundation verifier within the consolidated CI workflow,
   lock/static checks, real PostgreSQL/Docker negatives and cache-aware test builds.
   It does not change the Node/JSON product or establish production platform gates.

@@ -281,4 +281,8 @@ jobs:
       - run: node scripts/python-foundation.mjs run all
         env:
           BUILDX_BUILDER: ${{ steps.foundation-builder.outputs.name }}
+      - run: node scripts/platform-baseline.mjs
+      - run: node scripts/platform.mjs verify harness
+      - run: node scripts/platform.mjs verify schema
+      - run: node scripts/platform.mjs verify images
       - run: node --test scripts/python-foundation-build.test.mjs
