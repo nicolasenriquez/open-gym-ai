@@ -74,16 +74,21 @@ under the same account lock and transaction-local RLS context. A missing documen
 returns state null/revision zero without creating a row. PostgreSQL preserves the
 complete JSONB document and generates strictly validated revision/write-id columns;
 the client response omits only the server notes `_prior` and `_unstamped`.
-`PUT /api/v1/data` currently requires a non-null `baseRev`. The verified actor's account
+`PUT /api/v1/data` compares a supplied non-null `baseRev` and optional `baseWid`. The verified actor's account
 lock serializes first writes and revision comparison with the canonical update;
 a conflict returns only that actor's client-visible document. Unknown-field
 correction can store revision +2 while acknowledging +1 so the client fetches the
 corrected copy. The application factory accepts an async `training_note_state`
 collaborator, called only after confirmed commit with a two-second budget; its
 failure cannot change the saved result. No media adapter is wired yet.
-Unconditional legacy writes return 400 (`baseRev required`) until task 3.3. Full
-edit/deletion stamps, prior-value history, reset semantics and browser reconciliation
-remain pending; this is not complete Training parity or a cutover-ready backend.
+Omitting `baseRev` or sending null allows the compatible unconditional legacy replacement.
+Edit/deletion stamps, private prior-value history and monotonic reset metadata follow
+the Node contract. Server-owned write IDs retain at most 50 ancestors; a lost reply
+retried with its old base conflicts against the committed document. Revisions retain
+room for a two-step correction within JavaScript's safe integer range. Prior-value
+matching accepts both legacy JSON key order and PostgreSQL JSONB key order.
+The synthetic browser proof covers reconciliation against Python; this is not a
+cutover-ready backend.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -128,7 +133,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
-| `training_write` | Conditional first save, conflicts, persisted correction and postcommit failure boundary. |
+| `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
 | `images` | Runtime/tool separation, dev/prod topology and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 

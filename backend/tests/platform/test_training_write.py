@@ -175,13 +175,6 @@ async def test_bad_inputs_and_conflicts_never_change_stored_state(identities):
                 json={"baseRev": base, "state": {"workouts": []}},
             )
             assert response.status_code == 409
-        for base in ({}, {"baseRev": None}):
-            response = await client.put(
-                "/api/v1/data",
-                headers={"Cookie": f"gymsid={A}"},
-                json={**base, "state": {"workouts": []}},
-            )
-            assert response.status_code == 400
         for raw in ("not json", '{"state":NaN}', "[]"):
             assert (
                 await client.put(
@@ -398,6 +391,10 @@ async def test_nested_unknown_field_correction_preserves_explicit_known_removals
             await client.get("/api/v1/data", headers={"Cookie": f"gymsid={A}"})
         ).json()
         assert saved["rev"] == 9
+        routine = saved["state"]["routines"][0]
+        stamp = routine.pop("_ts")
+        assert stamp > 0
+        assert routine.pop("_f") == {"ex": stamp, "excludeFromProgression": stamp}
         assert saved["state"]["routines"] == [
             {
                 "id": "r",

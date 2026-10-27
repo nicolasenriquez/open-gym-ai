@@ -1,13 +1,22 @@
 {
   "training_write": [
     {
+      "id": "lineage_retry",
+      "requirement": "Canonical compatible Training persistence / First write and competing revision; No document and legacy metadata",
+      "setup": "Independent Node stamp vectors, real HTTP and restricted PostgreSQL with separate observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_training_lineage.py"],
+      "proof": "Stamps, legacy replacements, reset, lineage and lost response retries preserve canonical state",
+      "checkpoint": "3.3 only; browser reconciliation remains 3.4"
+    },
+    {
       "id": "first_write",
       "requirement": "Canonical compatible Training persistence / First write and competing revision",
       "setup": "Real HTTP and restricted PostgreSQL with verified accounts and independent persistence observation",
       "target": "platform-test",
       "command": ["tests/platform/test_training_write.py"],
       "proof": "Concurrent conditional saves, owner isolation, strict conflicts, persisted revision correction and postcommit failure independent of SQL success",
-      "checkpoint": "3.2 only; full stamps and unconditional legacy writes remain 3.3; the media adapter remains S4"
+      "checkpoint": "3.2 first-write regression; lineage_retry covers 3.3; the media adapter remains S4"
     }
   ],
   "training_read": [

@@ -1,0 +1,6791 @@
+{
+  "sourceSha256": "88259ae27be7b77195098753f9fdacc5013371d677e1a30a5630d72b47f8bdec",
+  "vectors": [
+    {
+      "scenario": "an older app's push over the current revision keeps the records and gets its changes stamped",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push A",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ]
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push A",
+            "ex": [],
+            "_ts": 1800000000000,
+            "_f": {
+              "name": 1800000000000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000,
+            "w2": 1800000000000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "restSec": 1800000000000
+          },
+          "f": {
+            "routines|r1": {
+              "name": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "routines|r1|name": [
+            "6.c8gl9p"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a planner's queue and removed routine are stamped; a field it does not send is left alone",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "hints": {
+          "swipeSets": true
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "b"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "b"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          },
+          "routines": {
+            "r2": 1800000000000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000,
+          "queue": 1800000000000
+        },
+        "hints": {
+          "swipeSets": true
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "queue": 1800000000000
+          }
+        },
+        "_prior": {
+          "queue": [
+            "13.1h26266"
+          ]
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "the app stamps its own changes: only the records are joined",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 60,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w2": 1799999999900
+          }
+        },
+        "edited": {
+          "restSec": 1799999999900
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 60,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000,
+            "w2": 1799999999900
+          }
+        },
+        "edited": {
+          "restSec": 1799999999900
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an entry held against a removal on record is kept, marked as added back",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000,
+            "w1": 1799999996000
+          },
+          "favEx": {
+            "squat": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench",
+          "squat"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000,
+            "w1": 1799999996000
+          },
+          "favEx": {
+            "squat": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench",
+          "squat"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000,
+            "w1": -1800000000000
+          },
+          "favEx": {
+            "squat": -1800000000000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a reset keeps its own records; a replace without baseRev keeps the stored ones",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1800000000000,
+        "resetAt": 1800000000000,
+        "workouts": [],
+        "routines": []
+      },
+      "options": {
+        "overRead": false,
+        "stamped": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1800000000000,
+        "resetAt": 1800000000000,
+        "workouts": [],
+        "routines": []
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a reset keeps its own records; a replace without baseRev keeps the stored ones",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1800000000000,
+        "workouts": [
+          {
+            "id": "w9",
+            "d": "2026-09-01",
+            "start": 1,
+            "end": 2
+          }
+        ],
+        "routines": []
+      },
+      "options": {
+        "overRead": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1800000000000,
+        "workouts": [
+          {
+            "id": "w9",
+            "d": "2026-09-01",
+            "start": 1,
+            "end": 2
+          }
+        ],
+        "routines": [],
+        "deleted": {
+          "workouts": {
+            "w9": -1800000000001
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "favEx": [
+          "bench"
+        ]
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "an older app saving a routine keeps the pyramid it does not know",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [
+              {
+                "id": "0025",
+                "sets": 4,
+                "mode": "reps",
+                "reps": 12,
+                "weight": 40,
+                "pyramid": [
+                  12,
+                  10,
+                  8,
+                  "max"
+                ],
+                "pyramidRest": [
+                  60,
+                  90,
+                  120,
+                  0
+                ]
+              },
+              {
+                "id": "0032",
+                "sets": 3,
+                "mode": "reps",
+                "reps": 8,
+                "weight": 100,
+                "sg": "g1"
+              }
+            ],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [
+              {
+                "id": "0025",
+                "sets": 4,
+                "mode": "reps",
+                "reps": 12,
+                "weight": 45
+              },
+              {
+                "id": "0032",
+                "sets": 3,
+                "mode": "reps",
+                "reps": 8,
+                "weight": 100
+              }
+            ],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ]
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [
+              {
+                "id": "0025",
+                "sets": 4,
+                "mode": "reps",
+                "reps": 12,
+                "weight": 45,
+                "pyramid": [
+                  12,
+                  10,
+                  8,
+                  "max"
+                ],
+                "pyramidRest": [
+                  60,
+                  90,
+                  120,
+                  0
+                ]
+              },
+              {
+                "id": "0032",
+                "sets": 3,
+                "mode": "reps",
+                "reps": 8,
+                "weight": 100
+              }
+            ],
+            "_ts": 1800000000000,
+            "_f": {
+              "ex": 1800000000000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "f": {
+            "routines|r1": {
+              "ex": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "routines|r1|ex": [
+            "183.841h7g"
+          ]
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "an older app keeps the fields it does not know everywhere: settings, entries, sets",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 100,
+                    "r": 5,
+                    "done": true,
+                    "max": true
+                  },
+                  {
+                    "w": 90,
+                    "r": 8,
+                    "done": true
+                  }
+                ]
+              }
+            ],
+            "newer": "x"
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "accentCustom": "#ff00aa",
+        "showRir": true,
+        "customEx": [
+          {
+            "id": "c1",
+            "n": "Curl",
+            "media": {
+              "hash": "h"
+            },
+            "future": 1
+          }
+        ]
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 100,
+                    "r": 6,
+                    "done": true
+                  },
+                  {
+                    "w": 90,
+                    "r": 8
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "customEx": [
+          {
+            "id": "c1",
+            "n": "Curl"
+          }
+        ]
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 100,
+                    "r": 6,
+                    "done": true,
+                    "max": true
+                  },
+                  {
+                    "w": 90,
+                    "r": 8
+                  }
+                ]
+              }
+            ],
+            "newer": "x",
+            "_ts": 1800000000000,
+            "_f": {
+              "entries": 1800000000000
+            }
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "customEx": [
+          {
+            "id": "c1",
+            "n": "Curl",
+            "future": 1,
+            "_ts": 1800000000000,
+            "_f": {
+              "media": 1800000000000
+            }
+          }
+        ],
+        "accentCustom": "#ff00aa",
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "f": {
+            "customEx|c1": {
+              "media": 1800000000000
+            },
+            "workouts|w1": {
+              "entries": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "customEx|c1|media": [
+            "12.1daj14j"
+          ],
+          "workouts|w1|entries": [
+            "91.e4w5cq"
+          ]
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "a set taken out of the middle is not guessed at, and the app's own pushes are left as sent",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 1,
+                    "max": true
+                  },
+                  {
+                    "w": 2
+                  },
+                  {
+                    "w": 3,
+                    "max": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 1
+                  },
+                  {
+                    "w": 3
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 1
+                  },
+                  {
+                    "w": 3
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000000000,
+            "_f": {
+              "entries": 1800000000000
+            }
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "f": {
+            "workouts|w1": {
+              "entries": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "workouts|w1|entries": [
+            "71.41nqqw"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a set taken out of the middle is not guessed at, and the app's own pushes are left as sent",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 1,
+                    "max": true
+                  },
+                  {
+                    "w": 2
+                  },
+                  {
+                    "w": 3,
+                    "max": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 1,
+                    "max": true
+                  },
+                  {
+                    "w": 2
+                  },
+                  {
+                    "w": 3,
+                    "max": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 1,
+                    "max": true
+                  },
+                  {
+                    "w": 2
+                  },
+                  {
+                    "w": 3,
+                    "max": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "_prior": {
+          "routines|r1|name": [
+            "6.c8gl9p"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a reset from an older app is not refilled from the profile it wiped",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "accentCustom": "#ff00aa"
+      },
+      "next": {
+        "_ts": 1800000000000,
+        "resetAt": 1800000000000,
+        "workouts": [],
+        "routines": []
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1800000000000,
+        "resetAt": 1800000000000,
+        "workouts": [],
+        "routines": []
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app back from offline does not set back settings, plan days or entry fields changed after its copy",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 60,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r2"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [
+              {
+                "id": "bench",
+                "sets": 5
+              }
+            ],
+            "_ts": 1799999999000,
+            "_f": {
+              "ex": 1799999999000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000,
+          "week.1": 1799999999000,
+          "theme": 1799999991000
+        },
+        "theme": "dark"
+      },
+      "next": {
+        "_ts": 1799999999500,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push A",
+            "ex": [
+              {
+                "id": "bench",
+                "sets": 3
+              }
+            ],
+            "_ts": 1799999999500
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999992000,
+          "theme": 1799999991000
+        },
+        "theme": "light"
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999999500,
+        "_rev": 3,
+        "restSec": 60,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r2"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push A",
+            "ex": [
+              {
+                "id": "bench",
+                "sets": 5
+              }
+            ],
+            "_ts": 1800000000000,
+            "_f": {
+              "ex": 1799999999000,
+              "name": 1800000000000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000,
+          "week.1": 1799999999000,
+          "theme": 1800000000000
+        },
+        "theme": "light",
+        "_unstamped": {
+          "fp": "51.17i66h8.1cw72nq",
+          "ed": {
+            "theme": 1800000000000
+          },
+          "f": {
+            "routines|r1": {
+              "name": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "theme": [
+            "6.gx1udh"
+          ],
+          "routines|r1|name": [
+            "6.c8gl9p"
+          ]
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "an older app that read the latest change still changes it, and one that sends no record goes through",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 45,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 45,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.pbqi6m.hpupum",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app that read the latest change still changes it, and one that sends no record goes through",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 30,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 30,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app that read the latest change still changes it, and one that sends no record goes through",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {}
+      },
+      "options": {
+        "overRead": false,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app's push never gets the write ids stamped as settings, and an old such stamp goes",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000,
+          "_wid": 1799999993000
+        },
+        "_wid": "new",
+        "_wids": [
+          "a",
+          "b"
+        ]
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "_wid": "older",
+        "_wids": [
+          "a"
+        ],
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "_wid": "older",
+        "_wids": [
+          "a"
+        ],
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app that adds an exercise to a routine with one of them twice keeps the pyramids of the others",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [
+              {
+                "id": "sq",
+                "sets": 4,
+                "pyramid": [
+                  12,
+                  10,
+                  8,
+                  6
+                ]
+              },
+              {
+                "id": "bench",
+                "sets": 3
+              },
+              {
+                "id": "sq",
+                "sets": 3,
+                "pyramid": [
+                  5,
+                  5,
+                  3
+                ]
+              }
+            ],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [
+              {
+                "id": "sq",
+                "sets": 4
+              },
+              {
+                "id": "row",
+                "sets": 3
+              },
+              {
+                "id": "bench",
+                "sets": 3
+              },
+              {
+                "id": "sq",
+                "sets": 3
+              },
+              {
+                "id": "curl",
+                "sets": 2
+              }
+            ],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [
+              {
+                "id": "sq",
+                "sets": 4,
+                "pyramid": [
+                  12,
+                  10,
+                  8,
+                  6
+                ]
+              },
+              {
+                "id": "row",
+                "sets": 3
+              },
+              {
+                "id": "bench",
+                "sets": 3
+              },
+              {
+                "id": "sq",
+                "sets": 3,
+                "pyramid": [
+                  5,
+                  5,
+                  3
+                ]
+              },
+              {
+                "id": "curl",
+                "sets": 2
+              }
+            ],
+            "_ts": 1800000000000,
+            "_f": {
+              "ex": 1800000000000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "f": {
+            "routines|r1": {
+              "ex": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "routines|r1|ex": [
+            "107.1xp6izs"
+          ]
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "an older app changing the same setting, plan day and routine field twice in a row keeps the second change",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              }
+            ],
+            "_ts": 1799999996000,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000,
+          "week.1": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999999900,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r1",
+            "name": "Legs B",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              }
+            ],
+            "_ts": 1799999999900,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000,
+          "week.1": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999999900,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r1",
+            "name": "Legs B",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000000,
+            "_f": {
+              "name": 1800000000000,
+              "ex": 1800000000000
+            }
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000,
+          "week.1": 1800000000000,
+          "routineOrder": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "52.j1famt.xl4e8n",
+          "ed": {
+            "restSec": 1800000000000,
+            "week.1": 1800000000000,
+            "routineOrder": 1800000000000
+          },
+          "f": {
+            "routines|r1": {
+              "name": 1800000000000,
+              "ex": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "week.1": [
+            "4.6483u2"
+          ],
+          "routines|r1|name": [
+            "6.1s78ip6"
+          ],
+          "routines|r1|ex": [
+            "21.vgh1nj"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app changing the same setting, plan day and routine field twice in a row keeps the second change",
+      "current": {
+        "_ts": 1799999999900,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r1",
+            "name": "Legs B",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000000,
+            "_f": {
+              "name": 1800000000000,
+              "ex": 1800000000000
+            }
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000,
+          "week.1": 1800000000000,
+          "routineOrder": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "52.j1famt.xl4e8n",
+          "ed": {
+            "restSec": 1800000000000,
+            "week.1": 1800000000000,
+            "routineOrder": 1800000000000
+          },
+          "f": {
+            "routines|r1": {
+              "name": 1800000000000,
+              "ex": 1800000000000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "week.1": [
+            "4.6483u2"
+          ],
+          "routines|r1|name": [
+            "6.1s78ip6"
+          ],
+          "routines|r1|ex": [
+            "21.vgh1nj"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 150,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000900,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000,
+          "week.1": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000001000
+      },
+      "expected": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 150,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000001000,
+            "_f": {
+              "name": 1800000001000,
+              "ex": 1800000001000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000001000,
+          "week.1": 1800000001000,
+          "routineOrder": 1800000001000
+        },
+        "_unstamped": {
+          "fp": "52.j1famt.xl4e8n",
+          "ed": {
+            "restSec": 1800000001000,
+            "week.1": 1800000001000,
+            "routineOrder": 1800000001000
+          },
+          "f": {
+            "routines|r1": {
+              "name": 1800000001000,
+              "ex": 1800000001000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0",
+            "3.vywipa"
+          ],
+          "week.1": [
+            "4.6483u2",
+            "6.108idfk"
+          ],
+          "routines|r1|name": [
+            "6.1s78ip6",
+            "8.cda374"
+          ],
+          "routines|r1|ex": [
+            "21.vgh1nj",
+            "41.1q9bd40"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app changing the same setting, plan day and routine field twice in a row keeps the second change",
+      "current": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 150,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000001000,
+            "_f": {
+              "name": 1800000001000,
+              "ex": 1800000001000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000001000,
+          "week.1": 1800000001000,
+          "routineOrder": 1800000001000
+        },
+        "_unstamped": {
+          "fp": "52.j1famt.xl4e8n",
+          "ed": {
+            "restSec": 1800000001000,
+            "week.1": 1800000001000,
+            "routineOrder": 1800000001000
+          },
+          "f": {
+            "routines|r1": {
+              "name": 1800000001000,
+              "ex": 1800000001000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0",
+            "3.vywipa"
+          ],
+          "week.1": [
+            "4.6483u2",
+            "6.108idfk"
+          ],
+          "routines|r1|name": [
+            "6.1s78ip6",
+            "8.cda374"
+          ],
+          "routines|r1|ex": [
+            "21.vgh1nj",
+            "41.1q9bd40"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 150,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000900,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000,
+          "week.1": 1799999996000
+        },
+        "theme": "dark"
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000002000
+      },
+      "expected": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 150,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000900,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000001000,
+          "week.1": 1800000001000,
+          "routineOrder": 1800000001000,
+          "theme": 1800000002000
+        },
+        "theme": "dark",
+        "_unstamped": {
+          "fp": "52.j1famt.xl4e8n",
+          "ed": {
+            "restSec": 1800000001000,
+            "week.1": 1800000001000,
+            "routineOrder": 1800000001000,
+            "theme": 1800000002000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0",
+            "3.vywipa"
+          ],
+          "week.1": [
+            "4.6483u2",
+            "6.108idfk"
+          ],
+          "routines|r1|name": [
+            "6.1s78ip6",
+            "8.cda374"
+          ],
+          "routines|r1|ex": [
+            "21.vgh1nj",
+            "41.1q9bd40"
+          ],
+          "theme": [
+            "1.1ulrqj4"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app changing the same setting, plan day and routine field twice in a row keeps the second change",
+      "current": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 150,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000900,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000001000,
+          "week.1": 1800000001000,
+          "routineOrder": 1800000001000,
+          "theme": 1800000002000
+        },
+        "theme": "dark",
+        "_unstamped": {
+          "fp": "52.j1famt.xl4e8n",
+          "ed": {
+            "restSec": 1800000001000,
+            "week.1": 1800000001000,
+            "routineOrder": 1800000001000,
+            "theme": 1800000002000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0",
+            "3.vywipa"
+          ],
+          "week.1": [
+            "4.6483u2",
+            "6.108idfk"
+          ],
+          "routines|r1|name": [
+            "6.1s78ip6",
+            "8.cda374"
+          ],
+          "routines|r1|ex": [
+            "21.vgh1nj",
+            "41.1q9bd40"
+          ],
+          "theme": [
+            "1.1ulrqj4"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 75,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000900,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000,
+          "week.1": 1799999996000
+        },
+        "theme": "dark"
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000003000
+      },
+      "expected": {
+        "_ts": 1800000000900,
+        "_rev": 3,
+        "restSec": 75,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": [
+            "r1",
+            "r2"
+          ]
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Legs C",
+            "ex": [
+              {
+                "id": "a",
+                "sets": 3
+              },
+              {
+                "id": "b",
+                "sets": 3
+              },
+              {
+                "id": "c",
+                "sets": 3
+              }
+            ],
+            "_ts": 1800000000900,
+            "_f": {
+              "name": 1799999996000,
+              "ex": 1799999996000
+            }
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000003000,
+          "week.1": 1800000001000,
+          "routineOrder": 1800000001000,
+          "theme": 1800000002000
+        },
+        "theme": "dark",
+        "_unstamped": {
+          "fp": "52.j1famt.xl4e8n",
+          "ed": {
+            "restSec": 1800000003000,
+            "week.1": 1800000001000,
+            "routineOrder": 1800000001000,
+            "theme": 1800000002000
+          }
+        },
+        "_prior": {
+          "week.1": [
+            "4.6483u2",
+            "6.108idfk"
+          ],
+          "routines|r1|name": [
+            "6.1s78ip6",
+            "8.cda374"
+          ],
+          "routines|r1|ex": [
+            "21.vgh1nj",
+            "41.1q9bd40"
+          ],
+          "theme": [
+            "1.1ulrqj4"
+          ],
+          "restSec": [
+            "2.3bt5n0",
+            "3.vywipa",
+            "3.1w0yvs1"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a stamp the server gave one older app still holds against another that read an older copy",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a stamp the server gave one older app still holds against another that read an older copy",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999992000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000001000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "a stamp the server gave one older app still holds against another that read an older copy",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        },
+        "theme": "x"
+      },
+      "options": {
+        "overRead": true,
+        "stamped": true,
+        "now": 1800000002000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 120,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "theme": "x",
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "theme": [
+            "1.1ulrqj4"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app's own next change goes through after another device wrote in between; its old copy coming back does not",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app's own next change goes through after another device wrote in between; its old copy coming back does not",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000001000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000001000,
+            "_f": {
+              "entries": 1800000001000
+            }
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          },
+          "f": {
+            "workouts|w3": {
+              "entries": 1800000001000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app's own next change goes through after another device wrote in between; its old copy coming back does not",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000001000,
+            "_f": {
+              "entries": 1800000001000
+            }
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          },
+          "f": {
+            "workouts|w3": {
+              "entries": 1800000001000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "b"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000001000,
+            "_f": {
+              "entries": 1800000001000
+            }
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000,
+          "queue": 1800000002000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": true,
+        "now": 1800000002000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "b"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000001000,
+            "_f": {
+              "entries": 1800000001000
+            }
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000,
+          "queue": 1800000002000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          },
+          "f": {
+            "workouts|w3": {
+              "entries": 1800000001000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7"
+          ],
+          "queue": [
+            "13.1h26266"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app's own next change goes through after another device wrote in between; its old copy coming back does not",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 180,
+        "queue": {
+          "ids": [
+            "b"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000001000,
+            "_f": {
+              "entries": 1800000001000
+            }
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000000000,
+          "queue": 1800000002000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000000000
+          },
+          "f": {
+            "workouts|w3": {
+              "entries": 1800000001000
+            }
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7"
+          ],
+          "queue": [
+            "13.1h26266"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  },
+                  {
+                    "w": 80,
+                    "r": 3
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000003000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "b"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  },
+                  {
+                    "w": 80,
+                    "r": 3
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000003000,
+            "_f": {
+              "entries": 1800000003000
+            }
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000003000,
+          "queue": 1800000002000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000003000
+          },
+          "f": {
+            "workouts|w3": {
+              "entries": 1800000003000
+            }
+          }
+        },
+        "_prior": {
+          "queue": [
+            "13.1h26266"
+          ],
+          "restSec": [
+            "2.3bt5n0",
+            "3.1wkg42c"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7",
+            "55.196nc0s"
+          ]
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "an older app's own next change goes through after another device wrote in between; its old copy coming back does not",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "b"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  },
+                  {
+                    "w": 80,
+                    "r": 3
+                  }
+                ]
+              }
+            ],
+            "_ts": 1800000003000,
+            "_f": {
+              "entries": 1800000003000
+            }
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000003000,
+          "queue": 1800000002000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000003000
+          },
+          "f": {
+            "workouts|w3": {
+              "entries": 1800000003000
+            }
+          }
+        },
+        "_prior": {
+          "queue": [
+            "13.1h26266"
+          ],
+          "restSec": [
+            "2.3bt5n0",
+            "3.1wkg42c"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7",
+            "55.196nc0s"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "c"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  },
+                  {
+                    "w": 80,
+                    "r": 3
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000004000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "c"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  },
+                  {
+                    "w": 80,
+                    "r": 3
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000003000,
+          "queue": 1800000004000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000003000,
+            "queue": 1800000004000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0",
+            "3.1wkg42c"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7",
+            "55.196nc0s"
+          ],
+          "queue": [
+            "13.1h26266",
+            "13.1k5ahmx"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "an older app's own next change goes through after another device wrote in between; its old copy coming back does not",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "c"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          },
+          {
+            "id": "w3",
+            "d": "2026-10-03",
+            "start": 5,
+            "end": 6,
+            "entries": [
+              {
+                "id": "bench",
+                "sets": [
+                  {
+                    "w": 60,
+                    "r": 5
+                  },
+                  {
+                    "w": 70,
+                    "r": 5
+                  },
+                  {
+                    "w": 80,
+                    "r": 3
+                  }
+                ]
+              }
+            ],
+            "_ts": 1799999999950
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1800000003000,
+          "queue": 1800000004000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000003000,
+            "queue": 1800000004000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0",
+            "3.1wkg42c"
+          ],
+          "workouts|w3|entries": [
+            "40.1hyo8r7",
+            "55.196nc0s"
+          ],
+          "queue": [
+            "13.1h26266",
+            "13.1k5ahmx"
+          ]
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "c"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999996000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000005000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 270,
+        "queue": {
+          "ids": [
+            "c"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000,
+            "w3": 1800000005000
+          }
+        },
+        "edited": {
+          "restSec": 1800000003000,
+          "queue": 1800000004000
+        },
+        "_unstamped": {
+          "fp": "27.1e6dtep.fryanv",
+          "ed": {
+            "restSec": 1800000003000,
+            "queue": 1800000004000
+          }
+        },
+        "_prior": {
+          "restSec": [
+            "2.3bt5n0",
+            "3.1wkg42c"
+          ],
+          "queue": [
+            "13.1h26266",
+            "13.1k5ahmx"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "a field with no history of its earlier values (stamped before it was kept) is put back as before",
+      "current": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000
+        }
+      },
+      "next": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 45,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999992000
+        }
+      },
+      "options": {
+        "overRead": true,
+        "stamped": false,
+        "now": 1800000000000
+      },
+      "expected": {
+        "_ts": 1799999995000,
+        "_rev": 3,
+        "restSec": 90,
+        "queue": {
+          "ids": [
+            "a"
+          ]
+        },
+        "week": {
+          "1": "r1"
+        },
+        "workouts": [
+          {
+            "id": "w1",
+            "d": "2026-10-01",
+            "start": 1,
+            "end": 2
+          },
+          {
+            "id": "w2",
+            "d": "2026-10-02",
+            "start": 3,
+            "end": 4
+          }
+        ],
+        "routines": [
+          {
+            "id": "r1",
+            "name": "Push",
+            "ex": [],
+            "_ts": 1799999991000
+          },
+          {
+            "id": "r2",
+            "name": "Pull",
+            "ex": [],
+            "_ts": 1799999991000
+          }
+        ],
+        "favEx": [
+          "bench"
+        ],
+        "deleted": {
+          "workouts": {
+            "w9": 1799999996000
+          }
+        },
+        "edited": {
+          "restSec": 1799999999000
+        }
+      },
+      "corrected": true
+    },
+    {
+      "scenario": "prior hashes preserve JSON type and UTF-16: null",
+      "current": {
+        "setting": null,
+        "workouts": []
+      },
+      "next": {
+        "setting": "new",
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "setting": "new",
+        "workouts": [],
+        "edited": {
+          "setting": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "setting": 1800000000000
+          }
+        },
+        "_prior": {
+          "setting": [
+            "4.x0xxgk"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "prior hashes preserve JSON type and UTF-16: false",
+      "current": {
+        "setting": false,
+        "workouts": []
+      },
+      "next": {
+        "setting": "new",
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "setting": "new",
+        "workouts": [],
+        "edited": {
+          "setting": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "setting": 1800000000000
+          }
+        },
+        "_prior": {
+          "setting": [
+            "5.324swo"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "prior hashes preserve JSON type and UTF-16: 0",
+      "current": {
+        "setting": 0,
+        "workouts": []
+      },
+      "next": {
+        "setting": "new",
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "setting": "new",
+        "workouts": [],
+        "edited": {
+          "setting": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "setting": 1800000000000
+          }
+        },
+        "_prior": {
+          "setting": [
+            "1.epw9f3"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "prior hashes preserve JSON type and UTF-16: \"😃 café\"",
+      "current": {
+        "setting": "😃 café",
+        "workouts": []
+      },
+      "next": {
+        "setting": "new",
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "setting": "new",
+        "workouts": [],
+        "edited": {
+          "setting": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "setting": 1800000000000
+          }
+        },
+        "_prior": {
+          "setting": [
+            "9.1lpla4w"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "prior hashes preserve JSON type and UTF-16: {\"2\":\"two\",\"10\":\"ten\",\"a\":1}",
+      "current": {
+        "setting": {
+          "2": "two",
+          "10": "ten",
+          "a": 1
+        },
+        "workouts": []
+      },
+      "next": {
+        "setting": "new",
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "setting": "new",
+        "workouts": [],
+        "edited": {
+          "setting": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "setting": 1800000000000
+          }
+        },
+        "_prior": {
+          "setting": [
+            "28.dktlfj"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "prior hashes preserve JSON type and UTF-16: [0,0.000001,1e-7,1e+21]",
+      "current": {
+        "setting": [
+          0,
+          0.000001,
+          1e-7,
+          1e+21
+        ],
+        "workouts": []
+      },
+      "next": {
+        "setting": "new",
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "setting": "new",
+        "workouts": [],
+        "edited": {
+          "setting": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "setting": 1800000000000
+          }
+        },
+        "_prior": {
+          "setting": [
+            "23.f6bk8w"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "absent plan-day value differs from null",
+      "current": {
+        "exNotes": {
+          "x": null
+        },
+        "workouts": []
+      },
+      "next": {
+        "exNotes": {},
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "exNotes": {},
+        "workouts": [],
+        "edited": {
+          "exNotes.x": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "exNotes.x": 1800000000000
+          }
+        },
+        "_prior": {
+          "exNotes.x": [
+            "4.x0xxgk"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "absent plan-day value differs from null",
+      "current": {
+        "exNotes": {},
+        "workouts": []
+      },
+      "next": {
+        "exNotes": {
+          "x": null
+        },
+        "workouts": []
+      },
+      "options": {
+        "overRead": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "exNotes": {
+          "x": null
+        },
+        "workouts": [],
+        "edited": {
+          "exNotes.x": 1800000000000
+        },
+        "_unstamped": {
+          "fp": "none",
+          "ed": {
+            "exNotes.x": 1800000000000
+          }
+        },
+        "_prior": {
+          "exNotes.x": [
+            "1.1ulrqj4"
+          ]
+        }
+      },
+      "corrected": false
+    },
+    {
+      "scenario": "legacy numeric stamp strings retain Number semantics",
+      "current": {
+        "edited": {
+          "setting": "0x10"
+        },
+        "deleted": {
+          "favEx": {
+            "gone": "0b10000"
+          }
+        }
+      },
+      "next": {
+        "setting": 3,
+        "edited": {
+          "setting": 2
+        },
+        "deleted": {
+          "favEx": {
+            "gone": 4
+          }
+        }
+      },
+      "options": {
+        "stamped": true,
+        "now": 1800000000000
+      },
+      "expected": {
+        "setting": 3,
+        "edited": {
+          "setting": "0x10"
+        },
+        "deleted": {
+          "favEx": {
+            "gone": "0b10000"
+          }
+        },
+        "_prior": {
+          "setting": [
+            "1.1ulrqj4"
+          ]
+        }
+      },
+      "corrected": false
+    }
+  ]
+}

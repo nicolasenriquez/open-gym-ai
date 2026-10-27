@@ -1,4 +1,4 @@
-"""Training HTTP routes; unconditional legacy writes arrive in 3.3."""
+"""Compatible Training HTTP reads and saves."""
 
 import json
 import os
@@ -69,7 +69,7 @@ def create_router(*, secret, secure, note_state=None):
             )
             if not isinstance(body, dict):
                 raise TypeError("invalid json")
-        except ValueError, TypeError, RecursionError:
+        except (ValueError, TypeError, RecursionError):
             return JSONResponse(
                 {"error": "invalid json"}, status_code=400, headers=headers
             )

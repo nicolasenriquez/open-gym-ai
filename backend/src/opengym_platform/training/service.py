@@ -6,7 +6,7 @@ import logging
 import secrets
 
 from opengym_platform.identity.sessions import authorize
-from opengym_platform.training.stamps import preserve_unknown
+from opengym_platform.training.stamps import number, stamp_put
 
 
 async def read(database, session, *, revision_only):
@@ -43,9 +43,6 @@ async def write(database, session, body, note_state=None):
             for key in ("workouts", "routines")
         ):
             return 400, {"error": "invalid state"}
-        # shortcut: unconditional legacy replacement is deferred to task 3.3.
-        if body.get("baseRev") is None:
-            return 400, {"error": "baseRev required"}
         for key in ("workouts", "routines"):
             if isinstance(document.get(key), list):
                 document[key] = [
@@ -54,8 +51,8 @@ async def write(database, session, body, note_state=None):
         rows = await handle.fetch("SELECT document, revision FROM training.documents")
         current = json.loads(rows[0]["document"]) if rows else None
         revision = rows[0]["revision"] if rows else 0
-        base = body["baseRev"]
-        if (
+        base = body.get("baseRev")
+        if base is not None and (
             type(base) not in (int, float)
             or base != revision
             or (
@@ -78,14 +75,19 @@ async def write(database, session, body, note_state=None):
         if revision > 9007199254740989:
             return 400, {"error": "invalid state"}
         document.pop("active", None)
-        for key in ("_prior", "_unstamped"):
-            document.pop(key, None)
-            if current and key in current:
-                document[key] = current[key]
-        corrected = False
+        if current and number(current.get("resetAt")) > number(document.get("resetAt")):
+            document["resetAt"] = current["resetAt"]
+            if isinstance(current.get("resetIds"), (dict, list)):
+                document["resetIds"] = current["resetIds"]
+            else:
+                document.pop("resetIds", None)
         try:
-            if current and body.get("stamped") is not True:
-                corrected = preserve_unknown(current, document)
+            corrected = stamp_put(
+                current,
+                document,
+                over_read=base is not None and base == revision,
+                stamped=body.get("stamped") is True,
+            )
             document["_rev"] = revision + (2 if corrected else 1)
             ancestors = current.get("_wids", []) if current else []
             ancestors = ancestors if isinstance(ancestors, list) else []
@@ -109,7 +111,7 @@ async def write(database, session, body, note_state=None):
                     or any(0xD800 <= ord(char) <= 0xDFFF for char in value)
                 ):
                     return 400, {"error": "invalid state"}
-        except ValueError, RecursionError:
+        except (ValueError, RecursionError):
             return 400, {"error": "invalid state"}
         await handle.execute(
             "INSERT INTO training.documents(owner_id, document) VALUES ($1, $2::jsonb) "
