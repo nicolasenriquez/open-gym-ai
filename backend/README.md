@@ -117,8 +117,22 @@ case, spaces and dashes do not matter. Password-policy errors preserve the code.
 Successful redemption atomically claims the password alias, replaces the password,
 consumes the code, revokes sessions/device links and sets a new session cookie,
 preserving passkeys. Wrong codes share the password address budget, without a
-per-account lockout. Administrative issuance, link redemption, pairing and audit
-routes are not yet delivered.
+per-account lockout. Administrative issuance and audit routes are not yet delivered.
+`POST /api/v1/pair/create` makes one replaceable mobile pairing code per owner,
+valid for five minutes. Pairings remain process-local and disappear on restart.
+`POST /api/v1/pair/redeem` is CSRF-exempt and returns a bearer token and public user,
+without a cookie. Redemption rechecks the code deadline and current owner/session
+version under lock; logout-all or password replacement invalidates pending codes.
+`POST /api/v1/account/device-link` requires fresh own proof and returns a one-use
+10-minute code, stored only as a digest under owner RLS. A new code replaces the old
+one. `POST /api/v1/device-link/options` and `/verify` bind a five-minute WebAuthn
+ceremony to that code and owner. Verification atomically adds the passkey, consumes
+the link and issues a cookie without revoking other sessions. The 20-key cap,
+duplicate credentials, code expiry and concurrent revocation are checked under lock.
+Both device-link routes retain CSRF protection and a separate link-address failure
+budget. Device links survive restart, but require new ceremony options afterwards.
+Pairing and device-link routes remain available with password sign-in disabled;
+creating a device link then requires fresh passkey proof.
 Synthetic vectors and the browser's virtual authenticator do not establish
 physical-authenticator or native-device support.
 
@@ -188,6 +202,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `identity_register` | Password/email policy vectors, concurrent Unicode claims, invitation consumption, first-admin assignment and rollback/crypto-time revalidation. |
 | `identity_account` | Own password/email, logout-all and passkey management; current proof, cap/last-way-in, concurrent claims, atomic revocation/rollback and restricted migration/ACLs. |
 | `identity_reset` | Single-use reset, code/identity revalidation, expiry, atomic password/alias/session changes and rollback. |
+| `identity_links` | Mobile bearer pairing and code-bound passkey links; replacement, single-use, expiry/revocation, rollback and restricted migration/ACLs. |
 | `identity_passkey` | Independent Node/Python ES256/RS256/Ed25519 vectors, HTTP registration/login, replay/expiry, counters, concurrent revocation and restricted migration/ACLs. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
@@ -219,7 +234,7 @@ the fixture control server. No fixture routes are added to the application.
 The current HTTP flow preserves the loaded page and saved dirty/active state offline,
 then reloads on reconnection. HTTPS service-worker cold launch and native devices are
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
-bundle; this does not verify nginx deployment. Screenshots for eight cases and a sanitized
+bundle; this does not verify nginx deployment. Screenshots for nine cases and a sanitized
 result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 

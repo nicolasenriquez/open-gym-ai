@@ -16,10 +16,11 @@ from webauthn import (
     verify_authentication_response,
     verify_registration_response,
 )
-from webauthn.helpers import bytes_to_base64url, options_to_json
+from webauthn.helpers import base64url_to_bytes, bytes_to_base64url, options_to_json
 from webauthn.helpers.exceptions import WebAuthnException
 from webauthn.helpers.structs import (
     AuthenticatorSelectionCriteria,
+    PublicKeyCredentialDescriptor,
     ResidentKeyRequirement,
     UserVerificationRequirement,
 )
@@ -50,7 +51,7 @@ class Passkeys:
             **data,
         }
         public = json.loads(options_to_json(options))
-        if kind in {"register", "add"}:
+        if kind in {"register", "add", "link"}:
             public["extensions"] = {"credProps": True}
         return 200, {"cid": cid, "options": public}, None
 
@@ -98,6 +99,27 @@ class Passkeys:
         )
         return self.remember("login", options)
 
+    def registration_options(self, owner, name, credentials):
+        return generate_registration_options(
+            rp_id=self.rp_id,
+            rp_name=self.rp_name,
+            user_id=owner.encode(),
+            user_name=name,
+            challenge=token_bytes(32),
+            authenticator_selection=AuthenticatorSelectionCriteria(
+                resident_key=ResidentKeyRequirement.REQUIRED,
+                require_resident_key=True,
+                user_verification=UserVerificationRequirement.PREFERRED,
+            ),
+            exclude_credentials=[
+                PublicKeyCredentialDescriptor(
+                    id=base64url_to_bytes(p["credential_id"]),
+                    transports=self.transports(p["transports"]),
+                )
+                for p in credentials
+            ],
+        )
+
     async def register_options(
         self, database, passwords, throttle, address, body, secret, days
     ):
@@ -117,18 +139,7 @@ class Passkeys:
                 {"error": "a valid invite code is required", "code": "invite"},
                 None,
             )
-        options = generate_registration_options(
-            rp_id=self.rp_id,
-            rp_name=self.rp_name,
-            user_id=uid.encode(),
-            user_name=name,
-            challenge=token_bytes(32),
-            authenticator_selection=AuthenticatorSelectionCriteria(
-                resident_key=ResidentKeyRequirement.REQUIRED,
-                require_resident_key=True,
-                user_verification=UserVerificationRequirement.PREFERRED,
-            ),
-        )
+        options = self.registration_options(uid, name, [])
         return self.remember("register", options, uid=uid, name=name, code=code)
 
     async def claim(self, database, ceremony, credential=None, transports=None):

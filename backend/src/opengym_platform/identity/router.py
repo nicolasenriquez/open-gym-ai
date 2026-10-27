@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from opengym_platform.core.database import DatabaseError
 from opengym_platform.identity.account import Accounts
+from opengym_platform.identity.links import Links
 from opengym_platform.identity.passkeys import Passkeys
 from opengym_platform.identity.passwords import BusyError
 from opengym_platform.identity.reset import redeem as redeem_reset
@@ -88,6 +89,27 @@ def create_router(
 
     passkeys = Passkeys()
     accounts = Accounts(passkeys, password_login_enabled)
+    links = Links(accounts)
+
+    @router.post("/account/device-link")
+    async def device_link_create(request: Request):
+        return await identity_request(request, links.create, protected=True)
+
+    @router.post("/device-link/options")
+    async def device_link_options(request: Request):
+        return await identity_request(request, links.options)
+
+    @router.post("/device-link/verify")
+    async def device_link_verify(request: Request):
+        return await identity_request(request, links.verify)
+
+    @router.post("/pair/create")
+    async def pair_create(request: Request):
+        return await identity_request(request, links.pair_create, protected=True)
+
+    @router.post("/pair/redeem")
+    async def pair_redeem(request: Request):
+        return await identity_request(request, links.pair_redeem, exempt=True)
 
     @router.get("/account/passkeys")
     async def list_passkeys(request: Request):
@@ -201,6 +223,7 @@ def create_router(
                     accounts.logout_all,
                     accounts.rename_passkey,
                     accounts.add_passkey_verify,
+                    links.pair_create,
                 )
             ):
                 throttle.entry(
@@ -209,11 +232,13 @@ def create_router(
                         if operation is register_password
                         else "email|"
                         if operation == accounts.set_email
+                        else "link|"
+                        if operation in (links.options, links.verify)
                         else ""
                     )
                     + address,
                     check_address=request.method != "DELETE"
-                    and operation != accounts.add_passkey_options,
+                    and operation not in (accounts.add_passkey_options, links.create),
                 )
         except LockedError as error:
             return locked_response(error)
@@ -231,7 +256,10 @@ def create_router(
                 )
         try:
             raw = bytearray()
-            if request.method != "GET" and operation != accounts.logout_all:
+            if request.method != "GET" and operation not in (
+                accounts.logout_all,
+                links.pair_create,
+            ):
                 async for chunk in request.stream():
                     raw.extend(chunk)
                     if len(raw) > 5 * 1024 * 1024:

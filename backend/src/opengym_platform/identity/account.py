@@ -6,20 +6,12 @@ from datetime import UTC, datetime
 from functools import partial
 
 from webauthn import (
-    generate_registration_options,
     verify_authentication_response,
     verify_registration_response,
 )
-from webauthn.helpers import base64url_to_bytes, bytes_to_base64url
+from webauthn.helpers import bytes_to_base64url
 from webauthn.helpers.exceptions import WebAuthnException
-from webauthn.helpers.structs import (
-    AuthenticatorSelectionCriteria,
-    PublicKeyCredentialDescriptor,
-    ResidentKeyRequirement,
-    UserVerificationRequirement,
-)
 
-from opengym_platform.identity import passkeys
 from opengym_platform.identity.passwords import (
     SPACE,
     identifier_text,
@@ -123,24 +115,8 @@ class Accounts:
                 current, _ = await self.passkey_state(handle)
                 await self.confirm(handle, proof, observed, current, session, throttle)
                 self.passkey_limit(current)
-                options = generate_registration_options(
-                    rp_id=self.passkeys.rp_id,
-                    rp_name=self.passkeys.rp_name,
-                    challenge=passkeys.token_bytes(32),
-                    user_id=session.owner.encode(),
-                    user_name=current["display_name"],
-                    authenticator_selection=AuthenticatorSelectionCriteria(
-                        resident_key=ResidentKeyRequirement.REQUIRED,
-                        require_resident_key=True,
-                        user_verification=UserVerificationRequirement.PREFERRED,
-                    ),
-                    exclude_credentials=[
-                        PublicKeyCredentialDescriptor(
-                            id=base64url_to_bytes(p["credential_id"]),
-                            transports=self.passkeys.transports(p["transports"]),
-                        )
-                        for p in current["passkeys"]
-                    ],
+                options = self.passkeys.registration_options(
+                    session.owner, current["display_name"], current["passkeys"]
                 )
             return self.passkeys.remember(
                 "add", options, uid=session.owner, sv=session.version

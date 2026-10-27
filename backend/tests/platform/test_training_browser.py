@@ -31,6 +31,12 @@ async def test_real_frontend_training_browser(accounts):
         async def control(path, body):
             if path == "/ready":
                 return {"ready": True}
+            if path == "/links":
+                return {
+                    "pending": await observer.fetchval(
+                        "SELECT count(*) FROM identity.device_links WHERE owner_id='A'"
+                    )
+                }
             if path == "/reset-fixture":
                 # Independent setup for 2.7; administrative issuance belongs to 6.4.
                 async with observer.transaction():
@@ -174,6 +180,7 @@ async def test_real_frontend_training_browser(accounts):
                 "lost-reply",
                 "restore",
                 "reset",
+                "links",
             ]
             assert result["errors"] == 0
             assert (
@@ -182,9 +189,7 @@ async def test_real_frontend_training_browser(accounts):
                 )
                 == "foreign-sentinel"
             )
-            print(
-                "PLATFORM_BROWSER_OK: eight cases; independent PG sentinels preserved"
-            )
+            print("PLATFORM_BROWSER_OK: nine cases; independent PG sentinels preserved")
         finally:
             await asyncio.to_thread(fixture.shutdown)
             fixture.server_close()

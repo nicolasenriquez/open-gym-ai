@@ -14,6 +14,10 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python mobile pairing and passkey device links for the existing Settings UI,
+  with one-use codes, replacement, expiry and revocation checks. Browser proof
+  covers a second virtual-authenticator browser and bearer transport; native
+  device acceptance remains separate.
 - Python password-reset redemption with compatible one-use codes, atomic password
   and session revocation, and preserved passkeys. Administrative code issuance
   remains pending; the default application remains Node/JSON.

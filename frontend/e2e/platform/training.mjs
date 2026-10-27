@@ -6,6 +6,7 @@ import { extname, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { verifyPasskeyManagement } from './passkeys.mjs';
+import { verifyLinks } from './links.mjs';
 
 const root = resolve('public');
 const evidence = '/tmp/evidence';
@@ -243,6 +244,11 @@ try {
   assert.equal((await local()).state.active.id, activeId, 'Password reset lost active workout');
   assert.deepEqual((await snapshot()).B, { _rev: 2, workouts: [{ id: 'foreign-sentinel' }] });
   assert.equal(errors.length, 0, 'Browser runtime errors after reset');
+  await report(stage);
+  stage = 'links';
+  await verifyLinks({ page, browser, control, until });
+  assert.equal((await local()).state.active.id, activeId, 'Adding devices lost active workout');
+  assert.equal(errors.length, 0, 'Browser runtime errors after adding devices');
   await report(stage);
   await page.goto('http://localhost:8080/#/settings/about');
   const frontend = await page.getByText(/^v\d.*\+platform-browser-proof$/).innerText();

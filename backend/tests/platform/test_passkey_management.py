@@ -631,7 +631,9 @@ async def test_management_upgrade_preserves_rows_and_forced_rls_grants(
     shutil.copytree(
         Path("/app/src/opengym_platform"),
         previous / "opengym_platform",
-        ignore=shutil.ignore_patterns("p001_reset.py", "p001_passkey_manage.py"),
+        ignore=shutil.ignore_patterns(
+            "p001_links.py", "p001_reset.py", "p001_passkey_manage.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(previous)}, "up")
     assert (

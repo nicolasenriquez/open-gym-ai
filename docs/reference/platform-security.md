@@ -90,6 +90,18 @@ identificador, nombre, versión y estado antes de modificar claims/credenciales.
 El runtime solo puede invocar las dos funciones acotadas; no recibe lectura global
 de códigos ni privilegios de executor. El hash scrypt se calcula fuera del lease.
 
+En device-link, `lookup_device_link` exige digest vigente y cuenta activa; devuelve
+owner/nombre/versión y solo IDs/transports de passkeys necesarios para las opciones
+públicas. Python vincula el challenge a digest/owner/versión e instala `app.link_sv`
+transaccional desde esa ceremonia, nunca desde el body del cliente. `finish_device_link`
+revalida código/cuenta/versión bajo namespace→usuario y consume el enlace junto con
+la passkey, sin cambiar la versión de sesión. El upsert de enlaces concede lectura
+y escritura únicamente bajo RLS del owner autenticado; el runtime no asume executor.
+Pairing continúa efímero: su código de cinco minutos conserva owner/versión/deadline,
+se extrae una sola vez y revalida `lock_actor` antes de emitir el bearer. La versión
+actual invalida códigos pendientes tras logout/password aunque todavía no se hayan
+purgado de memoria; reiniciar el proceso también los descarta.
+
 En el registro password entregado, Python instala `app.invite_only`,
 `app.first_user_admin` y `app.admin_uids` desde configuración del servidor mediante
 `set_config(..., true)` en la misma transacción; nunca desde el body HTTP.
