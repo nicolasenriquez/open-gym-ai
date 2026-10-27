@@ -14,6 +14,9 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python password-reset redemption with compatible one-use codes, atomic password
+  and session revocation, and preserved passkeys. Administrative code issuance
+  remains pending; the default application remains Node/JSON.
 - Python platform passkey management for the existing Settings UI: owner-only
   listing, verified additions/removals, renaming, a 20-key cap and last-way-in
   protection. Synthetic HTTP/PostgreSQL and virtual-authenticator browser checks

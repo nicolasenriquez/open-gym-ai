@@ -1,4 +1,15 @@
 {
+  "identity_reset": [
+    {
+      "id": "single_use",
+      "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry",
+      "setup": "Real restricted HTTP/PostgreSQL, synthetic 24-hour reset and independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_reset.py"],
+      "proof": "One-use reset, atomic password/alias/version and rollback/expiry/concurrent redemption",
+      "checkpoint": "2.7 only; administrative issuance remains 6.4"
+    }
+  ],
   "training_browser": [
     {
       "id": "offline_sync",
@@ -6,8 +17,8 @@
       "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
       "target": "platform-browser",
       "command": ["tests/platform/test_training_browser.py"],
-      "proof": "Settings passkey add/rename/remove with virtual authenticator and independent PG observation; UI login, offline state, real 401/two 409s, lost reply and restored lineage",
-      "checkpoint": "3.4 and 2.6 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
+      "proof": "Password reset and Settings passkey add/rename/remove with virtual authenticator and independent PG observation; UI login, offline state, real 401/two 409s, lost reply and restored lineage",
+      "checkpoint": "3.4, 2.6 and 2.7 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
     }
   ],
   "training_write": [

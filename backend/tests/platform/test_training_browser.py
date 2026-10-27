@@ -31,6 +31,31 @@ async def test_real_frontend_training_browser(accounts):
         async def control(path, body):
             if path == "/ready":
                 return {"ready": True}
+            if path == "/reset-fixture":
+                # Independent setup for 2.7; administrative issuance belongs to 6.4.
+                async with observer.transaction():
+                    await observer.execute("""
+                        DELETE FROM identity.password_credentials WHERE owner_id='A';
+                        UPDATE identity.login_aliases SET password_name_claim=false,
+                            reset_name_until=clock_timestamp()+interval '24 hours' WHERE alias_key='alice';
+                        INSERT INTO identity.password_resets VALUES ('A',
+                            decode('f9609fb684797772a50289433359af852edd3ee2471fd56adcd44e5d0b5dc7ab','hex'),
+                            clock_timestamp()+interval '24 hours','B');
+                        UPDATE identity.users SET session_version=session_version+1 WHERE id='A';
+                    """)
+                return {"ok": True}
+            if path == "/reset-state":
+                return {
+                    "remaining": await observer.fetchval(
+                        "SELECT count(*) FROM identity.password_resets"
+                    ),
+                    "password": await observer.fetchval(
+                        "SELECT count(*) FROM identity.password_credentials WHERE owner_id='A'"
+                    ),
+                    "version": await observer.fetchval(
+                        "SELECT session_version FROM identity.users WHERE id='A'"
+                    ),
+                }
             if path == "/passkeys":
                 own = await observer.fetch(
                     "SELECT credential_id,label FROM identity.passkeys WHERE owner_id='A'"
@@ -148,6 +173,7 @@ async def test_real_frontend_training_browser(accounts):
                 "conflicts",
                 "lost-reply",
                 "restore",
+                "reset",
             ]
             assert result["errors"] == 0
             assert (
@@ -157,7 +183,7 @@ async def test_real_frontend_training_browser(accounts):
                 == "foreign-sentinel"
             )
             print(
-                "PLATFORM_BROWSER_OK: seven cases; independent PG sentinels preserved"
+                "PLATFORM_BROWSER_OK: eight cases; independent PG sentinels preserved"
             )
         finally:
             await asyncio.to_thread(fixture.shutdown)

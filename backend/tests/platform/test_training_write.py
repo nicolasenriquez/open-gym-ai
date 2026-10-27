@@ -498,6 +498,7 @@ async def test_write_migration_preserves_genuine_training_document(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p001_reset.py",
             "p001_passkey_manage.py",
             "p001_account.py",
             "p001_passkey.py",
@@ -521,7 +522,7 @@ async def test_write_migration_preserves_genuine_training_document(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_passkey_manage"
+        == "p001_reset"
     )
     assert await observer.fetchrow("SELECT * FROM training.documents") == before
 

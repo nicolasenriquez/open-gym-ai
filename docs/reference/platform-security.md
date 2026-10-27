@@ -81,6 +81,15 @@ una función SQL no convierte un owner recibido en sesión autenticada.
 | `administration.issue_reset(actor text, sv bigint, exp timestamptz, target text, digest bytea, expiry timestamptz)` / `create_invitation(actor text, sv bigint, exp timestamptz, code text, note text, created_at timestamptz)` / `revoke_invitation(actor text, sv bigint, exp timestamptz, code text)` | administration_executor; resultado admin vigente | Sin cambio implícito de flags; reset/versión/enlaces/alias en misma TX. Invitación consumida persiste y no se reabre al eliminar cuenta. Código de reset solo sale al operador autorizado, nunca a telemetría. |
 | `audit.append_event(at timestamptz, event text, ok boolean, actor_id text, target_id text, actor_name text, target_name text, message text, action text, ip text)` / `read_events(actor text, sv bigint, exp timestamptz, after_id bigint, page_size integer)` / `clear_events(actor text, sv bigint, exp timestamptz)` | administration_executor; append sin filas retornadas; read/clear solo admin activo | Campos tipados/allowlisted y tamaño acotado; append en TX separada, secuencia no se reinicia al clear. Retención aplica 90 d/5000 o configuración compatible; fallo separado no revierte negocio. |
 
+En el canje reset entregado, Python instala mediante `SET LOCAL` (`set_config`
+transaccional) `app.reset_identifier`, `app.reset_alias`, `app.reset_name` y
+`app.reset_sv` desde su lookup validado y normalización interna, nunca desde
+campos de owner/versión del cliente. `finish_reset` conserva su firma tipada;
+toma namespace antes del lock de usuario y revalida digest, vencimiento,
+identificador, nombre, versión y estado antes de modificar claims/credenciales.
+El runtime solo puede invocar las dos funciones acotadas; no recibe lectura global
+de códigos ni privilegios de executor. El hash scrypt se calcula fuera del lease.
+
 En el registro password entregado, Python instala `app.invite_only`,
 `app.first_user_admin` y `app.admin_uids` desde configuración del servidor mediante
 `set_config(..., true)` en la misma transacción; nunca desde el body HTTP.

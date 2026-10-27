@@ -10,6 +10,7 @@ from opengym_platform.core.database import DatabaseError
 from opengym_platform.identity.account import Accounts
 from opengym_platform.identity.passkeys import Passkeys
 from opengym_platform.identity.passwords import BusyError
+from opengym_platform.identity.reset import redeem as redeem_reset
 from opengym_platform.identity.service import password_login as login_password
 from opengym_platform.identity.service import password_register as register_password
 from opengym_platform.identity.service import profile
@@ -72,6 +73,10 @@ def create_router(
             )
 
     if password_login_enabled:
+
+        @router.post("/login/password-reset")
+        async def password_reset(request: Request):
+            return await identity_request(request, redeem_reset)
 
         @router.post("/login/password")
         async def password_login(request: Request):
