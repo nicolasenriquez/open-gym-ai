@@ -52,6 +52,8 @@ services:
       MEDIA_GIF_MAX_MB: ${MEDIA_GIF_MAX_MB:-8}
       MEDIA_VIDEO_MAX_MB: ${MEDIA_VIDEO_MAX_MB:-40}
       MEDIA_VIDEO_MAX_SEC: ${MEDIA_VIDEO_MAX_SEC:-60}
+      DATA_DIR: /data
+    volumes: [media-data:/data]
     secrets:
       - {source: runtime_password, target: database_password}
       - session_secret
@@ -118,6 +120,8 @@ networks:
   app: {}
   database: {internal: true}
 volumes:
+  media-data:
+    name: ${COMPOSE_PROJECT_NAME}_ops-media-data
   postgres-data:
     name: ${COMPOSE_PROJECT_NAME}_ops-postgres-data
 secrets:

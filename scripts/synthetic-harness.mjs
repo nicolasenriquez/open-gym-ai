@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 
 // Shared mechanics only; each caller supplies its own fixed synthetic namespace/config.
 export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label, name, services, images, database,
-  networkNames = ['private'], volumeName = 'postgres-data' }) {
+  networkNames = ['private'], volumeName = 'postgres-data', extraVolumes = {} }) {
   const dockerEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toUpperCase().startsWith('COMPOSE_')));
   dockerEnv.COMPOSE_DISABLE_ENV_FILE = 'true';
   const compose = project => ['compose', '--project-directory', root, '--env-file', emptyEnv, '-f', composeFile, '-p', project];
@@ -71,8 +71,9 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
         valid &&= services.includes(service)
           && new RegExp(`^/${project}-${service}-(?:[1-9][0-9]*|run-[a-f0-9]{12})$`).test(item.Name);
       } else if (type === 'volume') {
-        valid &&= service === database && item.Name === `${project}_${volumeName}`
-          && labels['com.docker.compose.volume'] === 'postgres-data';
+        const volume = labels?.['com.docker.compose.volume'];
+        const expected = volume === 'postgres-data' ? { name: volumeName, service: database } : extraVolumes[volume];
+        valid &&= expected && service === expected.service && item.Name === `${project}_${expected.name}`;
         id = item.Name;
       } else if (type === 'network') {
         valid &&= networkNames.includes(service) && item.Name === `${project}_${service}`

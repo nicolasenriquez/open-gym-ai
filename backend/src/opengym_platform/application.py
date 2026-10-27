@@ -16,6 +16,8 @@ from opengym_platform.core.platform_settings import (
 from opengym_platform.identity.passwords import Passwords
 from opengym_platform.identity.router import create_router
 from opengym_platform.identity.throttle import Throttle
+from opengym_platform.media.router import create_router as media_router
+from opengym_platform.media.service import Media
 from opengym_platform.training.router import create_router as training_router
 
 
@@ -151,9 +153,20 @@ def create_app(*, training_note_state=None):
             password_login_enabled=bool(public_config.get("password_login")),
         )
     )
+    media = Media(public_config["media"]) if "media" in public_config else None
+    if training_note_state is None and media is not None:
+        training_note_state = media.note_state
     public_api.include_router(
-        training_router(secret=secret, secure=secure, note_state=training_note_state)
+        training_router(
+            secret=secret,
+            secure=secure,
+            note_state=training_note_state,
+        )
     )
+    if media is not None:
+        public_api.include_router(
+            media_router(secret=secret, secure=secure, media=media)
+        )
 
     @public_api.get("/config")
     async def config():

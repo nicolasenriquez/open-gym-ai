@@ -101,6 +101,7 @@ async function deploymentProof({ project, image, docker }) {
         root, namespace: 'opengym-platform-test', label: 'org.opengym.platform', name: 'Platform',
         services: ['api', 'web', 'db', 'migrate', 'bootstrap', 'ops'], images: [], database: 'db',
         networkNames: ['app', 'database'], volumeName: `${environment}-postgres-data`,
+        extraVolumes: { 'media-data': { name: `${environment}-media-data`, service: 'api' } },
       });
       const args = ['compose', '--project-directory', root, '--env-file', envFile, '-p', instance, '--profile', '*',
         '-f', join(root, 'deploy/docker-compose.yml'), '-f', join(root, `deploy/docker-compose.${environment === 'ops' ? 'prod' : 'dev'}.yml`)];
@@ -135,6 +136,7 @@ async function deploymentProof({ project, image, docker }) {
         }
       }
       assert.ok(config.services.api.command.includes('--no-proxy-headers'));
+      assert.ok(config.services.api.volumes?.some(volume => volume.type === 'volume' && volume.source === 'media-data' && volume.target === '/data'));
       assert.deepEqual(config.services.api.secrets.map(secret => secret.source), ['runtime_password', 'session_secret']);
       assert.equal(config.services.migrate.secrets.length, 1);
       assert.equal(config.services.migrate.secrets[0].source, 'migrator_password');
@@ -144,9 +146,10 @@ async function deploymentProof({ project, image, docker }) {
         assert.equal(config.services.web.build.dockerfile, 'web/Dockerfile');
         assert.equal(config.services.web.build.args.VITE_API_PREFIX, '/api/v1');
         assert.ok(config.services.api.command.includes('--reload'));
-        assert.deepEqual(config.services.api.volumes.map(volume => volume.target), ['/app/src']);
+        assert.deepEqual(config.services.api.volumes.map(volume => volume.target).sort(), ['/app/src', '/data']);
       } else assert.ok(!config.services.api.command.includes('--reload'));
       volumeNames.push(config.volumes['postgres-data'].name);
+      assert.equal(config.volumes['media-data'].name, `${instance}_${environment}-media-data`);
       assert.doesNotMatch(JSON.stringify(config), /docker\.sock|coach-auth|seccomp|FOUNDATION_DB_|PLATFORM_DB_PASSWORD"/);
       // Run the resolved topology with owned labels and prebuilt images; web is a network probe, not UI acceptance.
       for (const [service, definition] of Object.entries(config.services)) {
@@ -161,6 +164,7 @@ async function deploymentProof({ project, image, docker }) {
         'org.opengym.platform': 'synthetic', 'com.docker.compose.service': name,
       };
       config.volumes['postgres-data'].labels = { 'org.opengym.platform': 'synthetic', 'com.docker.compose.service': 'db' };
+      config.volumes['media-data'].labels = { 'org.opengym.platform': 'synthetic', 'com.docker.compose.service': 'api' };
       const configuration = join(temporary, `${environment}.json`);
       writeFileSync(configuration, JSON.stringify(config));
       const compose = [...args.slice(0, args.indexOf('-f')), '-f', configuration];
@@ -170,7 +174,10 @@ async function deploymentProof({ project, image, docker }) {
         await docker([...compose, 'run', '--rm', '--no-deps', 'migrate'], true);
         await docker([...compose, 'up', '-d', '--no-deps', 'api'], true);
         await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', `
-import json, time, urllib.request, urllib.error
+import json, time, urllib.request, urllib.error, pathlib, os
+assert os.getuid() == 1000
+assert pathlib.Path('/data').stat().st_mode & 0o777 == 0o700
+pathlib.Path('/data/synthetic-4-1').write_text('owned persistent media volume')
 for attempt in range(100):
     try:
         with urllib.request.urlopen('http://127.0.0.1:3000/api/v1/health/ready', timeout=1) as response:
@@ -188,6 +195,7 @@ print('PLATFORM_COMPOSE_HTTP_OK')
 `], true);
         await docker([...compose, 'run', '--rm', '--no-deps', '--entrypoint', '/app/.venv/bin/python', 'api', '-c', `
 import asyncio, pathlib, asyncpg
+assert pathlib.Path('/data/synthetic-4-1').read_text() == 'owned persistent media volume'
 from opengym_platform.core.platform_settings import load_database
 async def check():
     target = load_database('runtime')

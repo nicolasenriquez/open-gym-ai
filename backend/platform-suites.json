@@ -1,4 +1,15 @@
 {
+  "media": [
+    {
+      "id": "roundtrip",
+      "requirement": "Phase-bounded compatible capability port / Least-privilege access / Recoverable deletion and compatible audit",
+      "setup": "Real restricted HTTP/PostgreSQL and disposable private media filesystem",
+      "target": "platform-test",
+      "command": ["tests/platform/test_media.py"],
+      "proof": "Own byte/hash/type roundtrip, private headers and foreign 404; public Training references",
+      "checkpoint": "4.1 only; missing/quota/GC remain later slices"
+    }
+  ],
   "identity_links": [
     {
       "id": "redeem",
@@ -28,8 +39,8 @@
       "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
       "target": "platform-browser",
       "command": ["tests/platform/test_training_browser.py"],
-      "proof": "Device links/mobile bearer pairing, password reset and Settings passkey add/rename/remove with virtual authenticator and independent PG observation; UI login, offline state, real 401/two 409s, lost reply and restored lineage",
-      "checkpoint": "3.4 and 2.6–2.8 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
+      "proof": "Private progress photo downloaded, verified and displayed offline; device links/mobile bearer pairing, password reset and Settings passkey management; UI login, offline state, real 401/two 409s, lost reply and restored lineage",
+      "checkpoint": "4.1, 3.4 and 2.6–2.8 synthetic browser only; upload queue remains 4.2; no physical authenticator, native devices or operational restore acceptance"
     }
   ],
   "training_write": [

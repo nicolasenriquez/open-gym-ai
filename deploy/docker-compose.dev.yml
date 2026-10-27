@@ -36,5 +36,7 @@ services:
     image: opengym-platform-ops:dev
     build: {context: ./backend, target: ops}
 volumes:
+  media-data:
+    name: ${COMPOSE_PROJECT_NAME}_dev-media-data
   postgres-data:
     name: ${COMPOSE_PROJECT_NAME}_dev-postgres-data

@@ -1,6 +1,8 @@
 """Synthetic setup/faults and independent PG observation for the real browser proof."""
 
 import asyncio
+import base64
+import hashlib
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -14,10 +16,12 @@ from test_lifecycle import server
 
 
 @pytest.mark.asyncio
-async def test_real_frontend_training_browser(accounts):
+async def test_real_frontend_training_browser(accounts, tmp_path):
     observer, environment = accounts
     environment["DEFAULT_LANG"] = "es"
     environment["ORIGIN"] = "http://localhost:8080"
+    environment["MEDIA_UPLOADS"] = "1"
+    environment["DATA_DIR"] = str(tmp_path / "media-data")
     await observer.execute("""INSERT INTO training.documents(owner_id,document)
         VALUES ('B','{"_rev":2,"workouts":[{"id":"foreign-sentinel"}]}')""")
     await observer.execute("""INSERT INTO identity.passkeys VALUES
@@ -31,6 +35,68 @@ async def test_real_frontend_training_browser(accounts):
         async def control(path, body):
             if path == "/ready":
                 return {"ready": True}
+            if path == "/media-fixture":
+                # Public routes seed a second-device photo; browser must download
+                # and verify it itself, without injecting its store or IndexedDB.
+                data = base64.b64decode(
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+                )
+                digest = hashlib.sha256(data).hexdigest()
+                login = await client.post(
+                    "/api/v1/login/password",
+                    json={"identifier": "alice", "password": PASSWORD},
+                )
+                assert login.status_code == 200
+                upload = await client.put(
+                    f"/api/v1/media/{digest}",
+                    content=data,
+                    headers={"Content-Type": "image/png"},
+                )
+                assert upload.status_code == 201
+                current = (await client.get("/api/v1/data")).json()
+                document = current["state"]
+                reference = {
+                    "hash": digest,
+                    "mime": "image/png",
+                    "size": len(data),
+                    "width": 1,
+                    "height": 1,
+                }
+                document["workouts"].append(
+                    {
+                        "id": "private-progress-photo",
+                        "d": "2026-10-27",
+                        "entries": [],
+                        "media": [
+                            {
+                                **reference,
+                                "kind": "image",
+                                "at": 100,
+                            }
+                        ],
+                    }
+                )
+                saved = await client.put(
+                    "/api/v1/data",
+                    json={
+                        "baseRev": current["rev"],
+                        "stamped": True,
+                        "state": document,
+                    },
+                )
+                assert saved.status_code == 200
+                persisted = json.loads(
+                    await observer.fetchval(
+                        "SELECT document FROM training.documents WHERE owner_id='A'"
+                    )
+                )
+                assert persisted["workouts"][-1]["media"][0]["hash"] == digest
+                stored = tmp_path / "media-data/uploads/A" / f"{digest}.png"
+                assert stored.read_bytes() == data
+                assert digest not in json.loads(
+                    (stored.parent / ".gc.json").read_text()
+                )
+                return {"hash": digest}
             if path == "/links":
                 return {
                     "pending": await observer.fetchval(
@@ -181,6 +247,7 @@ async def test_real_frontend_training_browser(accounts):
                 "restore",
                 "reset",
                 "links",
+                "media",
             ]
             assert result["errors"] == 0
             assert (
@@ -189,7 +256,9 @@ async def test_real_frontend_training_browser(accounts):
                 )
                 == "foreign-sentinel"
             )
-            print("PLATFORM_BROWSER_OK: nine cases; independent PG sentinels preserved")
+            print(
+                "PLATFORM_BROWSER_OK: ten cases; independent PG/filesystem sentinels preserved"
+            )
         finally:
             await asyncio.to_thread(fixture.shutdown)
             fixture.server_close()

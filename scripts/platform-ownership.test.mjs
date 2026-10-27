@@ -5,6 +5,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+import { syntheticHarness } from './synthetic-harness.mjs';
 
 const invoke = (program, args, options = {}) => spawnSync(program, args, {
   encoding: 'utf8', timeout: 60_000, ...options,
@@ -17,6 +18,38 @@ const ok = result => {
 };
 const cli = (...args) => invoke(process.execPath, ['scripts/platform.mjs', ...args]);
 const inspect = (type, name) => JSON.parse(ok(docker(type, 'inspect', name)))[0];
+
+test('ownership: additional media volume needs its exact name and API service before any cleanup', async t => {
+  const token = randomBytes(8).toString('hex');
+  const project = `opengym-platform-test-${token}`;
+  const probe = `org.opengym.platform.probe=${token}`;
+  const owner = syntheticHarness({ root: process.cwd(), namespace: 'opengym-platform-test',
+    label: 'org.opengym.platform', name: 'Platform', services: ['api', 'db'], images: [], database: 'db',
+    volumeName: 'dev-postgres-data', extraVolumes: { 'media-data': { name: 'dev-media-data', service: 'api' } } });
+  const names = [`${project}_dev-postgres-data`, `${project}_dev-media-data`, `opengym-media-protected-${token}`];
+  t.after(() => {
+    for (const name of names) {
+      if (docker('volume', 'inspect', name).status !== 0) continue;
+      assert.equal(inspect('volume', name).Labels['org.opengym.platform.probe'], token);
+      ok(docker('volume', 'rm', name));
+    }
+  });
+  const create = (index, service, volume) => ok(docker('volume', 'create', '--label', probe,
+    '--label', `com.docker.compose.project=${project}`, '--label', 'org.opengym.platform=synthetic',
+    '--label', `com.docker.compose.service=${service}`, '--label', `com.docker.compose.volume=${volume}`, names[index]));
+  create(0, 'db', 'postgres-data');
+  create(1, 'db', 'media-data');
+  ok(docker('volume', 'create', '--label', probe, '--label', 'org.opengym.platform=protected-recovery', names[2]));
+  const before = names.map(name => inspect('volume', name));
+  await assert.rejects(owner.cleanup(project), /Refusing unverified Platform resource/);
+  names.forEach((name, index) => assert.deepEqual(inspect('volume', name), before[index]));
+  ok(docker('volume', 'rm', names[1]));
+  create(1, 'api', 'media-data');
+  await owner.cleanup(project);
+  assert.equal(docker('volume', 'inspect', names[0]).status, 1);
+  assert.equal(docker('volume', 'inspect', names[1]).status, 1);
+  assert.deepEqual(inspect('volume', names[2]), before[2]);
+});
 
 test('ownership: mixed labels preserve every resource and foreign/protected sentinels; owned cleanup succeeds', t => {
   const token = randomBytes(8).toString('hex');

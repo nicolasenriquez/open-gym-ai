@@ -147,7 +147,8 @@ a conflict returns only that actor's client-visible document. Unknown-field
 correction can store revision +2 while acknowledging +1 so the client fetches the
 corrected copy. The application factory accepts an async `training_note_state`
 collaborator, called only after confirmed commit with a two-second budget; its
-failure cannot change the saved result. No media adapter is wired yet.
+failure cannot change the saved result. With media enabled, the default collaborator
+updates the owner's external reference marks.
 Omitting `baseRev` or sending null allows the compatible unconditional legacy replacement.
 Edit/deletion stamps, private prior-value history and monotonic reset metadata follow
 the Node contract. Server-owned write IDs retain at most 50 ancestors; a lost reply
@@ -156,6 +157,24 @@ room for a two-step correction within JavaScript's safe integer range. Prior-val
 matching accepts both legacy JSON key order and PostgreSQL JSONB key order.
 The synthetic browser proof covers reconciliation against Python; this is not a
 cutover-ready backend.
+
+`PUT /api/v1/media/{sha256}` streams an owner's raw upload to a private temporary
+file, checks its hash, declared/sniffed category, actual format cap and bounded
+MP4/MOV headers/duration, then rechecks the session under the account lock before
+publishing. Transfers hold no database lease. The seven existing formats, 201/200
+idempotency and replacement of truncated files are preserved. `GET` streams only
+the actor's file with private/no-store and sandbox headers; a foreign hash returns
+the same 404 as an absent file, including for administrators. There are no Range
+or ETag responses. `MEDIA_UPLOADS=0` removes both routes.
+
+The API's writable `/data` volume stores `uploads/<profile>/<hash>.<ext>` and
+`.gc.json`; dev and ops use separate named media volumes, separate from PostgreSQL.
+Standalone Python uses `DATA_DIR` (default `/data`). Files and owner directories use
+0600/0700 permissions. Training supplies references through its public, owner-scoped
+interface and database errors propagate before new publication. Missing/quota/free
+disk and upload-budget enforcement, client upload-queue verification, stale temporary
+cleanup and garbage collection remain pending; these routes do not make the partial
+Python platform ready for cutover.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -206,8 +225,9 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `identity_passkey` | Independent Node/Python ES256/RS256/Ed25519 vectors, HTTP registration/login, replay/expiry, counters, concurrent revocation and restricted migration/ACLs. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
-| `training_browser` | Compiled Settings passkey add/rename/remove with a virtual authenticator, login, offline dirty/active state, real 401/two 409s, lost reply and restored lineage with independent PG observation. |
-| `images` | Runtime/tool separation, dev/prod topology and file-secret isolation. |
+| `training_browser` | Compiled Settings passkey/device-link/reset flows, login, offline dirty/active state, real 401/two 409s, lost reply, restored lineage and a private progress photo downloaded into the verified local store and displayed offline. |
+| `media` | `roundtrip`: seven formats, hash/type/cap rejection, private headers/foreign 404, streaming revocation/idle timeout, restart/idempotency/repair and public Training reference marks. |
+| `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
 The verifier uses `backend/empty.env`, unique `opengym-platform-test-<hex16>`
@@ -234,7 +254,7 @@ the fixture control server. No fixture routes are added to the application.
 The current HTTP flow preserves the loaded page and saved dirty/active state offline,
 then reloads on reconnection. HTTPS service-worker cold launch and native devices are
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
-bundle; this does not verify nginx deployment. Screenshots for nine cases and a sanitized
+bundle; this does not verify nginx deployment. Screenshots for ten cases and a sanitized
 result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 

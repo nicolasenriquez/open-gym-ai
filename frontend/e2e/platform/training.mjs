@@ -251,6 +251,30 @@ try {
   assert.equal(errors.length, 0, 'Browser runtime errors after adding devices');
   await report(stage);
   await page.goto('http://localhost:8080/#/settings/about');
+  stage = 'media';
+  const photo = await control('/media-fixture', {});
+  let downloads = 0;
+  page.on('response', response => {
+    if (response.url().endsWith('/api/v1/media/' + photo.hash) && response.status() === 200) downloads++;
+  });
+  await sync();
+  await until(async () => (await local()).state.workouts.some(w => w.id === 'private-progress-photo'), 'Second-device photo never synchronized');
+  await page.goto('http://localhost:8080/#/progress-photos');
+  const tile = page.locator('.wmedia-item');
+  await tile.waitFor();
+  await tile.click();
+  const viewer = page.getByRole('dialog', { name: 'Foto', exact: true });
+  await viewer.waitFor();
+  await until(async () => viewer.locator('img').evaluateAll(images => images.some(image => image.complete && image.naturalWidth === 1)), 'Photo viewer never decoded');
+  assert.ok(downloads > 0, 'Browser never downloaded the private bytes');
+  await context.setOffline(true);
+  assert.ok(await viewer.locator('img').evaluate(image => image.complete && image.naturalWidth === 1), 'Verified local photo lost offline');
+  await context.setOffline(false);
+  assert.equal((await local()).state.active.id, activeId, 'Media sync lost active workout');
+  assert.equal(errors.length, 0, 'Browser runtime errors after media');
+  await report(stage);
+  await viewer.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await page.goto('http://localhost:8080/#/settings/about');
   const frontend = await page.getByText(/^v\d.*\+platform-browser-proof$/).innerText();
   assert.equal(process.versions.node, '22.23.2');
   await writeFile(`${evidence}/result.json`, JSON.stringify({ completed: true, cases, errors: errors.length,

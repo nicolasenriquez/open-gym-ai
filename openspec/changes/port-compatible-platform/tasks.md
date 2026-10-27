@@ -24,7 +24,10 @@ autoriza pairing/device-link 2.8 en recursos sintéticos con los seams Q3 existe
 sin nuevas dependencias. La solicitud posterior
 `/skill:opsx-delivery-workflow openspec\changes\port-compatible-platform 2.9`
 autoriza el checkpoint sintético de catálogo/ACL/RLS y pool HTTP de una conexión,
-reutilizando Q3 y el harness existente, sin nuevas dependencias. 4.1 en adelante
+reutilizando Q3 y el harness existente, sin nuevas dependencias. La solicitud actual
+`/skill:opsx-delivery-workflow openspec\changes\port-compatible-platform 4.1`
+autoriza upload/download privados, interfaz pública Training y su verificación
+sintética HTTP/PG/filesystem/navegador con Q3, sin nuevas dependencias. 4.2 en adelante
 siguen fuera del alcance autorizado. La corrección de
 campos desconocidos y la frontera de marcas postcommit se adelantaron a 3.2 con
 aprobación explícita; 3.3 completa stamps/legacy y 3.4 verifica el navegador sin
@@ -187,9 +190,13 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
 
 ## 4. Medios — S4
 
-- [ ] 4.1 Entregar upload/download propio con hash/tipo/headers y ajeno 404; referencias Training mediante interfaz pública, sin tabla de medios nueva.
+- [x] 4.1 Entregar upload/download propio con hash/tipo/headers y ajeno 404; referencias Training mediante interfaz pública, sin tabla de medios nueva.
   Traceability: compatible-platform-persistence / Faithful import and retirement parity / Parity after removing the replaced backend.
   Proof/Check: `node scripts/platform.mjs verify media --case roundtrip`.
+  Notes (alcance): entrega sintética sobre `e5d46c98d` más diff HEAD completo, incluidos archivos nuevos; seams Q3 conservados, sin dependencias ni DDL nuevos. `media/` posee bytes externos y publicación por actor revalidado tras el stream; Training ofrece `media_references(handle, owner)` con contexto propio explícito, sin commits participantes ni SQL ajeno. La composición conecta marcas postcommit; no existe tabla de medios. `/data` persistente y privado se separa por dev/ops y de PostgreSQL; runtime incluye el módulo sin herramientas de test. Cleanup del harness admite ese volumen solo con nombre, proyecto y servicio exactos.
+  Notes (RED/GREEN): `.scratch/platform-media/` conserva RED conductuales `red-roundtrip.log` (404), `red-types.log` (PNG rechazado), `red-references.log` (marca externa ausente), `red-idempotence.log` (se releía cuerpo ya almacenado) y `red-images-detail.log` (volumen ausente). Errores intermedios de integración/factory, CRC/poster del fixture y cliente que enviaba todo el cuerpo antes de leer el timeout no cuentan como RED de producto. GREEN final `review-roundtrip.log`: 6/6 pruebas HTTP/PG/filesystem, cero skips; siete formatos, hash/categoría/caps, MP4/MOV v0/v1/fragmentado/duración desconocida y límites 10k cajas/8 MiB, headers sin Range/ETag, ownership ajeno incluso admin, reinicio/idempotencia/reparación, CSRF/off, timeout de inactividad y referencias propias/poster/workout sin active. Revocación durante transferencia impide publicar y observador independiente prueba ausencia de lease SQL; fallo de lectura Training no publica ni elimina bytes existentes. Reloj sintético acorta solo el deadline de inactividad de 60 s.
+  Notes (verificación): `final-browser.log` PASS: diez recorridos reales del frontend compilado contra Python/api_runtime/PG; foto sembrada mediante PUT media/data públicos, descargada/verificada por el cliente y decodificada en el visor offline, active y sentinel B conservados. Capturas y resultado saneado en `.scratch/platform-browser/opengym-platform-test-9d0a42e0fe1e923d/`. `green-images.log` PASS de runtime/dev/migrate/ops, volúmenes y persistencia entre contenedores dev/ops; `runner.log` 10/10 incluye rechazo sin borrados ante volumen con labels ajenos y sentinel protegido, `final-runner-mapping.log` 5/5. Regresiones `regression-*.log`: Training read 8, write 49+18, identity_session 31+26, lifecycle 17, schema 12 y database 20 PASS; `contracts.log` referencia congelada completa PASS. `review-checks.log` 12/12 (lock/deps/Ruff/formato/mypy/política de prueba); locales 18/2258, OKF, OpenSpec estricto y diff-check PASS. Revisión ponytail del diff completo y consumidores sin bloqueantes tras quitar una TX redundante, con checkpoint repetido; AGENTS.md sigue vigente.
+  Notes (cierre/límites): Ready for closeout solo de 4.1, 19/57. Cleanup propio PASS; imagen auxiliar retirada tras verificar labels, logs/capturas sustituidos retirados por rutas exactas y evidencia final/RED saneada conservada. CI incorpora roundtrip; no se ejecutó CI remota. Captura offline acredita foto ya verificada en página cargada, no cold launch HTTPS/service worker, hardware ni clientes nativos. Sin datos reales, cutover, despliegue, commit/push o sync/archive. Missing/cuotas/presupuesto/free-disk/cola de subidas y limpieza de temporales antiguos siguen en 4.2; GC y sus carreras/fallos seguros en 4.3. No se acredita paridad completa ni aceptación operativa de la plataforma.
 - [ ] 4.2 Entregar missing/cuotas/temporales y cola cliente; fallo DB/permiso no publica ni elimina datos de otro propietario.
   Traceability: compatible-platform-persistence / Recoverable deletion and compatible audit / External cleanup or audit failure.
   Proof/Check: `node scripts/platform.mjs verify media --case quota_and_missing`.

@@ -14,6 +14,11 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python private media upload/download with compatible hash, format, duration and
+  response headers, session revalidation before publication, public Training
+  references and separate persistent media volumes. Browser proof displays a
+  downloaded progress photo offline; quota/missing/GC and upload queue delivery
+  remain pending in the partial port.
 - A final Python identity security checkpoint with real HTTP/PostgreSQL, exact SQL
   function and column privileges, forced row security, and a one-slot runtime pool
   checked after commits, rollbacks, errors, timeouts and request cancellation.
