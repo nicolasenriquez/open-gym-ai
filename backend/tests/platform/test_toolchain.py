@@ -11,7 +11,17 @@ import pytest
         ["uv", "lock", "--check", "--offline"],
         ["uv", "pip", "check"],
         ["ruff", "check", "--no-cache", "src", "tests"],
-        ["ruff", "format", "--check", "--no-cache", "src", "tests"],
+        # Preserve grouped except syntax without changing the Python 3.14 runtime.
+        [
+            "ruff",
+            "format",
+            "--target-version",
+            "py313",
+            "--check",
+            "--no-cache",
+            "src",
+            "tests",
+        ],
         ["mypy", "--cache-dir", "/dev/null", "src", "tests"],
     ],
 )
