@@ -162,6 +162,15 @@ reautenticación excepcional, nuevo almacén de seguridad o cambios de recuperac
 sí requieren decisión expresa. Los comandos y prerrequisitos de cada slice se concretan
 antes de su readiness; comandos futuros se distinguen de los disponibles.
 
+**Ajuste autorizado para 2.5:** disponibilidad de alias y liberación de reservas
+exclusivamente temporales expiradas requieren acceso global acotado que RLS propio
+no concede. Se añaden únicamente `identity.alias_available(text)` (boolean) y
+`identity.release_expired_alias(text)` (void) al catálogo de seguridad, con executor
+NOLOGIN, contexto owner autenticado y namespace anterior al lock del actor. No se
+amplía SELECT global runtime ni se convierte el registro en un dispatcher. Las
+tablas reset/device_links se consumen aquí para revocación, sin adelantar emisión,
+canje o pairing; las ceremonias de proceso restantes siguen pendientes de 2.6–2.8.
+
 ### 8. Autoridad OpenAPI y compatibilidad de transporte
 
 Decisión técnica: conservar un contrato YAML editable y trasladarlo de
