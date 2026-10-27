@@ -39,13 +39,14 @@ test('deployment relocation preserves project ownership, root paths and isolated
     assert.equal(selected.services.api.environment.PLATFORM_ENV, mode);
     assert.deepEqual(selected.services.web.ports.map(p => [p.host_ip, p.published, p.target]),
       [['127.0.0.1', port, 80]]);
-    assert.ok(selected.services.api.healthcheck.test.join(' ').includes('/health/ready'));
+    assert.ok(selected.services.api.healthcheck.test.join(' ').includes('/api/v1/health/ready'));
     for (const service of ['api', 'db']) assert.ok(!selected.services[service].ports?.length);
     assert.deepEqual(selected.services.bootstrap.profiles, ['setup']);
     assert.deepEqual(selected.services.migrate.profiles, ['tools']);
     if (overlay === 'dev') {
       assert.equal(resolve(selected.services.web.build.context), resolve(root));
       assert.equal(selected.services.web.build.dockerfile, 'web/Dockerfile');
+      assert.equal(selected.services.web.build.args.VITE_API_PREFIX, '/api/v1');
       assert.equal(resolve(selected.services.api.build.context), resolve(root, 'backend'));
       assert.equal(resolve(selected.services.api.volumes[0].source), resolve(root, 'backend/src'));
     } else {

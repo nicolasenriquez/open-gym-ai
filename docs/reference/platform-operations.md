@@ -74,8 +74,11 @@ transacciones durante red externa, autenticadores, streaming o copia de medios.
 
 Migrador puntual con rol separado y conexión dedicada; lock antes de leer historial
 y hasta terminar. Solo después de éxito se habilita tráfico compatible. API no
-migra al arrancar. Probes internos live/ready y métricas no se publican por nginx;
-`/api/health` mantiene su contrato público compatible. Readiness comprueba DB y
+migra al arrancar. Probes internos `/api/v1/health/live` y
+`/api/v1/health/ready` y métricas no se publican por nginx;
+`/api/v1/health` mantiene el comportamiento público de salud. Python no conserva
+alias sin versión. El frontend Python se compila con `VITE_API_PREFIX=/api/v1`;
+ver el [contrato HTTP](../../backend/README.md#http-api-v1). Readiness comprueba DB y
 revisión, sin confundirse con paridad ni recuperación.
 
 ## Respaldo coordinado

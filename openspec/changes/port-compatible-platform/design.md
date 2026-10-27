@@ -29,6 +29,17 @@ la primera entrega Python; el coach local y HTTP siguen incluidos (véase §11).
 
 ## Decisions
 
+### HTTP v1 exclusivo de la plataforma Python
+
+Todas las rutas HTTP Python, incluidas live/ready, usan `/api/v1`, sin alias ni
+redirecciones desde URLs anteriores. Los contratos Node congelados conservan
+sus URLs de origen; la equivalencia del port compara comportamiento bajo el
+nuevo prefijo, no igualdad literal de URL. El cliente compartido selecciona
+`VITE_API_PREFIX=/api/v1` al compilar para Python y conserva `/api` para Node.
+Nginx bloquea las dos sondas internas. Esto no autoriza cutover ni acredita
+capacidades pendientes. El contrato vigente vive en
+[backend/README.md](../../../backend/README.md#http-api-v1).
+
 ### 1. Propiedad modular y orden de slices
 
 Identidad y primitivas transaccionales antes del piloto leer/guardar Training;

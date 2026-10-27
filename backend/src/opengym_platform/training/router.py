@@ -14,7 +14,7 @@ from opengym_platform.training.service import read, write
 def create_router(*, secret, secure, note_state=None):
     router = APIRouter()
 
-    @router.put("/api/data")
+    @router.put("/data")
     async def save(request: Request):
         headers = {"Cache-Control": "no-store"}
         if not request.headers.get("authorization", "").startswith("Bearer "):
@@ -83,8 +83,8 @@ def create_router(*, secret, secure, note_state=None):
                 {"error": "server error"}, status_code=500, headers=headers
             )
 
-    @router.get("/api/data")
-    @router.get("/api/data/rev")
+    @router.get("/data")
+    @router.get("/data/rev")
     async def data(request: Request):
         headers = {"Cache-Control": "no-store"}
         session = verify(

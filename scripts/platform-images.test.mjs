@@ -142,6 +142,7 @@ async function deploymentProof({ project, image, docker }) {
       if (environment === 'dev') {
         assert.equal(config.services.web.build.context, root.replace(/[\\/]$/, ''));
         assert.equal(config.services.web.build.dockerfile, 'web/Dockerfile');
+        assert.equal(config.services.web.build.args.VITE_API_PREFIX, '/api/v1');
         assert.ok(config.services.api.command.includes('--reload'));
         assert.deepEqual(config.services.api.volumes.map(volume => volume.target), ['/app/src']);
       } else assert.ok(!config.services.api.command.includes('--reload'));
@@ -172,16 +173,16 @@ async function deploymentProof({ project, image, docker }) {
 import json, time, urllib.request, urllib.error
 for attempt in range(100):
     try:
-        with urllib.request.urlopen('http://127.0.0.1:3000/health/ready', timeout=1) as response:
+        with urllib.request.urlopen('http://127.0.0.1:3000/api/v1/health/ready', timeout=1) as response:
             assert json.load(response) == {'code': 'PLATFORM_READY_OK'}
         break
     except (OSError, urllib.error.URLError):
         time.sleep(0.1)
 else:
     raise AssertionError('platform HTTP did not become ready')
-with urllib.request.urlopen('http://127.0.0.1:3000/api/health', timeout=1) as response:
+with urllib.request.urlopen('http://127.0.0.1:3000/api/v1/health', timeout=1) as response:
     assert json.load(response) == {'ok': True, 'users': 0, 'writable': True}
-with urllib.request.urlopen('http://127.0.0.1:3000/api/config', timeout=1) as response:
+with urllib.request.urlopen('http://127.0.0.1:3000/api/v1/config', timeout=1) as response:
     assert json.load(response) == {'invite_only': True, 'allow_guest': False, 'password_login': True, 'default_lang': 'es-CL'}
 print('PLATFORM_COMPOSE_HTTP_OK')
 `], true);

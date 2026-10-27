@@ -41,7 +41,7 @@ def create_router(
 ):
     router = APIRouter()
 
-    @router.get("/api/me")
+    @router.get("/me")
     async def me(request: Request):
         headers = {"Cache-Control": "no-store"}
         session = verify(
@@ -70,7 +70,7 @@ def create_router(
 
     if password_login_enabled:
 
-        @router.post("/api/login/password")
+        @router.post("/login/password")
         async def password_login(request: Request):
             headers = {"Cache-Control": "no-store"}
             site = request.headers.get("sec-fetch-site")

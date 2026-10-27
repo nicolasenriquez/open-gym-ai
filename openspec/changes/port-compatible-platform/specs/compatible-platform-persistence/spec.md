@@ -1,5 +1,18 @@
 ## ADDED Requirements
 
+### Requirement: Exclusive Python HTTP API v1
+The Python platform SHALL expose all HTTP routes under `/api/v1`, including `/api/v1/health/live` and `/api/v1/health/ready`. It SHALL NOT expose unversioned aliases or redirects. The shared frontend SHALL select `/api/v1` at build time for Python and retain the existing `/api` contract for Node. Internal probes SHALL remain inaccessible through nginx. Swagger, ReDoc and HTTP OpenAPI endpoints SHALL remain disabled. Frozen Node fixtures SHALL remain unchanged; behavioral parity SHALL account explicitly for the Python URL prefix.
+
+#### Scenario: Versioned Python request and removed previous URL
+- **WHEN** a consumer calls an implemented Python operation under `/api/v1`
+- **THEN** the operation preserves its existing authorization, payload, error and persistence behavior
+- **AND** the former unversioned URL returns 404 without redirect, including preflight requests
+
+#### Scenario: Python frontend and internal readiness
+- **WHEN** a Python frontend is built and the platform starts
+- **THEN** all client transports target `/api/v1`, and Compose checks `/api/v1/health/ready`
+- **AND** nginx refuses public access to both internal probes
+
 ### Requirement: Phase-bounded compatible capability port
 The platform SHALL port the current capabilities into the approved Python modular monolith, preserving the existing frontend, local/offline Training, catalogue, formats, access and authorized consumers. It SHALL use the approved platform-schema reference as the physical contract and platform-modularity as ownership authority. Each slice SHALL identify contracts, actor/resource permissions, owning tables/stores, public collaborations, transaction scope and existing client path. Business implementation SHALL follow the archived Foundation acceptance and explicit slice authorization; this specification SHALL NOT credit implementation or treat Foundation evidence as delivery of business tables.
 

@@ -45,6 +45,9 @@ export { appBase }
 const TIMEOUT_GET_MS = 20000
 const TIMEOUT_MS = 60000
 
+// Callers use logical /api paths; each build selects its server's HTTP contract.
+const apiPath = path => path.replace(/^\/api(?=\/|$)/, import.meta.env.VITE_API_PREFIX || '/api')
+
 const failure = (message, code, status) => Object.assign(new Error(message), { code, status })
 
 export async function api(path, opts) {
@@ -58,7 +61,7 @@ export async function api(path, opts) {
   const headers = Object.assign({ 'Content-Type': 'application/json' }, init.headers, remoteHeaders())
   // A paired phone has an absolute base of its own; everyone else is relative to where the app
   // is served, so a subpath deployment reaches its own API instead of the proxy's root.
-  const url = remoteBase ? remoteBase + path : appBase().replace(/\/$/, '') + path
+  const url = remoteBase ? remoteBase + apiPath(path) : appBase().replace(/\/$/, '') + apiPath(path)
   const ms = timeout != null ? timeout : (init.method || 'GET').toUpperCase() === 'GET' ? TIMEOUT_GET_MS : TIMEOUT_MS
   return request(url, Object.assign({}, init, { headers }), ms)
 }
@@ -104,7 +107,7 @@ export function beacon(path, body) {
   if (MOBILE) return false
   try {
     if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return false
-    return !!navigator.sendBeacon(appBase().replace(/\/$/, '') + path, new Blob([JSON.stringify(body)], { type: 'application/json' }))
+    return !!navigator.sendBeacon(appBase().replace(/\/$/, '') + apiPath(path), new Blob([JSON.stringify(body)], { type: 'application/json' }))
   } catch { return false }
 }
 
@@ -113,7 +116,7 @@ export function beacon(path, body) {
    base api() uses and carry the paired phone's Bearer token the same way (the server's CORS
    answer allows it for GET and PUT); both refuse to run on a phone without a server, like api(). */
 
-const mediaUrl = path => (remoteBase ? remoteBase + path : appBase().replace(/\/$/, '') + path)
+const mediaUrl = path => (remoteBase ? remoteBase + apiPath(path) : appBase().replace(/\/$/, '') + apiPath(path))
 const mediaHeaders = remoteHeaders
 const notPaired = () => failure(t('This phone is not connected to a server.'), 'not-paired', 0)
 const timedOut = () => failure(t('The server did not answer in time.'), 'timeout')
@@ -238,7 +241,7 @@ async function healthAnswer(base, ms) {
   let timer = null
   try {
     const res = await Promise.race([
-      nativeFetch(base + '/api/health', { method: 'GET', headers: { Accept: 'application/json' }, ...(ctl ? { signal: ctl.signal } : {}) }),
+      nativeFetch(base + apiPath('/api/health'), { method: 'GET', headers: { Accept: 'application/json' }, ...(ctl ? { signal: ctl.signal } : {}) }),
       new Promise((_, reject) => { timer = setTimeout(() => { if (ctl) ctl.abort(); reject(new Error('timeout')) }, ms) }),
     ])
     const text = await res.text()
@@ -259,7 +262,7 @@ async function whyUnreachable(base, ms) {
   let timer = null
   try {
     await Promise.race([
-      fetch(base + '/api/health', { mode: 'no-cors', cache: 'no-store', ...(ctl ? { signal: ctl.signal } : {}) }),
+      fetch(base + apiPath('/api/health'), { mode: 'no-cors', cache: 'no-store', ...(ctl ? { signal: ctl.signal } : {}) }),
       new Promise((_, reject) => { timer = setTimeout(() => { if (ctl) ctl.abort(); reject(new Error('timeout')) }, ms) }),
     ])
     reached = true
@@ -314,7 +317,7 @@ export function looksLocal(hostname) {
 export async function pairRedeem(serverBase, code, { probeMs = PROBE_MS } = {}) {
   let data
   try {
-    data = await request(serverBase + '/api/pair/redeem', {
+    data = await request(serverBase + apiPath('/api/pair/redeem'), {
       method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, accessFor(serverBase)), body: JSON.stringify({ code })
     }, TIMEOUT_GET_MS)
   } catch (e) {

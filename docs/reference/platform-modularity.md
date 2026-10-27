@@ -381,8 +381,8 @@ necesaria; un actor fixture de Foundation no demuestra WebAuthn ni sesiones.
 
 Recorrido: pantalla/store actuales → transporte → router/schemas Training →
 operación autorizada → repository con una transacción → PostgreSQL → respuesta
-compatible → reconciliación del cliente. Incluir `GET /api/data`, revisión y
-`PUT /api/data`, conflicto 409, primera escritura concurrente, stamps/linaje,
+compatible → reconciliación del cliente. Incluir `GET /api/v1/data`, revisión y
+`PUT /api/v1/data`, conflicto 409, primera escritura concurrente, stamps/linaje,
 legacy permitido, rechazo de otro propietario y caída DB sin fallback a archivos.
 Verificar cliente con cambios pendientes, sesión activa y respuesta perdida. No
 cambiar reglas de progresión, normalizar todo Training ni añadir Recovery.

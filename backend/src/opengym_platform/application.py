@@ -4,7 +4,7 @@ import math
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException
 
@@ -52,6 +52,8 @@ def create_app(*, training_note_state=None):
         redirect_slashes=False,
     )
 
+    public_api = APIRouter(prefix="/api/v1")
+
     @app.exception_handler(404)
     @app.exception_handler(405)
     async def not_found(request: Request, error: HTTPException):
@@ -64,7 +66,7 @@ def create_app(*, training_note_state=None):
     @app.middleware("http")
     async def public_headers(request: Request, call_next):
         origin = request.headers.get("origin")
-        if request.method == "OPTIONS":
+        if request.method == "OPTIONS" and request.url.path.startswith("/api/v1/"):
             response = Response(
                 status_code=204,
                 headers={
@@ -89,11 +91,11 @@ def create_app(*, training_note_state=None):
             response.headers["Vary"] = "Origin"
         return response
 
-    @app.get("/health/live")
+    @public_api.get("/health/live")
     async def live():
         return {"code": "PLATFORM_LIVE_OK"}
 
-    @app.get("/health/ready")
+    @public_api.get("/health/ready")
     async def ready(request: Request):
         try:
             revisions = await request.app.state.database.fetch(
@@ -115,7 +117,7 @@ def create_app(*, training_note_state=None):
             )
         return JSONResponse({"code": "PLATFORM_READY_OK"})
 
-    @app.get("/api/health")
+    @public_api.get("/health")
     async def health(request: Request):
         status = await ready(request)
         if status.status_code != 200:
@@ -139,7 +141,7 @@ def create_app(*, training_note_state=None):
             headers={"Cache-Control": "no-store"},
         )
 
-    app.include_router(
+    public_api.include_router(
         create_router(
             secret=secret,
             secure=secure,
@@ -149,12 +151,13 @@ def create_app(*, training_note_state=None):
             password_login_enabled=bool(public_config.get("password_login")),
         )
     )
-    app.include_router(
+    public_api.include_router(
         training_router(secret=secret, secure=secure, note_state=training_note_state)
     )
 
-    @app.get("/api/config")
+    @public_api.get("/config")
     async def config():
         return JSONResponse(public_config, headers={"Cache-Control": "no-store"})
 
+    app.include_router(public_api)
     return app

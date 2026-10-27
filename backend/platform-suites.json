@@ -46,11 +46,11 @@
   "lifecycle": [
     {
       "id": "readiness",
-      "requirement": "Controlled images migrations and lifecycle / Incompatible schema or failed migration; Isolated local Compose operation / Resolved topology and environment isolation",
+      "requirement": "Controlled images migrations and lifecycle / Incompatible schema or failed migration; Isolated local Compose operation / Resolved topology and environment isolation; Exclusive Python HTTP API v1 / Versioned Python request and removed previous URL",
       "setup": "Disposable PostgreSQL, private file secrets, real Uvicorn HTTP with restricted runtime and separate migration setup",
       "target": "platform-test",
       "command": ["tests/platform/test_lifecycle.py"],
-      "proof": "Compatible health/config, live vs ready, no startup migration or unknown-history repair, bounded recovery and shutdown",
+      "proof": "Versioned health/config, live vs ready, removed unversioned routes and preflight, no startup migration or unknown-history repair, bounded recovery and shutdown",
       "checkpoint": "1.3 only; no identity, business DDL or operational acceptance"
     }
   ],

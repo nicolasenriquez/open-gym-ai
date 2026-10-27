@@ -20,13 +20,15 @@ async def test_empty_owner_reads_null_without_creating_document(identities):
     observer, environment = identities
     async with server(environment) as client:
         response = await client.get(
-            "/api/data?owner_id=A",
+            "/api/v1/data?owner_id=A",
             headers={"Authorization": f"Bearer {B}", "X-Owner-Id": "A"},
         )
         assert response.status_code == 200
         assert response.json() == {"state": None, "rev": 0}
         assert response.headers["cache-control"] == "no-store"
-        response = await client.get("/api/data/rev", headers={"Cookie": f"gymsid={A}"})
+        response = await client.get(
+            "/api/v1/data/rev", headers={"Cookie": f"gymsid={A}"}
+        )
         assert response.status_code == 200
         assert response.json() == {"rev": 0}
     assert await observer.fetchval("SELECT count(*) FROM training.documents") == 0
@@ -51,12 +53,12 @@ async def test_login_reads_own_document_without_exposing_internal_notes(accounts
     )
     async with server(environment) as client:
         login = await client.post(
-            "/api/login/password", json={"identifier": "alice", "password": PASSWORD}
+            "/api/v1/login/password", json={"identifier": "alice", "password": PASSWORD}
         )
         assert login.status_code == 200
         response = await client.request(
             "GET",
-            "/api/data?owner_id=B",
+            "/api/v1/data?owner_id=B",
             json={"owner_id": "B"},
             headers={"X-Owner-Id": "B", "Authorization": f"Bearer {B}"},
         )
@@ -72,15 +74,15 @@ async def test_login_reads_own_document_without_exposing_internal_notes(accounts
             },
             "rev": 7,
         }
-        assert (await client.get("/api/data/rev")).json() == {
+        assert (await client.get("/api/v1/data/rev")).json() == {
             "rev": 7,
             "wid": "write-A",
         }
         client.cookies.clear()
-        for path in ("/api/data", "/api/data/rev"):
+        for path in ("/api/v1/data", "/api/v1/data/rev"):
             response = await client.get(path, headers={"Authorization": f"Bearer {B}"})
             assert response.json() == (
-                {"state": None, "rev": 0} if path == "/api/data" else {"rev": 0}
+                {"state": None, "rev": 0} if path == "/api/v1/data" else {"rev": 0}
             )
     row = await observer.fetchrow(
         "SELECT document, revision, write_id FROM training.documents"
@@ -110,10 +112,10 @@ async def test_generated_metadata_preserves_missing_null_and_safe_integer(identi
             assert json.loads(row["document"]) == document
             assert (row["revision"], row["write_id"]) == (revision, wid)
             assert (
-                await client.get("/api/data", headers={"Cookie": f"gymsid={A}"})
+                await client.get("/api/v1/data", headers={"Cookie": f"gymsid={A}"})
             ).json() == {"state": document, "rev": revision}
             assert (
-                await client.get("/api/data/rev", headers={"Cookie": f"gymsid={A}"})
+                await client.get("/api/v1/data/rev", headers={"Cookie": f"gymsid={A}"})
             ).json() == {"rev": revision, **({"wid": wid} if wid else {})}
 
 
@@ -204,7 +206,7 @@ async def test_rls_and_projection_privileges_are_restricted(identities):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("path", ["/api/data", "/api/data/rev"])
+@pytest.mark.parametrize("path", ["/api/v1/data", "/api/v1/data/rev"])
 async def test_invalid_and_revoked_session_never_reads_training(identities, path):
     observer, environment = identities
     await observer.execute(

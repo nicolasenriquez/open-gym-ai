@@ -94,7 +94,7 @@ async def test_identity_routes_keep_factory_configuration_and_collaborators_loca
         ) as off,
     ):
         for client in (a, b, a):
-            response = await client.post("/api/login/password", json={})
+            response = await client.post("/api/v1/login/password", json={})
             assert response.status_code == 200
             assert response.headers["cache-control"] == "no-store"
             cookies = response.headers.get_list("set-cookie")
@@ -119,16 +119,16 @@ async def test_identity_routes_keep_factory_configuration_and_collaborators_loca
         b.cookies.clear()
         token = sign("A:4102444800000:0", "a" * 32)
         assert (
-            await a.get("/api/me", headers={"Authorization": f"Bearer {token}"})
+            await a.get("/api/v1/me", headers={"Authorization": f"Bearer {token}"})
         ).json() == {"user": {"id": "A"}}
         assert (
-            await b.get("/api/me", headers={"Authorization": f"Bearer {token}"})
+            await b.get("/api/v1/me", headers={"Authorization": f"Bearer {token}"})
         ).status_code == 401
-        for path in ("/api/me/", "/api/login/password/"):
-            response = await a.request("GET" if path == "/api/me/" else "POST", path)
+        for path in ("/api/v1/me/", "/api/v1/login/password/"):
+            response = await a.request("GET" if path == "/api/v1/me/" else "POST", path)
             assert response.status_code == 404
             assert "location" not in response.headers
-        response = await off.post("/api/login/password", json={})
+        response = await off.post("/api/v1/login/password", json={})
         assert response.status_code == 404
         assert response.json() == {"error": "not found"}
 
@@ -168,7 +168,7 @@ async def test_login_cookie_and_bearer_reach_same_account(accounts, secure):
             ("email", " A@EXAMPLE.TEST "),
         ):
             response = await client.post(
-                "/api/login/password",
+                "/api/v1/login/password",
                 json={field: value, "password": PASSWORD, "owner_id": "B"},
             )
             assert response.status_code == 200
@@ -188,11 +188,13 @@ async def test_login_cookie_and_bearer_reach_same_account(accounts, secure):
             token = cookie.split(";", 1)[0].split("=", 1)[1]
             assert (
                 await client.get(
-                    "/api/me", headers={"Authorization": f"Bearer {token}"}
+                    "/api/v1/me", headers={"Authorization": f"Bearer {token}"}
                 )
             ).json() == response.json()
             assert (
-                await client.get("/api/me", headers={"Cookie": cookie.split(";", 1)[0]})
+                await client.get(
+                    "/api/v1/me", headers={"Cookie": cookie.split(";", 1)[0]}
+                )
             ).json() == response.json()
             if secure:
                 assert (
@@ -207,7 +209,7 @@ async def test_login_rejects_sibling_origin(accounts):
     environment["ORIGIN"] = "https://gym.example"
     async with server(environment) as client:
         response = await client.post(
-            "/api/login/password",
+            "/api/v1/login/password",
             json={"name": "alice", "password": PASSWORD},
             headers={"Origin": "https://evil.example", "Sec-Fetch-Site": "same-site"},
         )
@@ -229,7 +231,8 @@ async def test_credentials_rechecked_after_crypto_and_owner_lock(accounts, chang
             )
             task = asyncio.create_task(
                 client.post(
-                    "/api/login/password", json={"name": "alice", "password": PASSWORD}
+                    "/api/v1/login/password",
+                    json={"name": "alice", "password": PASSWORD},
                 )
             )
             async with asyncio.timeout(2):
@@ -266,11 +269,11 @@ async def test_credentials_rechecked_after_crypto_and_owner_lock(accounts, chang
             assert "set-cookie" not in response.headers
         assert (
             await client.post(
-                "/api/login/password", json={"name": "bob", "password": PASSWORD}
+                "/api/v1/login/password", json={"name": "bob", "password": PASSWORD}
             )
         ).status_code == 200
         client.cookies.clear()
-        assert (await client.get("/api/me")).status_code == 401
+        assert (await client.get("/api/v1/me")).status_code == 401
 
 
 @pytest.mark.asyncio
@@ -280,7 +283,7 @@ async def test_name_and_email_share_concurrent_failure_budget(accounts):
         responses = await asyncio.gather(
             *[
                 client.post(
-                    "/api/login/password",
+                    "/api/v1/login/password",
                     json={
                         "identifier": "alice" if i % 2 else "a@example.test",
                         "password": "wrong",
@@ -296,12 +299,12 @@ async def test_name_and_email_share_concurrent_failure_budget(accounts):
         assert locked.headers["retry-after"] == str(locked.json()["retryAfter"])
         assert (
             await client.post(
-                "/api/login/password", json={"name": "alice", "password": PASSWORD}
+                "/api/v1/login/password", json={"name": "alice", "password": PASSWORD}
             )
         ).status_code == 429
         assert (
             await client.post(
-                "/api/login/password", json={"name": "bob", "password": PASSWORD}
+                "/api/v1/login/password", json={"name": "bob", "password": PASSWORD}
             )
         ).status_code == 200
 
@@ -311,7 +314,7 @@ async def test_password_login_requires_identifier_and_password(identities):
     _, environment = identities
     environment["PASSWORD_LOGIN"] = "1"
     async with server(environment) as client:
-        response = await client.post("/api/login/password", json={})
+        response = await client.post("/api/v1/login/password", json={})
         assert response.status_code == 400
         assert response.json() == {
             "error": "name and password required",
@@ -325,7 +328,7 @@ async def test_unknown_password_login_is_generic_denial(identities):
     environment["PASSWORD_LOGIN"] = "1"
     async with server(environment) as client:
         response = await client.post(
-            "/api/login/password",
+            "/api/v1/login/password",
             json={"identifier": "unknown", "password": "synthetic-wrong-password"},
         )
         assert response.status_code == 401
@@ -341,15 +344,15 @@ async def test_off_malformed_missing_and_oversized_bodies(accounts):
     _, environment = accounts
     environment["PASSWORD_LOGIN"] = "0"
     async with server(environment) as client:
-        assert (await client.post("/api/login/password", json={})).status_code == 404
+        assert (await client.post("/api/v1/login/password", json={})).status_code == 404
     environment["PASSWORD_LOGIN"] = "1"
     async with server(environment) as client:
         for content in ("{", "null", "[]", '"hello"', '{"name":NaN,"password":"x"}'):
-            response = await client.post("/api/login/password", content=content)
+            response = await client.post("/api/v1/login/password", content=content)
             assert response.status_code == 400
             assert response.json() == {"error": "invalid json"}
         response = await client.post(
-            "/api/login/password", content="x" * (5 * 1024 * 1024 + 1)
+            "/api/v1/login/password", content="x" * (5 * 1024 * 1024 + 1)
         )
         assert response.status_code == 413
         for body in (
@@ -358,18 +361,18 @@ async def test_off_malformed_missing_and_oversized_bodies(accounts):
             {"name": {}, "password": PASSWORD},
             {"name": "alice", "password": 123},
         ):
-            response = await client.post("/api/login/password", json=body)
+            response = await client.post("/api/v1/login/password", json=body)
             assert response.status_code == 400
         for body in (
             {"email": "alice", "password": PASSWORD},
             {"name": "alice", "password": "x" * 257},
         ):
             assert (
-                await client.post("/api/login/password", json=body)
+                await client.post("/api/v1/login/password", json=body)
             ).status_code == 401
         assert (
             await client.post(
-                "/api/login/password", json={"name": "alice", "password": PASSWORD}
+                "/api/v1/login/password", json={"name": "alice", "password": PASSWORD}
             )
         ).status_code == 200
 
@@ -381,7 +384,7 @@ async def test_disabled_wrong_and_malformed_hash_do_not_issue_sessions(accounts)
     async with server(environment) as client:
         for password, status in (("wrong", 401), (PASSWORD, 403)):
             response = await client.post(
-                "/api/login/password", json={"name": "alice", "password": password}
+                "/api/v1/login/password", json={"name": "alice", "password": password}
             )
             assert response.status_code == status
             assert "set-cookie" not in response.headers
@@ -389,7 +392,7 @@ async def test_disabled_wrong_and_malformed_hash_do_not_issue_sessions(accounts)
             "UPDATE identity.password_credentials SET scrypt_hash='bad' WHERE owner_id='A'"
         )
         response = await client.post(
-            "/api/login/password", json={"name": "alice", "password": PASSWORD}
+            "/api/v1/login/password", json={"name": "alice", "password": PASSWORD}
         )
         assert response.status_code == 401
 
@@ -406,7 +409,7 @@ async def test_old_parameters_rehash_without_changing_version_or_historical_date
     )
     async with server(environment) as client:
         response = await client.post(
-            "/api/login/password",
+            "/api/v1/login/password",
             json={"name": "alice", "password": vector["password"]},
         )
         assert response.status_code == 200
@@ -421,7 +424,7 @@ async def test_old_parameters_rehash_without_changing_version_or_historical_date
             )
             == 0
         )
-        assert (await client.get("/api/me")).status_code == 200
+        assert (await client.get("/api/v1/me")).status_code == 200
 
 
 @pytest.mark.asyncio
@@ -431,7 +434,7 @@ async def test_address_failure_and_burst_budgets(accounts):
         responses = await asyncio.gather(
             *[
                 client.post(
-                    "/api/login/password",
+                    "/api/v1/login/password",
                     json={"name": f"unknown-{i}", "password": "wrong"},
                 )
                 for i in range(30)
@@ -441,9 +444,9 @@ async def test_address_failure_and_burst_budgets(accounts):
     async with server(environment) as client:
         for _ in range(60):
             assert (
-                await client.post("/api/login/password", json={})
+                await client.post("/api/v1/login/password", json={})
             ).status_code == 400
-        response = await client.post("/api/login/password", json={})
+        response = await client.post("/api/v1/login/password", json={})
         assert response.status_code == 429
 
 
@@ -455,13 +458,13 @@ async def test_proxy_address_is_trusted_only_when_enabled(accounts, trust):
     async with server(environment) as client:
         for i in range(21):
             response = await client.post(
-                "/api/login/password",
+                "/api/v1/login/password",
                 json={"name": f"unknown-{i}", "password": "wrong"},
                 headers={"X-Forwarded-For": "198.51.100.1"},
             )
             assert response.status_code == 401
         response = await client.post(
-            "/api/login/password",
+            "/api/v1/login/password",
             json={"name": "bob", "password": PASSWORD},
             headers={"X-Forwarded-For": "198.51.100.1, 198.51.100.2"},
         )
@@ -476,7 +479,7 @@ async def test_login_database_failure_is_safe(accounts):
             "REVOKE EXECUTE ON FUNCTION identity.lookup_password(text) FROM opengym_api_runtime"
         )
         response = await client.post(
-            "/api/login/password", json={"name": "alice", "password": PASSWORD}
+            "/api/v1/login/password", json={"name": "alice", "password": PASSWORD}
         )
         assert response.status_code == 500
         assert response.json() == {"error": "server error"}
@@ -489,7 +492,7 @@ async def test_invalid_unicode_identifier_is_generic_denial(accounts):
     async with server(environment) as client:
         for value in ("a\u0000b", "\ud800"):
             response = await client.post(
-                "/api/login/password",
+                "/api/v1/login/password",
                 content=json.dumps({"name": value, "password": PASSWORD}),
             )
             assert response.status_code == 401

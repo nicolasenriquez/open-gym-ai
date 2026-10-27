@@ -2,7 +2,10 @@ name: opengym-dev
 services:
   web:
     image: opengym-platform-web:dev
-    build: {context: ., dockerfile: web/Dockerfile}
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args: {VITE_API_PREFIX: /api/v1}
     depends_on:
       api: {condition: service_healthy}
     healthcheck:

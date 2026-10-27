@@ -22,3 +22,14 @@ Lint it after changing routes:
 ```sh
 pnpm dlx @redocly/cli lint api/openapi.yaml
 ```
+
+## Python platform API v1
+
+The partial Python port uses `/api/v1` exclusively, including its internal
+health probes. Unversioned paths have no aliases or redirects. See the
+[backend HTTP contract](../backend/README.md#http-api-v1) for frontend build
+selection, available capabilities and probe visibility.
+
+The Node OpenAPI document above remains the current Node contract and is not
+a specification of Python route availability. Python does not expose Swagger,
+ReDoc or an HTTP OpenAPI endpoint.

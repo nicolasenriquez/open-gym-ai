@@ -195,7 +195,7 @@ FastAPI defaults. Missing route coverage blocks parity.
 
 ### S3 — Training pilot (tasks 3.*)
 
-- Scope: `training/`, p002; GET/PUT `/api/data`, `/api/data/rev`, ServerSync/store.
+- Scope: `training/`, p002; GET/PUT `/api/v1/data`, `/api/v1/data/rev`, ServerSync/store.
   Owner lock exists even without document; update/stamps and response are one TX.
 - 3.1 empty B sees state null/rev 0 while A reads its preserved document; generated
   projections reject fractional/string/out-of-range revisions without rounding.
@@ -265,7 +265,7 @@ FastAPI defaults. Missing route coverage blocks parity.
 
 ### S7 — notifications/activity (tasks 7.*)
 
-- Scope: `notifications/`, p005; Settings/SW/device, `/api/push/*`, `/api/activity`.
+- Scope: `notifications/`, p005; Settings/SW/device, `/api/v1/push/*`, `/api/v1/activity`.
   Global endpoint upsert and owner context follow SQL catalog; no public scheduler.
 - Proofs: owner endpoint transfer preserves original date/device fallback and cap 20;
   foreign unsubscribe/timer cancel denied; SSRF/redirect/private-IP validation remains.

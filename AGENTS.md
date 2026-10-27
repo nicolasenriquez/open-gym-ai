@@ -17,6 +17,8 @@ Licencia: AGPL-3.0-or-later.
   `android/` e `ios/` son shells Capacitor; ver `docs/MOBILE.md`.
 - `api/`: backend Node.js con `node:http`; `server.js` implementa la API.
   `coach/` contiene el coach opcional y `openapi.yaml` describe las rutas.
+- `backend/`: port parcial Python/FastAPI; todas sus rutas HTTP usan `/api/v1`.
+  Ver `backend/README.md` para capacidades y configuración del frontend.
 - `web/`: imagen multi-stage que construye el frontend y lo sirve con nginx;
   nginx también hace proxy de `/api`.
 - `catalogue/`: catálogo de ejercicios y medios. `catalogue/media/` se incluye
@@ -99,7 +101,8 @@ No hay publicación, despliegue ni mirror automáticos.
   `.agents/docs/domain.md`: vocabulario en `GLOSSARY.md` y decisiones en `docs/adr/`.
 - Para modernización, Recovery o integraciones futuras, empieza en `docs/index.md`
   y sigue el PRD Evolution y su arquitectura. El runtime actual sigue siendo
-  Node/JSON; Python/FastAPI/PostgreSQL es una dirección futura sujeta a aceptación.
+  Node/JSON; el port parcial Python/FastAPI/PostgreSQL existe en `backend/`,
+  pero su sustitución completa sigue sujeta a aceptación.
 
 - Al crear, editar o reorganizar documentación, lee
   `docs/operations/okf-authoring-guide.md` y ejecuta

@@ -43,7 +43,7 @@ async def test_verified_cookie_actor_reaches_only_own_profile(identities):
     _, environment = identities
     async with server(environment) as client:
         response = await client.get(
-            "/api/me?owner_id=B",
+            "/api/v1/me?owner_id=B",
             headers={
                 "Cookie": f"gymsid={A}",
                 "Authorization": f"Bearer {B}",
@@ -70,7 +70,7 @@ async def test_forged_owner_in_each_http_location_never_changes_actor(identities
             ):
                 response = await client.request(
                     "GET",
-                    "/api/me",
+                    "/api/v1/me",
                     params={"owner_id": foreign} if query else {},
                     json={"owner_id": foreign} if body else None,
                     headers={
@@ -131,7 +131,7 @@ async def test_cookie_bearer_selection_and_invalid_sessions(identities, secure):
                 cases += [(f"__Host-gymsid={other}", own, owner)]
             for cookie, bearer, expected in cases:
                 response = await client.get(
-                    "/api/me?owner_id=forged",
+                    "/api/v1/me?owner_id=forged",
                     headers={
                         "Cookie": cookie,
                         "Authorization": f"Bearer {bearer}" if bearer else "",
@@ -148,7 +148,7 @@ async def test_cookie_bearer_selection_and_invalid_sessions(identities, secure):
         for token in (LEGACY, signed("A:4102444800000:0")):
             assert (
                 await client.get(
-                    "/api/me", headers={"Authorization": f"Bearer {token}"}
+                    "/api/v1/me", headers={"Authorization": f"Bearer {token}"}
                 )
             ).status_code == 200
         for token in (
@@ -165,16 +165,16 @@ async def test_cookie_bearer_selection_and_invalid_sessions(identities, secure):
             A[:-1] + "x",
         ):
             response = await client.get(
-                "/api/me", headers={"Authorization": f"Bearer {token}"}
+                "/api/v1/me", headers={"Authorization": f"Bearer {token}"}
             )
             assert response.status_code == 401
         await observer.execute("UPDATE identity.users SET disabled=true WHERE id='A'")
         assert (
-            await client.get("/api/me", headers={"Cookie": f"{current}={A}"})
+            await client.get("/api/v1/me", headers={"Cookie": f"{current}={A}"})
         ).status_code == 401
         await observer.execute("DELETE FROM identity.users WHERE id='B'")
         assert (
-            await client.get("/api/me", headers={"Authorization": f"Bearer {B}"})
+            await client.get("/api/v1/me", headers={"Authorization": f"Bearer {B}"})
         ).status_code == 401
 
 
@@ -217,7 +217,7 @@ async def test_actor_wait_revalidates_access_before_rls(identities, change, bear
                 if bearer
                 else {"Cookie": f"gymsid={token}"}
             )
-            task = asyncio.create_task(client.get("/api/me", headers=headers))
+            task = asyncio.create_task(client.get("/api/v1/me", headers=headers))
             await wait_for_actor_locks(observer, 1)
             if change == "version":
                 await observer.execute(
@@ -239,9 +239,9 @@ async def test_actor_wait_revalidates_access_before_rls(identities, change, bear
         if change != "valid":
             assert response.json() == {"error": "not signed in"}
         assert (
-            await client.get("/api/me", headers={"Authorization": f"Bearer {B}"})
+            await client.get("/api/v1/me", headers={"Authorization": f"Bearer {B}"})
         ).json() == {"user": {"id": "B", "name": "Bob", "admin": True}}
-        assert (await client.get("/api/me")).status_code == 401
+        assert (await client.get("/api/v1/me")).status_code == 401
 
 
 @pytest.mark.asyncio
@@ -256,7 +256,7 @@ async def test_session_expires_while_waiting_for_pool(identities, bearer):
             )
             blockers = [
                 asyncio.create_task(
-                    client.get("/api/me", headers={"Cookie": f"gymsid={A}"})
+                    client.get("/api/v1/me", headers={"Cookie": f"gymsid={A}"})
                 )
                 for _ in range(4)
             ]
@@ -277,7 +277,7 @@ async def test_session_expires_while_waiting_for_pool(identities, bearer):
                 else {"Cookie": f"gymsid={token}"}
             )
             waiting = asyncio.create_task(
-                client.get("/api/me", headers=headers, extensions={"trace": trace})
+                client.get("/api/v1/me", headers=headers, extensions={"trace": trace})
             )
             await asyncio.wait_for(sent.wait(), 1)
             assert not waiting.done()
@@ -290,7 +290,7 @@ async def test_session_expires_while_waiting_for_pool(identities, bearer):
         )
         assert (await waiting).status_code == 401
         assert (
-            await client.get("/api/me", headers={"Cookie": f"gymsid={B}"})
+            await client.get("/api/v1/me", headers={"Cookie": f"gymsid={B}"})
         ).status_code == 200
 
 
@@ -301,7 +301,7 @@ async def test_bearer_renewal_preserves_version_and_cookie_is_not_renewed(identi
     token = signed(f"B:{int(expiry.timestamp() * 1000)}:3")
     async with server(environment) as client:
         response = await client.get(
-            "/api/me", headers={"Authorization": f"Bearer {token}"}
+            "/api/v1/me", headers={"Authorization": f"Bearer {token}"}
         )
         result = response.json()
         renewed = result.pop("token")
@@ -311,13 +311,15 @@ async def test_bearer_renewal_preserves_version_and_cookie_is_not_renewed(identi
         owner, new_expiry, version = payload.split(":")
         assert (owner, version) == ("B", "3")
         assert int(new_expiry) > int(expiry.timestamp() * 1000)
-        cookie = await client.get("/api/me", headers={"Cookie": f"gymsid={token}"})
+        cookie = await client.get("/api/v1/me", headers={"Cookie": f"gymsid={token}"})
         assert cookie.json() == result and "set-cookie" not in cookie.headers
         await observer.execute(
             "UPDATE identity.users SET session_version=4 WHERE id='B'"
         )
         assert (
-            await client.get("/api/me", headers={"Authorization": f"Bearer {renewed}"})
+            await client.get(
+                "/api/v1/me", headers={"Authorization": f"Bearer {renewed}"}
+            )
         ).status_code == 401
 
 
@@ -397,7 +399,7 @@ async def test_identity_acl_rls_and_public_count_are_bounded(identities):
         "SELECT pg_has_role('opengym_api_runtime','opengym_identity_executor','MEMBER')"
     )
     async with server(environment) as client:
-        assert (await client.get("/api/health")).json() == {
+        assert (await client.get("/api/v1/health")).json() == {
             "ok": True,
             "users": 2,
             "writable": True,
@@ -469,7 +471,7 @@ async def test_identity_migration_supplies_bounded_actor_lock(deployment):
 async def test_missing_session_never_establishes_an_actor(deployment):
     _, environment = deployment
     async with server(environment) as client:
-        response = await client.get("/api/me", headers={"X-Owner-Id": "B"})
+        response = await client.get("/api/v1/me", headers={"X-Owner-Id": "B"})
         assert response.status_code == 401
         assert response.json() == {"error": "not signed in"}
         assert response.headers["cache-control"] == "no-store"

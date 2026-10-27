@@ -169,7 +169,12 @@ El [modelo Recovery y sus invariantes](reference/recovery-contracts.md#modelo-co
 
 ### Training compatible
 
-Conservar `GET /api/data`, `GET /api/data/rev`, `PUT /api/data`, sus envoltorios y errores, `baseRev`, `baseWid`, `_wid`, `_wids`, stamps, resets y respuestas `409`. Preservar explícitamente comportamientos legacy, incluidas escrituras sin revisión cuando el contrato existente las admite; no endurecerlos inadvertidamente durante el cambio de almacenamiento.
+En Python, las rutas HTTP usan exclusivamente `/api/v1`; el frontend selecciona
+ese contrato al compilar. Las URLs `/api/...` citadas aquí identifican el contrato
+Node de referencia, no alias publicados por Python. Véase el
+[contrato HTTP v1](../backend/README.md#http-api-v1).
+
+Conservar el comportamiento de `GET /api/data`, `GET /api/data/rev`, `PUT /api/data`, sus envoltorios y errores, `baseRev`, `baseWid`, `_wid`, `_wids`, stamps, resets y respuestas `409`. Preservar explícitamente comportamientos legacy, incluidas escrituras sin revisión cuando el contrato existente las admite; no endurecerlos inadvertidamente durante el cambio de almacenamiento.
 
 Lectura/comparación/estampado/escritura bajo transacción y serialización por perfil, incluido el caso de primer documento inexistente. No depender del event loop. Conservar la sesión activa como local en Training y sus metadatos de propietario/base. Pruebas de paridad con las suites de revisiones y stamps existentes.
 

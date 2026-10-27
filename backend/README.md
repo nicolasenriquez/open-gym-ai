@@ -53,11 +53,11 @@ image IDs, not tags or registry manifest digests. `just prod-config <absolute-pr
 validates configuration without starting services. API never migrates at startup.
 A failed bootstrap/migration stops the Dev recipe before API/web startup.
 
-`GET /api/me` now verifies compatible cookie/bearer sessions and authorizes the actor
+`GET /api/v1/me` now verifies compatible cookie/bearer sessions and authorizes the actor
 under a PostgreSQL row lock before installing transaction-local RLS ownership.
 `ORIGIN` selects the current cookie name (`__Host-gymsid` on HTTPS); `SESSION_DAYS`
 controls bearer renewal. These values retain their Node defaults.
-With `PASSWORD_LOGIN=1`, `POST /api/login/password` accepts the current identifier
+With `PASSWORD_LOGIN=1`, `POST /api/v1/login/password` accepts the current identifier
 and legacy name/email inputs, verifies compatible scrypt/NFKC credentials and
 issues the same signed cookie. HTTPS also expires the legacy unprefixed cookie.
 Crypto runs outside database leases with two workers and a queue of 32; credentials
@@ -69,12 +69,12 @@ implicit proxy-header processing so it cannot bypass this flag.
 Registration, account-management and audit
 routes are not yet delivered.
 
-`GET /api/data` and `GET /api/data/rev` read the verified actor's Training document
+`GET /api/v1/data` and `GET /api/v1/data/rev` read the verified actor's Training document
 under the same account lock and transaction-local RLS context. A missing document
 returns state null/revision zero without creating a row. PostgreSQL preserves the
 complete JSONB document and generates strictly validated revision/write-id columns;
 the client response omits only the server notes `_prior` and `_unstamped`.
-`PUT /api/data` currently requires a non-null `baseRev`. The verified actor's account
+`PUT /api/v1/data` currently requires a non-null `baseRev`. The verified actor's account
 lock serializes first writes and revision comparison with the canonical update;
 a conflict returns only that actor's client-visible document. Unknown-field
 correction can store revision +2 while acknowledging +1 so the client fetches the
@@ -90,6 +90,27 @@ Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `MEDIA_QUOTA_MB`, `MEDIA_IMAGE_MAX_MB`, `MEDIA_GIF_MAX_MB`,
 `MEDIA_VIDEO_MAX_MB` and `MEDIA_VIDEO_MAX_SEC`. Business routes arrive in their
 own slices. Uvicorn access logging is disabled; operational diagnostics are pending.
+
+## HTTP API v1
+
+All Python HTTP routes use `/api/v1`, including the internal probes
+`GET /api/v1/health/live` and `GET /api/v1/health/ready`.
+Unversioned routes are removed; there are no aliases or redirects.
+Nginx blocks the two internal probes while forwarding the public API.
+Swagger, ReDoc and the HTTP OpenAPI endpoint remain disabled.
+
+Frontend builds select their HTTP contract with `VITE_API_PREFIX`:
+`/api/v1` for Python and the default `/api` for Node. The Python Dev
+overlay sets this build argument. For a permanent Python web image, build from
+the repository root before selecting its tested image ID:
+
+```sh
+docker build -f web/Dockerfile --build-arg VITE_API_PREFIX=/api/v1 -t opengym-platform-web:v1 .
+```
+
+The value is compiled into the frontend; a runtime environment variable cannot
+change an existing image. A Python frontend build does not fall back to Node
+paths or deliver capabilities that have not yet been ported.
 
 ## Current verification
 

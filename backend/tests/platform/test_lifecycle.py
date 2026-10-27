@@ -138,7 +138,7 @@ async def server(environment, *, factory="opengym_platform.application:create_ap
                             "PLATFORM_HTTP_STARTUP_FAILED"
                         )
                         try:
-                            await client.get("/health/live")
+                            await client.get("/api/v1/health/live")
                             break
                         except httpx.TransportError:
                             await asyncio.sleep(0.05)
@@ -163,10 +163,10 @@ async def server(environment, *, factory="opengym_platform.application:create_ap
 async def test_missing_schema_is_live_but_never_ready_or_migrated(deployment):
     observer, environment = deployment
     async with server(environment) as client:
-        response = await client.get("/health/live")
+        response = await client.get("/api/v1/health/live")
         assert response.status_code == 200
         assert response.json() == {"code": "PLATFORM_LIVE_OK"}
-        assert (await client.get("/health/ready")).status_code == 503
+        assert (await client.get("/api/v1/health/ready")).status_code == 503
         assert (
             await observer.fetchval("SELECT to_regclass('public.alembic_version')")
             is None
@@ -178,14 +178,14 @@ async def test_public_health_and_config_match_empty_node_instance(deployment):
     observer, environment = deployment
     await migration(environment, "up")
     async with server(environment) as client:
-        assert (await client.get("/health/ready")).json() == {
+        assert (await client.get("/api/v1/health/ready")).json() == {
             "code": "PLATFORM_READY_OK"
         }
-        response = await client.get("/api/health")
+        response = await client.get("/api/v1/health")
         assert response.status_code == 200
         assert response.json() == {"ok": True, "users": 0, "writable": True}
         assert response.headers["cache-control"] == "no-store"
-        config = await client.get("/api/config")
+        config = await client.get("/api/v1/config")
         assert config.status_code == 200
         assert config.json() == {"invite_only": False, "allow_guest": True}
         assert config.headers["cache-control"] == "no-store"
@@ -216,7 +216,7 @@ async def test_public_config_preserves_flags_media_and_never_trusts_forged_sessi
     )
     async with server(environment) as client:
         response = await client.get(
-            "/api/config",
+            "/api/v1/config",
             headers={
                 "Cookie": "gymsid=forged-session",
                 "Authorization": "Bearer forged-token",
@@ -248,11 +248,11 @@ async def test_read_only_database_cannot_advertise_writable_or_ready(deployment)
     )
     try:
         async with server(environment) as client:
-            health = await client.get("/api/health")
+            health = await client.get("/api/v1/health")
             assert health.status_code == 503
             assert health.json() == {"ok": False, "writable": False}
-            assert (await client.get("/health/ready")).status_code == 503
-            assert (await client.get("/health/live")).status_code == 200
+            assert (await client.get("/api/v1/health/ready")).status_code == 503
+            assert (await client.get("/api/v1/health/live")).status_code == 200
     finally:
         await observer.execute(
             "ALTER ROLE opengym_api_runtime RESET default_transaction_read_only"
@@ -280,10 +280,10 @@ async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, hi
         )
     async with server(environment) as client:
         for _ in range(2):
-            response = await client.get("/health/ready")
+            response = await client.get("/api/v1/health/ready")
             assert response.status_code == 503
             assert response.json() == {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}
-            assert (await client.get("/api/health")).json() == {
+            assert (await client.get("/api/v1/health")).json() == {
                 "ok": False,
                 "writable": False,
             }
@@ -293,12 +293,12 @@ async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, hi
                 "SELECT version_num FROM public.alembic_version ORDER BY 1"
             )
         ] == sorted(history)
-        assert (await client.get("/health/live")).status_code == 200
+        assert (await client.get("/api/v1/health/live")).status_code == 200
         await observer.execute("DELETE FROM public.alembic_version")
         await observer.execute(
             "INSERT INTO public.alembic_version VALUES ('p002_training_write')"
         )
-        assert (await client.get("/health/ready")).status_code == 200
+        assert (await client.get("/api/v1/health/ready")).status_code == 200
 
 
 @pytest.mark.asyncio
@@ -308,7 +308,7 @@ async def test_database_loss_recovers_without_restart_and_shutdown_closes_pool(
     observer, environment = deployment
     await migration(environment, "up")
     async with server(environment) as client:
-        assert (await client.get("/health/ready")).status_code == 200
+        assert (await client.get("/api/v1/health/ready")).status_code == 200
         assert (
             await observer.fetchval(
                 "SELECT count(*) FROM pg_stat_activity WHERE usename = 'opengym_api_runtime'"
@@ -320,17 +320,17 @@ async def test_database_loss_recovers_without_restart_and_shutdown_closes_pool(
             await observer.execute(
                 "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE usename = 'opengym_api_runtime'"
             )
-            response = await client.get("/health/ready")
+            response = await client.get("/api/v1/health/ready")
             assert response.status_code == 503
             assert response.json() == {"code": "PLATFORM_DATABASE_UNAVAILABLE"}
-            assert (await client.get("/api/health")).json() == {
+            assert (await client.get("/api/v1/health")).json() == {
                 "ok": False,
                 "writable": False,
             }
-            assert (await client.get("/health/live")).status_code == 200
+            assert (await client.get("/api/v1/health/live")).status_code == 200
         finally:
             await observer.execute("ALTER ROLE opengym_api_runtime LOGIN")
-        assert (await client.get("/health/ready")).status_code == 200
+        assert (await client.get("/api/v1/health/ready")).status_code == 200
     assert (
         await observer.fetchval(
             "SELECT count(*) FROM pg_stat_activity WHERE usename = 'opengym_api_runtime'"
@@ -344,14 +344,14 @@ async def test_public_http_headers_and_unknown_routes_keep_node_contract(deploym
     _, environment = deployment
     async with server(environment) as client:
         config = await client.get(
-            "/api/config", headers={"Origin": "capacitor://localhost"}
+            "/api/v1/config", headers={"Origin": "capacitor://localhost"}
         )
         assert config.headers["content-type"] == "application/json"
         assert config.headers["access-control-allow-origin"] == "capacitor://localhost"
         assert config.headers["vary"] == "Origin"
         assert "access-control-allow-credentials" not in config.headers
         preflight = await client.options(
-            "/api/config",
+            "/api/v1/config",
             headers={
                 "Origin": "capacitor://localhost",
                 "Access-Control-Request-Private-Network": "true",
@@ -367,7 +367,7 @@ async def test_public_http_headers_and_unknown_routes_keep_node_contract(deploym
             "access-control-allow-private-network"
             not in (
                 await client.options(
-                    "/api/config",
+                    "/api/v1/config",
                     headers={
                         "Origin": "https://foreign.invalid",
                         "Access-Control-Request-Private-Network": "true",
@@ -376,8 +376,8 @@ async def test_public_http_headers_and_unknown_routes_keep_node_contract(deploym
             ).headers
         )
         for method, path in [
-            ("POST", "/api/health"),
-            ("GET", "/api/health/"),
+            ("POST", "/api/v1/health"),
+            ("GET", "/api/v1/health/"),
             ("GET", "/docs"),
             ("GET", "/openapi.json"),
         ]:
@@ -463,7 +463,7 @@ async def test_invalid_public_settings_use_node_defaults_without_echoing_values(
         }
     )
     async with server(environment) as client:
-        response = await client.get("/api/config")
+        response = await client.get("/api/v1/config")
         assert response.json() == {
             "invite_only": False,
             "allow_guest": True,
@@ -476,3 +476,25 @@ async def test_invalid_public_settings_use_node_defaults_without_echoing_values(
                 "workouts": True,
             },
         }
+
+
+@pytest.mark.asyncio
+async def test_unversioned_routes_are_removed(deployment):
+    _, environment = deployment
+    async with server(environment) as client:
+        for method, path in [
+            ("GET", "/api/health"),
+            ("GET", "/api/config"),
+            ("GET", "/api/me"),
+            ("POST", "/api/login/password"),
+            ("GET", "/api/data"),
+            ("PUT", "/api/data"),
+            ("GET", "/api/data/rev"),
+            ("GET", "/health/live"),
+            ("GET", "/health/ready"),
+            ("OPTIONS", "/api/config"),
+            ("GET", "/api/v2/config"),
+        ]:
+            response = await client.request(method, path)
+            assert response.status_code == 404, (method, path)
+            assert response.json() == {"error": "not found"}

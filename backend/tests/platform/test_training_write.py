@@ -21,7 +21,7 @@ async def test_first_save_persists_own_document_and_keeps_active_session_local(
     observer, environment = identities
     async with server(environment) as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={
                 "state": {
@@ -39,7 +39,7 @@ async def test_first_save_persists_own_document_and_keeps_active_session_local(
         assert result == {"ok": True, "ts": 100, "rev": 1, "wid": result["wid"]}
         assert isinstance(result["wid"], str) and len(result["wid"]) == 16
         assert response.headers["cache-control"] == "no-store"
-        saved = await client.get("/api/data", headers={"Cookie": f"gymsid={A}"})
+        saved = await client.get("/api/v1/data", headers={"Cookie": f"gymsid={A}"})
         assert saved.json()["rev"] == 1
         assert saved.json()["state"]["workouts"] == [{"id": "w1", "d": "2026-09-01"}]
     row = await observer.fetchrow(
@@ -63,7 +63,7 @@ async def test_concurrent_first_writes_have_one_winner_and_one_conflict(identiti
             requests = [
                 asyncio.create_task(
                     client.put(
-                        "/api/data?owner_id=B",
+                        "/api/v1/data?owner_id=B",
                         headers={"Cookie": f"gymsid={A}", "X-Owner-Id": "B"},
                         json={
                             "baseRev": 0,
@@ -85,11 +85,13 @@ async def test_concurrent_first_writes_have_one_winner_and_one_conflict(identiti
             response.json() for response in responses if response.status_code == 409
         )
         assert conflict["error"] == "conflict" and conflict["rev"] == 1
-        own = (await client.get("/api/data", headers={"Cookie": f"gymsid={A}"})).json()
+        own = (
+            await client.get("/api/v1/data", headers={"Cookie": f"gymsid={A}"})
+        ).json()
         assert own == {"state": conflict["state"], "rev": 1}
         assert own["state"]["_wid"] == winner["wid"]
         assert (
-            await client.get("/api/data", headers={"Cookie": f"gymsid={B}"})
+            await client.get("/api/v1/data", headers={"Cookie": f"gymsid={B}"})
         ).json() == {"state": None, "rev": 0}
     assert await observer.fetchval("SELECT count(*) FROM training.documents") == 1
     assert (
@@ -109,7 +111,7 @@ async def test_real_unknown_field_correction_is_stored_one_revision_after_reply(
         ('A','{"_rev":7,"workouts":[],"routines":[],"futureSetting":null,"_prior":{"private":[]}}')""")
     async with server(environment) as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={
                 "baseRev": 7,
@@ -119,13 +121,13 @@ async def test_real_unknown_field_correction_is_stored_one_revision_after_reply(
         assert response.status_code == 200
         assert response.json()["rev"] == 8
         saved = (
-            await client.get("/api/data", headers={"Cookie": f"gymsid={A}"})
+            await client.get("/api/v1/data", headers={"Cookie": f"gymsid={A}"})
         ).json()
         assert saved["rev"] == saved["state"]["_rev"] == 9
         assert saved["state"]["futureSetting"] is None
         assert "_prior" not in saved["state"]
         conflict = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={
                 "baseRev": 8,
@@ -147,7 +149,9 @@ async def test_bad_inputs_and_conflicts_never_change_stored_state(identities):
     async with server(environment) as client:
         good = {"baseRev": 0, "stamped": True, "state": {"workouts": [{"id": "kept"}]}}
         assert (
-            await client.put("/api/data", headers={"Cookie": f"gymsid={A}"}, json=good)
+            await client.put(
+                "/api/v1/data", headers={"Cookie": f"gymsid={A}"}, json=good
+            )
         ).status_code == 200
         before = await observer.fetchval("SELECT document FROM training.documents")
         for state in (
@@ -159,21 +163,21 @@ async def test_bad_inputs_and_conflicts_never_change_stored_state(identities):
             {"routines": False},
         ):
             response = await client.put(
-                "/api/data",
+                "/api/v1/data",
                 headers={"Cookie": f"gymsid={A}"},
                 json={"baseRev": 1, "state": state},
             )
             assert response.status_code == 400
         for base in (False, "1", 0, 1.5):
             response = await client.put(
-                "/api/data",
+                "/api/v1/data",
                 headers={"Cookie": f"gymsid={A}"},
                 json={"baseRev": base, "state": {"workouts": []}},
             )
             assert response.status_code == 409
         for base in ({}, {"baseRev": None}):
             response = await client.put(
-                "/api/data",
+                "/api/v1/data",
                 headers={"Cookie": f"gymsid={A}"},
                 json={**base, "state": {"workouts": []}},
             )
@@ -181,26 +185,26 @@ async def test_bad_inputs_and_conflicts_never_change_stored_state(identities):
         for raw in ("not json", '{"state":NaN}', "[]"):
             assert (
                 await client.put(
-                    "/api/data", headers={"Cookie": f"gymsid={A}"}, content=raw
+                    "/api/v1/data", headers={"Cookie": f"gymsid={A}"}, content=raw
                 )
             ).status_code == 400
         assert (
             await client.put(
-                "/api/data",
+                "/api/v1/data",
                 headers={"Cookie": f"gymsid={A}"},
                 content=b"x" * (5 * 1024 * 1024 + 1),
             )
         ).status_code == 413
         assert (
             await client.put(
-                "/api/data",
+                "/api/v1/data",
                 headers={"Cookie": f"gymsid={A}", "Origin": "https://foreign.test"},
                 json=good,
             )
         ).status_code == 403
         assert (
             await client.put(
-                "/api/data", headers={"Cookie": "gymsid=invalid"}, json=good
+                "/api/v1/data", headers={"Cookie": "gymsid=invalid"}, json=good
             )
         ).status_code == 401
         assert (
@@ -216,13 +220,13 @@ async def test_unicode_values_are_validated_without_rejecting_literal_escape_tex
     async with server(environment) as client:
         for text in ("\x00", "\ud800"):
             response = await client.put(
-                "/api/data",
+                "/api/v1/data",
                 headers={"Cookie": f"gymsid={A}"},
                 content=json.dumps({"baseRev": 0, "state": {"notes": text}}),
             )
             assert response.status_code == 400
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={"baseRev": 0, "state": {"notes": r"literal \u0000"}},
         )
@@ -246,7 +250,7 @@ async def test_revalidation_under_account_lock_precedes_writes(identities, revok
             )
             pending = asyncio.create_task(
                 client.put(
-                    "/api/data",
+                    "/api/v1/data",
                     headers={"Cookie": f"gymsid={A}"},
                     json={"baseRev": 0, "state": {"workouts": []}},
                 )
@@ -310,7 +314,7 @@ async def test_external_mark_failure_observes_committed_document_and_keeps_succe
     configured, marker = external_factory(tmp_path, environment, timeout)
     async with server(configured, factory="external_mark:create_app") as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={"baseRev": 0, "state": {"workouts": []}},
             timeout=4,
@@ -322,7 +326,7 @@ async def test_external_mark_failure_observes_committed_document_and_keeps_succe
             "document_revision": 1,
         }
         assert (
-            await client.get("/api/data/rev", headers={"Cookie": f"gymsid={A}"})
+            await client.get("/api/v1/data/rev", headers={"Cookie": f"gymsid={A}"})
         ).json()["rev"] == 1
     assert await observer.fetchval("SELECT revision FROM training.documents") == 1
 
@@ -339,7 +343,7 @@ async def test_sql_failure_rolls_back_without_external_mark_or_success(
         FOR EACH ROW EXECUTE FUNCTION training.fail_write()""")
     async with server(configured, factory="external_mark:create_app") as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={"baseRev": 0, "state": {"workouts": []}},
         )
@@ -385,13 +389,13 @@ async def test_nested_unknown_field_correction_preserves_explicit_known_removals
     }
     async with server(environment) as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={"baseRev": 7, "state": sent},
         )
         assert response.status_code == 200 and response.json()["rev"] == 8
         saved = (
-            await client.get("/api/data", headers={"Cookie": f"gymsid={A}"})
+            await client.get("/api/v1/data", headers={"Cookie": f"gymsid={A}"})
         ).json()
         assert saved["rev"] == 9
         assert saved["state"]["routines"] == [
@@ -403,7 +407,7 @@ async def test_nested_unknown_field_correction_preserves_explicit_known_removals
         ]
         assert saved["state"]["workouts"][0]["entries"][0]["sets"] == [{"future": None}]
         modern = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={
                 "baseRev": 9,
@@ -430,7 +434,7 @@ async def test_revision_margin_fails_without_modifying_imported_document(identit
     )
     async with server(environment) as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={"baseRev": 9007199254740990, "state": {"workouts": []}},
         )
@@ -527,7 +531,7 @@ async def test_timestamp_echo_preserves_json_types(identities):
             ((False, None), (0, None), ("", None), ([], []), ({}, {}))
         ):
             response = await client.put(
-                "/api/data",
+                "/api/v1/data",
                 headers={"Cookie": f"gymsid={A}"},
                 json={
                     "baseRev": revision,
@@ -547,7 +551,7 @@ async def test_restoring_only_bookkeeping_does_not_add_a_correction_revision(
         VALUES ('A','{"_rev":7,"workouts":[],"undone":{"w":42}}')""")
     async with server(environment) as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={"baseRev": 7, "state": {"workouts": []}},
         )
@@ -565,7 +569,7 @@ async def test_repeated_exercise_ids_keep_the_first_ordered_match(identities):
             {"id":"x","pyramid":"first"},{"id":"x","pyramid":"second"}]}]}')""")
     async with server(environment) as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={
                 "baseRev": 7,
@@ -588,7 +592,7 @@ async def test_conflict_distinguishes_empty_document_from_missing_row(identities
     )
     async with server(environment) as client:
         response = await client.put(
-            "/api/data",
+            "/api/v1/data",
             headers={"Cookie": f"gymsid={A}"},
             json={"baseRev": 1, "state": {"workouts": []}},
         )
