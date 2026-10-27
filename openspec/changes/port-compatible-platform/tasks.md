@@ -10,7 +10,8 @@ Checkpoints: port funcional → operación local recuperable
 de handoff: no ejecutarlas ni marcarlas completas por un ensayo sintético. Antes de
 archivar, transferirlas explícitamente con trazabilidad; no autorizar Recovery por
 cierre de este cambio.
-2.3–2.9 y 4.1 en adelante siguen fuera del alcance autorizado. La corrección de
+La solicitud actual autoriza también 2.3 en recursos sintéticos, después del piloto
+S3. 2.4–2.9 y 4.1 en adelante siguen fuera del alcance autorizado. La corrección de
 campos desconocidos y la frontera de marcas postcommit se adelantaron a 3.2 con
 aprobación explícita; 3.3 completa stamps/legacy y 3.4 verifica el navegador sin
 adelantar la implementación de medios S4.
@@ -26,12 +27,13 @@ implementación de 1.1/1.2 ni aceptación operativa; todos los checkboxes siguen
 
 El [plan ejecutable](execution-plan.md) fija alcance, actores/rutas,
 almacenes, primera prueba conductual, errores y checkpoint de cada slice S1–S11.
-Los comandos `verify` salvo `harness/ownership`, `contracts/baseline`, `schema/history_lock`,
-`images/isolation`, `lifecycle/readiness`, `identity_session/actor`,
-`identity_password/login`, `training_read/owner_and_types`, `training_write/first_write`,
-`database/pool` y `checks/toolchain` siguen siendo **futuros**. Cada slice añade
-su mapeo/imagen antes de verificar. Solo 1.1 usa el comando Foundation existente antes
-de ese runner. Cada tarea ejecuta primero su caso RED válido, después implementación,
+El inventario ejecutable de suites y casos vive en
+[`backend/platform-suites.json`](../../../backend/platform-suites.json); un caso
+registrado no acredita por sí mismo aceptación. El estado y los límites de cada
+entrega figuran junto a su tarea. Los casos sin mapeo siguen siendo **futuros**;
+cada slice añade su mapeo/imagen antes de verificar. El comando Foundation de 1.1
+se conserva como evidencia histórica; la verificación actual usa el runner de plataforma.
+Cada tarea ejecuta primero su caso RED válido, después implementación,
 caso GREEN y suite afectada completa. No adelantar toda la implementación a las pruebas.
 
 Q3 cubre los seams de contrato/HTTP+PG/navegador/operación; Q6 excluye SDK/CLI.
@@ -86,9 +88,14 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
   Notes (integración/revisión): revisión forward-only `p001_password_login` añade solo aliases/password_credentials y lookup/finish consumidos ahora, con FORCE RLS, FK/índice/grants acotados y ACL definer inspeccionadas; p000 y p001 anteriores intactos. Upgrade genuino desde la revisión de sesiones conserva identidad/fecha nula. La revisión ponytail encontró que Uvicorn confiaba por defecto en X-Forwarded-For desde loopback: los intentos `delivered-*` fallidos no acreditan PASS. `--no-proxy-headers` en Docker/Compose y el servidor de pruebas deja esa decisión exclusivamente a TRUST_PROXY; `accepted-*` demuestra el negativo y los flags compatibles. Revisión final del diff completo/archivos nuevos y consumidores, bajo un worker e instancia personal, sin bloqueantes.
   Notes (regresiones): `verify identity_session` 26, schema 12, lifecycle 14, checks 12 e images PASS (`accepted-*.log`); database 20, harness y contracts/baseline PASS (`database.log`, `harness.log`, `contracts.log`). Layout/context Docker 8/8, lint, OKF + 41 tests, OpenSpec estricto y diff-check PASS; evidencia en `.scratch/platform-password/`. Dependencias/pins/locks sin cambios; formatter existente usado solo en contenedor propio. Harness limpia recursos propios, sin recursos sintéticos restantes; imagen auxiliar retirada tras comprobar label.
   Notes (límites): Ready for closeout de 2.2 solamente, 7/57 tareas completas. Sin registro, gestión de cuenta/audit, Training, navegador, terminación TLS/dispositivo reales, datos personales ni aceptación operativa. Throttles de proceso se reinician como en Node; la suite max-one/cancelación HTTP integral queda en 2.9. CI remota, matriz completa de caché y pruebas de slow-body/red no ejecutadas aquí. No commit/push, sync/archive, despliegue ni inicio de 2.3/S3.
-- [ ] 2.3 Entregar registro password/alias/invitación y primer-admin atómicos; p001 conserva namespace Unicode y fechas históricas sin inventar datos.
+- [x] 2.3 Entregar registro password/alias/invitación y primer-admin atómicos; p001 conserva namespace Unicode y fechas históricas sin inventar datos.
   Traceability: compatible-platform-persistence / Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Executable schema and privileged functions / Migration failure and function grants.
   Proof/Check: `node scripts/platform.mjs verify identity_register --case concurrent_claim`.
+  Notes: Entrega sobre `ef4cad50c` más diff de trabajo, Linux/amd64, HTTP Uvicorn real con api_runtime y PG sintético independiente. RED conductuales conservados en `.scratch/platform-register/`: ruta 404 frente a 200 (`red-basic.log`), política aceptaba contraseña corta/común y correo inválido (`red-policy.log`), código de colisión de correo incorrecto e invitación no conectada (`red-claims.log`). Errores intermedios de preparación/SQL/imports/formato no cuentan como RED.
+  Notes (prueba vigente): caso PASS 21/21 sin skips (`accepted-case.log`); suite vigente PASS 21/21 (`accepted-suite-identity_register.log`), checks vigente PASS 12/12 (`accepted-suite-checks.log`). Vectores independientes Node en `backend/contracts/identity-registration.v1.json`. HTTP verifica sesión y login del nuevo usuario, política y correo, carreras Unicode/email/invitación/primer-admin, fechas históricas nulas, claims con doble propósito, reservas expiradas/vigentes, invitación consumida incluso después de borrar cuenta, CSRF/JSON/límite/off/throttle y fallo DB sin cookie. Pausa controlada en scrypt prueba ausencia de lease/TX y revalida revocación/colisiones posteriores; fallo de inserción revierte usuario/claims/invitación y permite retry.
+  Notes (integración/revisión): revisión forward-only `p001_password_register`, parent Training vigente; revisiones anteriores y baseline congelado intactos. Índices parciales por propósito, namespace 728323, FORCE RLS existente, executor NOLOGIN, search_path/ACL y ausencia de DML/SET ROLE runtime comprobados. Precheck SQL con hash nulo no escribe; configuración transaccional proviene solo del servidor. Reutiliza transporte/cookies/crypto sin dependencias nuevas. Fixture de transferencia de alias ajustada al nuevo UNIQUE; catálogo de ACL y pruebas de upgrade/readiness siguen el head real. El check Ruff format usa gramática py313 para conservar los `except` agrupados del repositorio, sin cambiar runtime/pins Python 3.14. Revisión ponytail del diff propio y archivos nuevos, bajo una instancia personal, sin bloqueantes; cambios concurrentes ajenos conservados.
+  Notes (regresiones): `verify identity_password` 27, identity_session 26, schema 12, lifecycle 17, training_read 8, training_write (lineage_retry y first_write), database 20, checks 12, images, harness y contracts PASS. `verify training_browser` PASS con seis flujos/capturas en `.scratch/platform-browser/opengym-platform-test-ed99929146c5bc42/`. Evidencia en `.scratch/platform-register/` (`accepted-identity_password.log`, `session-fixed.log`, `schema-retry.log`, `lifecycle.log`, `training_read.log`, `training_write.log`, `final-*.log`). Primer schema en paralelo falló su ventana de lock; repetición aislada PASS, sin relajar el timeout. OKF, sus 41 tests, OpenSpec estricto y diff-check PASS.
+  Notes (límites): Ready for closeout de 2.3 solamente; 12/57 tareas completas. Sin WebAuthn, gestión de cuenta/audit, dispositivos/TLS reales, CI remota, matriz completa de caché ni aceptación operativa. El navegador acredita regresión Training/login, no interacción de signup. Throttles siguen siendo de proceso; max-one/errores/cancelación integral de Identity queda en 2.9. Cleanup propio completado, sin contenedores sintéticos restantes; imagen auxiliar retirada tras verificar su label. No commit/push, sync/archive, despliegue ni inicio de 2.4.
 - [ ] 2.4 Entregar registro/login WebAuthn con webauthn 3.0.1 y vectores independientes; incluir replay/revocación/counter, sin acreditar autenticador físico.
   Traceability: compatible-platform-persistence / Legacy-compatible identity namespace and credentials / Credential and account access continuity.
   Proof/Check: `node scripts/platform.mjs verify identity_passkey --case interoperability`.

@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from opengym_platform.core.database import DatabaseError
 from opengym_platform.identity.passwords import BusyError
 from opengym_platform.identity.service import password_login as login_password
+from opengym_platform.identity.service import password_register as register_password
 from opengym_platform.identity.service import profile
 from opengym_platform.identity.sessions import verify
 from opengym_platform.identity.throttle import LockedError, limit_address
@@ -72,6 +73,13 @@ def create_router(
 
         @router.post("/login/password")
         async def password_login(request: Request):
+            return await password_request(request, login_password)
+
+        @router.post("/register/password")
+        async def password_register(request: Request):
+            return await password_request(request, register_password)
+
+        async def password_request(request, operation):
             headers = {"Cache-Control": "no-store"}
             site = request.headers.get("sec-fetch-site")
             origin = request.headers.get("origin")
@@ -94,7 +102,9 @@ def create_router(
                 os.environ.get("TRUST_PROXY", "").lower() in {"1", "true", "yes", "on"},
             )
             try:
-                throttle.entry(address)
+                throttle.entry(
+                    ("signup|" if operation is register_password else "") + address
+                )
             except LockedError as error:
                 return locked_response(error)
             try:
@@ -122,7 +132,7 @@ def create_router(
                     {"error": "invalid json"}, status_code=400, headers=headers
                 )
             try:
-                status, result, token = await login_password(
+                status, result, token = await operation(
                     request.app.state.database,
                     passwords,
                     throttle,

@@ -259,7 +259,7 @@ async def test_credentials_rechecked_after_crypto_and_owner_lock(accounts, chang
                 await observer.execute("DELETE FROM identity.users WHERE id='A'")
             elif change == "alias":
                 await observer.execute(
-                    "UPDATE identity.login_aliases SET owner_id='B' WHERE alias_key='alice'"
+                    "UPDATE identity.login_aliases SET owner_id='B', email_claim=true, password_name_claim=false WHERE alias_key='alice'"
                 )
         response = await task
         assert response.status_code == (
@@ -599,7 +599,10 @@ async def test_password_migration_extends_genuine_session_revision(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
-            "p001_password_login.py", "p002_training.py", "p002_training_write.py"
+            "p001_password_register.py",
+            "p001_password_login.py",
+            "p002_training.py",
+            "p002_training_write.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
@@ -613,7 +616,7 @@ async def test_password_migration_extends_genuine_session_revision(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p002_training_write"
+        == "p001_password_register"
     )
     assert dict(
         await observer.fetchrow("SELECT id,created_at FROM identity.users")

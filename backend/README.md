@@ -23,6 +23,18 @@ The prod filename does not authorize cutover or cloud deployment. The image targ
 `runtime` is also the default build; tests require explicit target `test`.
 Targets `dev`, `migrate` and `ops` keep their separate dependencies and privileges.
 
+The main `Dockerfile` owns Python application and verification targets.
+`Dockerfile.contracts` runs frozen Node/client compatibility checks;
+`Dockerfile.browser` supplies the compiled frontend and pinned browser proof;
+`Dockerfile.security` supplies CI scanners. These tools stay outside the application
+runtime. Their matching `.dockerignore` files protect each build context.
+The former Foundation-only `Dockerfile.toolchain` is retired; current toolchain
+checks run through `just test checks`. Archived Foundation commands are historical.
+
+This README owns current platform usage. Operational requirements live in
+[platform operations](../docs/reference/platform-operations.md); delivery status
+and acceptance evidence live in the [active port tasks](../openspec/changes/port-compatible-platform/tasks.md).
+
 ## Platform images and Compose
 
 Use the base plus exactly one dev/prod overlay, always with `--project-directory .`
@@ -66,8 +78,14 @@ attempt/address budgets are process-local and reset on restart, as in Node.
 `TRUST_PROXY=1` trusts the proxy-supplied client address; enable it only behind a
 proxy that overwrites those headers. The supplied Uvicorn commands disable its
 implicit proxy-header processing so it cannot bypass this flag.
-Registration, account-management and audit
-routes are not yet delivered.
+`POST /api/v1/register/password` uses the same password-mode flag, transport
+protections and session cookie. It preserves optional email, Unicode login aliases
+and password policy. A namespace lock serializes claims, one-use invitations and
+`FIRST_USER_ADMIN`; `ADMIN_UIDS` remains server configuration, never a signup field.
+Scrypt runs outside database leases; the final transaction rechecks claims and
+invitation before creating the account and consuming the code. Expired reset-only
+alias reservations can be reclaimed without changing historical user dates.
+Passkey registration, account-management and audit routes are not yet delivered.
 
 `GET /api/v1/data` and `GET /api/v1/data/rev` read the verified actor's Training document
 under the same account lock and transaction-local RLS context. A missing document
@@ -132,6 +150,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `lifecycle` | HTTP health/readiness, schema compatibility and shutdown. |
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
+| `identity_register` | Password/email policy vectors, concurrent Unicode claims, invitation consumption, first-admin assignment and rollback/crypto-time revalidation. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
 | `training_browser` | Compiled frontend login, offline dirty/active state, real 401/two 409s, lost reply and restored lineage with independent PG observation. |
@@ -167,9 +186,38 @@ result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 
 Cold/warm/source/manifest cache and lockfile regressions live in
-`scripts/platform-build.test.mjs`. Baselines in `contracts/port-baseline.v1.json`
-and their frozen [inventory](CONTRACTS.md) are unchanged; historical paths there are
-not current launch instructions and must not be regenerated to admit drift.
+`scripts/platform-build.test.mjs`. Contract ownership and retention are described below.
+
+### Compatibility fixtures and transition baseline
+
+`contracts/` contains synthetic test inputs and independent expected results, not
+application storage or execution logs. Their lifecycle depends on the guarantee
+they protect, rather than their JSON format or the retirement of Node alone.
+
+| Files | Purpose and retention |
+| --- | --- |
+| `port-baseline.v1.json`, `suites.v2.json` | Transition manifest and Node/client suite inventory. Retain until replacement coverage and retirement acceptance allow their consumers to be removed or migrated. |
+| `http-baseline.v1.json`, `http-health.v1.json` | Frozen HTTP expectations used by the transition harness and comparator. Preserve relevant behavior as regression tests before retiring the harness or fixtures. |
+| `identity-sessions.v1.json`, `identity-passwords.v1.json`, `training-stamps.v1.json` | Independent compatibility vectors consumed by Python tests. Retain while session, credential and synchronization compatibility remains supported, including after Node retirement. |
+| `identity-registration.v1.json` | Registration validation vectors belonging to the registration slice. Its delivery and acceptance status is tracked in the active port tasks, independently of this inventory. |
+| `password-vectors.mjs`, `generate-training-stamps.mjs` | Node-based authoring tools, not runtime dependencies. Review intentional coverage extensions; migrate or retire the generators separately from the retained vectors. |
+
+Run `node scripts/platform.mjs verify contracts --case baseline` for the current
+integrated Node HTTP and client compatibility verification. The command
+`node scripts/python-foundation.mjs run contracts` in the frozen
+[historical inventory](CONTRACTS.md#ejecución-y-handoff) is retired; use the platform
+command above. `node scripts/platform-baseline.mjs` checks frozen file hashes only
+and does not execute the behavioral tests.
+
+`port-baseline.v1.json` protects the initial inventory and listed sources by hash;
+it does not cover every later identity or Training vector. Keep expected results
+independent of the Python implementation under test. Generator output requires
+review of changed scenarios and expectations, never automatic regeneration to
+accept implementation drift. Full Training documents in the stamp vectors make
+input/output differences reviewable; repeated structure alone is not a removal criterion.
+Before removing or merging a fixture, identify its consumers and demonstrate that
+replacement tests preserve its guarantee. Delivery status and retirement acceptance
+remain in the [active port tasks](../openspec/changes/port-compatible-platform/tasks.md).
 
 Build contexts are allowlisted: root `.dockerignore` serves the web image,
 `api/.dockerignore` serves Node, and `backend/.dockerignore` serves Python.

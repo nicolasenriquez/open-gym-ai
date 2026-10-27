@@ -107,7 +107,7 @@ def create_app(*, training_note_state=None):
             return JSONResponse(
                 {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
             )
-        if [row["version_num"] for row in revisions] != ["p002_training_write"]:
+        if [row["version_num"] for row in revisions] != ["p001_password_register"]:
             return JSONResponse(
                 {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
             )

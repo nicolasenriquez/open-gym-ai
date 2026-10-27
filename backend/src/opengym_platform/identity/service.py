@@ -1,9 +1,24 @@
 """Identity operations own their transaction; collaborators use its same handle."""
 
+import os
+import secrets
 import time
+from datetime import UTC, datetime
 
-from opengym_platform.identity.passwords import BusyError, identifier_text, name_key
+from opengym_platform.identity.passwords import (
+    SPACE,
+    BusyError,
+    identifier_text,
+    make_hash,
+    name_key,
+)
+from opengym_platform.identity.registration import (
+    ERRORS,
+    normalize_email,
+    password_problem,
+)
 from opengym_platform.identity.sessions import authorize, sign
+from opengym_platform.identity.throttle import LockedError
 
 
 async def password_login(
@@ -98,6 +113,97 @@ async def password_login(
         if not failed:
             undo_account()
             undo_address()
+
+
+async def password_register(
+    database, passwords, throttle, address, body, secret, session_days
+):
+    name = identifier_text(body.get("name")).strip(SPACE)
+    name = name.encode("utf-16-le", "surrogatepass")[:80].decode(
+        "utf-16-le", "surrogatepass"
+    )
+    if not name:
+        return 400, {"error": "name required", "code": "missing"}, None
+    code = identifier_text(body.get("code")).strip(SPACE).upper()
+    owner = secrets.token_urlsafe(12)
+    key = name_key(name)
+    settings = (
+        (
+            "invite_only",
+            os.environ.get("INVITE_ONLY", "").lower() in {"1", "true", "yes", "on"},
+        ),
+        (
+            "first_user_admin",
+            os.environ.get("FIRST_USER_ADMIN", "").lower()
+            in {"1", "true", "yes", "on"},
+        ),
+        (
+            "admin_uids",
+            ",".join(
+                s.strip()
+                for s in os.environ.get("ADMIN_UIDS", "").split(",")
+                if s.strip()
+            ),
+        ),
+    )
+
+    async def claim(email, stored):
+        async with database.transaction() as handle:
+            for setting, value in settings:
+                await handle.execute(
+                    "SELECT set_config($1,$2,true)",
+                    "app." + setting,
+                    str(value).lower() if isinstance(value, bool) else value,
+                )
+            rows = await handle.fetch(
+                "SELECT * FROM identity.register_password($1,$2,$3,$4,$5,$6,$7)",
+                owner,
+                name,
+                key,
+                email,
+                stored,
+                code,
+                datetime.now(UTC),
+            )
+        return rows[0]
+
+    early = await claim(None, None)
+    if early["result"] == "invite":
+        throttle.addresses.attempt("signup|" + address)
+        return 403, {"error": "a valid invite code is required", "code": "invite"}, None
+    problem = password_problem(body.get("password"), name)
+    if problem:
+        return 400, {"error": ERRORS[problem], "code": problem}, None
+    if early["result"] == "name-taken":
+        return 409, {"error": ERRORS["name-taken"], "code": "name-taken"}, None
+    has_email = isinstance(body.get("email"), str) and bool(body["email"].strip(SPACE))
+    email = normalize_email(body["email"]) if has_email else None
+    if has_email and not email:
+        return 400, {"error": ERRORS["email-invalid"], "code": "email-invalid"}, None
+    if email:
+        wait = throttle.addresses.wait("email|" + address)
+        if wait:
+            raise LockedError(wait)
+    stored = await passwords.run(make_hash, body["password"])
+    actor = await claim(email, stored)
+    outcome = actor["result"]
+    if outcome == "invite":
+        return (
+            403,
+            {
+                "error": "invite code is no longer valid, ask for a new one",
+                "code": "invite",
+            },
+            None,
+        )
+    if outcome in {"name-taken", "email-taken"}:
+        if outcome == "email-taken":
+            throttle.addresses.attempt("email|" + address)
+        return 409, {"error": ERRORS[outcome], "code": outcome}, None
+    token = sign(
+        f"{owner}:{int(time.time() * 1000 + session_days * 86400000)}:0", secret
+    )
+    return 200, {"user": {"id": owner, "name": name, "admin": actor["admin"]}}, token
 
 
 async def profile(database, session, secret, session_days):

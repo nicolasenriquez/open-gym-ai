@@ -390,6 +390,7 @@ async def test_identity_acl_rls_and_public_count_are_bounded(identities):
         "public_user_count",
         "lookup_password",
         "finish_password_login",
+        "register_password",
     }
     for row in functions:
         assert row["prosecdef"] and row["owner"] == "opengym_identity_executor"
@@ -415,6 +416,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p001_password_register.py",
             "p001_identity_session.py",
             "p001_password_login.py",
             "p002_training.py",
@@ -429,7 +431,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p002_training_write"
+        == "p001_password_register"
     )
 
 

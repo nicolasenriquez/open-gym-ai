@@ -1,0 +1,517 @@
+{
+  "passwords": [
+    {
+      "password": "1234567890",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "0987654321",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "12345678910",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "123456789012",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "1234567890123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "11111111111",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "1111111111",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "0000000000",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "9999999999",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "1q2w3e4r5t",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "1q2w3e4r5t6y",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "q1w2e3r4t5",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "qwertyuiop",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "qwertyuiop[]",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "asdfghjkl;",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "asdfghjkl",
+      "name": "Alice",
+      "expected": "too-short"
+    },
+    {
+      "password": "zxcvbnm,./",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "1qaz2wsx3edc",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "qazwsxedc123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "qwerty123456",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "qwertz123456",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "azerty123456",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "password12",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "password123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "password1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "password12345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "passw0rd123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "iloveyou123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "abcdefghij",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "abcd123456",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "abc1234567",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "a1b2c3d4e5",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "aaaaaaaaaa",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "princess123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "football123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "baseball123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "sunshine123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "superman123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "welcome123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "welcome1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "letmein123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "trustno1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "changeme123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "administrator",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "opengym123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "opengym1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "qwerty1234567",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "123qweasdzxc",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "zaq12wsxcde3",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "1q2w3e4r5t6y7u",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "q1w2e3r4t5y6",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "123123123123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "1234512345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "123456123456",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "monkey12345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "dragon12345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "master12345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "shadow12345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "michael123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "jennifer123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "computer123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "starwars123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "whatever123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "freedom1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "pokemon1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "liverpool123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "chelsea1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "arsenal1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "barcelona123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "realmadrid123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "juventus123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "hallo12345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "passwort123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "passwort1234",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "motdepasse123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "contrasena123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "contraseña123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "senha123456",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "parola12345",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "haslo123456",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "wachtwoord123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "salasana123",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "gymgymgym1",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "violet river stones",
+      "name": "Alice",
+      "expected": null
+    },
+    {
+      "password": "Ａｌｉｃｅ.2024.2024",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "密碼abcdefgh123",
+      "name": "Alice",
+      "expected": null
+    },
+    {
+      "password": "😀😀😀😀😀😀😀😀😀😀",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "éééééééééé",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "Password123!",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "abaabaabaabaabaabaabaabaabaaba",
+      "name": "Alice",
+      "expected": "too-common"
+    },
+    {
+      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "name": "Alice",
+      "expected": "too-long"
+    }
+  ],
+  "emails": [
+    {
+      "raw": " User@EXAMPLE.test ",
+      "expected": "user@example.test"
+    },
+    {
+      "raw": "Ａ＠example.test",
+      "expected": "a@example.test"
+    },
+    {
+      "raw": "a@b.cd",
+      "expected": "a@b.cd"
+    },
+    {
+      "raw": "a@b.c",
+      "expected": null
+    },
+    {
+      "raw": "bad",
+      "expected": null
+    },
+    {
+      "raw": "a..b@example.test",
+      "expected": null
+    },
+    {
+      "raw": "a@example..test",
+      "expected": null
+    },
+    {
+      "raw": "a@.example.test",
+      "expected": null
+    },
+    {
+      "raw": "a@-example.test",
+      "expected": null
+    },
+    {
+      "raw": "a@_example.test",
+      "expected": null
+    },
+    {
+      "raw": "a@example.test",
+      "expected": "a@example.test"
+    },
+    {
+      "raw": "a﻿@example.test",
+      "expected": null
+    },
+    {
+      "raw": "a\u001c@example.test",
+      "expected": "a\u001c@example.test"
+    },
+    {
+      "raw": "a@😀.test",
+      "expected": "a@😀.test"
+    }
+  ]
+}

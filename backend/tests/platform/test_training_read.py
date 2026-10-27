@@ -247,7 +247,9 @@ async def test_training_migration_extends_existing_identity_without_replay(
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
-        ignore=shutil.ignore_patterns("p002_training.py", "p002_training_write.py"),
+        ignore=shutil.ignore_patterns(
+            "p001_password_register.py", "p002_training.py", "p002_training_write.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
     assert (
@@ -261,7 +263,7 @@ async def test_training_migration_extends_existing_identity_without_replay(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p002_training_write"
+        == "p001_password_register"
     )
     assert tuple(
         await observer.fetchrow("SELECT id,display_name,created_at FROM identity.users")

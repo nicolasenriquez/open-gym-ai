@@ -18,7 +18,7 @@ FROM dependencies AS test-base
 COPY --chown=1000:1000 versions.json dependency-licenses.json ./
 COPY --chown=1000:1000 src/ ./src/
 COPY --chown=1000:1000 tests/ ./tests/
-COPY --chown=1000:1000 contracts/identity-sessions.v1.json contracts/identity-passwords.v1.json contracts/training-stamps.v1.json ./contracts/
+COPY --chown=1000:1000 contracts/identity-sessions.v1.json contracts/identity-passwords.v1.json contracts/identity-registration.v1.json contracts/training-stamps.v1.json ./contracts/
 # Windows build contexts may otherwise mark Python source as executable.
 RUN find src tests -type f -name '*.py' -exec chmod 0644 {} +
 ENV PYTHONPATH=/app/src PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH=/app/.venv/bin:$PATH

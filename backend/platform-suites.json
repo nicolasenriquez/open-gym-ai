@@ -41,6 +41,17 @@
       "checkpoint": "3.1 only; no PUT, stamps or browser acceptance"
     }
   ],
+  "identity_register": [
+    {
+      "id": "concurrent_claim",
+      "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Executable schema and privileged functions / Migration failure and function grants",
+      "setup": "Real HTTP, restricted PostgreSQL and independent observer with synthetic accounts/invitations",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_register.py"],
+      "proof": "Password signup, Unicode claims, one-use invitations and first-admin serialization",
+      "checkpoint": "2.3 only; no WebAuthn or account management"
+    }
+  ],
   "identity_password": [
     {
       "id": "login",

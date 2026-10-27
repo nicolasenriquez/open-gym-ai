@@ -80,6 +80,16 @@ una función SQL no convierte un owner recibido en sesión autenticada.
 | `administration.issue_reset(actor text, sv bigint, exp timestamptz, target text, digest bytea, expiry timestamptz)` / `create_invitation(actor text, sv bigint, exp timestamptz, code text, note text, created_at timestamptz)` / `revoke_invitation(actor text, sv bigint, exp timestamptz, code text)` | administration_executor; resultado admin vigente | Sin cambio implícito de flags; reset/versión/enlaces/alias en misma TX. Invitación consumida persiste y no se reabre al eliminar cuenta. Código de reset solo sale al operador autorizado, nunca a telemetría. |
 | `audit.append_event(at timestamptz, event text, ok boolean, actor_id text, target_id text, actor_name text, target_name text, message text, action text, ip text)` / `read_events(actor text, sv bigint, exp timestamptz, after_id bigint, page_size integer)` / `clear_events(actor text, sv bigint, exp timestamptz)` | administration_executor; append sin filas retornadas; read/clear solo admin activo | Campos tipados/allowlisted y tamaño acotado; append en TX separada, secuencia no se reinicia al clear. Retención aplica 90 d/5000 o configuración compatible; fallo separado no revierte negocio. |
 
+En el registro password entregado, Python instala `app.invite_only`,
+`app.first_user_admin` y `app.admin_uids` desde configuración del servidor mediante
+`set_config(..., true)` en la misma transacción; nunca desde el body HTTP.
+`register_password` devuelve únicamente resultado de disponibilidad/colisión o
+id/nombre/admin nuevos. La comprobación previa usa `scrypt_hash = NULL`, no escribe
+ni libera reservas; permite validar invitación/nombre antes de gastar scrypt.
+La llamada final lleva el hash verificado por política y repite los checks bajo
+el mismo namespace antes de crear usuario/claims y consumir invitación juntos.
+Crypto se ejecuta entre ambas transacciones, sin retener conexión ni locks.
+
 En las firmas, argumentos opcionales admiten SQL NULL expresamente; el resto se
 rechaza si falta. Resultados son proyecciones explícitas, nunca SETOF tabla con
 secretos o SELECT *. page_size queda entre 1 y 500 (solo lotes internos para
