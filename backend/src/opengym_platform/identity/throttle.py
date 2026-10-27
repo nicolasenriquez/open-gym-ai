@@ -71,17 +71,21 @@ class Throttle:
         self.addresses = Backoff(20, 30, 900, 3600)
         self.windows = {}
 
-    def entry(self, address):
+    def entry(self, address, *, check_address=True):
         now = time.monotonic()
         self.windows = {k: e for k, e in self.windows.items() if now - e[0] < 60}
-        if address not in self.windows and len(self.windows) >= 10000:
+        # Failure budgets are per kind; the burst budget is shared by address.
+        burst_address = address.rsplit("|", 1)[-1]
+        if burst_address not in self.windows and len(self.windows) >= 10000:
             del self.windows[next(iter(self.windows))]
-        entry = self.windows.setdefault(address, [now, 0])
+        entry = self.windows.setdefault(burst_address, [now, 0])
         entry[1] += 1
         wait = (
             max(1, math.ceil(entry[0] + 60 - now))
             if entry[1] > 60
             else self.addresses.wait(address)
+            if check_address
+            else 0
         )
         if wait:
             raise LockedError(wait)

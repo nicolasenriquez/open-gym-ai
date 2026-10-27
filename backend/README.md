@@ -95,7 +95,16 @@ verifier binds cryptographic responses to the expected origin, RP and challenge.
 `webauthn==3.0.1` verifies existing COSE keys/counters without re-registration or
 requiring UV. Crypto shares the bounded worker queue, outside DB leases; completion
 rechecks key/counter/session version and owner before issuing the compatible cookie.
-Account-management, additional-passkey and audit routes are not yet delivered.
+With password sign-in enabled, `GET/POST/DELETE /api/v1/account/password` and
+`POST/DELETE /api/v1/account/email` support the current Settings contract. Changes
+require a fresh own passkey assertion or the current password; the password cannot
+be removed without a remaining passkey. Password replacement bumps session version,
+removes pending reset/device links and renews only the caller cookie or bearer token.
+Email changes and password removal preserve existing sessions. Email claims remain
+reserved without passwords; only expired reset-only aliases can be reclaimed.
+`POST /api/v1/logout/all` works even with passwords off, clears cookies and revokes
+all owner sessions and pending device links without removing credentials.
+Additional-passkey management, reset/link redemption, pairing and audit routes are not yet delivered.
 Synthetic vectors do not establish physical-authenticator or native-device support.
 
 `GET /api/v1/data` and `GET /api/v1/data/rev` read the verified actor's Training document
@@ -162,6 +171,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
 | `identity_register` | Password/email policy vectors, concurrent Unicode claims, invitation consumption, first-admin assignment and rollback/crypto-time revalidation. |
+| `identity_account` | Own password/email and logout-all, current proof, last-way-in, Unicode/expired/concurrent claims, atomic revocation/rollback and restricted migration/ACLs. |
 | `identity_passkey` | Independent Node/Python ES256/RS256/Ed25519 vectors, HTTP registration/login, replay/expiry, counters, concurrent revocation and restricted migration/ACLs. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |

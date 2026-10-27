@@ -13,7 +13,7 @@ from test_identity_session import identities as identities  # noqa: PLC0414
 from test_lifecycle import deployment as deployment  # noqa: PLC0414
 from test_lifecycle import server
 
-from opengym_platform.core.database import Database, DatabaseError
+from opengym_platform.core.database import Database
 from opengym_platform.identity.passwords import (
     BusyError,
     Passwords,
@@ -556,8 +556,7 @@ async def test_password_sql_rls_and_grants_are_bounded(accounts, monkeypatch):
     database = await Database.open_platform()
     try:
         assert await database.fetch("SELECT * FROM identity.password_credentials") == []
-        with pytest.raises(DatabaseError):
-            await database.fetch("SELECT * FROM identity.login_aliases")
+        assert await database.fetch("SELECT * FROM identity.login_aliases") == []
         async with database.transaction(owner_id="A") as handle:
             assert [
                 r["owner_id"]
@@ -599,6 +598,7 @@ async def test_password_migration_extends_genuine_session_revision(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p001_account.py",
             "p001_passkey.py",
             "p001_password_register.py",
             "p001_password_login.py",
@@ -617,7 +617,7 @@ async def test_password_migration_extends_genuine_session_revision(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_passkey"
+        == "p001_account"
     )
     assert dict(
         await observer.fetchrow("SELECT id,created_at FROM identity.users")

@@ -7,6 +7,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from opengym_platform.core.database import DatabaseError
+from opengym_platform.identity.account import Accounts
 from opengym_platform.identity.passkeys import Passkeys
 from opengym_platform.identity.passwords import BusyError
 from opengym_platform.identity.service import password_login as login_password
@@ -81,6 +82,37 @@ def create_router(
             return await identity_request(request, register_password)
 
     passkeys = Passkeys()
+    accounts = Accounts(passkeys)
+
+    if password_login_enabled:
+
+        @router.post("/account/password")
+        async def set_password(request: Request):
+            return await identity_request(
+                request, accounts.set_password, protected=True
+            )
+
+        @router.delete("/account/password")
+        async def remove_password(request: Request):
+            return await identity_request(
+                request, accounts.remove_password, protected=True
+            )
+
+        @router.post("/account/email")
+        async def set_email(request: Request):
+            return await identity_request(request, accounts.set_email, protected=True)
+
+        @router.delete("/account/email")
+        async def remove_email(request: Request):
+            return await identity_request(
+                request, accounts.remove_email, protected=True
+            )
+
+        @router.get("/account/password")
+        async def password_status(request: Request):
+            return await identity_request(
+                request, accounts.password_status, protected=True
+            )
 
     @router.post("/login/options")
     async def login_options():
@@ -101,12 +133,18 @@ def create_router(
     async def login_verify(request: Request):
         return await identity_request(request, passkeys.login_verify, exempt=True)
 
-    async def identity_request(request, operation, *, exempt=False):
+    @router.post("/logout/all")
+    async def logout_all(request: Request):
+        return await identity_request(request, accounts.logout_all, protected=True)
+
+    async def identity_request(request, operation, *, exempt=False, protected=False):
         headers = {"Cache-Control": "no-store"}
         site = request.headers.get("sec-fetch-site")
         origin = request.headers.get("origin")
-        if not exempt and not request.headers.get("authorization", "").startswith(
-            "Bearer "
+        if (
+            not exempt
+            and request.method != "GET"
+            and not request.headers.get("authorization", "").startswith("Bearer ")
         ):
             allowed = (
                 site in {"same-origin", "none"}
@@ -126,22 +164,47 @@ def create_router(
             os.environ.get("TRUST_PROXY", "").lower() in {"1", "true", "yes", "on"},
         )
         try:
-            if not exempt:
+            if (
+                not exempt
+                and request.method != "GET"
+                and operation != accounts.logout_all
+            ):
                 throttle.entry(
-                    ("signup|" if operation is register_password else "") + address
+                    (
+                        "signup|"
+                        if operation is register_password
+                        else "email|"
+                        if operation == accounts.set_email
+                        else ""
+                    )
+                    + address,
+                    check_address=request.method != "DELETE",
                 )
         except LockedError as error:
             return locked_response(error)
+        session = None
+        if protected:
+            session = verify(
+                ";".join(request.headers.getlist("cookie")),
+                request.headers.get("authorization", ""),
+                secure,
+                secret,
+            )
+            if session is None:
+                return JSONResponse(
+                    {"error": "not signed in"}, status_code=401, headers=headers
+                )
         try:
             raw = bytearray()
-            async for chunk in request.stream():
-                raw.extend(chunk)
-                if len(raw) > 5 * 1024 * 1024:
-                    return JSONResponse(
-                        {"error": "body too large"},
-                        status_code=413,
-                        headers=headers,
-                    )
+            if request.method != "GET" and operation != accounts.logout_all:
+                async for chunk in request.stream():
+                    raw.extend(chunk)
+                    if len(raw) > 5 * 1024 * 1024:
+                        return JSONResponse(
+                            {"error": "body too large"},
+                            status_code=413,
+                            headers=headers,
+                        )
             body = (
                 json.loads(
                     raw.decode("utf-8", errors="replace"),
@@ -165,6 +228,7 @@ def create_router(
                 body,
                 secret,
                 session_days,
+                **({"session": session} if protected else {}),
             )
             response = JSONResponse(result, status_code=status, headers=headers)
             if token:
@@ -175,6 +239,12 @@ def create_router(
                     response.headers.append(
                         "Set-Cookie",
                         "gymsid=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax",
+                    )
+            if operation == accounts.logout_all and status == 200:
+                for name in ["__Host-gymsid", "gymsid"] if secure else ["gymsid"]:
+                    response.headers.append(
+                        "Set-Cookie",
+                        f"{name}=; Path=/; Max-Age=0; HttpOnly;{' Secure;' if secure else ''} SameSite=Lax",
                     )
             return response
         except LockedError as error:

@@ -579,7 +579,7 @@ async def test_previous_head_upgrades_preserving_history_and_privileges(
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
-        ignore=shutil.ignore_patterns("p001_passkey.py"),
+        ignore=shutil.ignore_patterns("p001_account.py", "p001_passkey.py"),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
     assert (
@@ -639,8 +639,8 @@ async def test_previous_head_upgrades_preserving_history_and_privileges(
             await database.fetch("SELECT * FROM identity.lookup_passkey($1)", "unknown")
             == []
         )
+        assert await database.fetch("SELECT * FROM identity.passkeys") == []
         for sql in (
-            "SELECT * FROM identity.passkeys",
             "INSERT INTO identity.passkeys(credential_id) VALUES ('forged')",
             "SET ROLE opengym_identity_executor",
         ):

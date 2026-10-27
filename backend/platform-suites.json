@@ -41,6 +41,17 @@
       "checkpoint": "3.1 only; no PUT, stamps or browser acceptance"
     }
   ],
+  "identity_account": [
+    {
+      "id": "password_email",
+      "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Credential and account access continuity",
+      "setup": "Real restricted HTTP/PostgreSQL, independent Node expectations and observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_account.py"],
+      "proof": "Own password/email and logout-all, fresh proof, atomic claims and revocation, last-way-in",
+      "checkpoint": "2.5 only; no passkey management, reset redemption or pairing"
+    }
+  ],
   "identity_passkey": [
     {
       "id": "interoperability",

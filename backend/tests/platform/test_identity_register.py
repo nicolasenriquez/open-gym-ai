@@ -437,7 +437,9 @@ async def test_registration_migration_preserves_previous_head_and_restricted_gra
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
-        ignore=shutil.ignore_patterns("p001_passkey.py", "p001_password_register.py"),
+        ignore=shutil.ignore_patterns(
+            "p001_account.py", "p001_passkey.py", "p001_password_register.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
     assert (
@@ -470,9 +472,9 @@ async def test_registration_migration_preserves_previous_head_and_restricted_gra
     monkeypatch.delenv("PLATFORM_DB_PASSWORD", raising=False)
     database = await Database.open_platform()
     try:
-        for table in ("login_aliases", "invitations"):
-            with pytest.raises(DatabaseError):
-                await database.fetch("SELECT * FROM identity." + table)
+        assert await database.fetch("SELECT * FROM identity.login_aliases") == []
+        with pytest.raises(DatabaseError):
+            await database.fetch("SELECT * FROM identity.invitations")
         with pytest.raises(DatabaseError):
             await database.execute("SET ROLE opengym_identity_executor")
         with pytest.raises(DatabaseError):
