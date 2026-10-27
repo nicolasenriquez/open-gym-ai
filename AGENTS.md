@@ -95,7 +95,7 @@ No hay publicación, despliegue ni mirror automáticos.
   generar reglas o incorporar skills.
 - Para especificar o implementar un cambio formalizado, consulta `openspec/` y sus
   artefactos; los tickets locales de `.scratch/` enlazan esa especificación. Para
-  flujos locales de issues y triage, lee `.agents/docs/issue-tracker.md` y
+  flujos locales de issues, cierre/limpieza de `.scratch` y triage, lee `.agents/docs/issue-tracker.md` y
   `.agents/docs/triage-labels.md`.
 - Al explorar conceptos del dominio o registrar decisiones, lee
   `.agents/docs/domain.md`: vocabulario en `GLOSSARY.md` y decisiones en `docs/adr/`.

@@ -59,6 +59,8 @@ docs/superpowers/plans/
 # Local Windows junction to the shared verification skill (keep one tracked source).
 .codex/skills/verify-opengym/
 
-# Disposable Docker verification scripts and evidence
-.scratch/docker-layout/
-.scratch/platform-browser/
+# Scratch artifacts stay local; only local issue tickets are versioned.
+/.scratch/**
+!/.scratch/*/
+!/.scratch/*/issues/
+!/.scratch/*/issues/*.md
