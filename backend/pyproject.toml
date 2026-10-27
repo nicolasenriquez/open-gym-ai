@@ -9,6 +9,7 @@ dependencies = [
   "pydantic==2.14.1",
   "uvicorn==0.54.0",
   "asyncpg==0.32.0",
+  "webauthn==3.0.1",
   "alembic==1.20.1",
   "sqlalchemy[asyncio]==2.1.6",
 ]

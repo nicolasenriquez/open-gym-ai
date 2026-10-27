@@ -90,6 +90,16 @@ La llamada final lleva el hash verificado por política y repite los checks bajo
 el mismo namespace antes de crear usuario/claims y consumir invitación juntos.
 Crypto se ejecuta entre ambas transacciones, sin retener conexión ni locks.
 
+El registro passkey usa esa misma configuración transaccional. Su precheck de
+invitación lleva `public_key = NULL`, no crea usuario ni reserva credencial; la
+llamada final revalida invitación/credential ID y confirma usuario/passkey/consumo
+bajo el namespace. `finish_passkey_login` compara clave/counter/versión bajo lock;
+Python compara además el owner observado con el actor devuelto dentro de la misma
+transacción y la revierte si la credencial cambió de dueño. El executor solo puede
+actualizar counter/last_used_at de passkeys, no reasignar su propietario o clave.
+Los errores de verificación no reflejan campos arbitrarios del autenticador;
+la guía de configuración solo muestra RP_ID/ORIGIN del servidor.
+
 En las firmas, argumentos opcionales admiten SQL NULL expresamente; el resto se
 rechaza si falta. Resultados son proyecciones explícitas, nunca SETOF tabla con
 secretos o SELECT *. page_size queda entre 1 y 500 (solo lotes internos para

@@ -196,7 +196,7 @@ async def check():
     connection = await asyncpg.connect(host=target.host, database=target.database, user=target.user, password=target.password, ssl=False, timeout=5)
     try:
         assert await connection.fetchval('SELECT current_user') == 'opengym_api_runtime'
-        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p001_password_register'
+        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p001_passkey'
         try:
             await connection.execute('SET ROLE opengym_schema_owner')
         except asyncpg.InsufficientPrivilegeError:

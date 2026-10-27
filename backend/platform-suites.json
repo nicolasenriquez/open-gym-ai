@@ -41,6 +41,17 @@
       "checkpoint": "3.1 only; no PUT, stamps or browser acceptance"
     }
   ],
+  "identity_passkey": [
+    {
+      "id": "interoperability",
+      "requirement": "Legacy-compatible identity namespace and credentials / Credential and account access continuity; Executable schema and privileged functions / Migration failure and function grants",
+      "setup": "Independent Node WebAuthn vectors, real Uvicorn and restricted PostgreSQL with independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_passkey.py"],
+      "proof": "Passkey registration/login, signature/counter/backup validation, replay and concurrent revocation",
+      "checkpoint": "2.4 only; no account management or physical authenticator acceptance"
+    }
+  ],
   "identity_register": [
     {
       "id": "concurrent_claim",

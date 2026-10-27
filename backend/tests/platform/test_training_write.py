@@ -498,7 +498,7 @@ async def test_write_migration_preserves_genuine_training_document(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
-            "p001_password_register.py", "p002_training_write.py"
+            "p001_passkey.py", "p001_password_register.py", "p002_training_write.py"
         ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
@@ -517,7 +517,7 @@ async def test_write_migration_preserves_genuine_training_document(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_password_register"
+        == "p001_passkey"
     )
     assert await observer.fetchrow("SELECT * FROM training.documents") == before
 

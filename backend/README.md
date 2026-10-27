@@ -85,7 +85,18 @@ and password policy. A namespace lock serializes claims, one-use invitations and
 Scrypt runs outside database leases; the final transaction rechecks claims and
 invitation before creating the account and consuming the code. Expired reset-only
 alias reservations can be reclaimed without changing historical user dates.
-Passkey registration, account-management and audit routes are not yet delivered.
+WebAuthn registration/login use `POST /api/v1/register/options`, `/register/verify`,
+`/login/options` and `/login/verify`. `RP_ID`, `RP_NAME` and `ORIGIN` keep the Node
+defaults (`localhost`, `openGym`, `http://localhost:8080`). Ceremonies are process-local,
+one-use, expire after five minutes and are capped at 20,000, so use the supported
+single worker; restarting it abandons pending ceremonies. Login options ignore the
+request body, as in Node. The four routes retain their Node CSRF exemption; the
+verifier binds cryptographic responses to the expected origin, RP and challenge.
+`webauthn==3.0.1` verifies existing COSE keys/counters without re-registration or
+requiring UV. Crypto shares the bounded worker queue, outside DB leases; completion
+rechecks key/counter/session version and owner before issuing the compatible cookie.
+Account-management, additional-passkey and audit routes are not yet delivered.
+Synthetic vectors do not establish physical-authenticator or native-device support.
 
 `GET /api/v1/data` and `GET /api/v1/data/rev` read the verified actor's Training document
 under the same account lock and transaction-local RLS context. A missing document
@@ -151,6 +162,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
 | `identity_register` | Password/email policy vectors, concurrent Unicode claims, invitation consumption, first-admin assignment and rollback/crypto-time revalidation. |
+| `identity_passkey` | Independent Node/Python ES256/RS256/Ed25519 vectors, HTTP registration/login, replay/expiry, counters, concurrent revocation and restricted migration/ACLs. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
 | `training_browser` | Compiled frontend login, offline dirty/active state, real 401/two 409s, lost reply and restored lineage with independent PG observation. |

@@ -302,5 +302,73 @@
     "classifiers": [],
     "licenseTextFallback": null,
     "installedLinuxAmd64": true
+  },
+  {
+    "name": "cbor2",
+    "version": "6.1.5",
+    "license": "MIT",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "cffi",
+    "version": "2.1.1",
+    "license": "MIT-0",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "cryptography",
+    "version": "50.0.2",
+    "license": "Apache-2.0 OR BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pyasn1",
+    "version": "0.6.5",
+    "license": "BSD-2-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pyasn1-modules",
+    "version": "0.4.2",
+    "license": "BSD",
+    "classifiers": [
+      "License :: OSI Approved :: BSD License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pycparser",
+    "version": "3.12",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "pyopenssl",
+    "version": "26.4.0",
+    "license": "Apache License, Version 2.0",
+    "classifiers": [
+      "License :: OSI Approved :: Apache Software License"
+    ],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
+  },
+  {
+    "name": "webauthn",
+    "version": "3.0.1",
+    "license": "BSD-3-Clause",
+    "classifiers": [],
+    "licenseTextFallback": null,
+    "installedLinuxAmd64": true
   }
 ]
