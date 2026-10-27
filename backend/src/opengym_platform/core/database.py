@@ -62,7 +62,7 @@ def _configuration(raw):
             else False
         )
         return settings, context
-    except ValueError, OSError:
+    except (ValueError, OSError):
         pass
     raise ValueError("DATABASE_CONFIG_INVALID")
 

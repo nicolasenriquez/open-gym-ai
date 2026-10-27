@@ -64,7 +64,7 @@ def verify(cookie, authorization, secure, secret):
         return Session(
             fields[0], int(version), datetime.fromtimestamp(expiry / 1000, UTC), bearer
         )
-    except ValueError, OverflowError, OSError:
+    except (ValueError, OverflowError, OSError):
         return None
 
 

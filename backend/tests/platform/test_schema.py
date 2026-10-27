@@ -53,7 +53,7 @@ async def migrate(*arguments, env=None):
     assert diagnostic == b"", "PLATFORM_MIGRATION_UNSAFE_STDERR"
     try:
         result = json.loads(output)
-    except ValueError, UnicodeError:
+    except (ValueError, UnicodeError):
         pytest.fail("PLATFORM_MIGRATION_INVALID_OUTPUT", pytrace=False)
     return process.returncode, result
 

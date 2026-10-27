@@ -73,7 +73,7 @@ def load_database(role):
             if role == "bootstrap"
             else "",
         )
-    except OSError, ValueError, KeyError, UnicodeError:
+    except (OSError, ValueError, KeyError, UnicodeError):
         raise ValueError("PLATFORM_DATABASE_CONFIG_INVALID") from None
 
 
@@ -83,7 +83,7 @@ def load_session_secret():
         if len(secret) < 32:
             raise ValueError
         return secret
-    except OSError, ValueError, UnicodeError:
+    except (OSError, ValueError, UnicodeError):
         raise ValueError("PLATFORM_SESSION_CONFIG_INVALID") from None
 
 

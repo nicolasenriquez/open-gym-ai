@@ -79,7 +79,7 @@ class CommitRelay:
                 asyncio.create_task(pipe(remote, writer, True)),
             ]
             await asyncio.wait(pipes, return_when=asyncio.FIRST_COMPLETED)
-        except OSError, asyncio.IncompleteReadError, TimeoutError:
+        except (OSError, asyncio.IncompleteReadError, TimeoutError):
             pass
         finally:
             for task in pipes:
@@ -90,7 +90,7 @@ class CommitRelay:
                     stream.close()
                     try:
                         await asyncio.wait_for(stream.wait_closed(), 5)
-                    except OSError, TimeoutError:
+                    except (OSError, TimeoutError):
                         pass
 
 

@@ -117,7 +117,7 @@ def create_router(
                 )
                 if not isinstance(body, dict):
                     raise TypeError
-            except ValueError, TypeError, RecursionError:
+            except (ValueError, TypeError, RecursionError):
                 return JSONResponse(
                     {"error": "invalid json"}, status_code=400, headers=headers
                 )
@@ -153,7 +153,7 @@ def create_router(
                     status_code=503,
                     headers={**headers, "Retry-After": "2"},
                 )
-            except DatabaseError, ValueError, OverflowError:
+            except (DatabaseError, ValueError, OverflowError):
                 return JSONResponse(
                     {"error": "server error"}, status_code=500, headers=headers
                 )
