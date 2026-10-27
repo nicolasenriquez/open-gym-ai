@@ -5,10 +5,27 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from functools import partial
 
-from webauthn import verify_authentication_response
+from webauthn import (
+    generate_registration_options,
+    verify_authentication_response,
+    verify_registration_response,
+)
+from webauthn.helpers import base64url_to_bytes, bytes_to_base64url
 from webauthn.helpers.exceptions import WebAuthnException
+from webauthn.helpers.structs import (
+    AuthenticatorSelectionCriteria,
+    PublicKeyCredentialDescriptor,
+    ResidentKeyRequirement,
+    UserVerificationRequirement,
+)
 
-from opengym_platform.identity.passwords import SPACE, make_hash, name_key
+from opengym_platform.identity import passkeys
+from opengym_platform.identity.passwords import (
+    SPACE,
+    identifier_text,
+    make_hash,
+    name_key,
+)
 from opengym_platform.identity.registration import (
     ERRORS,
     normalize_email,
@@ -30,8 +47,9 @@ class Refused(Exception):
 
 
 class Accounts:
-    def __init__(self, passkeys):
+    def __init__(self, passkeys, password_enabled=True):
         self.passkeys = passkeys
+        self.password_enabled = password_enabled
 
     @asynccontextmanager
     async def locked(self, database, session):
@@ -46,9 +64,7 @@ class Accounts:
         credentials = await handle.fetch(
             "SELECT scrypt_hash FROM identity.password_credentials"
         )
-        passkeys = await handle.fetch(
-            "SELECT credential_id,public_key,counter FROM identity.passkeys"
-        )
+        passkeys = await handle.fetch("SELECT * FROM identity.passkeys")
         aliases = await handle.fetch(
             "SELECT alias_key FROM identity.login_aliases WHERE email_claim"
         )
@@ -58,6 +74,198 @@ class Accounts:
             "passkeys": passkeys,
             "email": aliases[0]["alias_key"] if aliases else None,
         }
+
+    async def passkey_state(self, handle):
+        observed = await self.snapshot(handle)
+        if not self.password_enabled:
+            observed["stored"] = None
+        return observed, {
+            "passkeys": [
+                {
+                    "id": row["credential_id"],
+                    "name": row["label"] or None,
+                    "created": self.passkeys.timestamp(row["created_at"]),
+                    "lastUsed": self.passkeys.timestamp(row["last_used_at"]),
+                    "transports": self.passkeys.transports(row["transports"]),
+                }
+                for row in observed["passkeys"]
+            ],
+            "password": bool(observed["stored"]),
+            "lastWayIn": len(observed["passkeys"]) + bool(observed["stored"]) <= 1,
+        }
+
+    async def list_passkeys(
+        self, database, passwords, throttle, address, body, secret, days, *, session
+    ):
+        try:
+            async with self.locked(database, session) as handle:
+                _, state = await self.passkey_state(handle)
+            return 200, state, None
+        except Refused as error:
+            return error.response()
+
+    @staticmethod
+    def passkey_limit(observed):
+        if len(observed["passkeys"]) >= 20:
+            raise Refused(
+                409, "a profile can have at most 20 passkeys", "passkey-limit"
+            )
+
+    async def add_passkey_options(
+        self, database, passwords, throttle, address, body, secret, days, *, session
+    ):
+        try:
+            async with self.locked(database, session) as handle:
+                observed, _ = await self.passkey_state(handle)
+                self.passkey_limit(observed)
+            proof = await self.prove(passwords, throttle, address, body, observed)
+            async with self.locked(database, session) as handle:
+                current, _ = await self.passkey_state(handle)
+                await self.confirm(handle, proof, observed, current, session, throttle)
+                self.passkey_limit(current)
+                options = generate_registration_options(
+                    rp_id=self.passkeys.rp_id,
+                    rp_name=self.passkeys.rp_name,
+                    challenge=passkeys.token_bytes(32),
+                    user_id=session.owner.encode(),
+                    user_name=current["display_name"],
+                    authenticator_selection=AuthenticatorSelectionCriteria(
+                        resident_key=ResidentKeyRequirement.REQUIRED,
+                        require_resident_key=True,
+                        user_verification=UserVerificationRequirement.PREFERRED,
+                    ),
+                    exclude_credentials=[
+                        PublicKeyCredentialDescriptor(
+                            id=base64url_to_bytes(p["credential_id"]),
+                            transports=self.passkeys.transports(p["transports"]),
+                        )
+                        for p in current["passkeys"]
+                    ],
+                )
+            return self.passkeys.remember(
+                "add", options, uid=session.owner, sv=session.version
+            )
+        except Refused as error:
+            return error.response()
+
+    async def add_passkey_verify(
+        self, database, passwords, throttle, address, body, secret, days, *, session
+    ):
+        try:
+            async with self.locked(database, session):
+                ceremony = self.passkeys.take(body, "add")
+                if not ceremony or ceremony["uid"] != session.owner:
+                    raise Refused(
+                        400, "challenge expired, try again", "challenge-expired"
+                    )
+            if not isinstance(body.get("credential"), dict):
+                return 400, {"error": "verification failed"}, None
+            try:
+                credential = await passwords.run(
+                    partial(
+                        verify_registration_response,
+                        credential=body.get("credential"),
+                        expected_challenge=ceremony["challenge"],
+                        expected_origin=self.passkeys.origin,
+                        expected_rp_id=self.passkeys.rp_id,
+                        require_user_verification=False,
+                    )
+                )
+            except (
+                WebAuthnException,
+                ValueError,
+                TypeError,
+                KeyError,
+                OverflowError,
+            ) as error:
+                return 400, self.passkeys.verify_error(error), None
+            async with self.locked(database, session) as handle:
+                if session.version != ceremony["sv"]:
+                    raise Refused(401, "not signed in")
+                # The namespace lock also serializes credential IDs across owners/signups.
+                inserted = await handle.fetch(
+                    """INSERT INTO identity.passkeys(credential_id,owner_id,public_key,counter,transports,label,created_at)
+                    VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(credential_id) DO NOTHING RETURNING credential_id""",
+                    bytes_to_base64url(credential.credential_id),
+                    session.owner,
+                    credential.credential_public_key,
+                    credential.sign_count,
+                    self.passkeys.transports(
+                        body["credential"].get("response", {}).get("transports")
+                    ),
+                    self.passkeys.label(body.get("name")),
+                    datetime.now(UTC),
+                )
+                if not inserted:
+                    raise Refused(
+                        409, "credential already registered", "credential-exists"
+                    )
+                observed, state = await self.passkey_state(handle)
+                if len(observed["passkeys"]) > 20:
+                    raise Refused(
+                        409, "a profile can have at most 20 passkeys", "passkey-limit"
+                    )
+            return 200, {"ok": True, **state}, None
+        except Refused as error:
+            return error.response()
+
+    async def rename_passkey(
+        self, database, passwords, throttle, address, body, secret, days, *, session
+    ):
+        try:
+            async with self.locked(database, session) as handle:
+                rows = await handle.fetch(
+                    "UPDATE identity.passkeys SET label=$1 WHERE credential_id=$2 RETURNING credential_id",
+                    self.passkeys.label(body.get("name")),
+                    identifier_text(body.get("id")),
+                )
+                if not rows:
+                    raise Refused(404, "passkey not found", "not-found")
+                _, state = await self.passkey_state(handle)
+            return 200, {"ok": True, **state}, None
+        except Refused as error:
+            return error.response()
+
+    @staticmethod
+    def removal_allowed(observed, credential_id):
+        if not any(p["credential_id"] == credential_id for p in observed["passkeys"]):
+            raise Refused(404, "passkey not found", "not-found")
+        if len(observed["passkeys"]) - 1 + bool(observed["stored"]) < 1:
+            raise Refused(
+                409, "this passkey is the only way into this profile", "last-way-in"
+            )
+
+    async def remove_passkey(
+        self,
+        database,
+        passwords,
+        throttle,
+        address,
+        body,
+        secret,
+        days,
+        *,
+        session,
+        credential_id,
+    ):
+        try:
+            async with self.locked(database, session) as handle:
+                observed, _ = await self.passkey_state(handle)
+                self.removal_allowed(observed, credential_id)
+            proof = await self.prove(passwords, throttle, address, body, observed)
+            async with self.locked(database, session) as handle:
+                current, _ = await self.passkey_state(handle)
+                await self.confirm(handle, proof, observed, current, session, throttle)
+                self.removal_allowed(current, credential_id)
+                await handle.execute(
+                    "DELETE FROM identity.passkeys WHERE credential_id=$1",
+                    credential_id,
+                )
+                await handle.execute("DELETE FROM identity.device_links")
+                _, state = await self.passkey_state(handle)
+            return 200, {"ok": True, **state}, None
+        except Refused as error:
+            return error.response()
 
     async def prove(self, passwords, throttle, address, body, observed):
         raw = body.get("credential")
@@ -87,7 +295,7 @@ class Accounts:
                     )
                 )
                 return credential, verified.new_sign_count
-            except (WebAuthnException, ValueError, TypeError, KeyError, OverflowError):
+            except WebAuthnException, ValueError, TypeError, KeyError, OverflowError:
                 raise Refused(
                     403, "the passkey could not be verified", "passkey"
                 ) from None

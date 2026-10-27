@@ -421,6 +421,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p001_passkey_manage.py",
             "p001_account.py",
             "p001_passkey.py",
             "p001_password_register.py",
@@ -438,7 +439,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_account"
+        == "p001_passkey_manage"
     )
 
 

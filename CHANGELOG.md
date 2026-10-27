@@ -14,6 +14,10 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python platform passkey management for the existing Settings UI: owner-only
+  listing, verified additions/removals, renaming, a 20-key cap and last-way-in
+  protection. Synthetic HTTP/PostgreSQL and virtual-authenticator browser checks
+  cover persistence and session revocation; the default application remains Node/JSON.
 - Separate platform dev/ops Compose definitions, file-backed database credentials,
   and non-root runtime, migration and operations image targets. The bootstrap HTTP
   factory provides public health/config and internal live/ready probes without

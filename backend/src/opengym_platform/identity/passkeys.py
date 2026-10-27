@@ -2,8 +2,10 @@
 
 import json
 import os
+import re
 import secrets
 import time
+import unicodedata
 from datetime import UTC, datetime
 from functools import partial
 from secrets import token_bytes
@@ -48,9 +50,47 @@ class Passkeys:
             **data,
         }
         public = json.loads(options_to_json(options))
-        if kind == "register":
+        if kind in {"register", "add"}:
             public["extensions"] = {"credProps": True}
         return 200, {"cid": cid, "options": public}, None
+
+    @staticmethod
+    def timestamp(value):
+        return (
+            value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            if value
+            else None
+        )
+
+    @staticmethod
+    def transports(value):
+        return (
+            [
+                v
+                for v in value
+                if isinstance(v, str)
+                and len(v.encode("utf-16-le", "surrogatepass")) <= 32
+            ][:8]
+            if isinstance(value, (list, tuple))
+            else []
+        )
+
+    @staticmethod
+    def label(value):
+        if not isinstance(value, str):
+            return None
+        value = "".join(
+            " " if ord(c) < 32 or ord(c) == 127 else c
+            for c in value
+            if unicodedata.category(c) != "Cf" or c in "\u200c\u200d"
+        )
+        value = re.sub(f"[{SPACE}]+", " ", value).strip(SPACE)
+        return (
+            value.encode("utf-16-le", "surrogatepass")[:80].decode(
+                "utf-16-le", "surrogatepass"
+            )
+            or None
+        )
 
     def login_options(self):
         options = generate_authentication_options(

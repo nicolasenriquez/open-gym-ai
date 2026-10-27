@@ -20,6 +20,8 @@ async def test_real_frontend_training_browser(accounts):
     environment["ORIGIN"] = "http://localhost:8080"
     await observer.execute("""INSERT INTO training.documents(owner_id,document)
         VALUES ('B','{"_rev":2,"workouts":[{"id":"foreign-sentinel"}]}')""")
+    await observer.execute("""INSERT INTO identity.passkeys VALUES
+        ('foreign-browser-sentinel','B',decode('aa','hex'),0,'{}',NULL,NULL,NULL)""")
     done = asyncio.Event()
     result = {}
     loop = asyncio.get_running_loop()
@@ -29,6 +31,19 @@ async def test_real_frontend_training_browser(accounts):
         async def control(path, body):
             if path == "/ready":
                 return {"ready": True}
+            if path == "/passkeys":
+                own = await observer.fetch(
+                    "SELECT credential_id,label FROM identity.passkeys WHERE owner_id='A'"
+                )
+                return {
+                    "own": [dict(row) for row in own],
+                    "foreign": await observer.fetchval(
+                        "SELECT count(*) FROM identity.passkeys WHERE owner_id='B'"
+                    ),
+                    "sessionVersion": await observer.fetchval(
+                        "SELECT session_version FROM identity.users WHERE id='A'"
+                    ),
+                }
             if path == "/snapshot":
                 rows = await observer.fetch(
                     "SELECT owner_id,document FROM training.documents"
@@ -126,6 +141,7 @@ async def test_real_frontend_training_browser(accounts):
             await asyncio.wait_for(done.wait(), 220)
             assert result.get("completed") is True, result.get("stage")
             assert result["cases"] == [
+                "passkeys",
                 "login",
                 "offline",
                 "auth",
@@ -140,7 +156,9 @@ async def test_real_frontend_training_browser(accounts):
                 )
                 == "foreign-sentinel"
             )
-            print("PLATFORM_BROWSER_OK: six cases; independent PG sentinel preserved")
+            print(
+                "PLATFORM_BROWSER_OK: seven cases; independent PG sentinels preserved"
+            )
         finally:
             await asyncio.to_thread(fixture.shutdown)
             fixture.server_close()

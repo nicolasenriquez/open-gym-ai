@@ -6,8 +6,8 @@
       "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
       "target": "platform-browser",
       "command": ["tests/platform/test_training_browser.py"],
-      "proof": "UI login, offline saved dirty/active state and reconnection reload, real revocation 401, repeated real 409, committed lost reply and restored lineage",
-      "checkpoint": "3.4 synthetic browser only; no native devices, passkeys or operational restore acceptance"
+      "proof": "Settings passkey add/rename/remove with virtual authenticator and independent PG observation; UI login, offline state, real 401/two 409s, lost reply and restored lineage",
+      "checkpoint": "3.4 and 2.6 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
     }
   ],
   "training_write": [
@@ -42,6 +42,15 @@
     }
   ],
   "identity_account": [
+    {
+      "id": "passkey_management",
+      "requirement": "Legacy-compatible identity namespace and credentials / Credential and account access continuity",
+      "setup": "Real restricted HTTP/PostgreSQL and independent WebAuthn vectors with separate observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_passkey_management.py"],
+      "proof": "Owner-only list/add/rename/remove, fresh proof, cap 20, last-way-in and stale ceremony rejection",
+      "checkpoint": "2.6 synthetic management only; no physical authenticator or device-link redemption"
+    },
     {
       "id": "password_email",
       "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Credential and account access continuity",

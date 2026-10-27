@@ -82,7 +82,31 @@ def create_router(
             return await identity_request(request, register_password)
 
     passkeys = Passkeys()
-    accounts = Accounts(passkeys)
+    accounts = Accounts(passkeys, password_login_enabled)
+
+    @router.get("/account/passkeys")
+    async def list_passkeys(request: Request):
+        return await identity_request(request, accounts.list_passkeys, protected=True)
+
+    @router.post("/account/passkeys/options")
+    async def add_passkey_options(request: Request):
+        return await identity_request(
+            request, accounts.add_passkey_options, protected=True
+        )
+
+    @router.post("/account/passkeys/verify")
+    async def add_passkey_verify(request: Request):
+        return await identity_request(
+            request, accounts.add_passkey_verify, protected=True
+        )
+
+    @router.post("/account/passkeys/rename")
+    async def rename_passkey(request: Request):
+        return await identity_request(request, accounts.rename_passkey, protected=True)
+
+    @router.delete("/account/passkeys")
+    async def remove_passkey(request: Request):
+        return await identity_request(request, accounts.remove_passkey, protected=True)
 
     if password_login_enabled:
 
@@ -167,7 +191,12 @@ def create_router(
             if (
                 not exempt
                 and request.method != "GET"
-                and operation != accounts.logout_all
+                and operation
+                not in (
+                    accounts.logout_all,
+                    accounts.rename_passkey,
+                    accounts.add_passkey_verify,
+                )
             ):
                 throttle.entry(
                     (
@@ -178,7 +207,8 @@ def create_router(
                         else ""
                     )
                     + address,
-                    check_address=request.method != "DELETE",
+                    check_address=request.method != "DELETE"
+                    and operation != accounts.add_passkey_options,
                 )
         except LockedError as error:
             return locked_response(error)
@@ -215,7 +245,7 @@ def create_router(
             )
             if not isinstance(body, dict):
                 raise TypeError
-        except (ValueError, TypeError, RecursionError):
+        except ValueError, TypeError, RecursionError:
             return JSONResponse(
                 {"error": "invalid json"}, status_code=400, headers=headers
             )
@@ -229,6 +259,15 @@ def create_router(
                 secret,
                 session_days,
                 **({"session": session} if protected else {}),
+                **(
+                    {
+                        "credential_id": next(
+                            iter(request.query_params.getlist("id")), ""
+                        )
+                    }
+                    if operation == accounts.remove_passkey
+                    else {}
+                ),
             )
             response = JSONResponse(result, status_code=status, headers=headers)
             if token:
@@ -258,7 +297,7 @@ def create_router(
                 status_code=503,
                 headers={**headers, "Retry-After": "2"},
             )
-        except (DatabaseError, ValueError, OverflowError):
+        except DatabaseError, ValueError, OverflowError:
             return JSONResponse(
                 {"error": "server error"}, status_code=500, headers=headers
             )

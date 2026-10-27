@@ -579,7 +579,9 @@ async def test_previous_head_upgrades_preserving_history_and_privileges(
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
-        ignore=shutil.ignore_patterns("p001_account.py", "p001_passkey.py"),
+        ignore=shutil.ignore_patterns(
+            "p001_passkey_manage.py", "p001_account.py", "p001_passkey.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
     assert (

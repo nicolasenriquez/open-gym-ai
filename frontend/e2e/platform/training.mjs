@@ -5,6 +5,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { verifyPasskeyManagement } from './passkeys.mjs';
 
 const root = resolve('public');
 const evidence = '/tmp/evidence';
@@ -92,6 +93,10 @@ try {
   await button('Continuar sin cuenta').waitFor();
   assert.equal((await local()).state?.routines?.length || 0, 0, 'Browser must start empty');
   await login();
+  stage = 'passkeys';
+  await verifyPasskeyManagement({ page, context, control, until });
+  await report(stage);
+  stage = 'login';
   await page.goto('http://localhost:8080/#/');
   await button('Crear mi propio plan').waitFor();
   await page.getByRole('navigation').getByRole('button', { name: 'Plan', exact: true }).click();

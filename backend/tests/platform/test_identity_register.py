@@ -438,7 +438,10 @@ async def test_registration_migration_preserves_previous_head_and_restricted_gra
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
-            "p001_account.py", "p001_passkey.py", "p001_password_register.py"
+            "p001_passkey_manage.py",
+            "p001_account.py",
+            "p001_passkey.py",
+            "p001_password_register.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")

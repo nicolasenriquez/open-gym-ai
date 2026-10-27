@@ -104,8 +104,16 @@ Email changes and password removal preserve existing sessions. Email claims rema
 reserved without passwords; only expired reset-only aliases can be reclaimed.
 `POST /api/v1/logout/all` works even with passwords off, clears cookies and revokes
 all owner sessions and pending device links without removing credentials.
-Additional-passkey management, reset/link redemption, pairing and audit routes are not yet delivered.
-Synthetic vectors do not establish physical-authenticator or native-device support.
+`GET/DELETE /api/v1/account/passkeys` and `POST /api/v1/account/passkeys/options`,
+`/verify` and `/rename` support the existing Settings passkey list and management.
+Adding/removing requires fresh owner proof; renaming requires the verified session.
+The cap of 20 and last-way-in protection are rechecked under the owner lock. A
+password counts only while password sign-in is enabled. Add ceremonies are one-use,
+owner/version-bound and expire after five minutes; logout-all invalidates them.
+Removing a passkey also removes pending device links, but preserves existing sessions.
+Reset/link redemption, pairing and audit routes are not yet delivered.
+Synthetic vectors and the browser's virtual authenticator do not establish
+physical-authenticator or native-device support.
 
 `GET /api/v1/data` and `GET /api/v1/data/rev` read the verified actor's Training document
 under the same account lock and transaction-local RLS context. A missing document
@@ -171,11 +179,11 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
 | `identity_register` | Password/email policy vectors, concurrent Unicode claims, invitation consumption, first-admin assignment and rollback/crypto-time revalidation. |
-| `identity_account` | Own password/email and logout-all, current proof, last-way-in, Unicode/expired/concurrent claims, atomic revocation/rollback and restricted migration/ACLs. |
+| `identity_account` | Own password/email, logout-all and passkey management; current proof, cap/last-way-in, concurrent claims, atomic revocation/rollback and restricted migration/ACLs. |
 | `identity_passkey` | Independent Node/Python ES256/RS256/Ed25519 vectors, HTTP registration/login, replay/expiry, counters, concurrent revocation and restricted migration/ACLs. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
-| `training_browser` | Compiled frontend login, offline dirty/active state, real 401/two 409s, lost reply and restored lineage with independent PG observation. |
+| `training_browser` | Compiled Settings passkey add/rename/remove with a virtual authenticator, login, offline dirty/active state, real 401/two 409s, lost reply and restored lineage with independent PG observation. |
 | `images` | Runtime/tool separation, dev/prod topology and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
@@ -203,7 +211,7 @@ the fixture control server. No fixture routes are added to the application.
 The current HTTP flow preserves the loaded page and saved dirty/active state offline,
 then reloads on reconnection. HTTPS service-worker cold launch and native devices are
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
-bundle; this does not verify nginx deployment. Screenshots for six cases and a sanitized
+bundle; this does not verify nginx deployment. Screenshots for seven cases and a sanitized
 result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 
