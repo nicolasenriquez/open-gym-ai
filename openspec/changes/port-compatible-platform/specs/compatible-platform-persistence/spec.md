@@ -191,3 +191,21 @@ Cleanup SHALL use exact owned paths/resources, preserve unrelated work and user/
 - **WHEN** cleanup runs with synthetic owned artifacts, a foreign sentinel and protected recovery material present
 - **THEN** only reviewed obsolete owned artifacts are removed, the sentinel and protected material remain intact and no original user data is deleted
 - **AND** clean-checkout builds and post-retirement capability/security/restore checks still pass without active imports of the retired backend
+
+### Requirement: Transition contract retirement with native regression coverage
+The Node/Python comparison artifacts under `backend/contracts/`, including frozen JSON dumps, transition manifests and Node-based vector generators, SHALL be temporary port tooling. Before final platform acceptance, their consumers and required guarantees SHALL be inventoried, migrated and verified, and those artifacts SHALL be removed from the active tree. A remaining test dependency SHALL block retirement completion rather than justify indefinite retention. Frozen expectations SHALL remain unchanged during comparison; eventual reviewed retirement SHALL NOT authorize regeneration to admit drift or immediate deletion during an unfinished slice.
+
+Backend guarantees SHALL be preserved in pytest and frontend guarantees in Vitest, supplemented by existing browser verification where required. Replacement tests SHALL use bounded readable cases and reusable setup, preserve positive and negative behavior and retain independent known-answer vectors where cryptographic or serialization compatibility requires them. Expected results SHALL NOT be derived from the implementation under test. Copying complete JSON dumps into Python/JavaScript literals or another fixture directory SHALL NOT satisfy retirement. Minimal independent vectors MAY remain as native test fixtures with an explicit tested guarantee and no dependency on the retired Node implementation or transition generators.
+
+Retirement SHALL update test loaders, Docker COPY inputs and context filters, runners, CI and current documentation so builds and tests no longer require the removed artifacts. Historical evidence and protected recovery material SHALL retain their preservation rules. Final acceptance SHALL require clean-checkout builds and passing replacement backend, frontend and applicable browser tests after removal; a textual absence check or successful pre-removal comparison alone SHALL NOT suffice.
+
+#### Scenario: Transition contracts are removed after coverage migration
+- **WHEN** final port retirement is prepared after behavioral comparison
+- **THEN** each required comparison guarantee has verified replacement coverage in pytest or Vitest and applicable browser tests
+- **AND** transition dumps, manifests and generators are removed without relocating equivalent dumps or leaving active build/test/CI dependencies
+- **AND** minimal independent known-answer fixtures preserve their guarantees without invoking the retired Node implementation
+
+#### Scenario: Missing replacement coverage blocks acceptance
+- **WHEN** a comparison artifact supplies a required case without passing independent replacement coverage
+- **THEN** retirement and final acceptance remain incomplete until that coverage is migrated and verified
+- **AND** the artifact remains intact during the unfinished slice, without weakening expectations or deleting the only regression proof
