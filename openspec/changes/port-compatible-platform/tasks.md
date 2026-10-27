@@ -1,15 +1,19 @@
 ## Estado y límites
 
 Plan revisado de entrega sintética futura; ningún checkbox está implementado o
-aceptado por la revisión documental original. Las solicitudes posteriores autorizan
-1.1–1.5 y 2.1 y, en esta entrega, únicamente 2.2 en recursos sintéticos; el estado y evidencia
-actuales figuran junto a esas tareas.
+aceptado por la revisión documental original. Las solicitudes posteriores autorizaron
+1.1–1.5 y 2.1–2.2 en recursos sintéticos; el estado y evidencia actuales figuran
+junto a esas tareas. Las solicitudes actuales autorizan además 3.1–3.2 en recursos sintéticos,
+siguiendo el orden 2.1–2.2 → piloto S3 del plan ejecutable.
 Checkpoints: port funcional → operación local recuperable
 → corte/retirada reales en cambio operativo separado. S11 conserva las obligaciones
 de handoff: no ejecutarlas ni marcarlas completas por un ensayo sintético. Antes de
 archivar, transferirlas explícitamente con trazabilidad; no autorizar Recovery por
-cierre de este cambio. El permiso de entrega actual añade únicamente 2.2 a 1.1–1.5 y 2.1;
-2.3 y las tareas posteriores siguen fuera del alcance autorizado.
+cierre de este cambio.
+2.3–2.9 y 3.3 en adelante siguen fuera del alcance autorizado, salvo el soporte
+mínimo de corrección de campos desconocidos y la frontera de marcas postcommit
+adelantados a 3.2 con aprobación explícita. La paridad completa de stamps/legacy y
+la implementación de medios S4 siguen pendientes; 3.2 entrega guardado condicionado.
 Se acepta diseñar backup con pausa; la autorización/entrega privada de la vía nueva
 Q1 y la selección del tooling estándar de retención son prerrequisitos de sus slices,
 no hechos resueltos ni permiso para implementarlos.
@@ -24,7 +28,8 @@ El [plan ejecutable](execution-plan.md) fija alcance, actores/rutas,
 almacenes, primera prueba conductual, errores y checkpoint de cada slice S1–S11.
 Los comandos `verify` salvo `harness/ownership`, `contracts/baseline`, `schema/history_lock`,
 `images/isolation`, `lifecycle/readiness`, `identity_session/actor`,
-`identity_password/login`, `database/pool` y `checks/toolchain` siguen siendo **futuros**. Cada slice añade
+`identity_password/login`, `training_read/owner_and_types`, `training_write/first_write`,
+`database/pool` y `checks/toolchain` siguen siendo **futuros**. Cada slice añade
 su mapeo/imagen antes de verificar. Solo 1.1 usa el comando Foundation existente antes
 de ese runner. Cada tarea ejecuta primero su caso RED válido, después implementación,
 caso GREEN y suite afectada completa. No adelantar toda la implementación a las pruebas.
@@ -105,12 +110,17 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
 
 ## 3. Piloto Training — S3
 
-- [ ] 3.1 Entregar p002/proyecciones y GET data/rev bajo actor/RLS: A propio/B vacío, metadata canónica y tipos SQL inválidos rechazados sin redondeo.
+- [x] 3.1 Entregar p002/proyecciones y GET data/rev bajo actor/RLS: A propio/B vacío, metadata canónica y tipos SQL inválidos rechazados sin redondeo.
   Traceability: compatible-platform-persistence / Canonical compatible Training persistence / No document and legacy metadata; Authenticated session to RLS ownership / Verified session controls owner context despite client forgery.
   Proof/Check: `node scripts/platform.mjs verify training_read --case owner_and_types`.
-- [ ] 3.2 Entregar PUT/primera escritura concurrente/conflicto y diferencia rev respuesta/almacenada; fallo de marca externa no altera commit reconocido.
+  Notes: RED conductual observado en `.scratch/platform-training-read/red-empty.log`: HTTP real devuelve 404 en vez de 200 para el propietario sin documento; el intento anterior con Docker detenido no cuenta como RED. GREEN: caso/suite completa `training_read` PASS (8 tests, cero skips), evidencia `.scratch/platform-training-read/final-training_read.log`. `p002_training` extiende p001 sin modificar revisiones anteriores: JSONB completo, proyecciones GENERATED STORED con funciones IMMUTABLE STRICT invoker y SQLSTATE 22023 para tipos/rango inválidos; RLS ENABLE/FORCE y runtime con SELECT únicamente. Login real, A propio/B vacío incluso siendo B admin, owner falsificado, ausencia/null, límite JS, notas internas conservadas en SQL y omitidas solo al cliente, revocación concurrente y upgrade/rerun preservando identidad histórica verificados. Readiness y fixtures de historia/imágenes avanzan a p002; CI incorpora `verify training_read`.
+  Notes (integración): `node scripts/platform.mjs verify <suite>` PASS para schema (12), lifecycle (15, incluido head anterior rechazado), identity_session (26), identity_password (27), database (20), checks (12), contracts (seis casos HTTP congelados y suites Node/cliente), harness e images. Cero pruebas omitidas; cleanup propio PASS. Evidencia local ignorada: `.scratch/platform-training-read/final-*.log`; checks repetidos sobre el árbol final en `final-checks-current.log`. Layout/contextos Docker 8/8 en `layout-context-elevated.log` tras primer intento bloqueado por permisos del sandbox. Oxlint directo instalado PASS (799 archivos); pnpm intentó descargar el gestor y falló por DNS, sin instalar dependencias. OKF/OpenSpec estricto/diff-check PASS. Revisión ponytail del diff completo y archivos nuevos sin bloqueantes; reglas AGENTS vigentes sin editar. Ready for closeout de 3.1 solamente, 8/57 tareas completas. Sin PUT/stamps/navegador, CI remota/matriz de caché, datos reales ni aceptación operativa; sin commit/push/sync/archive.
+- [x] 3.2 Entregar PUT/primera escritura concurrente/conflicto y diferencia rev respuesta/almacenada; fallo de marca externa no altera commit reconocido.
   Traceability: compatible-platform-persistence / Canonical compatible Training persistence / First write and competing revision.
   Proof/Check: `node scripts/platform.mjs verify training_write --case first_write`.
+  Notes: entrega sintética sobre `93a003556` más diff, preservando 3.1 sin commit. El promotor aprobó adelantar únicamente corrección de campos desconocidos y frontera postcommit; el resto de 3.3/S4 sigue pendiente. RED HTTP 404 frente a 200 en `.scratch/platform-training-write/red-first-write.log`; GREEN inicial conservado. Regresiones detectaron/repararon texto literal Unicode rechazado, revisión extra por solo bookkeeping y conflicto de documento vacío confundido con ausencia; RED en `acceptance-first.log`, `red-bookkeeping.log` y `red-empty-document.log`. Fallos de preparación/asserts de ACL no se acreditan como RED conductual.
+  Notes (aceptación): `node scripts/platform.mjs verify training_write --case first_write` PASS, 18 tests y cero skips, evidencia `.scratch/platform-training-write/final-current-training-write.log`; cleanup propio PASS. HTTP real → actor revalidado bajo lock → FORCE RLS → UPSERT canónico y observador PG independiente; carrera de primera escritura con un ganador/409, A propio/B intacto, validación/CSRF, margen JS, metadata SQL no editable, corrección respuesta +1/almacenada +2, bookkeeping sin revisión extra, y `{}` distinto de ausencia. Callback async público tras commit con presupuesto de 2 s: fallo/timeout mantienen 200 y persistencia, fallo SQL no llama al efecto. Referencia Node independiente para IDs repetidos en `node-correction.log`. `p002_training_write` solo concede INSERT(owner_id,document)/UPDATE(document), conserva p002 y documentos históricos. CI y README actualizados. Escrituras sin baseRev fallan cerradas (400) hasta 3.3; solo frontera de marcas simulada, sin adaptador/archivos/GC de medios.
+  Notes (integración): `node scripts/platform.mjs verify <suite>` PASS: training_read (8), schema (12), lifecycle (16), identity_session (26), identity_password (27), database (20), checks (12), contracts (seis HTTP congelados y suites Node/cliente), harness e images; cero skips y cleanup propio PASS. Evidencia local ignorada en `.scratch/platform-training-write/complete-*.log`, `verified-{database,contracts,harness}.log`, `final-current-{checks,images}.log` y `layout.log` (2 tests). Oxlint instalado (799 archivos), OKF, OpenSpec estricto y diff-check PASS. Revisión ponytail del diff HEAD completo, staging y archivos nuevos sin bloqueantes para 3.2; AGENTS sigue vigente, sin editar reglas. Ready for closeout de 3.2 solamente, 9/57 tareas completas. Sin dependencias nuevas, datos reales, navegador, CI remota/matriz de caché, aceptación operativa, commit/push/sync/archive; la paridad completa de Training sigue pendiente.
 - [ ] 3.3 Entregar stamps/baseWid/linaje/reset/legacy y retry de respuesta perdida, preservando _prior/_unstamped/ausente-null y límite de incremento.
   Traceability: compatible-platform-persistence / Canonical compatible Training persistence / First write and competing revision; No document and legacy metadata.
   Proof/Check: `node scripts/platform.mjs verify training_write --case lineage_retry`.
