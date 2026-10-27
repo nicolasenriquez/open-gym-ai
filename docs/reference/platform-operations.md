@@ -48,15 +48,18 @@ verificación específica; no atribuirle aceptación por una imagen multiarch.
 ## Ambientes, imágenes y almacenamiento
 
 Mantener la [matriz por fase](platform-modularity.md#matriz-de-ambientes-y-comandos-objetivo):
-Foundation aislada; futuro `deploy/docker-compose.yml` con selección explícita de overlay
-dev u ops. Desarrollo usa fuentes en recarga, dependencias Linux y datos sintéticos
+Foundation archivada; `deploy/docker-compose.yml` con selección explícita de overlay
+`docker-compose.dev.yml` o `docker-compose.prod.yml`. Los comandos y capacidades
+entregados se consultan en [backend/README.md](../../backend/README.md);
+el nombre `prod` no acredita aceptación operativa ni autoriza corte.
+Desarrollo usa fuentes en recarga, dependencias Linux y datos sintéticos
 separados. Operación usa imágenes identificadas por digest, sin bind de fuentes,
 node_modules o .venv ni instalaciones al arrancar. Misma revisión/lock para targets
 test/runtime/migrate y herramientas operativas. Mantener una API/un worker inicial.
 
 | Almacén objetivo | Propiedad y protección |
 | --- | --- |
-| Volumen PostgreSQL | Privado y duradero, distinto entre dev/operación y entre Foundations. No copiar PGDATA caliente como backup. |
+| Volumen PostgreSQL | Privado y duradero, distinto entre dev/operación y verificación sintética. No copiar PGDATA caliente como backup. |
 | Medios y marcas GC | Volumen duradero con ownership, cuotas, temporales y limpieza segura; captura coordinada con DB. |
 | Secretos | Material de firma de sesión, VAPID y cifrado/credenciales coach protegido y fuera de imagen/Git/frontend/logs. |
 | Cache SDK/CLI coach heredada | No montar ni renovar en el runtime Python inicial: ambos proveedores están diferidos por [Q6 del port](../../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica). Conservar originales protegidos según su política, sin prometer reutilización futura ni añadir estas caches al backup Training. |

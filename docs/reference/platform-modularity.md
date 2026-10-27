@@ -270,7 +270,8 @@ excluye tests/harness Node y dependencias de desarrollo; los targets de pruebas
 usan los mismos pins/lock. No publicar DB ni montar socket Docker; ejecutar con
 privilegios mínimos y almacenamiento escribible explícito. No añadir servicios por
 módulo, Redis, colas ni Kubernetes por la organización de carpetas. Los archivos
-Compose normales solo cambian en su entrega autorizada; Foundation sigue aislada.
+Compose normales solo cambian en su entrega autorizada; Foundation está archivada
+y la verificación actual usa proyectos sintéticos aislados.
 
 ### Construcción y caché verificables
 
@@ -311,16 +312,17 @@ sus imágenes de ensayo; operación repite la matriz sobre imágenes entregables
 
 ### Targets e imagen entregable
 
-El port especificará targets `dev` y `test` para la aplicación funcional sintética,
-con la misma revisión/lock y dependencias comunes; no convertirá el runner Foundation
-en servidor de desarrollo. Operación completará el Dockerfile multistage y verificará
-los targets entregables `test`, `runtime` y `migrate`. Runtime contiene solo dependencias productivas
+El Dockerfile multistage del port ofrece targets `dev`, `test`, `runtime`, `migrate`
+y `ops`; sus comandos actuales se documentan en
+[backend/README.md](../../backend/README.md). Comparten revisión/lock y separan
+dependencias y privilegios. La existencia de esos targets no acredita aceptación
+operativa. Runtime contiene solo dependencias productivas
 resueltas desde el mismo lock, fuentes/recursos necesarios y el servidor; excluye
 tests, harness Node y herramientas de desarrollo, y arranca sin instalar paquetes.
 El migrador usa el mismo código/revisión/lock y su rol separado; backup/restore usa
 un target operativo puntual con herramientas PostgreSQL compatibles, sin añadirlas
-obligatoriamente al servidor. Los nombres son contratos objetivo, no targets hoy
-disponibles; los Dockerfiles Foundation siguen siendo imágenes de ensayo.
+obligatoriamente al servidor. Foundation permanece como evidencia histórica;
+las pruebas actuales usan el verificador de plataforma.
 
 Verificar inventario final, usuario no root, permisos y rutas escribibles mínimas,
 ausencia de secretos/datos, health/readiness, arranque/parada y recuperación de

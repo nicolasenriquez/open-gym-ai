@@ -1,5 +1,4 @@
 **
-!Dockerfile.toolchain
 !pyproject.toml
 !uv.lock
 !dependency-licenses.json
