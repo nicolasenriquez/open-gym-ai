@@ -1,9 +1,10 @@
 # Adaptaciones locales de skills
 
-Fecha: 2026-10-22. Revisar estas adaptaciones antes de reinstalar desde upstream.
+Fecha: 2026-10-27. Revisar estas adaptaciones antes de reinstalar desde upstream.
 
 | Skills | Adaptación local |
 |---|---|
+| caveman-commit | El README enlaza al repositorio upstream; SKILL.md se conserva sin cambios. |
 | setup-matt-pocock-skills / rules-create-global / codebase-onboarding | Mantener reglas solo en AGENTS.md y referencias en .agents/docs/, sin crear adaptadores de herramientas. |
 | create-verification-skill | Instalar una única copia en .agents/skills/, sin generar adaptadores. |
 | inherit-legacy-style | Guardar reglas de estilo en .agents/docs/ y un pointer condicionado en AGENTS.md. |

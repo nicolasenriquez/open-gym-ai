@@ -1,6 +1,6 @@
 # Inventario de skills de openGym
 
-Fecha: 2026-10-22. Se conservan las 53 skills. Revisión estática: no certifica ejecución de herramientas, corrección de todos los ejemplos ni sincronización con upstream.
+Fecha: 2026-10-27. Se conservan las 54 skills. Revisión estática: no certifica ejecución de herramientas, corrección de todos los ejemplos ni sincronización con upstream.
 
 ## Catálogo
 
@@ -9,6 +9,7 @@ Propósito resumido del description. Procedencia y ruta tomadas del lock, sin in
 | Skill | Propósito | Procedencia registrada |
 |---|---|---|
 | [backend-patterns](../skills/backend-patterns/SKILL.md) | Backend architecture patterns, API design, database optimization, and server-side best practices for Node.js, Express, and Next.js API routes. Use when … | `affaan-m/ECC` — `skills/backend-patterns/SKILL.md` |
+| [caveman-commit](../skills/caveman-commit/SKILL.md) | Write a Conventional Commits message compressed to intent only. Use for "write a commit", "commit message", /commit or /caveman-commit. | `JuliusBrussee/caveman` — `skills/caveman-commit/SKILL.md` |
 | [click-path-audit](../skills/click-path-audit/SKILL.md) | Trace every user-facing button/touchpoint through its full state change sequence to find bugs where functions individually work but cancel each other ou… | `affaan-m/ECC` — `skills/click-path-audit/SKILL.md` |
 | [code-review](../skills/code-review/SKILL.md) | Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented codin… | `mattpocock/skills` — `skills/engineering/code-review/SKILL.md` |
 | [codebase-design](../skills/codebase-design/SKILL.md) | Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide wh… | `mattpocock/skills` — `skills/engineering/codebase-design/SKILL.md` |
@@ -64,8 +65,8 @@ Propósito resumido del description. Procedencia y ruta tomadas del lock, sin in
 
 ## Comprobaciones y referencias
 
-- 53/53 manifiestos con delimitadores de frontmatter, name/description no vacíos, nombre coincidente con carpeta y límites de 64/1024 caracteres. Se comprobaron los escalares utilizados; no se ejecutó un validador general de YAML o del estándar completo.
-- 41 skills con entrada de procedencia en skills-lock.json; 12 sin entrada. Se conserva el lock original.
+- 54/54 manifiestos con delimitadores de frontmatter, name/description no vacíos, nombre coincidente con carpeta y límites de 64/1024 caracteres. Se comprobaron los escalares utilizados; no se ejecutó un validador general de YAML o del estándar completo.
+- 42 skills con entrada de procedencia en skills-lock.json; 12 sin entrada. Se conserva el lock original.
 - Se verifican enlaces Markdown relativos fuera de bloques de código en .agents, excluyendo ejemplos con placeholders. No se validan anchors, URLs remotas, nombres de herramientas ni cada ruta en backticks.
 - Se corrigieron cinco enlaces ausentes en react-testing: accessibility → frontend-a11y (dos), react-patterns → frontend-patterns, tdd-workflow → tdd y la regla upstream no instalada → referencia a AGENTS.md con ausencia explícita.
 - prime-backend y prime-frontend buscan sus referencias opcionales en .agents/docs/. No existen esos documentos opcionales; no se crean vacíos.
@@ -94,7 +95,7 @@ Propósito resumido del description. Procedencia y ruta tomadas del lock, sin in
 
 ## Estado tras el cleanup local
 
-Verificación actual: 53 manifiestos con campos obligatorios válidos; 188 documentos Markdown revisados sin enlaces locales rotos dentro del alcance descrito. Sin referencias al cliente retirado en las descripciones de skills o en las instrucciones principales (la atribución del benchmark se conserva). Ausencia física del adaptador y de su carpeta local comprobada con lstat; git diff --check y exclusiones de Git correctos. API sin modificaciones y lock idéntico a HEAD.
+Verificación actual: 54 manifiestos con campos obligatorios válidos; 189 documentos Markdown revisados sin enlaces locales rotos dentro del alcance descrito. Sin referencias al cliente retirado en las descripciones de skills o en las instrucciones principales (la atribución del benchmark se conserva). Ausencia física del adaptador y de su carpeta local comprobada con lstat; git diff --check y exclusiones de Git correctos. API sin modificaciones y lock actualizado con la entrada de caveman-commit.
 
 - AGENTS.md, .agents/docs/ y .agents/skills/ son los únicos puntos de instrucciones compartidas. Se eliminó CLAUDE.md después de comprobar que solo contenía el import ya trasladado. No existía carpeta local .claude: no hubo borrado recursivo ni eliminación de configuraciones de usuario.
 - Retiradas las instrucciones activas para recrear adaptadores o instalar el cliente ausente; las skills generadoras conservan la estructura agnóstica. No queda una validación pendiente de un cliente que no se usa.
@@ -108,4 +109,4 @@ Verificación actual: 53 manifiestos con campos obligatorios válidos; 188 docum
 - Las menciones históricas en informes y README se preservan como evidencia y atribución. No son reglas actuales.
 - Los adaptadores Claude/Anthropic del coach son funcionalidad del producto, ajena a las instrucciones de desarrollo. Se conservan intactos.
 
-No se modificaron configuraciones globales, datos, integraciones del producto ni skills-lock.json. No se eliminaron skills, no se ejecutaron builds o pruebas funcionales y no se crearon commits ni push.
+No se modificaron configuraciones globales, datos ni integraciones del producto; solo se añadió la entrada de caveman-commit al lock. No se eliminaron skills, no se ejecutaron builds o pruebas funcionales y no se crearon commits ni push.
