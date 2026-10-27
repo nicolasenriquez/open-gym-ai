@@ -118,6 +118,15 @@
   ],
   "identity_session": [
     {
+      "id": "restricted_pool",
+      "requirement": "Least-privilege access / Preauthentication and pool reuse",
+      "setup": "Real Uvicorn, one-slot restricted runtime pool and independent PostgreSQL observer; synthetic faults only",
+      "target": "platform-test",
+      "command": ["tests/core/test_database.py", "tests/platform/test_identity_restricted_pool.py"],
+      "proof": "Final identity SQL catalog, ACL/FORCE RLS and clean reuse across commit, rollback, error, timeout and cancellation",
+      "checkpoint": "2.9 synthetic identity checkpoint; no operational or native-device acceptance"
+    },
+    {
       "id": "actor",
       "requirement": "Authenticated session to RLS ownership / Mixed credentials and duplicate cookies resolve one actor; Invalid sessions never establish protected ownership; Session expires while waiting for protected work; Concurrent revocation is serialized with protected work",
       "setup": "Independent signed vectors, real Uvicorn and disposable PostgreSQL; restricted runtime, separate setup/observer",

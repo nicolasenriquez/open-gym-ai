@@ -272,6 +272,9 @@ jobs:
       - run: node scripts/platform.mjs verify checks
       - run: node scripts/platform.mjs verify schema
       - run: node scripts/platform.mjs verify lifecycle
+      - run: node scripts/platform.mjs verify identity_session
+      - run: node scripts/platform.mjs verify identity_password
+      - run: node scripts/platform.mjs verify identity_register
       - run: node scripts/platform.mjs verify identity_passkey
       - run: node scripts/platform.mjs verify identity_account
       - run: node scripts/platform.mjs verify identity_reset

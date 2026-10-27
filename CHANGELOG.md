@@ -14,6 +14,9 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- A final Python identity security checkpoint with real HTTP/PostgreSQL, exact SQL
+  function and column privileges, forced row security, and a one-slot runtime pool
+  checked after commits, rollbacks, errors, timeouts and request cancellation.
 - Python mobile pairing and passkey device links for the existing Settings UI,
   with one-use codes, replacement, expiry and revocation checks. Browser proof
   covers a second virtual-authenticator browser and bearer transport; native

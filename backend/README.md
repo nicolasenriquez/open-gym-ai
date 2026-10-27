@@ -197,7 +197,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `database` | Pool, cancellation, rollback, owner isolation and commit uncertainty. |
 | `schema` | Current Alembic history, locking and restricted roles. |
 | `lifecycle` | HTTP health/readiness, schema compatibility and shutdown. |
-| `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
+| `identity_session` | Cookie/bearer actor selection, HMAC/version validation and expiry/revocation during waits; `restricted_pool` checks final SQL signatures/ACL/FORCE RLS and real HTTP with a one-slot runtime pool across commit, rollback, errors, timeouts and cancellation. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
 | `identity_register` | Password/email policy vectors, concurrent Unicode claims, invitation consumption, first-admin assignment and rollback/crypto-time revalidation. |
 | `identity_account` | Own password/email, logout-all and passkey management; current proof, cap/last-way-in, concurrent claims, atomic revocation/rollback and restricted migration/ACLs. |
