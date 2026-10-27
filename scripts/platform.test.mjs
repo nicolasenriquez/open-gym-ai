@@ -20,7 +20,7 @@ test('ownership: foreign and Foundation cleanup targets are rejected before Dock
 });
 
 test('undelivered suites, cases and malformed commands return usage exit 2 before Docker', () => {
-  for (const args of [[], ['verify'], ['verify', 'training_browser'], ['verify', 'harness', '--case', 'future'],
+  for (const args of [[], ['verify'], ['verify', 'future_browser'], ['verify', 'harness', '--case', 'future'],
     ['verify', 'harness', '--case'], ['verify', 'harness', '--config', 'foreign.json'], ['verify', 'unknown']]) {
     const result = invoke(...args);
     assert.equal(result.status, 2);

@@ -42,6 +42,13 @@ const scenarios = [
       'frontend/node_modules/host.js', 'frontend/src/private.env'],
   },
   {
+    name: 'browser override', ignore: 'backend/Dockerfile.browser.dockerignore', dockerfile: 'backend/Dockerfile.browser',
+    required: ['frontend/index.html', 'frontend/package.json', 'frontend/pnpm-lock.yaml',
+      'frontend/src/main.jsx', 'frontend/e2e/platform/training.mjs', 'frontend/e2e/platform/package-lock.json', 'api/coach/core/payload.js'],
+    excluded: ['data/users.json', 'coach-auth/auth.json', '.env', 'frontend/src/private.env',
+      'frontend/e2e/platform/node_modules/host.js', 'frontend/e2e/platform/private.env', 'api/server.js', 'backend/src/private.env'],
+  },
+  {
     name: 'security override', ignore: 'backend/Dockerfile.security.dockerignore', dockerfile: 'backend/Dockerfile.security',
     required: ['backend/security/pyproject.toml', 'backend/security/uv.lock', 'backend/uv.lock',
       'backend/src/opengym_platform/application.py', '.github/workflows/test.yml'],

@@ -75,7 +75,7 @@ test('current verifier ignores inherited Compose configuration and keeps synthet
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stderr);
   const config = JSON.parse(result.stdout);
-  assert.deepEqual(Object.keys(config.services), ['platform-contracts', 'platform-db', 'platform-test']);
+  assert.deepEqual(Object.keys(config.services), ['platform-browser', 'platform-contracts', 'platform-db', 'platform-test']);
   assert.equal(config.services['platform-test'].build.target, 'test');
   assert.deepEqual(config.networks.private.labels, {
     'com.docker.compose.service': 'private', 'org.opengym.platform': 'synthetic',

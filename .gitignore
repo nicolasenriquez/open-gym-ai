@@ -61,3 +61,4 @@ docs/superpowers/plans/
 
 # Disposable Docker verification scripts and evidence
 .scratch/docker-layout/
+.scratch/platform-browser/

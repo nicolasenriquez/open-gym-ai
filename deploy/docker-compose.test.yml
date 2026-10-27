@@ -59,6 +59,28 @@ services:
         condition: service_healthy
     restart: "no"
 
+  platform-browser:
+    image: ${COMPOSE_PROJECT_NAME}-platform-browser:local
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.browser
+      labels:
+        org.opengym.platform: synthetic
+        com.docker.compose.project: ${COMPOSE_PROJECT_NAME}
+        com.docker.compose.service: platform-browser
+    user: "1000:1000"
+    init: true
+    read_only: true
+    tmpfs: ["/tmp:rw,nosuid,nodev,mode=1777,size=536870912"]
+    shm_size: 256m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    labels:
+      org.opengym.platform: synthetic
+    networks: [private]
+    restart: "no"
+
   platform-contracts:
     image: ${COMPOSE_PROJECT_NAME}-platform-contracts:local
     platform: linux/amd64

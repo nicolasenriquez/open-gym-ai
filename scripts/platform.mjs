@@ -1,5 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import assert from 'node:assert/strict';
 import { syntheticHarness } from './synthetic-harness.mjs';
 import { checkBaseline } from './platform-baseline.mjs';
 
@@ -9,7 +10,7 @@ const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
   composeFile: fileURLToPath(new URL('../deploy/docker-compose.test.yml', import.meta.url)),
   emptyEnv: fileURLToPath(new URL('../backend/empty.env', import.meta.url)),
   namespace: 'opengym-platform-test', label: 'org.opengym.platform', name: 'Platform',
-  services: ['platform-contracts', 'platform-db', 'platform-test'], images: ['platform-contracts', 'platform-test'], database: 'platform-db',
+  services: ['platform-contracts', 'platform-db', 'platform-test', 'platform-browser'], images: ['platform-contracts', 'platform-test', 'platform-browser'], database: 'platform-db',
 });
 
 try {
@@ -33,6 +34,32 @@ try {
         if (!/\btests [1-9]\d*/.test(output) || /\b(?:skipped|todo|cancelled) [1-9]\d*/.test(output)) {
           throw new Error('PLATFORM_REQUIRED_PROOF_MISSING');
         }
+      } else if (entry.target === 'platform-browser') {
+        await runProject(async (step, project) => {
+          await step(['config', '--quiet']);
+          await step(['build', 'platform-test', 'platform-browser']);
+          await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'platform-db', 'platform-browser']);
+          try {
+            await step(['run', '--rm', '--no-deps', '--use-aliases', 'platform-test', ...entry.command]);
+          } finally {
+            await docker([...compose(project), 'logs', '--no-color', 'platform-browser'], true);
+            const evidence = fileURLToPath(new URL(`../.scratch/platform-browser/${project}`, import.meta.url));
+            mkdirSync(evidence, { recursive: true });
+            const files = JSON.parse(await docker(['exec', `${project}-platform-browser-1`, 'node', '-e',
+              "const fs=require('node:fs');console.log(JSON.stringify(fs.readdirSync('/tmp/evidence').map(name=>({name,data:fs.readFileSync('/tmp/evidence/'+name).toString('base64')}))))"]));
+            for (const { name, data } of files) {
+              assert.match(name, /^(?:(?:login|offline|auth|conflicts|lost-reply|restore|FAIL)\.png|result\.json)$/, 'PLATFORM_BROWSER_ARTIFACT_INVALID');
+              assert.ok(Buffer.from(data, 'base64').length > 0, 'PLATFORM_BROWSER_ARTIFACT_EMPTY');
+              writeFileSync(new URL(name, new URL(`../.scratch/platform-browser/${project}/`, import.meta.url)), Buffer.from(data, 'base64'));
+            }
+            const result = JSON.parse(readFileSync(new URL(`../.scratch/platform-browser/${project}/result.json`, import.meta.url)));
+            if (result.completed) {
+              assert.deepEqual(result.cases, ['login', 'offline', 'auth', 'conflicts', 'lost-reply', 'restore']);
+              for (const id of result.cases) assert.ok(files.some(file => file.name === `${id}.png`), 'PLATFORM_BROWSER_SCREENSHOT_MISSING');
+            }
+            console.log(`Platform browser evidence: ${evidence}`);
+          }
+        });
       } else if (entry.target === 'platform-test') {
         await runProject(async step => {
           await step(['config', '--quiet']);

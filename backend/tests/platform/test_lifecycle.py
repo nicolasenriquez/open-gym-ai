@@ -101,9 +101,15 @@ async def migration(environment, action):
 
 
 @asynccontextmanager
-async def server(environment, *, factory="opengym_platform.application:create_app"):
+async def server(
+    environment,
+    *,
+    factory="opengym_platform.application:create_app",
+    host="127.0.0.1",
+    port=0,
+):
     with socket.socket() as listener:
-        listener.bind(("127.0.0.1", 0))
+        listener.bind(("127.0.0.1", port))
         port = listener.getsockname()[1]
     runtime = {
         **environment,
@@ -119,7 +125,7 @@ async def server(environment, *, factory="opengym_platform.application:create_ap
             factory,
             "--factory",
             "--host",
-            "127.0.0.1",
+            host,
             "--port",
             str(port),
             "--no-access-log",

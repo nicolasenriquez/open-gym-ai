@@ -1,0 +1,238 @@
+// Real compiled frontend → Python HTTP → restricted PostgreSQL. No store setters or fake API replies.
+import assert from 'node:assert/strict';
+import { createServer, request } from 'node:http';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { extname, resolve } from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
+import { chromium } from 'playwright';
+
+const root = resolve('public');
+const evidence = '/tmp/evidence';
+await mkdir(evidence, { recursive: true });
+const control = async (path, body) => {
+  const response = await fetch('http://platform-test:3001' + path, { signal: AbortSignal.timeout(12000), ...(body === undefined ? {} : {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  }) });
+  assert.equal(response.status, 200, 'Fixture control failed');
+  return response.json();
+};
+const until = async (fn, message, ms = 15000) => {
+  const end = Date.now() + ms;
+  do { if (await fn()) return; await delay(100); } while (Date.now() < end);
+  throw new Error(message);
+};
+
+// Same-origin static/proxy transport only; this contains no application routes or data.
+const web = createServer(async (req, res) => {
+  if (req.url.startsWith('/api/')) {
+    const upstream = request({ hostname: 'platform-test', port: 3000, path: req.url,
+      method: req.method, headers: req.headers }, answer => {
+      res.writeHead(answer.statusCode, answer.headers); answer.pipe(res);
+    });
+    upstream.on('error', () => { res.writeHead(502); res.end(); });
+    req.pipe(upstream);
+    return;
+  }
+  try {
+    const path = resolve(root, '.' + new URL(req.url, 'http://localhost').pathname);
+    if (!path.startsWith(root + '/') && path !== root) { res.writeHead(404); res.end(); return; }
+    const file = path === root ? resolve(root, 'index.html') : path;
+    const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
+      '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' }[extname(file)] || 'application/octet-stream';
+    const content = await readFile(file);
+    res.writeHead(200, { 'Content-Type': mime }); res.end(content);
+  } catch { if (!res.headersSent) res.writeHead(404); res.end(); }
+});
+await new Promise(done => web.listen(8080, '127.0.0.1', done));
+let browser, context, page;
+let stage = 'setup';
+const cases = [], errors = [], statuses = [];
+const report = async id => {
+  await page.screenshot({ path: `${evidence}/${id}.png`, fullPage: true, animations: 'disabled' });
+  cases.push(id);
+  console.log(JSON.stringify({ case: id, status: 'PASS' }));
+};
+const button = name => page.getByRole('button', { name, exact: true });
+const local = () => page.evaluate(() => ({
+  state: JSON.parse(localStorage.getItem('gym_state_v1') || 'null'),
+  dirty: localStorage.getItem('gym_dirty'),
+  base: JSON.parse(localStorage.getItem('gym_sync') || 'null'),
+}));
+const snapshot = () => control('/snapshot');
+const clean = async () => until(async () => (await local()).dirty !== '1', 'Client changes never acknowledged');
+const sync = async () => {
+  await page.goto('http://localhost:8080/#/settings/account');
+  await page.getByText('Sincronizar ahora', { exact: true }).click();
+};
+const theme = async name => {
+  await page.goto('http://localhost:8080/#/settings/look');
+  await button(name).click();
+};
+const login = async () => {
+  await page.goto('http://localhost:8080/#/settings/account');
+  await page.getByText('Iniciar sesión con contraseña', { exact: true }).click();
+  await page.getByPlaceholder('Nombre o correo', { exact: true }).fill('Alice');
+  await page.getByPlaceholder('Contraseña', { exact: true }).fill('Café Ａngstrom 42!');
+  await page.locator('#modal-root').getByRole('button', { name: 'Iniciar sesión', exact: true }).click();
+  await page.getByPlaceholder('Contraseña', { exact: true }).waitFor({ state: 'hidden' });
+};
+
+try {
+  await until(async () => { try { return (await control('/ready')).ready; } catch { return false; } }, 'Python fixture never ready', 60000);
+  browser = await chromium.launch();
+  context = await browser.newContext({ locale: 'es-ES', viewport: { width: 1280, height: 900 } });
+  page = await context.newPage();
+  page.setDefaultTimeout(12000);
+  page.on('pageerror', error => errors.push(error.name));
+  page.on('response', response => {
+    if (response.url().endsWith('/api/v1/data') && response.request().method() === 'PUT') statuses.push(response.status());
+  });
+  stage = 'login';
+  await page.goto('http://localhost:8080');
+  await button('Continuar sin cuenta').waitFor();
+  assert.equal((await local()).state?.routines?.length || 0, 0, 'Browser must start empty');
+  await login();
+  await page.goto('http://localhost:8080/#/');
+  await button('Crear mi propio plan').waitFor();
+  await page.getByRole('navigation').getByRole('button', { name: 'Plan', exact: true }).click();
+  await button('Rutinas').click();
+  await button('Nueva rutina').click();
+  await page.getByRole('textbox').fill('Platform browser routine');
+  await button('Añadir ejercicio').click();
+  await page.locator('#modal-root').getByRole('textbox', { name: /Buscar entre/ }).fill('squat');
+  await page.locator('#modal-root').getByRole('button', { name: 'Añadir «sentadilla (squat)»', exact: true }).click();
+  await page.keyboard.press('Escape');
+  await button('sentadilla (squat) 3 × 10').waitFor();
+  await clean();
+  await until(async () => (await snapshot()).A?.routines?.[0]?.name === 'Platform browser routine', 'Routine never reached PostgreSQL');
+  await button('Inicio').click();
+  await button('Elegir otro entrenamiento').click();
+  await page.getByText('Platform browser routine', { exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Serie 1 hecha', exact: true }).waitFor();
+  const activeId = (await local()).state.active.id;
+  assert.ok(activeId, 'Workout did not start');
+  await button('Minimizar').click();
+  await theme('Oscuro');
+  await clean();
+  await report(stage);
+
+  stage = 'offline';
+  const beforeOffline = (await snapshot()).A;
+  await context.setOffline(true);
+  await button('Claro').click();
+  await page.waitForFunction(() => localStorage.getItem('gym_dirty') === '1');
+  assert.equal((await local()).state.active.id, activeId, 'Offline edit lost active workout');
+  assert.equal((await local()).state.theme, 'light');
+  assert.equal((await local()).dirty, '1');
+  assert.deepEqual((await snapshot()).A, beforeOffline, 'Offline changes reached SQL');
+  await report(stage);
+  await context.setOffline(false);
+  await page.reload();
+  await sync();
+  await clean();
+  await until(async () => (await snapshot()).A.theme === 'light', 'Offline changes never synced');
+  assert.ok(!(await snapshot()).A.active, 'Active workout leaked to server');
+
+  stage = 'auth';
+  await control('/revoke', {});
+  const beforeAuth = (await snapshot()).A;
+  await theme('Oscuro');
+  await until(async () => statuses.includes(401), 'No real 401 observed');
+  assert.equal((await local()).dirty, '1');
+  assert.equal((await local()).state.active.id, activeId);
+  assert.deepEqual((await snapshot()).A, beforeAuth, 'Revoked client wrote to PostgreSQL');
+  await page.reload();
+  await login();
+  await sync();
+  await clean();
+  assert.equal((await local()).state.active.id, activeId, 'Sign-in lost active workout');
+  assert.equal((await snapshot()).A.theme, 'dark');
+  await report(stage);
+
+  stage = 'conflicts';
+  let competitors = 0;
+  const start = statuses.length;
+  await page.route('**/api/v1/data', async route => {
+    if (route.request().method() === 'PUT' && competitors < 2) {
+      competitors++;
+      await control('/compete', { id: `concurrent-${competitors}` });
+    }
+    await route.continue();
+  });
+  await theme('Claro');
+  await until(() => statuses.slice(start).filter(status => status === 409).length === 2, 'Expected two genuine SQL conflicts');
+  await clean();
+  assert.equal(competitors, 2);
+  assert.equal(statuses.slice(start).filter(status => status === 200).length, 1);
+  const merged = (await snapshot()).A;
+  assert.equal(merged.theme, 'light');
+  assert.ok(['concurrent-1', 'concurrent-2'].every(id => merged.workouts.some(w => w.id === id)));
+  await page.unroute('**/api/v1/data');
+  await report(stage);
+
+  stage = 'lost-reply';
+  let dropped = false;
+  const previousRev = (await snapshot()).A._rev;
+  await page.route('**/api/v1/data', async route => {
+    if (route.request().method() !== 'PUT' || dropped) return route.continue();
+    dropped = true;
+    const response = await route.fetch();
+    assert.equal(response.status(), 200, 'Save must commit before losing its answer');
+    await route.abort('failed');
+  });
+  await theme('Oscuro');
+  await until(() => dropped, 'Response was not dropped');
+  await until(async () => (await snapshot()).A._rev > previousRev, 'Lost reply did not commit');
+  await page.getByText(/Tus cambios.*dispositivo|Tus cambios.*aquí/).first().waitFor();
+  assert.equal((await local()).dirty, '1');
+  assert.equal((await snapshot()).A.theme, 'dark');
+  assert.equal((await local()).base.rev, previousRev, 'Lost reply falsely acknowledged the commit');
+  await page.unroute('**/api/v1/data');
+  const retryStart = statuses.length;
+  await sync();
+  await clean();
+  assert.ok(statuses.slice(retryStart).includes(200), 'Sync now must reconcile and confirm the saved copy');
+  assert.equal((await local()).base.wid, (await snapshot()).A._wid);
+  assert.equal((await local()).state.active.id, activeId);
+  assert.deepEqual((await snapshot()).A.workouts.map(w => w.id).sort(), ['concurrent-1', 'concurrent-2']);
+  await report(stage);
+
+  stage = 'restore';
+  await context.setOffline(true);
+  await theme('Claro');
+  await page.waitForFunction(() => localStorage.getItem('gym_dirty') === '1');
+  const restored = await control('/restore', {});
+  assert.equal((await local()).base.rev, restored.rev);
+  await context.setOffline(false);
+  await sync();
+  await clean();
+  const final = (await snapshot()).A;
+  assert.equal(final.theme, 'light');
+  assert.deepEqual(final.workouts.map(w => w.id).sort(), ['concurrent-1', 'concurrent-2', 'restored-workout']);
+  assert.ok(final._wids.includes('synthetic-restored-branch'));
+  assert.equal((await local()).state.active.id, activeId);
+  await page.reload();
+  assert.equal((await local()).state.active.id, activeId, 'Final reload lost active workout');
+  assert.deepEqual((await local()).state.workouts.map(w => w.id).sort(), ['concurrent-1', 'concurrent-2', 'restored-workout']);
+  assert.deepEqual((await snapshot()).B, { _rev: 2, workouts: [{ id: 'foreign-sentinel' }] });
+  assert.ok(!final.active, 'Restored sync leaked the device-local workout');
+  assert.equal(errors.length, 0, 'Browser runtime errors');
+  await report(stage);
+  await page.goto('http://localhost:8080/#/settings/about');
+  const frontend = await page.getByText(/^v\d.*\+platform-browser-proof$/).innerText();
+  assert.equal(process.versions.node, '22.23.2');
+  await writeFile(`${evidence}/result.json`, JSON.stringify({ completed: true, cases, errors: errors.length,
+    node: process.versions.node, browser: browser.version(), frontend,
+    faults: { unauthorized: statuses.filter(s => s === 401).length, conflicts: competitors, lostResponses: Number(dropped) } }));
+  await control('/done', { completed: true, cases, errors: errors.length });
+} catch (error) {
+  console.error(JSON.stringify({ stage, error: error.name, message: error.message.split('\n')[0] }));
+  if (page) await page.screenshot({ path: `${evidence}/FAIL.png`, fullPage: true, animations: 'disabled' }).catch(() => {});
+  await writeFile(`${evidence}/result.json`, JSON.stringify({ completed: false, stage, cases, errors: errors.length }));
+  await control('/done', { completed: false, stage, cases, errors: errors.length }).catch(() => {});
+  process.exitCode = 1;
+} finally {
+  if (context) await context.close();
+  if (browser) await browser.close();
+  // Keep tmpfs evidence mounted until the harness copies it and removes this owned container.
+}

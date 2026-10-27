@@ -7,6 +7,6 @@
   },
   "packageManager": "pnpm@10.34.8",
   "scripts": {
-    "lint:ci": "oxlint frontend/src api scripts backend"
+    "lint:ci": "oxlint frontend/src frontend/e2e api scripts backend"
   }
 }

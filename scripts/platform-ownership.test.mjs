@@ -107,8 +107,8 @@ test('ownership: resolved config ignores foreign dotenv/Compose settings and has
   const config = JSON.parse(ok(result));
   assert.equal(config.name, 'opengym-platform-test');
   assert.equal(config.networks.private.internal, true);
-  assert.deepEqual(Object.keys(config.services), ['platform-contracts', 'platform-db', 'platform-test']);
-  for (const name of ['platform-contracts', 'platform-test']) {
+  assert.deepEqual(Object.keys(config.services), ['platform-browser', 'platform-contracts', 'platform-db', 'platform-test']);
+  for (const name of ['platform-browser', 'platform-contracts', 'platform-test']) {
     const service = config.services[name];
     assert.equal(service.user, '1000:1000');
     assert.equal(service.read_only, true);

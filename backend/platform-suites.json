@@ -1,4 +1,15 @@
 {
+  "training_browser": [
+    {
+      "id": "offline_sync",
+      "requirement": "Canonical compatible Training persistence / First write and competing revision; No document and legacy metadata",
+      "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
+      "target": "platform-browser",
+      "command": ["tests/platform/test_training_browser.py"],
+      "proof": "UI login, offline saved dirty/active state and reconnection reload, real revocation 401, repeated real 409, committed lost reply and restored lineage",
+      "checkpoint": "3.4 synthetic browser only; no native devices, passkeys or operational restore acceptance"
+    }
+  ],
   "training_write": [
     {
       "id": "lineage_retry",

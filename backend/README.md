@@ -134,6 +134,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
 | `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
+| `training_browser` | Compiled frontend login, offline dirty/active state, real 401/two 409s, lost reply and restored lineage with independent PG observation. |
 | `images` | Runtime/tool separation, dev/prod topology and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
@@ -144,6 +145,27 @@ mounts and cleans up only owned resources. After confirming an interrupted run e
 `node scripts/platform.mjs cleanup <exact-printed-project>`
 
 No global prune, volume wipe or removal of foreign/shared images is part of cleanup.
+
+### Browser proof
+
+Run `node scripts/platform.mjs verify training_browser --case offline_sync`.
+The isolated browser image builds the existing frontend with `/api/v1`, using the
+same pinned Node/pnpm and frontend lock. Its separate npm lock fixes Playwright
+1.62.1; `versions.json` fixes the official browser image digest and Chromium revision.
+There are no browser installations at runtime or on the host.
+
+The Playwright library drives UI actions; pytest owns synthetic accounts, the real
+restricted Python API, faults and a separate PostgreSQL observer. It does not use
+Playwright CLI or substitute successful API responses. Only its test image contains
+the fixture control server. No fixture routes are added to the application.
+
+The current HTTP flow preserves the loaded page and saved dirty/active state offline,
+then reloads on reconnection. HTTPS service-worker cold launch and native devices are
+outside this proof. A test-only same-origin static/proxy transport serves the compiled
+bundle; this does not verify nginx deployment. Screenshots for six cases and a sanitized
+result are copied to `.scratch/platform-browser/<printed-project>/` before owned
+containers are removed. Browser state, passwords and SQL documents are not exported.
+
 Cold/warm/source/manifest cache and lockfile regressions live in
 `scripts/platform-build.test.mjs`. Baselines in `contracts/port-baseline.v1.json`
 and their frozen [inventory](CONTRACTS.md) are unchanged; historical paths there are
@@ -151,7 +173,7 @@ not current launch instructions and must not be regenerated to admit drift.
 
 Build contexts are allowlisted: root `.dockerignore` serves the web image,
 `api/.dockerignore` serves Node, and `backend/.dockerignore` serves Python.
-The contracts/security Dockerfiles have their own ignore files, which override the
+The contracts/security/browser Dockerfiles have their own ignore files, which override the
 root filter. Keep each allowlist aligned with its Dockerfile's `COPY` inputs;
 exercise media and the shared coach core remain required web inputs.
 `.gitignore` protects Git only; it does not filter Docker contexts. Local env files,
