@@ -1,4 +1,26 @@
 {
+  "training_write": [
+    {
+      "id": "first_write",
+      "requirement": "Canonical compatible Training persistence / First write and competing revision",
+      "setup": "Real HTTP and restricted PostgreSQL with verified accounts and independent persistence observation",
+      "target": "platform-test",
+      "command": ["tests/platform/test_training_write.py"],
+      "proof": "Concurrent conditional saves, owner isolation, strict conflicts, persisted revision correction and postcommit failure independent of SQL success",
+      "checkpoint": "3.2 only; full stamps and unconditional legacy writes remain 3.3; the media adapter remains S4"
+    }
+  ],
+  "training_read": [
+    {
+      "id": "owner_and_types",
+      "requirement": "Canonical compatible Training persistence / No document and legacy metadata; Authenticated session to RLS ownership / Verified session controls owner context despite client forgery",
+      "setup": "Real HTTP and restricted PostgreSQL, independently seeded accounts and observed canonical documents",
+      "target": "platform-test",
+      "command": ["tests/platform/test_training_read.py"],
+      "proof": "Own/empty reads, canonical metadata, strict generated projections and actor/RLS isolation",
+      "checkpoint": "3.1 only; no PUT, stamps or browser acceptance"
+    }
+  ],
   "identity_password": [
     {
       "id": "login",

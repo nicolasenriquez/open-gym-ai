@@ -69,6 +69,22 @@ implicit proxy-header processing so it cannot bypass this flag.
 Registration, account-management and audit
 routes are not yet delivered.
 
+`GET /api/data` and `GET /api/data/rev` read the verified actor's Training document
+under the same account lock and transaction-local RLS context. A missing document
+returns state null/revision zero without creating a row. PostgreSQL preserves the
+complete JSONB document and generates strictly validated revision/write-id columns;
+the client response omits only the server notes `_prior` and `_unstamped`.
+`PUT /api/data` currently requires a non-null `baseRev`. The verified actor's account
+lock serializes first writes and revision comparison with the canonical update;
+a conflict returns only that actor's client-visible document. Unknown-field
+correction can store revision +2 while acknowledging +1 so the client fetches the
+corrected copy. The application factory accepts an async `training_note_state`
+collaborator, called only after confirmed commit with a two-second budget; its
+failure cannot change the saved result. No media adapter is wired yet.
+Unconditional legacy writes return 400 (`baseRev required`) until task 3.3. Full
+edit/deletion stamps, prior-value history, reset semantics and browser reconciliation
+remain pending; this is not complete Training parity or a cutover-ready backend.
+
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
 `MEDIA_QUOTA_MB`, `MEDIA_IMAGE_MAX_MB`, `MEDIA_GIF_MAX_MB`,
@@ -90,6 +106,8 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `lifecycle` | HTTP health/readiness, schema compatibility and shutdown. |
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation, RLS and expiry/revocation during waits. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |
+| `training_read` | Authenticated own/empty reads, canonical metadata, strict generated SQL projections, RLS and migration continuity. |
+| `training_write` | Conditional first save, conflicts, persisted correction and postcommit failure boundary. |
 | `images` | Runtime/tool separation, dev/prod topology and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 

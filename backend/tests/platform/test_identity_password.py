@@ -595,7 +595,9 @@ async def test_password_migration_extends_genuine_session_revision(
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
-        ignore=shutil.ignore_patterns("p001_password_login.py"),
+        ignore=shutil.ignore_patterns(
+            "p001_password_login.py", "p002_training.py", "p002_training_write.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(tmp_path)}, "up")
     assert (
@@ -608,7 +610,7 @@ async def test_password_migration_extends_genuine_session_revision(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_password_login"
+        == "p002_training_write"
     )
     assert dict(
         await observer.fetchrow("SELECT id,created_at FROM identity.users")

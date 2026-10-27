@@ -16,9 +16,10 @@ from opengym_platform.core.platform_settings import (
 from opengym_platform.identity.passwords import Passwords
 from opengym_platform.identity.router import create_router
 from opengym_platform.identity.throttle import Throttle
+from opengym_platform.training.router import create_router as training_router
 
 
-def create_app():
+def create_app(*, training_note_state=None):
     public_config = load_public_config()
     secret = load_session_secret()
     secure = os.environ.get("ORIGIN", "http://localhost:8080").startswith("https://")
@@ -104,7 +105,7 @@ def create_app():
             return JSONResponse(
                 {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
             )
-        if [row["version_num"] for row in revisions] != ["p001_password_login"]:
+        if [row["version_num"] for row in revisions] != ["p002_training_write"]:
             return JSONResponse(
                 {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
             )
@@ -147,6 +148,9 @@ def create_app():
             throttle=throttle,
             password_login_enabled=bool(public_config.get("password_login")),
         )
+    )
+    app.include_router(
+        training_router(secret=secret, secure=secure, note_state=training_note_state)
     )
 
     @app.get("/api/config")

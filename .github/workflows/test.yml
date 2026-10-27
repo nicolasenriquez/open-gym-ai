@@ -272,6 +272,8 @@ jobs:
       - run: node scripts/platform.mjs verify checks
       - run: node scripts/platform.mjs verify schema
       - run: node scripts/platform.mjs verify lifecycle
+      - run: node scripts/platform.mjs verify training_read
+      - run: node scripts/platform.mjs verify training_write
       - run: node scripts/platform.mjs verify images
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node --test scripts/platform-build.test.mjs
