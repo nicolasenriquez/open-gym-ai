@@ -21,6 +21,9 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
     environment["DEFAULT_LANG"] = "es"
     environment["ORIGIN"] = "http://localhost:8080"
     environment["MEDIA_UPLOADS"] = "1"
+    environment["MEDIA_MIN_FREE_MB"] = (
+        "0"  # isolated test tmpfs is below the production floor
+    )
     environment["DATA_DIR"] = str(tmp_path / "media-data")
     await observer.execute("""INSERT INTO training.documents(owner_id,document)
         VALUES ('B','{"_rev":2,"workouts":[{"id":"foreign-sentinel"}]}')""")
@@ -65,7 +68,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 document["workouts"].append(
                     {
                         "id": "private-progress-photo",
-                        "d": "2026-10-27",
+                        "d": body["day"],
                         "entries": [],
                         "media": [
                             {
@@ -97,6 +100,33 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                     (stored.parent / ".gc.json").read_text()
                 )
                 return {"hash": digest}
+            if path == "/media-queue":
+                persisted = json.loads(
+                    await observer.fetchval(
+                        "SELECT document FROM training.documents WHERE owner_id='A'"
+                    )
+                )
+                workout = next(
+                    w
+                    for w in persisted["workouts"]
+                    if w["id"] == "private-progress-photo"
+                )
+                references = workout.get("media", [])
+                hashes = {entry["hash"] for entry in references}
+                hashes.update(
+                    entry["poster"]["hash"]
+                    for entry in references
+                    if entry.get("poster")
+                )
+                files = []
+                directory = tmp_path / "media-data/uploads/A"
+                for digest in hashes:
+                    matches = list(directory.glob(digest + ".*"))
+                    if matches:
+                        data = matches[0].read_bytes()
+                        assert hashlib.sha256(data).hexdigest() == digest
+                        files.append({"hash": digest, "size": len(data)})
+                return {"references": references, "files": files}
             if path == "/links":
                 return {
                     "pending": await observer.fetchval(
@@ -248,6 +278,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 "reset",
                 "links",
                 "media",
+                "media-queue",
             ]
             assert result["errors"] == 0
             assert (
@@ -257,7 +288,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 == "foreign-sentinel"
             )
             print(
-                "PLATFORM_BROWSER_OK: ten cases; independent PG/filesystem sentinels preserved"
+                "PLATFORM_BROWSER_OK: eleven cases; independent PG/filesystem sentinels preserved"
             )
         finally:
             await asyncio.to_thread(fixture.shutdown)

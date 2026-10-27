@@ -19,6 +19,7 @@ async def test_upload_download_is_private_and_survives_restart(identities, tmp_p
     environment = {
         **environment,
         "MEDIA_UPLOADS": "1",
+        "MEDIA_MIN_FREE_MB": "0",
         "DATA_DIR": str(tmp_path / "data"),
     }
     data = b"\xff\xd8\xffsynthetic-private-photo"
@@ -102,6 +103,7 @@ async def test_supported_bytes_and_refusals_match_independent_contract(
     environment = {
         **environment,
         "MEDIA_UPLOADS": "1",
+        "MEDIA_MIN_FREE_MB": "0",
         "DATA_DIR": str(tmp_path / "data"),
         "MEDIA_IMAGE_MAX_MB": "0.001",
     }
@@ -223,6 +225,7 @@ async def test_training_references_and_postcommit_marks_are_owner_scoped(
     environment = {
         **environment,
         "MEDIA_UPLOADS": "1",
+        "MEDIA_MIN_FREE_MB": "0",
         "DATA_DIR": str(tmp_path / "data"),
     }
     data = b"GIF89areference-photo"
@@ -287,6 +290,7 @@ async def test_revocation_during_stream_never_publishes_or_holds_database_lease(
     environment = {
         **environment,
         "MEDIA_UPLOADS": "1",
+        "MEDIA_MIN_FREE_MB": "0",
         "DATA_DIR": str(tmp_path / "data"),
     }
     data = b"GIF89arevoked-during-transfer"
@@ -338,6 +342,7 @@ async def test_existing_file_is_vouched_for_without_reading_body_and_damaged_byt
     environment = {
         **environment,
         "MEDIA_UPLOADS": "1",
+        "MEDIA_MIN_FREE_MB": "0",
         "DATA_DIR": str(tmp_path / "data"),
     }
     data = b"GIF89aidempotence"
@@ -364,6 +369,7 @@ async def test_stream_caps_stall_and_transport_guards(identities, tmp_path):
     environment = {
         **environment,
         "MEDIA_UPLOADS": "1",
+        "MEDIA_MIN_FREE_MB": "0",
         "DATA_DIR": str(tmp_path / "data"),
         "MEDIA_IMAGE_MAX_MB": "0.001",
     }

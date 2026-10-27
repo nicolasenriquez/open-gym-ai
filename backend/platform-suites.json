@@ -7,7 +7,16 @@
       "target": "platform-test",
       "command": ["tests/platform/test_media.py"],
       "proof": "Own byte/hash/type roundtrip, private headers and foreign 404; public Training references",
-      "checkpoint": "4.1 only; missing/quota/GC remain later slices"
+      "checkpoint": "4.1 roundtrip regression; quota_and_missing covers 4.2; general GC remains later"
+    },
+    {
+      "id": "quota_and_missing",
+      "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+      "setup": "Restricted real HTTP/PostgreSQL, disposable filesystem, concurrent streams and independent sentinels",
+      "target": "platform-test",
+      "command": ["tests/platform/test_media_limits.py"],
+      "proof": "Owner-only missing/usage, quota reservations and pressure, upload/disk limits, temporary cleanup and safe failure",
+      "checkpoint": "4.2; client queue is covered by training_browser; general GC remains 4.3"
     }
   ],
   "identity_links": [
@@ -39,8 +48,8 @@
       "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
       "target": "platform-browser",
       "command": ["tests/platform/test_training_browser.py"],
-      "proof": "Private progress photo downloaded, verified and displayed offline; device links/mobile bearer pairing, password reset and Settings passkey management; UI login, offline state, real 401/two 409s, lost reply and restored lineage",
-      "checkpoint": "4.1, 3.4 and 2.6–2.8 synthetic browser only; upload queue remains 4.2; no physical authenticator, native devices or operational restore acceptance"
+      "proof": "Real picker, pending upload across failure/reload and UI retry with independent PG/files; private photo displayed offline; device links, reset, passkeys, offline state, 401/two 409s, lost reply and restored lineage",
+      "checkpoint": "4.1–4.2, 3.4 and 2.6–2.8 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
     }
   ],
   "training_write": [

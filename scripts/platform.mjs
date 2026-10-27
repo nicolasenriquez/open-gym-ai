@@ -48,13 +48,13 @@ try {
             const files = JSON.parse(await docker(['exec', `${project}-platform-browser-1`, 'node', '-e',
               "const fs=require('node:fs');console.log(JSON.stringify(fs.readdirSync('/tmp/evidence').map(name=>({name,data:fs.readFileSync('/tmp/evidence/'+name).toString('base64')}))))"]));
             for (const { name, data } of files) {
-              assert.match(name, /^(?:(?:passkeys|login|offline|auth|conflicts|lost-reply|restore|reset|links|media|FAIL)\.png|result\.json)$/, 'PLATFORM_BROWSER_ARTIFACT_INVALID');
+              assert.match(name, /^(?:(?:passkeys|login|offline|auth|conflicts|lost-reply|restore|reset|links|media|media-queue|FAIL)\.png|result\.json)$/, 'PLATFORM_BROWSER_ARTIFACT_INVALID');
               assert.ok(Buffer.from(data, 'base64').length > 0, 'PLATFORM_BROWSER_ARTIFACT_EMPTY');
               writeFileSync(new URL(name, new URL(`../.scratch/platform-browser/${project}/`, import.meta.url)), Buffer.from(data, 'base64'));
             }
             const result = JSON.parse(readFileSync(new URL(`../.scratch/platform-browser/${project}/result.json`, import.meta.url)));
             if (result.completed) {
-              assert.deepEqual(result.cases, ['passkeys', 'login', 'offline', 'auth', 'conflicts', 'lost-reply', 'restore', 'reset', 'links', 'media']);
+              assert.deepEqual(result.cases, ['passkeys', 'login', 'offline', 'auth', 'conflicts', 'lost-reply', 'restore', 'reset', 'links', 'media', 'media-queue']);
               for (const id of result.cases) assert.ok(files.some(file => file.name === `${id}.png`), 'PLATFORM_BROWSER_SCREENSHOT_MISSING');
             }
             console.log(`Platform browser evidence: ${evidence}`);

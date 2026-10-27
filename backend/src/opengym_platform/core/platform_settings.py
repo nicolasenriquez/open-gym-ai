@@ -108,19 +108,19 @@ def load_public_config():
             ("videoMB", "MEDIA_VIDEO_MAX_MB", 40, 0.001),
             ("videoSec", "MEDIA_VIDEO_MAX_SEC", 60, 1),
         ):
-            raw = os.environ.get(variable, "").strip()
-            value = float(default)
-            if re.fullmatch(
-                r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?", raw
-            ):
-                value = float(raw)
-            elif re.fullmatch(r"0(?:[xX][0-9a-fA-F]+|[bB][01]+|[oO][0-7]+)", raw):
-                try:
-                    value = float(int(raw, 0))
-                except OverflowError:
-                    value = float(default)
-            media[field] = (
-                value if math.isfinite(value) and value >= minimum else default
-            )
+            media[field] = environment_number(variable, default, minimum)
         config["media"] = media
     return config
+
+
+def environment_number(variable, default, minimum):
+    raw = os.environ.get(variable, "").strip()
+    value = float(default)
+    if re.fullmatch(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?", raw):
+        value = float(raw)
+    elif re.fullmatch(r"0(?:[xX][0-9a-fA-F]+|[bB][01]+|[oO][0-7]+)", raw):
+        try:
+            value = float(int(raw, 0))
+        except OverflowError:
+            value = float(default)
+    return value if math.isfinite(value) and value >= minimum else default

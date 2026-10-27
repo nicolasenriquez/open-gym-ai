@@ -171,15 +171,28 @@ The API's writable `/data` volume stores `uploads/<profile>/<hash>.<ext>` and
 `.gc.json`; dev and ops use separate named media volumes, separate from PostgreSQL.
 Standalone Python uses `DATA_DIR` (default `/data`). Files and owner directories use
 0600/0700 permissions. Training supplies references through its public, owner-scoped
-interface and database errors propagate before new publication. Missing/quota/free
-disk and upload-budget enforcement, client upload-queue verification, stale temporary
-cleanup and garbage collection remain pending; these routes do not make the partial
-Python platform ready for cutover.
+interface and database errors propagate before new publication.
+`POST /api/v1/media/missing` accepts at most 1000 lowercase SHA-256 hashes and returns
+only the actor's missing files and usage. Empty files and files truncated since this
+process observed their size are missing; no checksum scan at startup is promised.
+Uploads reserve their declared length (or full kind cap for a stream of unknown length)
+against the owner's quota, with two concurrent uploads and an hourly per-account budget.
+Reservations and temporary files are released after refusal, disconnect or failure.
+Quota pressure may reclaim the actor's files unused for an hour, only after a successful
+Training reference read; missing Training state or unreadable marks preserve bytes.
+The free-disk floor uses the media filesystem. Startup removes abandoned regular
+temporary files; hourly maintenance removes temporary files older than an hour,
+preserving symlinks and ordinary media. Budgets/reservations are process-local under
+the supported single worker. The existing client queue is verified through a real
+picker, failed upload, reload and manual retry. General GC and explicit sweep remain
+pending; these routes do not make the partial Python platform ready for cutover.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
 `MEDIA_QUOTA_MB`, `MEDIA_IMAGE_MAX_MB`, `MEDIA_GIF_MAX_MB`,
-`MEDIA_VIDEO_MAX_MB` and `MEDIA_VIDEO_MAX_SEC`. Business routes arrive in their
+`MEDIA_VIDEO_MAX_MB` and `MEDIA_VIDEO_MAX_SEC`. Private upload controls also use
+`MEDIA_UPLOADS_PER_HOUR` (600) and `MEDIA_MIN_FREE_MB` (512, zero disables the floor).
+Business routes arrive in their
 own slices. Uvicorn access logging is disabled; operational diagnostics are pending.
 
 ## HTTP API v1
@@ -227,6 +240,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `training_write` | First/legacy saves, conflicts, Node stamp vectors, reset/history/lineage, lost replies, persisted correction and postcommit failure boundary. |
 | `training_browser` | Compiled Settings passkey/device-link/reset flows, login, offline dirty/active state, real 401/two 409s, lost reply, restored lineage and a private progress photo downloaded into the verified local store and displayed offline. |
 | `media` | `roundtrip`: seven formats, hash/type/cap rejection, private headers/foreign 404, streaming revocation/idle timeout, restart/idempotency/repair and public Training reference marks. |
+| `media --case quota_and_missing` | Private missing/usage, concurrent quota reservations, safe pressure reclamation, upload/disk limits and temporary cleanup. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
@@ -254,7 +268,7 @@ the fixture control server. No fixture routes are added to the application.
 The current HTTP flow preserves the loaded page and saved dirty/active state offline,
 then reloads on reconnection. HTTPS service-worker cold launch and native devices are
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
-bundle; this does not verify nginx deployment. Screenshots for ten cases and a sanitized
+bundle; this does not verify nginx deployment. Screenshots for eleven cases and a sanitized
 result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 

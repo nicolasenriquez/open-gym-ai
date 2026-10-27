@@ -1,6 +1,8 @@
 """Raw media HTTP; no framework range, ETag or public file serving."""
 
+import asyncio
 import errno
+import json
 import os
 import re
 
@@ -17,14 +19,19 @@ from opengym_platform.media.service import Refused
 def create_router(*, secret, secure, media):
     router = APIRouter()
 
+    @router.post("/media/missing")
+    async def missing(request: Request):
+        return await resource("missing", request)
+
     @router.api_route("/media/{digest}", methods=["GET", "PUT"])
     async def resource(digest: str, request: Request):
         headers = {"Cache-Control": "no-store"}
-        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        is_missing = digest == "missing" and request.method == "POST"
+        if not is_missing and not re.fullmatch(r"[0-9a-f]{64}", digest):
             return JSONResponse(
                 {"error": "not found"}, status_code=404, headers=headers
             )
-        if request.method == "PUT" and not request.headers.get(
+        if request.method != "GET" and not request.headers.get(
             "authorization", ""
         ).startswith("Bearer "):
             site, origin = (
@@ -57,6 +64,40 @@ def create_router(*, secret, secure, media):
                 {"error": "not signed in"}, status_code=401, headers=headers
             )
         try:
+            if is_missing:
+                raw = bytearray()
+                async with asyncio.timeout(30):
+                    async for chunk in request.stream():
+                        raw.extend(chunk)
+                        if len(raw) > 5 * 1024 * 1024:
+                            return JSONResponse(
+                                {"error": "body too large"},
+                                status_code=413,
+                                headers=headers,
+                            )
+                try:
+
+                    def invalid_constant(value):
+                        raise ValueError("invalid json")
+
+                    body = (
+                        json.loads(
+                            raw.decode("utf-8", errors="replace"),
+                            parse_constant=invalid_constant,
+                        )
+                        if raw
+                        else {}
+                    )
+                    if not isinstance(body, dict):
+                        raise TypeError("invalid json")
+                except (ValueError, TypeError, RecursionError):
+                    return JSONResponse(
+                        {"error": "invalid json"}, status_code=400, headers=headers
+                    )
+                status, result = await media.missing(
+                    request.app.state.database, session, body.get("hashes")
+                )
+                return JSONResponse(result, status_code=status, headers=headers)
             if request.method == "PUT":
                 status, result = await media.receive(
                     request.app.state.database, session, digest, request
@@ -92,9 +133,17 @@ def create_router(*, secret, secure, media):
                 background=BackgroundTask(source.close),
             )
         except Refused as error:
+            if error.status == 429:
+                headers["Retry-After"] = str(error.body["retryAfter"])
             if error.status == 408:
                 headers["Connection"] = "close"
             return JSONResponse(error.body, status_code=error.status, headers=headers)
+        except TimeoutError:
+            return JSONResponse(
+                {"error": "request timeout"},
+                status_code=408,
+                headers=headers | {"Connection": "close"},
+            )
         except OSError as error:
             if error.errno == errno.ENOSPC:
                 return JSONResponse(

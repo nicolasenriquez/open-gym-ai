@@ -1,8 +1,9 @@
 """Platform HTTP composition and lifecycle."""
 
+import asyncio
 import math
 import os
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
@@ -41,9 +42,17 @@ def create_app(*, training_note_state=None):
             await passwords.warm_up()
         database = await Database.open_platform()
         app.state.database = database
+        maintenance = None
+        if media is not None:
+            media.clean_temporaries()
+            maintenance = asyncio.create_task(media.maintain_temporaries())
         try:
             yield
         finally:
+            if maintenance is not None:
+                maintenance.cancel()
+                with suppress(asyncio.CancelledError):
+                    await maintenance
             await database.close()
 
     app = FastAPI(

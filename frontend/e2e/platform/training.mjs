@@ -252,7 +252,7 @@ try {
   await report(stage);
   await page.goto('http://localhost:8080/#/settings/about');
   stage = 'media';
-  const photo = await control('/media-fixture', {});
+  const photo = await control('/media-fixture', { day: await page.evaluate(() => new Date().toLocaleDateString('en-CA')) });
   let downloads = 0;
   page.on('response', response => {
     if (response.url().endsWith('/api/v1/media/' + photo.hash) && response.status() === 200) downloads++;
@@ -274,6 +274,58 @@ try {
   assert.equal(errors.length, 0, 'Browser runtime errors after media');
   await report(stage);
   await viewer.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  stage = 'media-queue';
+  let blocked = 0;
+  await page.route('**/api/v1/media/*', async route => {
+    if (route.request().method() === 'PUT') { blocked++; return route.abort('failed'); }
+    return route.continue();
+  });
+  // Real picker and ingest create the pending bytes; only transport failure is injected.
+  await page.locator('input[type=file]').setInputFiles({ name: 'private-queued.png', mimeType: 'image/png',
+    buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=', 'base64') });
+  await until(async () => blocked > 0 && (await local()).state.workouts.find(w => w.id === 'private-progress-photo').media.length === 2, 'Picker never queued a photo');
+  await clean();
+  const queued = (await local()).state.workouts.find(w => w.id === 'private-progress-photo').media[1];
+  const owedHashes = [...new Set([queued.hash, queued.poster?.hash].filter(Boolean))];
+  const records = () => page.evaluate(() => new Promise((resolve, reject) => {
+    const open = indexedDB.open('opengym-media', 1);
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const db = open.result, tx = db.transaction('blobs', 'readonly'), get = tx.objectStore('blobs').getAll();
+      get.onsuccess = () => resolve(get.result.map(({ hash, size, pending }) => ({ hash, size, pending })));
+      get.onerror = () => reject(get.error);
+      tx.oncomplete = () => db.close();
+    };
+  }));
+  const pendingRecords = await records();
+  assert.ok(owedHashes.every(hash => pendingRecords.some(r => r.hash === hash && r.pending)), 'Failed upload was falsely marked synced');
+  assert.ok((await control('/media-queue')).files.every(f => !owedHashes.includes(f.hash)), 'Aborted upload reached disk');
+  await page.goto('http://localhost:8080/#/settings/data');
+  await page.getByText(/1 pendientes de subir/).waitFor();
+  await page.reload();
+  await page.getByText(/1 pendientes de subir/).waitFor();
+  assert.ok(owedHashes.every(hash => pendingRecords.some(r => r.hash === hash && r.size > 0)));
+  await page.unroute('**/api/v1/media/*');
+  const uploadStatuses = [];
+  const uploaded = response => { if (response.request().method() === 'PUT' && response.url().includes('/api/v1/media/')) uploadStatuses.push(response.status()); };
+  page.on('response', uploaded);
+  await page.getByText('Fotos y vídeos', { exact: true }).click();
+  await until(async () => { const current = await records(); return owedHashes.every(hash => current.some(r => r.hash === hash && !r.pending)); }, 'Manual retry never confirmed the queued files');
+  const persistedMedia = await control('/media-queue');
+  assert.ok(owedHashes.every(hash => persistedMedia.files.some(f => f.hash === hash && f.size > 0)), 'Independent server bytes missing after retry');
+  assert.ok(uploadStatuses.includes(201), 'Retry did not publish real media');
+  const beforeRepeat = uploadStatuses.length;
+  const repeatedMissing = page.waitForResponse(response => response.url().endsWith('/api/v1/media/missing') && response.request().method() === 'POST');
+  await page.getByText('Fotos y vídeos', { exact: true }).click();
+  const repeatedAnswer = await repeatedMissing;
+  assert.equal(repeatedAnswer.status(), 200);
+  assert.deepEqual((await repeatedAnswer.json()).missing, []);
+  await delay(250);
+  assert.equal(uploadStatuses.length, beforeRepeat, 'Missing handshake reuploaded intact media');
+  assert.equal((await local()).state.active.id, activeId);
+  assert.equal(errors.length, 0);
+  await report(stage);
+  page.off('response', uploaded);
   await page.goto('http://localhost:8080/#/settings/about');
   const frontend = await page.getByText(/^v\d.*\+platform-browser-proof$/).innerText();
   assert.equal(process.versions.node, '22.23.2');
