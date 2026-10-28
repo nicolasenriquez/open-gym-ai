@@ -387,6 +387,7 @@ async def test_identity_acl_rls_and_public_count_are_bounded(identities):
     """)
     assert {row["proname"] for row in functions} == {
         "lock_actor",
+        "lock_media_owner",
         "public_user_count",
         "lookup_password",
         "finish_password_login",
@@ -425,6 +426,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p002_media_gc.py",
             "p001_links.py",
             "p001_reset.py",
             "p001_passkey_manage.py",
@@ -445,7 +447,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_links"
+        == "p002_media_gc"
     )
 
 

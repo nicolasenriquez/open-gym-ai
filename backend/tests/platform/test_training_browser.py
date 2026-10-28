@@ -25,6 +25,12 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
         "0"  # isolated test tmpfs is below the production floor
     )
     environment["DATA_DIR"] = str(tmp_path / "media-data")
+    foreign_directory = tmp_path / "media-data/uploads/B"
+    foreign_directory.mkdir(parents=True)
+    foreign_bytes = b"\xff\xd8\xffforeign-gc-sentinel"
+    foreign_hash = hashlib.sha256(foreign_bytes).hexdigest()
+    foreign_file = foreign_directory / f"{foreign_hash}.jpg"
+    foreign_file.write_bytes(foreign_bytes)
     await observer.execute("""INSERT INTO training.documents(owner_id,document)
         VALUES ('B','{"_rev":2,"workouts":[{"id":"foreign-sentinel"}]}')""")
     await observer.execute("""INSERT INTO identity.passkeys VALUES
@@ -38,6 +44,25 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
         async def control(path, body):
             if path == "/ready":
                 return {"ready": True}
+            if path == "/media-gc-state":
+                document = json.loads(
+                    await observer.fetchval(
+                        "SELECT document FROM training.documents WHERE owner_id='A'"
+                    )
+                )
+                directory = tmp_path / "media-data/uploads/A"
+                files = [
+                    p.name
+                    for p in directory.iterdir()
+                    if p.suffix
+                    in {".jpg", ".png", ".webp", ".gif", ".mp4", ".mov", ".webm"}
+                ]
+                assert foreign_file.read_bytes() == foreign_bytes
+                return {
+                    "workouts": len(document.get("workouts", [])),
+                    "files": len(files),
+                    "foreign": True,
+                }
             if path == "/media-fixture":
                 # Public routes seed a second-device photo; browser must download
                 # and verify it itself, without injecting its store or IndexedDB.
@@ -279,6 +304,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 "links",
                 "media",
                 "media-queue",
+                "media-gc",
             ]
             assert result["errors"] == 0
             assert (
@@ -288,7 +314,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 == "foreign-sentinel"
             )
             print(
-                "PLATFORM_BROWSER_OK: eleven cases; independent PG/filesystem sentinels preserved"
+                "PLATFORM_BROWSER_OK: twelve cases; independent PG/filesystem sentinels preserved"
             )
         finally:
             await asyncio.to_thread(fixture.shutdown)

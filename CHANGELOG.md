@@ -20,7 +20,10 @@ principles. Published entries below are preserved; see the
   downloaded progress photo offline. The partial port also supports private missing
   queries, quota reservations and safe pressure reclamation, upload budgets, disk
   floor and temporary cleanup. Its existing client upload queue is verified across
-  a failed upload, reload and manual retry; general GC remains pending.
+  a failed upload, reload and manual retry. Explicit and periodic garbage collection
+  now preserve bytes on reference-read failure and protect foreign files from
+  restored links. A bounded internal identity function supports collection without
+  a user session; it requires the new `p002_media_gc` migration.
 - A final Python identity security checkpoint with real HTTP/PostgreSQL, exact SQL
   function and column privileges, forced row security, and a one-slot runtime pool
   checked after commits, rollbacks, errors, timeouts and request cancellation.

@@ -79,3 +79,13 @@ async def authorize(handle, session):
         return False
     await handle.execute("SELECT set_config('app.owner_id', $1, true)", actors[0]["id"])
     return True
+
+
+async def lock_media_owner(handle, owner):
+    """Internal GC only: candidate comes from a verified local media directory."""
+    rows = await handle.fetch("SELECT id FROM identity.lock_media_owner($1)", owner)
+    if not rows:
+        return None
+    owner = rows[0]["id"]
+    await handle.execute("SELECT set_config('app.owner_id', $1, true)", owner)
+    return owner

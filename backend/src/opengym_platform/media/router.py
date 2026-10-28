@@ -23,11 +23,15 @@ def create_router(*, secret, secure, media):
     async def missing(request: Request):
         return await resource("missing", request)
 
+    @router.post("/media/sweep")
+    async def sweep(request: Request):
+        return await resource("sweep", request)
+
     @router.api_route("/media/{digest}", methods=["GET", "PUT"])
     async def resource(digest: str, request: Request):
         headers = {"Cache-Control": "no-store"}
-        is_missing = digest == "missing" and request.method == "POST"
-        if not is_missing and not re.fullmatch(r"[0-9a-f]{64}", digest):
+        is_command = digest in {"missing", "sweep"} and request.method == "POST"
+        if not is_command and not re.fullmatch(r"[0-9a-f]{64}", digest):
             return JSONResponse(
                 {"error": "not found"}, status_code=404, headers=headers
             )
@@ -64,7 +68,7 @@ def create_router(*, secret, secure, media):
                 {"error": "not signed in"}, status_code=401, headers=headers
             )
         try:
-            if is_missing:
+            if is_command:
                 raw = bytearray()
                 async with asyncio.timeout(30):
                     async for chunk in request.stream():
@@ -94,9 +98,14 @@ def create_router(*, secret, secure, media):
                     return JSONResponse(
                         {"error": "invalid json"}, status_code=400, headers=headers
                     )
-                status, result = await media.missing(
-                    request.app.state.database, session, body.get("hashes")
-                )
+                if digest == "sweep":
+                    status, result = await media.sweep(
+                        request.app.state.database, session
+                    )
+                else:
+                    status, result = await media.missing(
+                        request.app.state.database, session, body.get("hashes")
+                    )
                 return JSONResponse(result, status_code=status, headers=headers)
             if request.method == "PUT":
                 status, result = await media.receive(

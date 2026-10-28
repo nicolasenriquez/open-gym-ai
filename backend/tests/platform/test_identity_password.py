@@ -598,6 +598,7 @@ async def test_password_migration_extends_genuine_session_revision(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p002_media_gc.py",
             "p001_links.py",
             "p001_reset.py",
             "p001_passkey_manage.py",
@@ -620,7 +621,7 @@ async def test_password_migration_extends_genuine_session_revision(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p001_links"
+        == "p002_media_gc"
     )
     assert dict(
         await observer.fetchrow("SELECT id,created_at FROM identity.users")

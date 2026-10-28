@@ -632,7 +632,10 @@ async def test_management_upgrade_preserves_rows_and_forced_rls_grants(
         Path("/app/src/opengym_platform"),
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
-            "p001_links.py", "p001_reset.py", "p001_passkey_manage.py"
+            "p002_media_gc.py",
+            "p001_links.py",
+            "p001_reset.py",
+            "p001_passkey_manage.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(previous)}, "up")

@@ -580,6 +580,7 @@ async def test_previous_head_upgrades_preserving_history_and_privileges(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p002_media_gc.py",
             "p001_links.py",
             "p001_reset.py",
             "p001_passkey_manage.py",

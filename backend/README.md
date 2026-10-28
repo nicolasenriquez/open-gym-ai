@@ -184,14 +184,25 @@ The free-disk floor uses the media filesystem. Startup removes abandoned regular
 temporary files; hourly maintenance removes temporary files older than an hour,
 preserving symlinks and ordinary media. Budgets/reservations are process-local under
 the supported single worker. The existing client queue is verified through a real
-picker, failed upload, reload and manual retry. General GC and explicit sweep remain
-pending; these routes do not make the partial Python platform ready for cutover.
+picker, failed upload, reload and manual retry.
+`POST /api/v1/media/sweep` collects only the signed-in owner's unreferenced files
+without a grace period, at most ten requests per hour. It reads current Training
+under the account lock before deleting; a database failure never means no references.
+Periodic GC starts five minutes after startup and repeats hourly, using
+`MEDIA_GC_GRACE_DAYS` (14 by default). Corrupt/unreadable marks restart that grace;
+missing Training and orphan directories preserve bytes. Restored directory/blob
+links and links at the temporary marks path cannot redirect reads or collection.
+The internal identity interface confirms only an existing account ID under lock;
+it is not exposed through HTTP and grants no global SELECT. Apply the new forward-only
+`p002_media_gc` migration before serving traffic; older schema heads fail readiness.
+These routes do not make the partial Python platform ready for cutover.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
 `MEDIA_QUOTA_MB`, `MEDIA_IMAGE_MAX_MB`, `MEDIA_GIF_MAX_MB`,
 `MEDIA_VIDEO_MAX_MB` and `MEDIA_VIDEO_MAX_SEC`. Private upload controls also use
 `MEDIA_UPLOADS_PER_HOUR` (600) and `MEDIA_MIN_FREE_MB` (512, zero disables the floor).
+`MEDIA_GC_GRACE_DAYS` is private configuration too; zero disables the grace.
 Business routes arrive in their
 own slices. Uvicorn access logging is disabled; operational diagnostics are pending.
 
@@ -241,6 +252,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `training_browser` | Compiled Settings passkey/device-link/reset flows, login, offline dirty/active state, real 401/two 409s, lost reply, restored lineage and a private progress photo downloaded into the verified local store and displayed offline. |
 | `media` | `roundtrip`: seven formats, hash/type/cap rejection, private headers/foreign 404, streaming revocation/idle timeout, restart/idempotency/repair and public Training reference marks. |
 | `media --case quota_and_missing` | Private missing/usage, concurrent quota reservations, safe pressure reclamation, upload/disk limits and temporary cleanup. |
+| `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
@@ -268,7 +280,7 @@ the fixture control server. No fixture routes are added to the application.
 The current HTTP flow preserves the loaded page and saved dirty/active state offline,
 then reloads on reconnection. HTTPS service-worker cold launch and native devices are
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
-bundle; this does not verify nginx deployment. Screenshots for eleven cases and a sanitized
+bundle; this does not verify nginx deployment. Screenshots for twelve cases and a sanitized
 result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 

@@ -461,6 +461,7 @@ async def test_final_catalog_has_exact_signatures_acl_force_rls_and_no_role_esca
     """)
     assert {row["signature"] for row in functions} == {
         "identity.lock_actor(text,bigint,timestamp with time zone)",
+        "identity.lock_media_owner(text)",
         "identity.public_user_count()",
         "identity.lookup_password(text)",
         "identity.finish_password_login(text,text,bigint)",

@@ -171,6 +171,16 @@ amplía SELECT global runtime ni se convierte el registro en un dispatcher. Las
 tablas reset/device_links se consumen aquí para revocación, sin adelantar emisión,
 canje o pairing; las ceremonias de proceso restantes siguen pendientes de 2.6–2.8.
 
+**Ajuste de 4.3 autorizado expresamente:** el GC horario necesita verificar cuentas
+sin sesión y el catálogo previo no concede esa operación. Añadir únicamente
+`identity.lock_media_owner(owner text)` mediante una nueva revisión Alembic, sin
+editar migraciones verificadas: devuelve solo el ID existente y conserva FOR UPDATE.
+El worker toma candidatos de directorios locales de medios verificados; identidad
+instala el contexto tras esa confirmación y Training aporta las referencias públicas
+bajo el mismo handle. No hay entrada HTTP a esta facultad, sesiones fabricadas,
+tabla de medios, listado ni SELECT global. Conservar carpetas huérfanas y bytes ante
+fallo de DB/lectura. Ver catálogo en seguridad; comprobar ACL/RLS/lock y pool reales.
+
 ### 8. Autoridad OpenAPI y compatibilidad de transporte
 
 Decisión técnica: conservar un contrato YAML editable y trasladarlo de

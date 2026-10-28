@@ -1,6 +1,7 @@
 """Stream private files outside SQL; publish under a freshly verified actor lock."""
 
 import asyncio
+import errno
 import hashlib
 import json
 import logging
@@ -11,8 +12,9 @@ import secrets
 import time
 from pathlib import Path
 
+from opengym_platform.core.database import DatabaseError
 from opengym_platform.core.platform_settings import environment_number
-from opengym_platform.identity.sessions import authorize
+from opengym_platform.identity.sessions import authorize, lock_media_owner
 from opengym_platform.media.formats import TYPES, movie_duration, sniff
 from opengym_platform.training.references import media_references, referenced_hashes
 
@@ -29,20 +31,26 @@ class Media:
         self.reserved = {}
         self.inflight = {}
         self.windows = {}
+        self.sweep_windows = {}
         self.sizes = {}
         self.hourly = math.floor(environment_number("MEDIA_UPLOADS_PER_HOUR", 600, 1))
         self.min_free = environment_number("MEDIA_MIN_FREE_MB", 512, 0) * 1048576
+        self.grace_ms = environment_number("MEDIA_GC_GRACE_DAYS", 14, 0) * 86400000
+        self.orphans_logged = set()
 
     def directory(self, owner):
         name = re.sub(r"[^a-zA-Z0-9_-]", "", owner)
         if not name:
             raise ValueError("PLATFORM_MEDIA_OWNER_INVALID")
-        return self.root / name
+        directory = self.root / name
+        if self.root.is_symlink() or directory.is_symlink():
+            raise OSError(errno.ELOOP, "unsafe media directory")
+        return directory
 
     def file(self, owner, digest):
         for mime, (extension, _) in TYPES.items():
             path = self.directory(owner) / f"{digest}.{extension}"
-            if path.is_file() and path.stat().st_size:
+            if not path.is_symlink() and path.is_file() and path.stat().st_size:
                 return path, mime
         return None
 
@@ -119,12 +127,13 @@ class Media:
                 {
                     key: value
                     for key, value in raw.items()
-                    if type(value) in (int, float) and math.isfinite(value)
+                    if type(value) is int
+                    or (type(value) is float and math.isfinite(value))
                 }
                 if isinstance(raw, dict)
                 else {}
             )
-        except (OSError, ValueError):
+        except (OSError, ValueError, RecursionError):
             marks = {}
         hashes = {
             path.stem
@@ -139,8 +148,9 @@ class Media:
         }
         temporary = directory / ".gc.json.tmp"
         try:
+            # Exclusive creation cannot truncate a restored link's foreign target.
             with os.fdopen(
-                os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w"
+                os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w"
             ) as output:
                 json.dump(marks, output)
                 output.flush()
@@ -152,23 +162,60 @@ class Media:
         return marks
 
     def reclaim_quota(self, owner, references):
+        return self.collect(owner, references, 3600000)
+
+    def collect(self, owner, references, grace_ms):
+        result = {"removed": 0, "freedBytes": 0}
         # No readable Training document means no authority to delete any blob.
         if references is None:
-            return
+            return result
         try:
             marks = self.reconcile(owner, references)
             if marks is None:
-                return
-            cutoff = time.time() * 1000 - 3600000
+                return result
+            cutoff = time.time() * 1000 - grace_ms
             for digest, marked in marks.items():
-                if marked <= cutoff:
+                if not grace_ms or marked <= cutoff:
                     found = self.file(owner, digest)
                     if found:
+                        size = found[0].stat().st_size
                         found[0].unlink()
+                        result["removed"] += 1
+                        result["freedBytes"] += size
             sync_directory(self.directory(owner))
             self.reconcile(owner, references)
         except OSError:
-            logging.getLogger(__name__).warning("PLATFORM_MEDIA_QUOTA_CLEANUP_FAILED")
+            logging.getLogger(__name__).warning("PLATFORM_MEDIA_GC_FAILED")
+        return result
+
+    async def sweep(self, database, session):
+        async with database.transaction() as handle:
+            if not await authorize(handle, session):
+                return 401, {"error": "not signed in"}
+            now = time.monotonic()
+            self.sweep_windows = {
+                k: v for k, v in self.sweep_windows.items() if now - v[0] < 3600
+            }
+            window = self.sweep_windows.setdefault(session.owner, [now, 0])
+            window[1] += 1
+            if window[1] > 10:
+                raise Refused(
+                    429,
+                    "locked",
+                    "too many uploads, try again later",
+                    retryAfter=max(1, math.ceil(window[0] + 3600 - now)),
+                )
+            references = await media_references(handle, session.owner)
+            result = self.collect(session.owner, references, 0)
+            files = self.inventory(session.owner)
+            return 200, {
+                **result,
+                "usage": {
+                    "bytes": sum(files.values()),
+                    "count": len(files),
+                    "quotaBytes": int(self.config["quotaMB"] * 1048576 + 0.5),
+                },
+            }
 
     async def note_state(self, owner, document):
         self.reconcile(owner, referenced_hashes(document))
@@ -210,6 +257,38 @@ class Media:
         while True:
             await asyncio.sleep(3600)
             self.clean_temporaries(3600)
+
+    async def maintain_gc(self, database):
+        await asyncio.sleep(300)
+        while True:
+            try:
+                if self.root.exists() and not self.root.is_symlink():
+                    for directory in self.root.iterdir():
+                        if (
+                            directory.is_symlink()
+                            or not directory.is_dir()
+                            or not re.fullmatch(r"[A-Za-z0-9_-]+", directory.name)
+                        ):
+                            continue
+                        try:
+                            async with database.transaction() as handle:
+                                owner = await lock_media_owner(handle, directory.name)
+                                if owner is None:
+                                    if directory.name not in self.orphans_logged:
+                                        self.orphans_logged.add(directory.name)
+                                        logging.getLogger(__name__).warning(
+                                            "PLATFORM_MEDIA_ORPHAN_PRESERVED"
+                                        )
+                                    continue
+                                references = await media_references(handle, owner)
+                                self.collect(owner, references, self.grace_ms)
+                        except (DatabaseError, OSError, ValueError):
+                            logging.getLogger(__name__).warning(
+                                "PLATFORM_MEDIA_GC_FAILED"
+                            )
+            except OSError:
+                logging.getLogger(__name__).warning("PLATFORM_MEDIA_GC_FAILED")
+            await asyncio.sleep(3600)
 
     async def receive(self, database, session, digest, request):
         reservation = {"bytes": 0, "entered": False}

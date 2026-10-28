@@ -42,17 +42,21 @@ def create_app(*, training_note_state=None):
             await passwords.warm_up()
         database = await Database.open_platform()
         app.state.database = database
-        maintenance = None
+        maintenance = []
         if media is not None:
             media.clean_temporaries()
-            maintenance = asyncio.create_task(media.maintain_temporaries())
+            maintenance = [
+                asyncio.create_task(media.maintain_temporaries()),
+                asyncio.create_task(media.maintain_gc(database)),
+            ]
         try:
             yield
         finally:
-            if maintenance is not None:
-                maintenance.cancel()
+            for task in maintenance:
+                task.cancel()
+            for task in maintenance:
                 with suppress(asyncio.CancelledError):
-                    await maintenance
+                    await task
             await database.close()
 
     app = FastAPI(
@@ -118,7 +122,7 @@ def create_app(*, training_note_state=None):
             return JSONResponse(
                 {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
             )
-        if [row["version_num"] for row in revisions] != ["p001_links"]:
+        if [row["version_num"] for row in revisions] != ["p002_media_gc"]:
             return JSONResponse(
                 {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
             )

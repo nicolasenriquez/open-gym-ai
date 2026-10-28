@@ -1,4 +1,15 @@
 {
+  "media_gc": [
+    {
+      "id": "fail_safe",
+      "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+      "setup": "Real restricted HTTP/PostgreSQL and disposable private filesystem with independent sentinels",
+      "target": "platform-test",
+      "command": ["tests/platform/test_media_gc.py"],
+      "proof": "Own reference-based collection, safe failures and concurrent upload preservation",
+      "checkpoint": "4.3 GC only; no administrative account deletion or operational acceptance"
+    }
+  ],
   "media": [
     {
       "id": "roundtrip",
@@ -16,7 +27,7 @@
       "target": "platform-test",
       "command": ["tests/platform/test_media_limits.py"],
       "proof": "Owner-only missing/usage, quota reservations and pressure, upload/disk limits, temporary cleanup and safe failure",
-      "checkpoint": "4.2; client queue is covered by training_browser; general GC remains 4.3"
+      "checkpoint": "4.2 regression; client queue is covered by training_browser; GC by media_gc"
     }
   ],
   "identity_links": [
@@ -48,8 +59,8 @@
       "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
       "target": "platform-browser",
       "command": ["tests/platform/test_training_browser.py"],
-      "proof": "Real picker, pending upload across failure/reload and UI retry with independent PG/files; private photo displayed offline; device links, reset, passkeys, offline state, 401/two 409s, lost reply and restored lineage",
-      "checkpoint": "4.1–4.2, 3.4 and 2.6–2.8 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
+      "proof": "UI reset commits empty Training then collects only own bytes; real picker, pending upload/reload/retry and offline photo; device links, password reset, passkeys, 401/two 409s, lost reply and restored lineage",
+      "checkpoint": "4.1–4.3, 3.4 and 2.6–2.8 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
     }
   ],
   "training_write": [

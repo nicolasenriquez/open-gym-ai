@@ -54,6 +54,7 @@ services:
       MEDIA_VIDEO_MAX_SEC: ${MEDIA_VIDEO_MAX_SEC:-60}
       MEDIA_UPLOADS_PER_HOUR: ${MEDIA_UPLOADS_PER_HOUR:-600}
       MEDIA_MIN_FREE_MB: ${MEDIA_MIN_FREE_MB:-512}
+      MEDIA_GC_GRACE_DAYS: ${MEDIA_GC_GRACE_DAYS:-14}
       DATA_DIR: /data
     volumes: [media-data:/data]
     secrets:
