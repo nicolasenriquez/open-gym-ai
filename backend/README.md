@@ -197,6 +197,24 @@ it is not exposed through HTTP and grants no global SELECT. Apply the new forwar
 `p002_media_gc` migration before serving traffic; older schema heads fail readiness.
 These routes do not make the partial Python platform ready for cutover.
 
+Coach configuration starts at the forward-only `p003_coach` migration. Run bootstrap
+before upgrading an existing schema so the restricted, non-login Coach executor
+exists; API startup never creates roles or migrates. `GET /api/v1/config` now reads
+the Coach disclosure from PostgreSQL, requires a migrated database and fails safely
+rather than inventing configuration when that read fails.
+The configuration tables preserve provider IDs, models, allowlisted non-secret options
+and external secret references. The runtime cannot read these tables directly.
+Imported `claude` (Agent SDK) and `codex` (CLI) selections remain identifiable in
+public configuration with `enabled:false`; they are never converted to Anthropic or
+OpenAI HTTP. `COACH_DISABLED=1` hides the Coach disclosure without changing storage.
+Authenticated `GET /api/v1/coach/status` and `POST /api/v1/coach/plan`, `/review`,
+`/debrief` currently return the compatible 503/code `off` before any work.
+They revalidate sessions under the actor lock and retain POST CSRF checks.
+This is configuration and refusal support only: job/usage/proposal/history tables,
+HTTP execution, administration, scheduling and the client availability UX are not
+yet delivered. No SDK/CLI launcher, credential cache mount, refresh or Node fallback
+is present; original credentials stay outside active runtime mounts.
+
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
 `MEDIA_QUOTA_MB`, `MEDIA_IMAGE_MAX_MB`, `MEDIA_GIF_MAX_MB`,
@@ -252,7 +270,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `training_browser` | Compiled Settings passkey/device-link/reset flows, login, offline dirty/active state, real 401/two 409s, lost reply, restored lineage and a private progress photo downloaded into the verified local store and displayed offline. |
 | `media` | `roundtrip`: seven formats, hash/type/cap rejection, private headers/foreign 404, streaming revocation/idle timeout, restart/idempotency/repair and public Training reference marks. |
 | `media --case quota_and_missing` | Private missing/usage, concurrent quota reservations, safe pressure reclamation, upload/disk limits and temporary cleanup. |
-| `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
+| `coach_state --case deferred_provider` | Imported SDK/CLI selection preservation, public availability, 503/off without work, actor revalidation/CSRF, config constraints/ACL and previous-head upgrade. |\n| `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 

@@ -138,6 +138,7 @@ async function deploymentProof({ project, image, docker }) {
       assert.ok(config.services.api.command.includes('--no-proxy-headers'));
       assert.ok(config.services.api.volumes?.some(volume => volume.type === 'volume' && volume.source === 'media-data' && volume.target === '/data'));
       assert.deepEqual(config.services.api.secrets.map(secret => secret.source), ['runtime_password', 'session_secret']);
+      assert.equal(config.services.api.environment.COACH_DISABLED, '0');
       assert.equal(config.services.migrate.secrets.length, 1);
       assert.equal(config.services.migrate.secrets[0].source, 'migrator_password');
       assert.ok(!config.services.ops.secrets?.length);
@@ -204,7 +205,7 @@ async def check():
     connection = await asyncpg.connect(host=target.host, database=target.database, user=target.user, password=target.password, ssl=False, timeout=5)
     try:
         assert await connection.fetchval('SELECT current_user') == 'opengym_api_runtime'
-        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p002_media_gc'
+        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p003_coach'
         try:
             await connection.execute('SET ROLE opengym_schema_owner')
         except asyncpg.InsufficientPrivilegeError:

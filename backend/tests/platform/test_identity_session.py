@@ -426,6 +426,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p003_coach.py",
             "p002_media_gc.py",
             "p001_links.py",
             "p001_reset.py",
@@ -447,7 +448,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p002_media_gc"
+        == "p003_coach"
     )
 
 

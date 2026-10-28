@@ -9,6 +9,8 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException
 
+from opengym_platform.coach.router import create_router as coach_router
+from opengym_platform.coach.service import public_config as coach_config
 from opengym_platform.core.database import Database, DatabaseError
 from opengym_platform.core.platform_settings import (
     load_public_config,
@@ -122,7 +124,7 @@ def create_app(*, training_note_state=None):
             return JSONResponse(
                 {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
             )
-        if [row["version_num"] for row in revisions] != ["p002_media_gc"]:
+        if [row["version_num"] for row in revisions] != ["p003_coach"]:
             return JSONResponse(
                 {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
             )
@@ -181,9 +183,20 @@ def create_app(*, training_note_state=None):
             media_router(secret=secret, secure=secure, media=media)
         )
 
+    public_api.include_router(coach_router(secret=secret, secure=secure))
+
     @public_api.get("/config")
-    async def config():
-        return JSONResponse(public_config, headers={"Cache-Control": "no-store"})
+    async def config(request: Request):
+        headers = {"Cache-Control": "no-store"}
+        try:
+            coach = await coach_config(request.app.state.database)
+        except DatabaseError:
+            return JSONResponse(
+                {"error": "server error"}, status_code=500, headers=headers
+            )
+        return JSONResponse(
+            {**public_config, **({"coach": coach} if coach else {})}, headers=headers
+        )
 
     app.include_router(public_api)
     return app

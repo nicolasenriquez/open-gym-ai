@@ -34,7 +34,7 @@ sintéticos y seams Q3, sin nuevas dependencias. La petición posterior autoriza
 4.3 sintético y el promotor
 aprobó expresamente `identity.lock_media_owner(owner)` como función interna acotada
 para el GC horario, mediante migración nueva y sin SELECT global; ver diseño y
-seguridad. 5.1 en adelante no están autorizadas. La corrección de
+seguridad. La petición actual `/skill:opsx-delivery-workflow openspec\\changes\\port-compatible-platform 5.1` autoriza configuración/status/Q6 5.1 en recursos sintéticos y seams Q3, sin nuevas dependencias. 5.2 en adelante no están autorizadas. La corrección de
 campos desconocidos y la frontera de marcas postcommit se adelantaron a 3.2 con
 aprobación explícita; 3.3 completa stamps/legacy y 3.4 verifica el navegador sin
 adelantar la implementación de medios S4.
@@ -221,9 +221,12 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
 
 ## 5. Coach local y HTTP — S5
 
-- [ ] 5.1 Entregar p003/config/status e indisponibilidad Q6 con selección importada preservada, sin job/cuota/refresh/remapeo ni launcher.
+- [x] 5.1 Entregar p003/config/status e indisponibilidad Q6 con selección importada preservada, sin job/cuota/refresh/remapeo ni launcher.
   Traceability: compatible-platform-persistence / Explicitly bounded coach delivery / Imported deferred provider remains unavailable; Accepted delivery excludes agent infrastructure; Compatible notification and coach state / Provider feasibility before business port.
   Proof/Check: `node scripts/platform.mjs verify coach_state --case deferred_provider`.
+  Notes (entrega): `p003_coach` crea únicamente settings/provider_settings, sus CHECK/FK/índice y FORCE RLS; `coach.public_disclosure()` usa executor NOLOGIN sin lectura de secretos ni membresía runtime. Bootstrap provisiona el nuevo rol antes de migrar. Config pública conserva IDs/labels/modo/community de claude/codex con enabled=false, sin remapear ni leer sus referencias secretas; COACH_DISABLED oculta disclosure sin mutar selección. Status/plan/review/debrief revalidan actor y conservan CSRF; retornan 503/code off sin ejecución. Hasta 5.2/5.3 también se rechaza trabajo de los restantes proveedores: no se anuncia ejecución entregada. No se anticipan tablas de jobs/cuotas/propuestas/historial ni métodos de administración/importación.
+  Notes (evidencia): `.scratch/platform-coach/red-deferred.log` observa RED conductual 404 frente a 503/off; `red-options.log` detecta falta de CHECK de tipos de opciones (incluye un error de fixture HTTP corregido, no acreditado como RED). `verified-coach.log`: 5/5, sin skips; cubre selección/configuración sintética importada, ausencia de escrituras/jobs/cuota, reinicio, kill switch, revocación durante lock, CSRF, ACL/FORCE RLS y upgrade desde p002 con reprovisión bootstrap sin alterar Training. `node scripts/platform.mjs verify schema`, `lifecycle`, `checks`, `images`: PASS (12/12, 18/18, 12/12 y aislamiento real respectivamente). `verify identity_session`, `identity_password`, `identity_register`, `identity_passkey`, `identity_account`, `identity_reset`, `identity_links`: PASS; `verify training_read`, `training_write`, `media`, `media_gc`: PASS, incluidos todos sus casos registrados. Logs `verified-<suite>.log`; tanda inicial interrumpida por timeout global no acreditada y account repetida completa 59/59. Revisión ponytail del diff HEAD, código nuevo y consumidores: sin bloqueos para 5.1. PASS: OKF, OpenSpec strict y diff HEAD --check.
+  Notes (cierre/límites): Ready for closeout solo de 5.1, 22/57. Recursos sintéticos propios limpiados, incluida tanda interrumpida e imagen auxiliar de formato; servicios existentes intactos. No navegador/build cliente (sin cambios UI), proveedor real, credenciales originales, CI remota ni operación/corte. Importador real, ejecución HTTP, administración, scheduling y UX/locales siguen en sus tareas. Sin nuevas dependencias, launcher/cache SDK/CLI, fallback Node, commit/push, despliegue ni sync/archive. 5.2 no ejecutada.
 - [ ] 5.2 Entregar reserva atómica job/caps UTC, single-flight/dos ejecuciones y transición restart sin replay; índices/constraints p003 reales.
   Traceability: compatible-platform-persistence / Compatible notification and coach state / Atomic limits and repeated job events.
   Proof/Check: `node scripts/platform.mjs verify coach_state --case atomic_enqueue`.

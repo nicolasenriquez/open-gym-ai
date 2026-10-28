@@ -438,6 +438,7 @@ async def test_registration_migration_preserves_previous_head_and_restricted_gra
         Path(__file__).parents[2] / "src/opengym_platform",
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
+            "p003_coach.py",
             "p002_media_gc.py",
             "p001_links.py",
             "p001_reset.py",

@@ -69,7 +69,7 @@ async def deployment(tmp_path):
         await observer.execute("DROP DATABASE opengym_dev WITH (FORCE)")
         await observer.execute(
             "DROP ROLE IF EXISTS opengym_migrator, opengym_api_runtime, "
-            "opengym_schema_owner, opengym_identity_executor"
+            "opengym_schema_owner, opengym_identity_executor, opengym_coach_executor"
         )
         await observer.execute(
             "ALTER ROLE opengym_platform_bootstrap PASSWORD 'synthetic-opengym-platform-only'"
@@ -197,7 +197,7 @@ async def test_public_health_and_config_match_empty_node_instance(deployment):
         assert config.headers["cache-control"] == "no-store"
         assert (
             await observer.fetchval("SELECT version_num FROM public.alembic_version")
-            == "p002_media_gc"
+            == "p003_coach"
         )
 
 
@@ -206,6 +206,7 @@ async def test_public_config_preserves_flags_media_and_never_trusts_forged_sessi
     deployment,
 ):
     _, environment = deployment
+    await migration(environment, "up")
     environment.update(
         {
             "INVITE_ONLY": "YeS",
@@ -273,7 +274,8 @@ async def test_read_only_database_cannot_advertise_writable_or_ready(deployment)
         ["unknown"],
         ["p001_password_login"],
         ["p002_training"],
-        ["p002_media_gc", "extra"],
+        ["p002_media_gc"],
+        ["p003_coach", "extra"],
     ],
 )
 async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, history):
@@ -302,7 +304,7 @@ async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, hi
         assert (await client.get("/api/v1/health/live")).status_code == 200
         await observer.execute("DELETE FROM public.alembic_version")
         await observer.execute(
-            "INSERT INTO public.alembic_version VALUES ('p002_media_gc')"
+            "INSERT INTO public.alembic_version VALUES ('p003_coach')"
         )
         assert (await client.get("/api/v1/health/ready")).status_code == 200
 
@@ -456,6 +458,7 @@ async def test_invalid_public_settings_use_node_defaults_without_echoing_values(
     deployment,
 ):
     _, environment = deployment
+    await migration(environment, "up")
     environment.update(
         {
             "MEDIA_UPLOADS": "",

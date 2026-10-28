@@ -1,4 +1,15 @@
 {
+  "coach_state": [
+    {
+      "id": "deferred_provider",
+      "requirement": "Explicitly bounded coach delivery / Imported deferred provider remains unavailable; Accepted delivery excludes agent infrastructure",
+      "setup": "Real restricted HTTP/PostgreSQL with synthetic imported settings, no credential mount or provider runtime",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_state.py"],
+      "proof": "Preserved deferred selection and non-secret configuration, public availability and authenticated 503/off before any work",
+      "checkpoint": "5.1 only; job persistence, HTTP transports, administration and client UX remain 5.2–5.6"
+    }
+  ],
   "media_gc": [
     {
       "id": "fail_safe",

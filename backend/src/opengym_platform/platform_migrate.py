@@ -65,6 +65,9 @@ async def _bootstrap(target):
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'opengym_identity_executor') THEN
                         CREATE ROLE opengym_identity_executor NOLOGIN;
                     END IF;
+                    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'opengym_coach_executor') THEN
+                        CREATE ROLE opengym_coach_executor NOLOGIN;
+                    END IF;
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{MIGRATOR}') THEN
                         CREATE ROLE {MIGRATOR} LOGIN;
                     END IF;
@@ -77,6 +80,9 @@ async def _bootstrap(target):
                 ALTER ROLE opengym_identity_executor NOLOGIN NOSUPERUSER NOBYPASSRLS
                     NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
                 GRANT opengym_identity_executor TO {SCHEMA_OWNER};
+                ALTER ROLE opengym_coach_executor NOLOGIN NOSUPERUSER NOBYPASSRLS
+                    NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT;
+                GRANT opengym_coach_executor TO {SCHEMA_OWNER};
                 ALTER ROLE {MIGRATOR} NOSUPERUSER NOBYPASSRLS NOCREATEDB
                     NOCREATEROLE NOREPLICATION NOINHERIT;
                 ALTER ROLE {RUNTIME} NOSUPERUSER NOBYPASSRLS NOCREATEDB
@@ -111,12 +117,13 @@ async def _bootstrap(target):
                 SELECT count(*) FROM pg_auth_members m
                 JOIN pg_roles member ON member.oid = m.member
                 WHERE member.rolname IN ('{SCHEMA_OWNER}', '{MIGRATOR}', '{RUNTIME}',
-                    'opengym_identity_executor')
+                    'opengym_identity_executor', 'opengym_coach_executor')
                   AND NOT (member.rolname = '{MIGRATOR}' AND m.roleid = (
                       SELECT oid FROM pg_roles WHERE rolname = '{SCHEMA_OWNER}'
                   ))
-                  AND NOT (member.rolname = '{SCHEMA_OWNER}' AND m.roleid = (
-                      SELECT oid FROM pg_roles WHERE rolname = 'opengym_identity_executor'
+                  AND NOT (member.rolname = '{SCHEMA_OWNER}' AND m.roleid IN (
+                      SELECT oid FROM pg_roles WHERE rolname IN
+                          ('opengym_identity_executor', 'opengym_coach_executor')
                   ))
             """)
             if memberships:
