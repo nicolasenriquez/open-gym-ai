@@ -75,7 +75,11 @@ def create_router(*, secret, secure, note_state=None):
             )
         try:
             status, result = await write(
-                request.app.state.database, session, body, note_state
+                request.app.state.database,
+                session,
+                body,
+                note_state,
+                coach=request.app.state.coach_jobs,
             )
             return JSONResponse(result, status_code=status, headers=headers)
         except DatabaseError:

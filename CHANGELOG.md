@@ -14,6 +14,10 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python Coach proposal resolution and lazy expiry with bounded event history;
+  owner-scoped forgetting, current-day usage retention and HTTP cancellation.
+  Training opt-out/reset clears Coach atomically, and late results cannot restore
+  forgotten or deleted content. Requires `p003_coach_lifecycle`.
 - Python private media upload/download with compatible hash, format, duration and
   response headers, session revalidation before publication, public Training
   references and separate persistent media volumes. Browser proof displays a

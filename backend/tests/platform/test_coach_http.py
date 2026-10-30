@@ -460,7 +460,7 @@ async def test_actor_settings_and_pending_proposals_are_restricted_and_upgrade_i
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p003_coach_http.py"),
+        ignore=shutil.ignore_patterns("p003_coach_lifecycle.py", "p003_coach_http.py"),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (
@@ -478,7 +478,7 @@ async def test_actor_settings_and_pending_proposals_are_restricted_and_upgrade_i
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach_http"
+        == "p003_coach_lifecycle"
     )
     assert (
         await observer.fetchval(

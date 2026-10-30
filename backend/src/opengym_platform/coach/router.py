@@ -19,6 +19,8 @@ def create_router(*, secret, secure):
     @router.post("/plan")
     @router.post("/review")
     @router.post("/debrief")
+    @router.post("/pending/resolve")
+    @router.post("/forget")
     async def coach(request: Request):
         headers = {"Cache-Control": "no-store"}
         if request.method == "POST" and not request.headers.get(
@@ -51,6 +53,8 @@ def create_router(*, secret, secure):
             )
         try:
             jobs = request.app.state.coach_jobs
+            if request.url.path.endswith("/forget"):
+                return JSONResponse(await jobs.forget(session), headers=headers)
             if request.method == "GET":
                 return JSONResponse(await jobs.status(session), headers=headers)
             await jobs.preflight(session)
@@ -70,6 +74,8 @@ def create_router(*, secret, secure):
                     {"error": "invalid json"}, status_code=400, headers=headers
                 )
             body = body if isinstance(body, dict) else {}
+            if request.url.path.endswith("/pending/resolve"):
+                return JSONResponse(await jobs.resolve(session, body), headers=headers)
             kind = {"plan": "create", "review": "review", "debrief": "debrief"}[
                 request.url.path.rsplit("/", 1)[-1]
             ]

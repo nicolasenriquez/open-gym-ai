@@ -234,10 +234,22 @@ The four HTTP wire formats are verified with private endpoints and synthetic key
 A configured keyless compatible endpoint can execute; keyed-provider credential
 resolution, profile credentials and administrative configuration/connect routes
 remain in their later slice. The application factory's credential callback is a
-private operation seam, not an HTTP credential field. Resolve/history/expiry/forget,
-scheduling and the client availability UX are not yet delivered. No SDK/CLI launcher,
+private operation seam, not an HTTP credential field. Scheduling and the client
+availability UX remain in their later slice. No SDK/CLI launcher,
 credential cache mount, refresh or Node fallback is present; original credentials
 stay outside active runtime mounts.
+
+`p003_coach_lifecycle` grants only owner-scoped forgetting under the existing RLS
+policies. `POST /api/v1/coach/pending/resolve` records applied/dismissed counts and
+clears the proposal without changing Training; repeated calls are harmless. Status
+and resolution expire proposals lazily, retaining the latest twenty events, including
+multiple events for one job. `POST /api/v1/coach/forget` works even when the provider
+is unavailable: it clears current jobs, proposals and history, disables sharing and
+advances the persistent generation. It retains today's UTC profile usage and the
+anonymous instance aggregate. Training opt-out/reset clears Coach in the same SQL
+transaction; cancellation happens after commit. Queued work is dropped and active
+HTTP requests are cancelled. Completion still rechecks owner, consent and generation
+so late responses cannot restore forgotten/deleted content or recreate usage.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -296,6 +308,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `media --case quota_and_missing` | Private missing/usage, concurrent quota reservations, safe pressure reclamation, upload/disk limits and temporary cleanup. |
 | `coach_state --case deferred_provider` | Imported SDK/CLI selection preservation, public availability, 503/off without work, actor revalidation/CSRF, config constraints/ACL and previous-head upgrade. |
 | `coach_state --case atomic_enqueue` | Atomic UTC caps and single-flight, two execution slots outside SQL, restricted ACL/RLS, configuration-head upgrade and HTTP lifecycle recovery without replay. Its private operation probe does not by itself verify the HTTP pipeline. |
+| `coach_state --case late_result` | Decisions/expiry and twenty-event history; own forgetting while unavailable, current-day usage retention, HTTP/queued cancellation, opt-out/reset rollback and late completion after forgetting or synthetic account deletion. |
 | `coach_http --case validated_proposal` | Private HTTP fixtures for all four wire formats, independent payload/validator/fingerprint vectors, one repair round, real timeout and safe failures; consent/RLS and pending proposals without changing Training. |
 | `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |

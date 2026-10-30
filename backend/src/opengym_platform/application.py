@@ -25,7 +25,7 @@ from opengym_platform.media.router import create_router as media_router
 from opengym_platform.media.service import Media
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p003_coach_http"
+SCHEMA_REVISION = "p003_coach_lifecycle"
 
 
 async def recover_coach(database):
