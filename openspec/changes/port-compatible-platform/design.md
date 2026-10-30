@@ -359,6 +359,15 @@ La primera entrega no requiere runtimes SDK/CLI, Node runtime ni override seccom
 coach. Su ausencia y la excepción de compatibilidad forman parte de GP/GO/G3 y del
 inventario de cleanup; la evidencia Foundation y sus fixtures históricos no cambian.
 
+### Recuperación de jobs aprobada para 5.2
+
+El promotor autorizó `coach.fail_interrupted_jobs() RETURNS bigint` como excepción
+acotada al catálogo de seguridad: el worker único la ejecuta antes de servir tráfico
+para archivar failed/restart y retirar los jobs actuales atómicamente, conservando
+cuotas y sin replay. Executor NOLOGIN y EXECUTE explícito, sin lectura global runtime,
+credenciales de migración ni parámetros arbitrarios; ver el contrato propietario en
+[seguridad](../../../docs/reference/platform-security.md#catálogo-sql-y-contexto-transaccional).
+
 ### 12. Cierre técnico de preparación
 
 El [plan ejecutable](execution-plan.md) y [tasks](tasks.md) sustituyen el mapa de

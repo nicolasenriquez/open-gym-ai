@@ -175,7 +175,17 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   mismo handle, crea/incrementa filas UTC de consumo y job atómicamente. Retorna
   solo job_id/estado. Cap cero ilimitado; colisión/sin consentimiento/diferido no
   cambia cuotas. El límite de dos ejecuciones usa semáforo del único worker, no
-  transacción abierta durante HTTP.
+  transacción abierta durante HTTP. El executor recibe únicamente la proyección
+  document/owner_id de Training con RLS del actor ya revalidado, para comprobar
+  consentimiento dentro de la reserva; no lectura global. Python usa la interfaz
+  pública Training para sus revalidaciones antes/después de la llamada externa.
+- `coach.fail_interrupted_jobs() RETURNS bigint` es la excepción de recuperación
+  aprobada para 5.2: solo al arrancar el worker único, antes de aceptar tráfico,
+  archiva los jobs actuales como failed/restart y los retira en una transacción.
+  Executor NOLOGIN, search_path fijo, EXECUTE runtime explícito; devuelve solo
+  cardinalidad, sin owners/contenido ni parámetros arbitrarios. Conserva cuotas,
+  generaciones y configuración, no reejecuta proveedores; historial personal
+  limitado a 20 eventos. No concede SELECT global al runtime ni usa migrator.
 - `coach.disconnect_owner(actor text, sv bigint, exp timestamptz, target text)`
   permite propio owner o admin activo, conserva referencia de limpieza y desconecta
   sin transformar una credencial personal en compartida. `coach.read_results(actor

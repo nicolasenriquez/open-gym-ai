@@ -429,7 +429,9 @@ async def test_gc_migrates_previous_head_without_changing_training_or_bytes(
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         package,
-        ignore=shutil.ignore_patterns("p003_coach.py", "p002_media_gc.py"),
+        ignore=shutil.ignore_patterns(
+            "p003_coach.py", "p003_coach_jobs.py", "p002_media_gc.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(package.parent)}, "up")
     assert (
@@ -445,7 +447,7 @@ async def test_gc_migrates_previous_head_without_changing_training_or_bytes(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach"
+        == "p003_coach_jobs"
     )
     assert json.loads(
         await observer.fetchval(

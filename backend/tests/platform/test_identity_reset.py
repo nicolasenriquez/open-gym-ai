@@ -396,7 +396,11 @@ async def test_forward_migration_and_reset_functions_keep_runtime_restricted(
         Path("/app/src/opengym_platform"),
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
-            "p003_coach.py", "p002_media_gc.py", "p001_links.py", "p001_reset.py"
+            "p003_coach.py",
+            "p003_coach_jobs.py",
+            "p002_media_gc.py",
+            "p001_links.py",
+            "p001_reset.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(previous)}, "up")
@@ -417,7 +421,7 @@ async def test_forward_migration_and_reset_functions_keep_runtime_restricted(
     assert await observer.fetch("SELECT * FROM identity.password_resets") == before
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach"
+        == "p003_coach_jobs"
     )
     functions = await observer.fetch("""SELECT p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner) AS owner,
         EXISTS(SELECT FROM aclexplode(p.proacl) a WHERE a.grantee=0 AND a.privilege_type='EXECUTE') AS public

@@ -1,6 +1,15 @@
 {
   "coach_state": [
     {
+      "id": "atomic_enqueue",
+      "requirement": "Compatible notification and coach state / Atomic limits and repeated job events",
+      "setup": "Real restricted HTTP/PostgreSQL, private deterministic execution seam, no real provider",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_jobs.py"],
+      "proof": "Atomic UTC caps, single-flight, two executions and restart without replay",
+      "checkpoint": "5.2 only; HTTP provider pipeline and proposals remain 5.3"
+    },
+    {
       "id": "deferred_provider",
       "requirement": "Explicitly bounded coach delivery / Imported deferred provider remains unavailable; Accepted delivery excludes agent infrastructure",
       "setup": "Real restricted HTTP/PostgreSQL with synthetic imported settings, no credential mount or provider runtime",

@@ -667,7 +667,7 @@ async def test_forward_migration_preserves_links_and_keeps_functions_and_runtime
         Path("/app/src/opengym_platform"),
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
-            "p003_coach.py", "p002_media_gc.py", "p001_links.py"
+            "p003_coach.py", "p003_coach_jobs.py", "p002_media_gc.py", "p001_links.py"
         ),
     )
     await migration({**environment, "PYTHONPATH": str(previous)}, "up")

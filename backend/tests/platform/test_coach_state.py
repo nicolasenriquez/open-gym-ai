@@ -75,10 +75,9 @@ async def test_deferred_provider_preserves_imported_selection_without_work(ident
             )
             assert after == before
             assert json.loads(after["settings"])["provider"] == provider
-            assert await observer.fetchval("SELECT to_regclass('coach.jobs')") is None
+            assert await observer.fetchval("SELECT count(*) FROM coach.jobs") == 0
             assert (
-                await observer.fetchval("SELECT to_regclass('coach.daily_usage')")
-                is None
+                await observer.fetchval("SELECT count(*) FROM coach.daily_usage") == 0
             )
     async with server(environment) as client:
         assert (await client.get("/api/v1/config")).json()["coach"][
@@ -212,7 +211,7 @@ async def test_config_migrates_previous_head_without_replaying_or_touching_train
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         package,
-        ignore=shutil.ignore_patterns("p003_coach.py"),
+        ignore=shutil.ignore_patterns("p003_coach.py", "p003_coach_jobs.py"),
     )
     await migration({**environment, "PYTHONPATH": str(package.parent)}, "up")
     assert (
@@ -227,7 +226,7 @@ async def test_config_migrates_previous_head_without_replaying_or_touching_train
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach"
+        == "p003_coach_jobs"
     )
     assert json.loads(
         await observer.fetchval("SELECT document FROM training.documents")

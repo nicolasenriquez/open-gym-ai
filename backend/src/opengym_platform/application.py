@@ -9,6 +9,7 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException
 
+from opengym_platform.coach.jobs import Jobs
 from opengym_platform.coach.router import create_router as coach_router
 from opengym_platform.coach.service import public_config as coach_config
 from opengym_platform.core.database import Database, DatabaseError
@@ -23,8 +24,32 @@ from opengym_platform.media.router import create_router as media_router
 from opengym_platform.media.service import Media
 from opengym_platform.training.router import create_router as training_router
 
+SCHEMA_REVISION = "p003_coach_jobs"
 
-def create_app(*, training_note_state=None):
+
+async def recover_coach(database):
+    try:
+        installed = await database.fetch(
+            "SELECT to_regclass('public.alembic_version') IS NOT NULL AS installed"
+        )
+        if not installed[0]["installed"]:
+            return False
+        rows = await database.fetch(
+            "SELECT version_num, current_setting('transaction_read_only')='off' "
+            "AND NOT pg_is_in_recovery() AS writable FROM public.alembic_version LIMIT 2"
+        )
+    except DatabaseError:
+        # An unmigrated instance must remain live, but cannot become ready.
+        return False
+    if [row["version_num"] for row in rows] != [SCHEMA_REVISION] or not rows[0][
+        "writable"
+    ]:
+        return False
+    await database.fetch("SELECT coach.fail_interrupted_jobs()")
+    return True
+
+
+def create_app(*, training_note_state=None, coach_execute=None):
     public_config = load_public_config()
     secret = load_session_secret()
     secure = os.environ.get("ORIGIN", "http://localhost:8080").startswith("https://")
@@ -52,8 +77,15 @@ def create_app(*, training_note_state=None):
                 asyncio.create_task(media.maintain_gc(database)),
             ]
         try:
+            app.state.coach_recovered = await recover_coach(database)
+            app.state.coach_recovery_lock = asyncio.Lock()
+            app.state.coach_jobs = (
+                Jobs(database, coach_execute) if coach_execute is not None else None
+            )
             yield
         finally:
+            if getattr(app.state, "coach_jobs", None) is not None:
+                await app.state.coach_jobs.close()
             for task in maintenance:
                 task.cancel()
             for task in maintenance:
@@ -124,7 +156,7 @@ def create_app(*, training_note_state=None):
             return JSONResponse(
                 {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
             )
-        if [row["version_num"] for row in revisions] != ["p003_coach"]:
+        if [row["version_num"] for row in revisions] != [SCHEMA_REVISION]:
             return JSONResponse(
                 {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
             )
@@ -132,6 +164,21 @@ def create_app(*, training_note_state=None):
             return JSONResponse(
                 {"code": "PLATFORM_DATABASE_READ_ONLY"}, status_code=503
             )
+        if not request.app.state.coach_recovered:
+            async with request.app.state.coach_recovery_lock:
+                if not request.app.state.coach_recovered:
+                    try:
+                        request.app.state.coach_recovered = await recover_coach(
+                            request.app.state.database
+                        )
+                    except DatabaseError:
+                        return JSONResponse(
+                            {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
+                        )
+                    if not request.app.state.coach_recovered:
+                        return JSONResponse(
+                            {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
+                        )
         return JSONResponse({"code": "PLATFORM_READY_OK"})
 
     @public_api.get("/health")

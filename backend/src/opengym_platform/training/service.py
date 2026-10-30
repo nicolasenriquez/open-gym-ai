@@ -9,6 +9,14 @@ from opengym_platform.identity.sessions import authorize
 from opengym_platform.training.stamps import number, stamp_put
 
 
+async def coach_consent(handle):
+    """Coach's bounded consent projection, on the caller's locked owner transaction."""
+    rows = await handle.fetch("""SELECT document #> '{coach,consent,agreedAt}' IS NOT NULL
+        AND document #> '{coach,consent,agreedAt}' NOT IN ('null','false','0','""') AS agreed
+        FROM training.documents""")
+    return bool(rows and rows[0]["agreed"])
+
+
 async def read(database, session, *, revision_only):
     async with database.transaction() as handle:
         if not await authorize(handle, session):

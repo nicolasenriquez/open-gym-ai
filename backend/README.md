@@ -210,10 +210,21 @@ OpenAI HTTP. `COACH_DISABLED=1` hides the Coach disclosure without changing stor
 Authenticated `GET /api/v1/coach/status` and `POST /api/v1/coach/plan`, `/review`,
 `/debrief` currently return the compatible 503/code `off` before any work.
 They revalidate sessions under the actor lock and retain POST CSRF checks.
-This is configuration and refusal support only: job/usage/proposal/history tables,
-HTTP execution, administration, scheduling and the client availability UX are not
-yet delivered. No SDK/CLI launcher, credential cache mount, refresh or Node fallback
-is present; original credentials stay outside active runtime mounts.
+The forward-only `p003_coach_jobs` migration adds current jobs, profile generations,
+UTC usage counters and bounded personal history. Its restricted reservation function
+atomically checks the actor, consent, generation, single-flight and both caps;
+zero caps mean unlimited. Only the deterministic fixture is admissible at this
+stage; HTTP providers and profile credential resolution remain unavailable.
+The application-operation coordinator admits at most two executions, holds no SQL
+transaction during a call and cancels queued/running tasks at shutdown. Provider
+invocation is an explicit injected operation seam, not a production transport yet.
+Before readiness, the single API worker records interrupted jobs as `failed/restart`
+and removes them atomically, preserving usage and never replaying work. Recovery
+requires a compatible writable schema; it does not create roles or migrate.
+Public Coach routes still refuse work until the HTTP pipeline is delivered.
+Proposals, HTTP execution, administration, scheduling and the client availability UX
+are not yet delivered. No SDK/CLI launcher, credential cache mount, refresh or Node
+fallback is present; original credentials stay outside active runtime mounts.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -270,7 +281,9 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `training_browser` | Compiled Settings passkey/device-link/reset flows, login, offline dirty/active state, real 401/two 409s, lost reply, restored lineage and a private progress photo downloaded into the verified local store and displayed offline. |
 | `media` | `roundtrip`: seven formats, hash/type/cap rejection, private headers/foreign 404, streaming revocation/idle timeout, restart/idempotency/repair and public Training reference marks. |
 | `media --case quota_and_missing` | Private missing/usage, concurrent quota reservations, safe pressure reclamation, upload/disk limits and temporary cleanup. |
-| `coach_state --case deferred_provider` | Imported SDK/CLI selection preservation, public availability, 503/off without work, actor revalidation/CSRF, config constraints/ACL and previous-head upgrade. |\n| `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
+| `coach_state --case deferred_provider` | Imported SDK/CLI selection preservation, public availability, 503/off without work, actor revalidation/CSRF, config constraints/ACL and previous-head upgrade. |
+| `coach_state --case atomic_enqueue` | Atomic UTC caps and single-flight, two execution slots outside SQL, restricted ACL/RLS, configuration-head upgrade and HTTP lifecycle recovery without replay. Uses the public operation seam with a private fixture probe, not a delivered provider pipeline. |
+| `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
