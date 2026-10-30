@@ -1,4 +1,4 @@
-"""Read-only availability; credentials and execution arrive in later slices."""
+"""Bounded public availability and consented execution settings."""
 
 import json
 import os
