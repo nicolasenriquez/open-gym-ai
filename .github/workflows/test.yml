@@ -286,6 +286,7 @@ jobs:
       - run: node scripts/platform.mjs verify media --case quota_and_missing
       - run: node scripts/platform.mjs verify media_gc --case fail_safe
       - run: node scripts/platform.mjs verify coach_state
+      - run: node scripts/platform.mjs verify coach_http --case validated_proposal
       - run: node scripts/platform.mjs verify images
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node --test scripts/platform-build.test.mjs

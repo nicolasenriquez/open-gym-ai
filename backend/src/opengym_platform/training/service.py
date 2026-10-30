@@ -17,6 +17,12 @@ async def coach_consent(handle):
     return bool(rows and rows[0]["agreed"])
 
 
+async def coach_document(handle):
+    """Owner's ephemeral Coach input, within the initiating authorized transaction."""
+    rows = await handle.fetch("SELECT document FROM training.documents")
+    return json.loads(rows[0]["document"]) if rows else None
+
+
 async def read(database, session, *, revision_only):
     async with database.transaction() as handle:
         if not await authorize(handle, session):

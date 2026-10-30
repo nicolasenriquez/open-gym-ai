@@ -186,6 +186,14 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   cardinalidad, sin owners/contenido ni parámetros arbitrarios. Conserva cuotas,
   generaciones y configuración, no reejecuta proveedores; historial personal
   limitado a 20 eventos. No concede SELECT global al runtime ni usa migrator.
+- `coach.execution_config(actor text, sv bigint, exp timestamptz)` es la lectura
+  interna aprobada para 5.3: actor y contexto owner revalidados, consentimiento
+  vigente y singleton bloqueado después del owner. Devuelve solo proveedor/modelo,
+  opciones no secretas, modo y límites (mensaje, output y cuota personal); ningún
+  secreto/referencia de credencial. Executor NOLOGIN con SELECT por columnas y
+  política de proveedor seleccionado, search_path fijo y EXECUTE runtime explícito.
+  No tiene endpoint público ni habilita SDK/CLI, SELECT global runtime o credenciales
+  personales. La lectura Training permanece bajo el RLS del actor.
 - `coach.disconnect_owner(actor text, sv bigint, exp timestamptz, target text)`
   permite propio owner o admin activo, conserva referencia de limpieza y desconecta
   sin transformar una credencial personal en compartida. `coach.read_results(actor

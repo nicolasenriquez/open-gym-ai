@@ -213,18 +213,32 @@ They revalidate sessions under the actor lock and retain POST CSRF checks.
 The forward-only `p003_coach_jobs` migration adds current jobs, profile generations,
 UTC usage counters and bounded personal history. Its restricted reservation function
 atomically checks the actor, consent, generation, single-flight and both caps;
-zero caps mean unlimited. Only the deterministic fixture is admissible at this
-stage; HTTP providers and profile credential resolution remain unavailable.
+zero caps mean unlimited.
 The application-operation coordinator admits at most two executions, holds no SQL
 transaction during a call and cancels queued/running tasks at shutdown. Provider
-invocation is an explicit injected operation seam, not a production transport yet.
+invocation holds no owner lock or database lease.
 Before readiness, the single API worker records interrupted jobs as `failed/restart`
 and removes them atomically, preserving usage and never replaying work. Recovery
 requires a compatible writable schema; it does not create roles or migrate.
-Public Coach routes still refuse work until the HTTP pipeline is delivered.
-Proposals, HTTP execution, administration, scheduling and the client availability UX
-are not yet delivered. No SDK/CLI launcher, credential cache mount, refresh or Node
-fallback is present; original credentials stay outside active runtime mounts.
+The forward-only `p003_coach_http` migration adds owner-scoped pending proposals
+and the restricted `coach.execution_config` function. With an active instance
+configuration and consent, the status/plan/review/debrief routes use the Python
+payload, HTTP transport and validator. Responses become pending proposals; they
+never write Training. Payloads use bounded disclosed categories and a keyed
+pseudonym, and proposals retain the client's plan fingerprint. The pipeline has
+one repair round; transports retain bounded transient retries, compatible endpoint
+and JSON-mode fallbacks, routed headers and classified safe failures. `httpx==0.28.1`
+is a runtime dependency. Prompts, schemas, catalogue and icon data are generated
+by `node scripts/build-coach-assets.mjs`; the editable sources remain singular.
+
+The four HTTP wire formats are verified with private endpoints and synthetic keys.
+A configured keyless compatible endpoint can execute; keyed-provider credential
+resolution, profile credentials and administrative configuration/connect routes
+remain in their later slice. The application factory's credential callback is a
+private operation seam, not an HTTP credential field. Resolve/history/expiry/forget,
+scheduling and the client availability UX are not yet delivered. No SDK/CLI launcher,
+credential cache mount, refresh or Node fallback is present; original credentials
+stay outside active runtime mounts.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -283,6 +297,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `media --case quota_and_missing` | Private missing/usage, concurrent quota reservations, safe pressure reclamation, upload/disk limits and temporary cleanup. |
 | `coach_state --case deferred_provider` | Imported SDK/CLI selection preservation, public availability, 503/off without work, actor revalidation/CSRF, config constraints/ACL and previous-head upgrade. |
 | `coach_state --case atomic_enqueue` | Atomic UTC caps and single-flight, two execution slots outside SQL, restricted ACL/RLS, configuration-head upgrade and HTTP lifecycle recovery without replay. Uses the public operation seam with a private fixture probe, not a delivered provider pipeline. |
+| `coach_http --case validated_proposal` | Private HTTP fixtures for all four wire formats, independent payload/validator/fingerprint vectors, one repair round, real timeout and safe failures; consent/RLS and pending proposals without changing Training. |
 | `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |

@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException
 
 from opengym_platform.coach.jobs import Jobs
+from opengym_platform.coach.pipeline import Pipeline
 from opengym_platform.coach.router import create_router as coach_router
 from opengym_platform.coach.service import public_config as coach_config
 from opengym_platform.core.database import Database, DatabaseError
@@ -24,7 +25,7 @@ from opengym_platform.media.router import create_router as media_router
 from opengym_platform.media.service import Media
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p003_coach_jobs"
+SCHEMA_REVISION = "p003_coach_http"
 
 
 async def recover_coach(database):
@@ -49,7 +50,7 @@ async def recover_coach(database):
     return True
 
 
-def create_app(*, training_note_state=None, coach_execute=None):
+def create_app(*, training_note_state=None, coach_execute=None, coach_credentials=None):
     public_config = load_public_config()
     secret = load_session_secret()
     secure = os.environ.get("ORIGIN", "http://localhost:8080").startswith("https://")
@@ -79,8 +80,12 @@ def create_app(*, training_note_state=None, coach_execute=None):
         try:
             app.state.coach_recovered = await recover_coach(database)
             app.state.coach_recovery_lock = asyncio.Lock()
-            app.state.coach_jobs = (
-                Jobs(database, coach_execute) if coach_execute is not None else None
+            app.state.coach_jobs = Jobs(
+                database,
+                coach_execute,
+                pipeline=Pipeline(secret, coach_credentials)
+                if coach_execute is None
+                else None,
             )
             yield
         finally:

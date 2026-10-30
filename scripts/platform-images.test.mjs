@@ -28,11 +28,14 @@ import importlib.util, os, pathlib, shutil
 assert os.getuid() == 1000
 for executable in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap', 'pg_dump'):
     assert shutil.which(executable) is None, executable
-for module in ('pytest', 'ruff', 'mypy', 'pip', 'httpx'):
+for module in ('pytest', 'ruff', 'mypy', 'pip'):
     assert importlib.util.find_spec(module) is None, module
 assert not pathlib.Path('/app/tests').exists()
 assert not pathlib.Path('/app/src/opengym_platform/runner.py').exists()
-import fastapi, asyncpg, uvicorn
+import fastapi, asyncpg, uvicorn, httpx
+assert httpx.__version__ == '0.28.1'
+from opengym_platform.coach.payload import ASSETS
+assert ASSETS['library'] and ASSETS['prompts']['common']
 print('PLATFORM_RUNTIME_ISOLATION_OK')
 `], true);
     const testImage = `${project}-platform-test:local`;
@@ -54,7 +57,7 @@ print('PLATFORM_RUNTIME_ISOLATION_OK')
 import importlib.util, os, pathlib, shutil
 assert os.getuid() == 1000
 assert not pathlib.Path('/app/tests').exists()
-for name in ('pytest', 'ruff', 'mypy', 'httpx', 'pip'):
+for name in ('pytest', 'ruff', 'mypy', 'pip'):
     assert importlib.util.find_spec(name) is None
 for name in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap'):
     assert shutil.which(name) is None
@@ -205,7 +208,7 @@ async def check():
     connection = await asyncpg.connect(host=target.host, database=target.database, user=target.user, password=target.password, ssl=False, timeout=5)
     try:
         assert await connection.fetchval('SELECT current_user') == 'opengym_api_runtime'
-        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p003_coach_jobs'
+        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p003_coach_http'
         try:
             await connection.execute('SET ROLE opengym_schema_owner')
         except asyncpg.InsufficientPrivilegeError:

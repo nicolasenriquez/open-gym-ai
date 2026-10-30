@@ -1,12 +1,15 @@
-"""Compatibility refusals for old clients before any Coach execution exists."""
+"""Compatible Coach HTTP surface; operations own authorization and transactions."""
 
+import json
 import os
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+from opengym_platform.coach.jobs import Refused
+from opengym_platform.coach.pipeline import invalid_constant
 from opengym_platform.core.database import DatabaseError
-from opengym_platform.identity.sessions import authorize, verify
+from opengym_platform.identity.sessions import verify
 
 
 def create_router(*, secret, secure):
@@ -16,7 +19,7 @@ def create_router(*, secret, secure):
     @router.post("/plan")
     @router.post("/review")
     @router.post("/debrief")
-    async def unavailable(request: Request):
+    async def coach(request: Request):
         headers = {"Cache-Control": "no-store"}
         if request.method == "POST" and not request.headers.get(
             "authorization", ""
@@ -26,11 +29,9 @@ def create_router(*, secret, secure):
             allowed = (
                 site in {"same-origin", "none"}
                 if site
-                else (
-                    not origin
-                    or origin.rstrip("/")
-                    == os.environ.get("ORIGIN", "http://localhost:8080").rstrip("/")
-                )
+                else not origin
+                or origin.rstrip("/")
+                == os.environ.get("ORIGIN", "http://localhost:8080").rstrip("/")
             )
             if not allowed:
                 return JSONResponse(
@@ -44,21 +45,40 @@ def create_router(*, secret, secure):
             secure,
             secret,
         )
-        try:
-            if session:
-                async with request.app.state.database.transaction() as handle:
-                    if not await authorize(handle, session):
-                        session = None
-            if not session:
-                return JSONResponse(
-                    {"error": "not signed in"}, status_code=401, headers=headers
-                )
-            # shortcut: no execution before slices 5.2/5.3, replace only when enqueue is delivered.
+        if not session:
             return JSONResponse(
-                {"error": "the Coach is not set up on this instance", "code": "off"},
-                status_code=503,
-                headers=headers,
+                {"error": "not signed in"}, status_code=401, headers=headers
             )
+        try:
+            jobs = request.app.state.coach_jobs
+            if request.method == "GET":
+                return JSONResponse(await jobs.status(session), headers=headers)
+            await jobs.preflight(session)
+            try:
+                raw = bytearray()
+                async for chunk in request.stream():
+                    if len(raw) + len(chunk) > 5 * 1024 * 1024:
+                        return JSONResponse(
+                            {"error": "body too large"},
+                            status_code=413,
+                            headers=headers,
+                        )
+                    raw.extend(chunk)
+                body = json.loads(raw, parse_constant=invalid_constant) if raw else {}
+            except (ValueError, UnicodeError):
+                return JSONResponse(
+                    {"error": "invalid json"}, status_code=400, headers=headers
+                )
+            body = body if isinstance(body, dict) else {}
+            kind = {"plan": "create", "review": "review", "debrief": "debrief"}[
+                request.url.path.rsplit("/", 1)[-1]
+            ]
+            job = await jobs.enqueue(session, kind=kind, opts=body)
+            return JSONResponse(
+                {"job": {"id": job["id"]}}, status_code=202, headers=headers
+            )
+        except Refused as error:
+            return JSONResponse(error.body, status_code=error.status, headers=headers)
         except DatabaseError:
             return JSONResponse(
                 {"error": "server error"}, status_code=500, headers=headers

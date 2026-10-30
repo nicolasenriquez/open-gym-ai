@@ -9,6 +9,7 @@ dependencies = [
   "pydantic==2.14.1",
   "uvicorn==0.54.0",
   "asyncpg==0.32.0",
+  "httpx==0.28.1",
   "webauthn==3.0.1",
   "alembic==1.20.1",
   "sqlalchemy[asyncio]==2.1.6",
@@ -18,7 +19,6 @@ dependencies = [
 dev = [
   "pytest==9.1.1",
   "pytest-asyncio==1.4.0",
-  "httpx==0.28.1",
   "ruff==0.17.2",
   "mypy==2.4.0",
 ]

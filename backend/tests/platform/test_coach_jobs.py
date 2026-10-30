@@ -426,7 +426,7 @@ async def test_jobs_upgrade_from_configuration_preserves_training_selection_and_
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         package,
-        ignore=shutil.ignore_patterns("p003_coach_jobs.py"),
+        ignore=shutil.ignore_patterns("p003_coach_http.py", "p003_coach_jobs.py"),
     )
     await migration({**environment, "PYTHONPATH": str(package.parent)}, "up")
     assert (
@@ -442,7 +442,7 @@ async def test_jobs_upgrade_from_configuration_preserves_training_selection_and_
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach_jobs"
+        == "p003_coach_http"
     )
     assert await observer.fetchval("SELECT document FROM training.documents") == before
     assert tuple(

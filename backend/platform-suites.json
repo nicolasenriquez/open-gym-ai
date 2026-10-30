@@ -1,4 +1,15 @@
 {
+  "coach_http": [
+    {
+      "id": "validated_proposal",
+      "requirement": "Explicitly bounded coach delivery; Compatible notification and coach state",
+      "setup": "Restricted real HTTP/PostgreSQL and private HTTP provider fixtures; no real credentials or provider",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_http.py", "tests/platform/test_coach_vectors.py"],
+      "proof": "Consent before quota, allowlisted payload, four transports and validated pending proposals without automatic application",
+      "checkpoint": "5.3 only; resolve/forget, credentials administration and scheduling remain later slices"
+    }
+  ],
   "coach_state": [
     {
       "id": "atomic_enqueue",

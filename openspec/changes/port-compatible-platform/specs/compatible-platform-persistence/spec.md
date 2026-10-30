@@ -46,6 +46,8 @@ Delivery SHALL implement the schema reference's ordered p001–p005 Alembic chai
 
 The explicitly approved 5.2 exception SHALL add `coach.fail_interrupted_jobs() RETURNS bigint` to the typed catalog. The single worker SHALL call it before accepting work to atomically archive interrupted jobs as failed/restart and remove them without replay or quota changes. It SHALL use a restricted NOLOGIN executor, pinned search path and explicit runtime EXECUTE, return only cardinality and grant no global runtime SELECT or migration credentials.
 
+The explicitly approved 5.3 adjustment SHALL add `coach.execution_config(actor text, sv bigint, exp timestamptz)` for consented execution settings and limits only. It SHALL revalidate the actor and owner context, disclose no secret or credential reference, use a restricted NOLOGIN executor and explicit runtime EXECUTE, and grant no global runtime SELECT. HTTP execution SHALL use the approved pinned `httpx==0.28.1` runtime dependency without introducing a provider SDK or subprocess.
+
 #### Scenario: Migration failure and function grants
 - **WHEN** migration is attempted from empty/previous head, interrupted or raced by another migrator, or runtime invokes privileged SQL
 - **THEN** the dedicated lock bounds concurrency, failed revisions do not advance history and runtime cannot assume owner/executor roles or execute ungranted functions

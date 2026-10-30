@@ -1,5 +1,6 @@
 """Read-only availability; credentials and execution arrive in later slices."""
 
+import json
 import os
 
 LABELS = {
@@ -11,6 +12,20 @@ LABELS = {
     "gemini": "Google Gemini",
     "compatible": "OpenAI-compatible endpoint",
 }
+
+
+async def execution_config(handle, session):
+    rows = await handle.fetch(
+        "SELECT * FROM coach.execution_config($1,$2,$3)",
+        session.owner,
+        session.version,
+        session.expires_at,
+    )
+    if not rows:
+        return None
+    config = dict(rows[0])
+    config["options"] = json.loads(config["options"])
+    return config
 
 
 async def public_config(database):

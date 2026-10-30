@@ -368,6 +368,17 @@ cuotas y sin replay. Executor NOLOGIN y EXECUTE explícito, sin lectura global r
 credenciales de migración ni parámetros arbitrarios; ver el contrato propietario en
 [seguridad](../../../docs/reference/platform-security.md#catálogo-sql-y-contexto-transaccional).
 
+### Ajustes de ejecución HTTP aprobados para 5.3
+
+El promotor autorizó añadir `coach.execution_config(actor text, sv bigint, exp timestamptz)`
+al catálogo para obtener proveedor/modelo/opciones y límites de ejecución bajo actor
+vigente y consentimiento. No devuelve secretos ni concede SELECT global al runtime;
+executor NOLOGIN, search_path fijo y EXECUTE explícito. También autorizó promover
+`httpx==0.28.1`, ya bloqueado para tests, al runtime asíncrono. Las credenciales
+personales/conexión/administración permanecen en 5.5; 5.3 verifica los cuatro
+transports contra endpoints y claves sintéticos privados. Sin proveedores reales,
+launcher Node/SDK/CLI ni aplicación automática de las propuestas a Training.
+
 ### 12. Cierre técnico de preparación
 
 El [plan ejecutable](execution-plan.md) y [tasks](tasks.md) sustituyen el mapa de
