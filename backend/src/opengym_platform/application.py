@@ -9,9 +9,11 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException
 
+from opengym_platform.coach.admin import Admin
 from opengym_platform.coach.jobs import Jobs
 from opengym_platform.coach.pipeline import Pipeline
 from opengym_platform.coach.router import create_router as coach_router
+from opengym_platform.coach.secrets import SecretFiles
 from opengym_platform.coach.service import public_config as coach_config
 from opengym_platform.core.database import Database, DatabaseError
 from opengym_platform.core.platform_settings import (
@@ -25,7 +27,7 @@ from opengym_platform.media.router import create_router as media_router
 from opengym_platform.media.service import Media
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p003_coach_http"
+SCHEMA_REVISION = "p003_coach_admin"
 
 
 async def recover_coach(database):
@@ -53,6 +55,7 @@ async def recover_coach(database):
 def create_app(*, training_note_state=None, coach_execute=None, coach_credentials=None):
     public_config = load_public_config()
     secret = load_session_secret()
+    coach_secrets = SecretFiles()
     secure = os.environ.get("ORIGIN", "http://localhost:8080").startswith("https://")
     try:
         session_days = max(1.0, float(os.environ.get("SESSION_DAYS", "90")) or 90)
@@ -70,6 +73,7 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
             await passwords.warm_up()
         database = await Database.open_platform()
         app.state.database = database
+        app.state.coach_admin = Admin(database, coach_secrets)
         maintenance = []
         if media is not None:
             media.clean_temporaries()
@@ -83,7 +87,9 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
             app.state.coach_jobs = Jobs(
                 database,
                 coach_execute,
-                pipeline=Pipeline(secret, coach_credentials)
+                pipeline=Pipeline(
+                    secret, coach_credentials, secrets=app.state.coach_admin.secrets
+                )
                 if coach_execute is None
                 else None,
             )

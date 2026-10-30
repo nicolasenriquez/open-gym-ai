@@ -38,9 +38,10 @@ def extract_json(raw):
 
 
 class Pipeline:
-    def __init__(self, secret, credentials=None):
+    def __init__(self, secret, credentials=None, *, secrets=None):
         self.secret = secret
         self.credentials = credentials
+        self.secrets = secrets
 
     def available(self, config, owner):
         return (
@@ -48,13 +49,15 @@ class Pipeline:
             and bool(config.get("model"))
             and (
                 config["provider"] == "compatible"
-                or bool(self.key(owner, config["provider"]))
+                or bool(self.key(owner, config["provider"], config))
             )
         )
 
-    def key(self, owner, provider):
+    def key(self, owner, provider, config=None):
         return (
-            self.credentials(owner, provider) if self.credentials is not None else None
+            self.credentials(owner, provider)
+            if self.credentials is not None
+            else (config or {}).get("_key")
         )
 
     async def run(self, owner, job, state, config, opts, previous, timeout):
@@ -85,7 +88,7 @@ class Pipeline:
         for attempt in range(2):
             response = await invoke(
                 config,
-                self.key(owner, config["provider"]),
+                self.key(owner, config["provider"], config),
                 user,
                 system,
                 ASSETS["schemas"][job["kind"]],

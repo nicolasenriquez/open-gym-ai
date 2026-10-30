@@ -3,14 +3,16 @@
 import json
 import os
 
+from opengym_platform.coach.payload import ASSETS
+
 LABELS = {
     "fixture": "Fixture (testing)",
     "claude": "Claude (Anthropic)",
     "codex": "Codex (OpenAI)",
-    "anthropic": "Anthropic API",
-    "openai": "OpenAI API",
-    "gemini": "Google Gemini",
-    "compatible": "OpenAI-compatible endpoint",
+    **{provider: meta["label"] for provider, meta in ASSETS["providers"].items()},
+}
+DEFAULT_MODELS = {
+    provider: meta["defaultModel"] for provider, meta in ASSETS["providers"].items()
 }
 
 
@@ -25,6 +27,7 @@ async def execution_config(handle, session):
         return None
     config = dict(rows[0])
     config["options"] = json.loads(config["options"])
+    config["model"] = config["model"] or DEFAULT_MODELS.get(config["provider"])
     return config
 
 

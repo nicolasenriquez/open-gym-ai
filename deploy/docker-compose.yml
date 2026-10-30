@@ -39,6 +39,7 @@ services:
     environment:
       <<: *database
       PLATFORM_SESSION_SECRET_FILE: /run/secrets/session_secret
+      PLATFORM_COACH_SECRET_FILE: /run/secrets/coach_secret
       ORIGIN: ${ORIGIN:-http://localhost:8080}
       TRUST_PROXY: ${TRUST_PROXY:-0}
       SESSION_DAYS: ${SESSION_DAYS:-90}
@@ -61,6 +62,7 @@ services:
     secrets:
       - {source: runtime_password, target: database_password}
       - session_secret
+      - coach_secret
     networks: [app, database]
     depends_on:
       db: {condition: service_healthy}
@@ -133,3 +135,4 @@ secrets:
   migrator_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/migrator_password"}
   runtime_password: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/runtime_password"}
   session_secret: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/session_secret"}
+  coach_secret: {file: "${PLATFORM_SECRETS_DIR:?set a private absolute secret directory}/coach_secret"}

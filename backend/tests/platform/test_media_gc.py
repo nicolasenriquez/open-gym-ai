@@ -431,6 +431,8 @@ async def test_gc_migrates_previous_head_without_changing_training_or_bytes(
         package,
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p003_coach_admin.py",
+            "p003_coach_lifecycle.py",
             "p003_coach_http.py",
             "p003_coach_jobs.py",
             "p002_media_gc.py",
@@ -450,7 +452,7 @@ async def test_gc_migrates_previous_head_without_changing_training_or_bytes(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach_http"
+        == "p003_coach_admin"
     )
     assert json.loads(
         await observer.fetchval(

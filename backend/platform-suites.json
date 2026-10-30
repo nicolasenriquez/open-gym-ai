@@ -1,4 +1,15 @@
 {
+  "coach_admin": [
+    {
+      "id": "credentials",
+      "requirement": "Explicitly bounded coach delivery / Imported deferred provider remains unavailable; Least-privilege access / Preauthentication and pool reuse",
+      "setup": "Real HTTP and restricted PostgreSQL, private provider and external encrypted secret fixtures; independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_admin.py"],
+      "proof": "Admin configuration, models/test, connect/disconnect and profile account; isolation, decrypt failure and no deferred work",
+      "checkpoint": "5.5 only; no real providers or operational acceptance"
+    }
+  ],
   "coach_http": [
     {
       "id": "validated_proposal",
@@ -11,6 +22,15 @@
     }
   ],
   "coach_state": [
+    {
+      "id": "late_result",
+      "requirement": "Compatible notification and coach state / Forget and late provider response; Atomic limits and repeated job events",
+      "setup": "Restricted real HTTP/PostgreSQL and private provider fixtures; no real credentials or account data",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_lifecycle.py"],
+      "proof": "Repeated decisions, expiry, twenty-event history, atomic forgetting and UTC usage retention; HTTP cancellation, queued work and late completion after forget/deletion",
+      "checkpoint": "5.4 only; administrative deletion, credentials, cohort and scheduling remain later slices"
+    },
     {
       "id": "atomic_enqueue",
       "requirement": "Compatible notification and coach state / Atomic limits and repeated job events",

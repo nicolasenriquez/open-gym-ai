@@ -89,7 +89,7 @@ async function deploymentProof({ project, image, docker }) {
     for (const environment of ['dev', 'ops']) {
       const secretRoot = join(temporary, environment);
       mkdirSync(secretRoot, { mode: 0o700 });
-      for (const file of ['bootstrap_password', 'migrator_password', 'runtime_password', 'session_secret']) {
+      for (const file of ['bootstrap_password', 'migrator_password', 'runtime_password', 'session_secret', 'coach_secret']) {
         writeFileSync(join(secretRoot, file), `synthetic-${environment}-${file}-${randomBytes(20).toString('hex')}'$$`, { mode: 0o444 });
       }
       writeFileSync(envFile, [
@@ -140,7 +140,7 @@ async function deploymentProof({ project, image, docker }) {
       }
       assert.ok(config.services.api.command.includes('--no-proxy-headers'));
       assert.ok(config.services.api.volumes?.some(volume => volume.type === 'volume' && volume.source === 'media-data' && volume.target === '/data'));
-      assert.deepEqual(config.services.api.secrets.map(secret => secret.source), ['runtime_password', 'session_secret']);
+      assert.deepEqual(config.services.api.secrets.map(secret => secret.source), ['runtime_password', 'session_secret', 'coach_secret']);
       assert.equal(config.services.api.environment.COACH_DISABLED, '0');
       assert.equal(config.services.migrate.secrets.length, 1);
       assert.equal(config.services.migrate.secrets[0].source, 'migrator_password');
@@ -208,7 +208,7 @@ async def check():
     connection = await asyncpg.connect(host=target.host, database=target.database, user=target.user, password=target.password, ssl=False, timeout=5)
     try:
         assert await connection.fetchval('SELECT current_user') == 'opengym_api_runtime'
-        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p003_coach_http'
+        assert await connection.fetchval('SELECT version_num FROM public.alembic_version') == 'p003_coach_admin'
         try:
             await connection.execute('SET ROLE opengym_schema_owner')
         except asyncpg.InsufficientPrivilegeError:

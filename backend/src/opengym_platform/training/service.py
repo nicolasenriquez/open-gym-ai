@@ -43,7 +43,7 @@ async def read(database, session, *, revision_only):
         return {"state": document, "rev": rows[0]["revision"] if rows else 0}
 
 
-async def write(database, session, body, note_state=None):
+async def write(database, session, body, note_state=None, *, coach=None):
     async with database.transaction() as handle:
         if not await authorize(handle, session):
             return 401, {"error": "not signed in"}
@@ -133,6 +133,11 @@ async def write(database, session, body, note_state=None):
             session.owner,
             text,
         )
+        cancelled_job = (
+            await coach.training_changed(handle, session.owner, current, document)
+            if coach is not None
+            else None
+        )
         timestamp = document.get("_ts")
         if (
             timestamp is False
@@ -147,6 +152,8 @@ async def write(database, session, body, note_state=None):
             "rev": revision + 1,
             "wid": document["_wid"],
         }
+    if coach is not None:
+        coach.cancel(cancelled_job)
     if note_state is not None:
         try:
             async with asyncio.timeout(2):

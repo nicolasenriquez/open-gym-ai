@@ -10,10 +10,8 @@ import httpx
 from opengym_platform.coach.payload import ASSETS, obj
 
 DEFAULT_BASES = {
-    "anthropic": "https://api.anthropic.com",
-    "openai": "https://api.openai.com",
-    "gemini": "https://generativelanguage.googleapis.com",
-    "compatible": "",
+    provider: meta["defaultBase"] or ""
+    for provider, meta in ASSETS["providers"].items()
 }
 VERSION = re.compile(r"/v\d+(?:(?:alpha|beta)\d*)?(?=/|$)", re.IGNORECASE)
 RETRY_STATUSES = {429, 500, 502, 503, 504, 529}
@@ -59,10 +57,7 @@ def base_url(config):
     return base.strip().rstrip("/")
 
 
-async def invoke(config, key, prompt, system, schema, timeout):
-    global versionless_base
-    selected, model = config["provider"], config["model"]
-    maximum = config["max_output_tokens"]
+def extra_headers(config):
     headers = {}
     for name, value in obj(config["options"].get("headers")).items():
         if len(headers) >= 8:
@@ -78,6 +73,89 @@ async def invoke(config, key, prompt, system, schema, timeout):
             and "\n" not in value
         ):
             headers[name.lower()] = value
+    return headers
+
+
+async def models(config, key):
+    selected = config["provider"]
+    base = base_url(config)
+    if not base:
+        return {"ok": False, "error": "no endpoint configured", "models": []}
+    if not key and selected != "compatible":
+        return {"ok": False, "error": "no API key configured", "models": []}
+    headers = extra_headers(config)
+    if selected == "anthropic":
+        headers.update({"x-api-key": key, "anthropic-version": "2023-06-01"})
+    elif selected == "gemini":
+        headers["x-goog-api-key"] = key
+    elif key:
+        headers["authorization"] = "Bearer " + key
+    path = "/v1beta/models?pageSize=200" if selected == "gemini" else "/v1/models"
+    urls = [endpoint(base, path)]
+    if selected == "compatible" and base + VERSION.sub("", path, count=1) != urls[0]:
+        urls.append(base + VERSION.sub("", path, count=1))
+    try:
+        async with (
+            asyncio.timeout(20),
+            httpx.AsyncClient(
+                trust_env=False, follow_redirects=False, timeout=20
+            ) as client,
+        ):
+            for url in urls:
+                async with client.stream("GET", url, headers=headers) as response:
+                    raw = bytearray()
+                    async for chunk in response.aiter_bytes():
+                        if len(raw) + len(chunk) > 4 * 1024 * 1024:
+                            raise ValueError
+                        raw.extend(chunk)
+                    if response.status_code == 404 and url != urls[-1]:
+                        continue
+                    if not 200 <= response.status_code < 300:
+                        return {
+                            "ok": False,
+                            "error": f"provider rejected request ({response.status_code})",
+                            "models": [],
+                        }
+                    data = json.loads(raw)
+                    rows = (
+                        data.get("models", [])
+                        if selected == "gemini"
+                        else data.get("data", [])
+                    )
+                    if not isinstance(rows, list):
+                        raise TypeError
+                    names = []
+                    for row in rows:
+                        if not isinstance(row, dict):
+                            continue
+                        if (
+                            selected == "gemini"
+                            and row.get("supportedGenerationMethods")
+                            and "generateContent"
+                            not in row["supportedGenerationMethods"]
+                        ):
+                            continue
+                        name = row.get("name" if selected == "gemini" else "id")
+                        if (
+                            isinstance(name, str)
+                            and name
+                            and (not key or key not in name)
+                        ):
+                            names.append(
+                                name.removeprefix("models/")
+                                if selected == "gemini"
+                                else name
+                            )
+                    return {"ok": True, "models": sorted(names)}
+    except (httpx.HTTPError, TimeoutError, ValueError, TypeError, AttributeError):
+        return {"ok": False, "error": "could not read provider models", "models": []}
+
+
+async def invoke(config, key, prompt, system, schema, timeout):
+    global versionless_base
+    selected, model = config["provider"], config["model"]
+    maximum = config["max_output_tokens"]
+    headers = extra_headers(config)
     headers["content-type"] = "application/json"
     rules = ASSETS["system"] + "\n\n" + system
     if selected == "anthropic":

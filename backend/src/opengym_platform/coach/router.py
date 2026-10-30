@@ -6,6 +6,7 @@ import os
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+from opengym_platform.coach.admin import Invalid
 from opengym_platform.coach.jobs import Refused
 from opengym_platform.coach.pipeline import invalid_constant
 from opengym_platform.core.database import DatabaseError
@@ -13,12 +14,21 @@ from opengym_platform.identity.sessions import verify
 
 
 def create_router(*, secret, secure):
-    router = APIRouter(prefix="/coach")
+    router = APIRouter()
 
-    @router.get("/status")
-    @router.post("/plan")
-    @router.post("/review")
-    @router.post("/debrief")
+    @router.get("/coach/status")
+    @router.post("/coach/plan")
+    @router.post("/coach/review")
+    @router.post("/coach/debrief")
+    @router.post("/coach/pending/resolve")
+    @router.post("/coach/forget")
+    @router.get("/coach/account")
+    @router.post("/admin/coach/connect")
+    @router.post("/admin/coach/disconnect")
+    @router.get("/admin/coach")
+    @router.post("/admin/coach/config")
+    @router.post("/admin/coach/test")
+    @router.post("/admin/coach/models")
     async def coach(request: Request):
         headers = {"Cache-Control": "no-store"}
         if request.method == "POST" and not request.headers.get(
@@ -51,9 +61,25 @@ def create_router(*, secret, secure):
             )
         try:
             jobs = request.app.state.coach_jobs
+            if request.url.path.endswith("/account"):
+                return JSONResponse(
+                    await request.app.state.coach_admin.handle(session, "account", {}),
+                    headers=headers,
+                )
+            admin_route = "/admin/coach" in request.url.path
+            if admin_route and request.method == "GET":
+                return JSONResponse(
+                    await request.app.state.coach_admin.handle(session, "view", {}),
+                    headers=headers,
+                )
+            if request.url.path.endswith("/coach/forget"):
+                return JSONResponse(await jobs.forget(session), headers=headers)
             if request.method == "GET":
                 return JSONResponse(await jobs.status(session), headers=headers)
-            await jobs.preflight(session)
+            if not admin_route:
+                await jobs.preflight(session)
+            else:
+                await request.app.state.coach_admin.preflight(session)
             try:
                 raw = bytearray()
                 async for chunk in request.stream():
@@ -70,6 +96,15 @@ def create_router(*, secret, secure):
                     {"error": "invalid json"}, status_code=400, headers=headers
                 )
             body = body if isinstance(body, dict) else {}
+            if admin_route:
+                return JSONResponse(
+                    await request.app.state.coach_admin.handle(
+                        session, request.url.path.rsplit("/", 1)[-1], body
+                    ),
+                    headers=headers,
+                )
+            if request.url.path.endswith("/coach/pending/resolve"):
+                return JSONResponse(await jobs.resolve(session, body), headers=headers)
             kind = {"plan": "create", "review": "review", "debrief": "debrief"}[
                 request.url.path.rsplit("/", 1)[-1]
             ]
@@ -77,9 +112,9 @@ def create_router(*, secret, secure):
             return JSONResponse(
                 {"job": {"id": job["id"]}}, status_code=202, headers=headers
             )
-        except Refused as error:
+        except (Refused, Invalid) as error:
             return JSONResponse(error.body, status_code=error.status, headers=headers)
-        except DatabaseError:
+        except (DatabaseError, OSError, ValueError):
             return JSONResponse(
                 {"error": "server error"}, status_code=500, headers=headers
             )

@@ -199,6 +199,22 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   sin transformar una credencial personal en compartida. `coach.read_results(actor
   text, sv bigint, exp timestamptz)` requiere admin y devuelve últimos 100 resultados
   mínimos. No concede lectura global de Training ni secretos al executor.
+- `coach.credential_context(actor text, sv bigint, exp timestamptz)` es el ajuste
+  aprobado expresamente para 5.5. Revalida actor/contexto owner y bloquea owner
+  antes del singleton; devuelve exclusivamente provider/auth_mode/enabled,
+  secret_ref y bound_owner_id del proveedor seleccionado. Sin token/ciphertext,
+  owner arbitrario, enumeración de perfiles ni SELECT global runtime. Cuenta
+  propia no exige consentimiento; ejecución conserva consentimiento, generación,
+  Q6 y reserva/cuotas. El promotor autorizó extender execution_config/reserve_job
+  a modo profile bajo las mismas garantías. read_instance puede devolver referencias
+  externas al servicio admin, que nunca las serializa al cliente. write_instance
+  recibe settings completos y parches por proveedor de model/options/secret_ref;
+  no admite bound_owner_id nuevo ni authMode público. Referencias nuevas usan
+  `coach-key-<32 hex>.json`, nunca el nombre de un archivo personal.
+  El trigger interno collect_result copia exclusivamente metadatos allowlisted
+  de finalización a instance_results, bajo executor y sin EXECUTE runtime/PUBLIC;
+  serializa la poda a cien resultados mediante el singleton. No copia reading,
+  owner ni job ID. read_results administra únicamente esa proyección y cuota UTC.
 - `notifications.upsert_subscription(actor text, sv bigint, exp timestamptz,
   endpoint text, p256dh text, auth text, device_id text, created_at timestamptz)`
   pertenece a notifications_executor, revalida propietario y aplica transferencia

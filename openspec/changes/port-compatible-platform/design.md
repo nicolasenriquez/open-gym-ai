@@ -381,6 +381,28 @@ launcher Node/SDK/CLI ni aplicación automática de las propuestas a Training.
 
 ### 12. Cierre técnico de preparación
 
+**Ajuste aprobado expresamente para 5.5:** el catálogo anterior no permitía
+resolver la referencia externa y el vínculo de una credencial para un usuario no
+administrador. Añadir únicamente `coach.credential_context(actor text, sv bigint,
+exp timestamptz)`, con executor NOLOGIN, search_path fijo y EXECUTE runtime
+explícito. Revalida actor/contexto owner, bloquea owner antes del singleton y
+devuelve solo provider, auth_mode, enabled, secret_ref y bound_owner_id del
+proveedor seleccionado. No devuelve material cifrado ni tokens, no acepta owner
+arbitrario, no enumera perfiles y no concede SELECT global runtime. Cuenta puede
+consultarse sin consentimiento; ejecutar sigue requiriendo consentimiento y
+reserva atómica. Las referencias se resuelven exclusivamente dentro del directorio
+externo de Coach, con nombres acotados y rechazo de symlinks; registros personales
+conservan `coach-auth-<uid>.json` y su formato cifrado legacy. La clave de decrypt
+se configura por fichero separado de la firma de sesiones, usando HKDF-SHA256 y
+AES-256-GCM compatibles mediante cryptography ya bloqueado. Esto no añade un
+almacén de tokens SQL ni habilita login/refresh de SDK/CLI. Este ajuste no
+autoriza proveedores reales ni operaciones sobre credenciales originales.
+El promotor autorizó también actualizar `coach.execution_config` y
+`coach.reserve_job` mediante la nueva revisión para admitir `auth_mode='profile'`,
+conservando actor, consentimiento, generación, Q6, cuotas y FORCE RLS. No se
+añaden rutas de conexión por perfil ni un cambio público de authMode ausentes en
+Node; se preservan los registros personales importados y la cuenta propia.
+
 El [plan ejecutable](execution-plan.md) y [tasks](tasks.md) sustituyen el mapa de
 21 paquetes no ejecutados; no se reetiqueta progreso runtime. El orden es S1 boot,
 S2 identidad mínima → S3 Training → resto S2, S4 medios, S5 coach, S7 push antes de

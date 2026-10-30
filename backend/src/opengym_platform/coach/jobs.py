@@ -19,6 +19,10 @@ ERRORS = {
     "cap": (429, "the Coach is taking a rest day, try again tomorrow"),
     "consent": (403, "the Coach needs your go-ahead first"),
     "unauthorized": (401, "not signed in"),
+    "shared": (
+        409,
+        "This instance is configured with a single shared account. Ask your admin to enable per-profile sign-in.",
+    ),
 }
 
 
@@ -38,6 +42,7 @@ class Jobs:
         self.pipeline = pipeline
         self.slots = asyncio.Semaphore(2)
         self.tasks = set()
+        self.by_id = {}
         self.timeout = environment_number("COACH_JOB_TIMEOUT_MS", 300000, 60000) / 1000
         self.closed = False
 
@@ -45,11 +50,32 @@ class Jobs:
         if self.closed or self.pipeline is None:
             raise Refused("off")
         public = await public_config(handle)
-        if not public or not public["enabled"] or public["authMode"] != "instance":
+        if not public or not public["enabled"]:
             raise Refused("off")
         if not await coach_consent(handle):
             raise Refused("consent")
         config = await execution_config(handle, session)
+        if not await authorize(handle, session):
+            raise Refused("unauthorized")
+        if (
+            config
+            and self.pipeline.secrets is not None
+            and self.pipeline.credentials is None
+        ):
+            rows = await handle.fetch(
+                "SELECT * FROM coach.credential_context($1,$2,$3)",
+                session.owner,
+                session.version,
+                session.expires_at,
+            )
+            if not rows:
+                raise Refused("unauthorized")
+            credential = self.pipeline.secrets.resolve(dict(rows[0]), session.owner)
+            if not credential["ok"]:
+                raise Refused(
+                    "shared" if credential["reason"] == "shared-account" else "off"
+                )
+            config["_key"] = credential["key"]
         if not config or not self.pipeline.available(config, session.owner):
             raise Refused("off")
         return config
@@ -83,10 +109,11 @@ class Jobs:
                 if rows
                 else None
             )
-            pending = await handle.fetch("SELECT document FROM coach.pending_proposals")
+            pending = await self._pending(handle, session.owner)
             history = await handle.fetch(
                 "SELECT job_id,kind,outcome,error_class,occurred_at,details FROM coach.history_events ORDER BY occurred_at DESC,event_id DESC LIMIT 1"
             )
+            details = json.loads(history[0]["details"]) if history else {}
             last = (
                 {
                     "id": history[0]["job_id"],
@@ -94,7 +121,11 @@ class Jobs:
                     "outcome": history[0]["outcome"],
                     "errorClass": history[0]["error_class"],
                     "at": int(history[0]["occurred_at"].timestamp() * 1000),
-                    **json.loads(history[0]["details"]),
+                    **(
+                        {"reading": details["reading"]}
+                        if details.get("reading")
+                        else {}
+                    ),
                 }
                 if history
                 else None
@@ -105,7 +136,7 @@ class Jobs:
             )
             return {
                 "job": current,
-                "pending": json.loads(pending[0]["document"]) if pending else None,
+                "pending": pending,
                 "cap": {
                     "used": used[0]["count"] if used else 0,
                     "limit": config["per_profile_daily"],
@@ -156,8 +187,94 @@ class Jobs:
         }
         task = asyncio.create_task(self._run(session, job, generation, opts or {}))
         self.tasks.add(task)
+        self.by_id[job_id] = task
         task.add_done_callback(self.tasks.discard)
+        task.add_done_callback(lambda done: self.by_id.pop(job_id, None))
         return job
+
+    async def resolve(self, session, body):
+        async with self.database.transaction() as handle:
+            if not await authorize(handle, session):
+                raise Refused("unauthorized")
+            await self._config(handle, session)
+            pending = await self._pending(handle, session.owner)
+            if pending:
+                await self._archive(
+                    handle,
+                    session.owner,
+                    pending,
+                    "dismissed"
+                    if body.get("dismissed") not in (None, False, 0, "")
+                    else "applied",
+                    {
+                        key: len(body[key]) if isinstance(body.get(key), list) else 0
+                        for key in ("accepted", "rejected")
+                    },
+                )
+        return {"ok": True}
+
+    async def forget(self, session):
+        async with self.database.transaction() as handle:
+            if not await authorize(handle, session):
+                raise Refused("unauthorized")
+            job_id = await self.forget_content(handle, session.owner)
+        self.cancel(job_id)
+        return {"ok": True}
+
+    def cancel(self, job_id):
+        if task := self.by_id.get(job_id):
+            task.cancel()
+
+    async def training_changed(self, handle, owner, current, document):
+        """Forget atomically with a committed opt-out or full Training reset."""
+        if not await coach_consent(handle) or (
+            document.get("resetAt", 0) != (current or {}).get("resetAt", 0)
+        ):
+            return await self.forget_content(handle, owner)
+        return None
+
+    async def forget_content(self, handle, owner):
+        """Participate in the initiating owner's transaction; never commit here."""
+        jobs = await handle.fetch("SELECT job_id FROM coach.jobs")
+        await handle.execute(
+            """INSERT INTO coach.profile_state(owner_id,sharing,forget_generation)
+            VALUES($1,false,1) ON CONFLICT(owner_id) DO UPDATE
+            SET sharing=false,forget_generation=coach.profile_state.forget_generation+1""",
+            owner,
+        )
+        for table in ("jobs", "pending_proposals", "history_events"):
+            await handle.execute(f"DELETE FROM coach.{table}")
+        await handle.execute(
+            "DELETE FROM coach.daily_usage WHERE day<>$1", datetime.now(UTC).date()
+        )
+        return jobs[0]["job_id"] if jobs else None
+
+    async def _pending(self, handle, owner):
+        rows = await handle.fetch("SELECT document FROM coach.pending_proposals")
+        if not rows:
+            return None
+        pending = json.loads(rows[0]["document"])
+        if pending["expiresAt"] < datetime.now(UTC).timestamp() * 1000:
+            await self._archive(handle, owner, pending, "expired")
+            return None
+        return pending
+
+    async def _archive(self, handle, owner, pending, outcome, details=None):
+        await handle.execute(
+            """INSERT INTO coach.history_events(owner_id,job_id,kind,outcome,occurred_at,details)
+            VALUES($1,$2,$3,$4,clock_timestamp(),$5::jsonb)""",
+            owner,
+            pending["id"],
+            pending["kind"],
+            outcome,
+            json.dumps(details or {}),
+        )
+        await handle.execute("DELETE FROM coach.pending_proposals")
+        await self._trim(handle)
+
+    async def _trim(self, handle):
+        await handle.execute("""DELETE FROM coach.history_events WHERE event_id IN (
+            SELECT event_id FROM coach.history_events ORDER BY occurred_at DESC,event_id DESC OFFSET 20)""")
 
     async def _run(self, session, job, generation, opts):
         try:
@@ -172,15 +289,14 @@ class Jobs:
                         not config
                         or not config["enabled"]
                         or (self.pipeline is None and config["provider"] != "fixture")
-                        or config["authMode"] != "instance"
+                        or (self.pipeline is None and config["authMode"] != "instance")
                     ):
                         await self._finish(handle, job, "failed", "off")
                         return
                     if self.pipeline is not None:
-                        config = await execution_config(handle, session)
-                        if not config or not self.pipeline.available(
-                            config, session.owner
-                        ):
+                        try:
+                            config = await self._config(handle, session)
+                        except Refused:
                             await self._finish(handle, job, "failed", "off")
                             return
                         state = await coach_document(handle)
@@ -261,8 +377,7 @@ class Jobs:
             json.dumps({"reading": result["reading"]} if result.get("reading") else {}),
         )
         await handle.execute("DELETE FROM coach.jobs WHERE job_id=$1", job["id"])
-        await handle.execute("""DELETE FROM coach.history_events WHERE event_id IN (
-            SELECT event_id FROM coach.history_events ORDER BY occurred_at DESC,event_id DESC OFFSET 20)""")
+        await self._trim(handle)
 
     async def close(self):
         self.closed = True

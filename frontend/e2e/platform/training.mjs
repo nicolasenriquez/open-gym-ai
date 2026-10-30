@@ -49,6 +49,7 @@ await new Promise(done => web.listen(8080, '127.0.0.1', done));
 let browser, context, page;
 let stage = 'setup';
 const cases = [], errors = [], statuses = [];
+const writes = new Set();
 const report = async id => {
   await page.screenshot({ path: `${evidence}/${id}.png`, fullPage: true, animations: 'disabled' });
   cases.push(id);
@@ -61,7 +62,10 @@ const local = () => page.evaluate(() => ({
   base: JSON.parse(localStorage.getItem('gym_sync') || 'null'),
 }));
 const snapshot = () => control('/snapshot');
-const clean = async () => until(async () => (await local()).dirty !== '1', 'Client changes never acknowledged');
+const clean = async () => {
+  await until(async () => (await local()).dirty !== '1', 'Client changes never acknowledged');
+  await until(() => writes.size === 0, 'Acknowledged writes still have pending browser events');
+};
 const sync = async () => {
   await page.goto('http://localhost:8080/#/settings/account');
   await page.getByText('Sincronizar ahora', { exact: true }).click();
@@ -89,6 +93,11 @@ try {
   page.on('response', response => {
     if (response.url().endsWith('/api/v1/data') && response.request().method() === 'PUT') statuses.push(response.status());
   });
+  page.on('request', request => {
+    if (request.url().endsWith('/api/v1/data') && request.method() === 'PUT') writes.add(request);
+  });
+  page.on('requestfinished', request => writes.delete(request));
+  page.on('requestfailed', request => writes.delete(request));
   stage = 'login';
   await page.goto('http://localhost:8080');
   await button('Continuar sin cuenta').waitFor();
@@ -168,10 +177,10 @@ try {
   await theme('Claro');
   await until(() => statuses.slice(start).filter(status => status === 409).length === 2, 'Expected two genuine SQL conflicts');
   await clean();
-  assert.equal(competitors, 2);
-  assert.equal(statuses.slice(start).filter(status => status === 200).length, 1);
+  assert.equal(competitors, 2, 'Both competing writes must run');
+  assert.equal(statuses.slice(start).filter(status => status === 200).length, 1, 'Expected one client acknowledgement after conflicts');
   const merged = (await snapshot()).A;
-  assert.equal(merged.theme, 'light');
+  assert.equal(merged.theme, 'light', 'Conflict reconciliation lost the selected theme');
   assert.ok(['concurrent-1', 'concurrent-2'].every(id => merged.workouts.some(w => w.id === id)));
   await page.unroute('**/api/v1/data');
   await report(stage);

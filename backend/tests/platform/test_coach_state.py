@@ -212,7 +212,11 @@ async def test_config_migrates_previous_head_without_replaying_or_touching_train
         Path(__file__).parents[2] / "src/opengym_platform",
         package,
         ignore=shutil.ignore_patterns(
-            "p003_coach.py", "p003_coach_http.py", "p003_coach_jobs.py"
+            "p003_coach.py",
+            "p003_coach_admin.py",
+            "p003_coach_lifecycle.py",
+            "p003_coach_http.py",
+            "p003_coach_jobs.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(package.parent)}, "up")
@@ -228,7 +232,7 @@ async def test_config_migrates_previous_head_without_replaying_or_touching_train
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach_http"
+        == "p003_coach_admin"
     )
     assert json.loads(
         await observer.fetchval("SELECT document FROM training.documents")

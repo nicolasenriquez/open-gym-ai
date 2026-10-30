@@ -48,16 +48,16 @@ in the private Dev env-file. The default web port is 8080 for permanent operatio
 API 3000 and PostgreSQL 5432 stay private. Dev and prod use distinct database/volume
 names even if given the same project name. Keep their secrets separate as well.
 
-Prepare four different UTF-8 files: `bootstrap_password`, `migrator_password`,
-`runtime_password` and `session_secret`, each 32–4096 bytes, without BOM, CR/NUL or embedded newline.
+Prepare five UTF-8 files: `bootstrap_password`, `migrator_password`,
+`runtime_password`, `session_secret` and `coach_secret`, each 32–4096 bytes, without BOM, CR/NUL or embedded newline.
 A terminal LF is supported. Protect the directory using permissions/ACLs; on Linux
 UID 1000 must be able to read the mounted files. Secret contents never belong in env
-files, image arguments, Git or evidence. API mounts only its runtime password and
-session-signing key; migrate mounts only its own password, and bootstrap mounts the
+files, image arguments, Git or evidence. API mounts only its runtime password,
+session-signing key and Coach decryption material; migrate mounts only its own password, and bootstrap mounts the
 three database passwords. Ops mounts none yet. `PLATFORM_SESSION_SECRET_FILE` points
 to the API's key mount. For compatible session continuity, provision the original
 signing key explicitly; never generate or rotate it implicitly during startup or port.
-Keep it separate from all database passwords and future coach decryption material.
+Keep it separate from all database passwords and Coach decryption material.
 
 Prod uses `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
 `PLATFORM_MIGRATE_DIGEST` and `PLATFORM_OPS_DIGEST`: the hex suffix of tested local
@@ -231,13 +231,51 @@ is a runtime dependency. Prompts, schemas, catalogue and icon data are generated
 by `node scripts/build-coach-assets.mjs`; the editable sources remain singular.
 
 The four HTTP wire formats are verified with private endpoints and synthetic keys.
-A configured keyless compatible endpoint can execute; keyed-provider credential
-resolution, profile credentials and administrative configuration/connect routes
-remain in their later slice. The application factory's credential callback is a
-private operation seam, not an HTTP credential field. Resolve/history/expiry/forget,
-scheduling and the client availability UX are not yet delivered. No SDK/CLI launcher,
+A configured keyless compatible endpoint can execute. The application factory's
+credential callback remains a private operation seam, not an HTTP credential field.
+Scheduling and the client
+availability UX remain in their later slice. No SDK/CLI launcher,
 credential cache mount, refresh or Node fallback is present; original credentials
 stay outside active runtime mounts.
+
+`p003_coach_admin` adds authenticated admin configuration, connect/disconnect,
+model listing and test routes under `/api/v1/admin/coach`, plus own
+`GET /api/v1/coach/account`. Provider switches preserve each provider's model,
+options and key. HTTP calls run outside SQL transactions and admin authorization
+is rechecked afterward. The admin card reads real UTC usage and up to one hundred
+anonymous results, showing the latest twenty without personal readings or job IDs.
+
+Compose mounts `coach_secret` separately and supplies `PLATFORM_COACH_SECRET_FILE`.
+Keep the original Coach decryption secret when rotating the session-signing key.
+For imported records, `coach_secret` contains the original Node `data/secret`;
+a new value requires reconnecting those credentials.
+Outside Compose, omitting this setting leaves filed credentials unreadable and
+prevents connecting a new key; a keyless compatible endpoint remains usable.
+Encrypted records live in `DATA_DIR`: opaque `coach-key-<32 hex>.json` files are
+referenced from SQL; imported `coach-auth-<uid>.json` records remain personal and
+outside Training/export. Files use legacy HKDF-SHA256/AES-256-GCM format, bounded
+reads, no symlink following and mode 0600 for new keys. `cryptography==50.0.2`,
+already present through WebAuthn, is now an explicit direct dependency.
+Wrong keys and corrupt records fail closed, including optional-key endpoints.
+Configuration limits must fit the schema's whole-number bounds; fractional limits
+are rejected instead of silently rounded.
+Per-profile mode uses only the requesting profile's existing record; admin tests
+never spend a profile credential. As in Node, there is no public authMode switch
+or per-profile connect route. Imported personal instance bindings reject foreign
+profiles; disconnecting clears the binding rather than sharing that credential.
+SDK/CLI connect/test/execute return 503/code `off` and preserve their selection.
+
+`p003_coach_lifecycle` grants only owner-scoped forgetting under the existing RLS
+policies. `POST /api/v1/coach/pending/resolve` records applied/dismissed counts and
+clears the proposal without changing Training; repeated calls are harmless. Status
+and resolution expire proposals lazily, retaining the latest twenty events, including
+multiple events for one job. `POST /api/v1/coach/forget` works even when the provider
+is unavailable: it clears current jobs, proposals and history, disables sharing and
+advances the persistent generation. It retains today's UTC profile usage and the
+anonymous instance aggregate. Training opt-out/reset clears Coach in the same SQL
+transaction; cancellation happens after commit. Queued work is dropped and active
+HTTP requests are cancelled. Completion still rechecks owner, consent and generation
+so late responses cannot restore forgotten/deleted content or recreate usage.
 
 Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `ALLOW_GUEST`, `PASSWORD_LOGIN`, `DEFAULT_LANG`, `MEDIA_UPLOADS`,
@@ -296,7 +334,9 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `media --case quota_and_missing` | Private missing/usage, concurrent quota reservations, safe pressure reclamation, upload/disk limits and temporary cleanup. |
 | `coach_state --case deferred_provider` | Imported SDK/CLI selection preservation, public availability, 503/off without work, actor revalidation/CSRF, config constraints/ACL and previous-head upgrade. |
 | `coach_state --case atomic_enqueue` | Atomic UTC caps and single-flight, two execution slots outside SQL, restricted ACL/RLS, configuration-head upgrade and HTTP lifecycle recovery without replay. Its private operation probe does not by itself verify the HTTP pipeline. |
+| `coach_state --case late_result` | Decisions/expiry and twenty-event history; own forgetting while unavailable, current-day usage retention, HTTP/queued cancellation, opt-out/reset rollback and late completion after forgetting or synthetic account deletion. |
 | `coach_http --case validated_proposal` | Private HTTP fixtures for all four wire formats, independent payload/validator/fingerprint vectors, one repair round, real timeout and safe failures; consent/RLS and pending proposals without changing Training. |
+| `coach_admin --case credentials` | Admin config/models/test/connect/disconnect and own account; external ciphertext, profile isolation, unreadable keys, rollback, late revocation/expiry and migration/ACL/RLS. |
 | `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
