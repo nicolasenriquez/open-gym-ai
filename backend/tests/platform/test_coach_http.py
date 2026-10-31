@@ -461,6 +461,7 @@ async def test_actor_settings_and_pending_proposals_are_restricted_and_upgrade_i
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p004_deletion_tasks.py",
             "p005_delivery.py",
             "p004_admin_users.py",
             "p005_subscriptions.py",
@@ -486,7 +487,7 @@ async def test_actor_settings_and_pending_proposals_are_restricted_and_upgrade_i
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p005_delivery"
+        == "p004_deletion_tasks"
     )
     assert (
         await observer.fetchval(

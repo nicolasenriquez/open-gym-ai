@@ -18,6 +18,15 @@
     "proof": "CSV/JSON/media backup/FIT hostile cases, catalogue continuity, web API prefixes and mobile assets copied intact to Android/iOS without Node API sources",
     "checkpoint": "8.2 only; bundle/copy proof, not native compilation, device execution or shell publication; OpenAPI remains 8.3"
   }],
+  "admin_delete": [{
+    "id": "atomic_delete",
+    "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+    "setup": "Real restricted HTTP/PostgreSQL and independent observer, synthetic owners and external references",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_delete.py"],
+    "proof": "Atomic account cascades, coach disconnection and durable pending cleanup; immediate denial and preserved history",
+    "checkpoint": "6.2 only; external executor and retries remain 6.3"
+  }],
   "admin_users": [{
     "id": "actor_target",
     "requirement": "Executable schema and privileged functions / Existing administrative Training projection is preserved; Authenticated session to RLS ownership / Concurrent revocation is serialized with protected work",

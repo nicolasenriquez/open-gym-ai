@@ -177,7 +177,7 @@ generación y elimina jobs/propuestas/historial; resultados tardíos no los recr
 | Tabla | Columnas | Regla |
 | --- | --- | --- |
 | `audit.events` | `id bigint IDENTITY PK`, `occurred_at timestamptz`, `event text`, `ok boolean`, `actor_id/target_id text NULL`, `actor_name/target_name text NULL`, `message/action/ip text NULL` | IDs históricos sin FK a cuentas, mensajes mínimos acotados; importar y avanzar secuencia sin reiniciarla al limpiar. Política en seguridad. |
-| `administration.deletion_tasks` | `id uuid PK`, `deleted_owner_id text`, `created_at timestamptz`, `status text`, `attempts integer`, `last_error_code text NULL` | Sin FK a usuario ya eliminado. Solo identificadores, estado y errores seguros de limpieza externa. Retirar al verificar finalización. |
+| `administration.deletion_tasks` | `id uuid PK`, `deleted_owner_id text`, `created_at timestamptz`, `status text`, `attempts integer`, `last_error_code text NULL`, `secret_refs text[]` | Sin FK a usuario ya eliminado. Solo identificadores, referencias externas exactas (sin tokens/ciphertext), estado y errores seguros de limpieza externa. Retirar al verificar finalización. |
 
 El coordinador verifica las restricciones actuales de borrado, desconecta vínculos
 personales del coach y confirma eliminación SQL junto con la tarea de limpieza.

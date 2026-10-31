@@ -388,7 +388,10 @@ async def test_upgrade_and_runtime_cannot_enumerate_or_impersonate_subscriptions
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
-            "p005_delivery.py", "p004_admin_users.py", "p005_subscriptions.py"
+            "p004_deletion_tasks.py",
+            "p005_delivery.py",
+            "p004_admin_users.py",
+            "p005_subscriptions.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
@@ -400,7 +403,7 @@ async def test_upgrade_and_runtime_cannot_enumerate_or_impersonate_subscriptions
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p005_delivery"
+        == "p004_deletion_tasks"
     )
     await observer.execute(
         "INSERT INTO identity.users(id,display_name) VALUES('A','Alice'),('B','Bob'); INSERT INTO notifications.subscriptions VALUES('https://push.example/foreign','B','p','a',NULL,now())"

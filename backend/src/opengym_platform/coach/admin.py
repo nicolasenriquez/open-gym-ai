@@ -121,6 +121,18 @@ class Admin:
     def __init__(self, database, secrets):
         self.database, self.secrets = database, secrets
 
+    async def disconnect_owner(self, handle, session, target):
+        rows = await handle.fetch(
+            "SELECT coach.disconnect_owner($1,$2,$3,$4) AS view",
+            session.owner,
+            session.version,
+            session.expires_at,
+            target,
+        )
+        return rows[0]["view"] is not None and json.loads(rows[0]["view"]) == {
+            "ok": True
+        }
+
     async def preflight(self, session):
         async with self.database.transaction() as handle:
             await self.read(handle, session)

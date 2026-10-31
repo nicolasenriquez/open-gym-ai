@@ -17,6 +17,7 @@ def create_router(*, secret, secure, config):
     @router.get("/admin/users")
     @router.get("/admin/user")
     @router.post("/admin/user/disable")
+    @router.post("/admin/user/delete")
     async def users(request: Request):
         def response(body, status=200):
             return JSONResponse(
@@ -84,7 +85,12 @@ def create_router(*, secret, secure, config):
             else:
                 body = {"id": request.query_params.get("id")}
             status, result = await handle(
-                database, session, request.url.path.rsplit("/", 1)[-1], body, config
+                database,
+                session,
+                request.url.path.rsplit("/", 1)[-1],
+                body,
+                config,
+                request.app.state.coach_admin,
             )
             if status == 200:
                 notifications = request.app.state.notifications
@@ -95,7 +101,7 @@ def create_router(*, secret, secure, config):
                             if user["disabled"]
                             else notifications.active.live(user["id"])
                         )
-                elif result.get("disabled"):
+                elif result.get("disabled") or request.url.path.endswith("/delete"):
                     notifications.active.update(result["id"], {"active": False})
                     notifications.cancel(result["id"])
             return response(result, status)

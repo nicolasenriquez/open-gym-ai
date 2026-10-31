@@ -107,8 +107,17 @@ Password/email/reset availability is disclosed only with `PASSWORD_LOGIN=1`.
 Disabling any administrator is refused. Disabling another profile immediately denies
 its sessions and removes pending device links; re-enabling retains Node's session
 version behavior. Pull-only profiles update last-sync at most every ten minutes;
-failed timestamp bookkeeping does not fail a successful Training read. Deletion,
-invitation management, reset issuance and administrative audit are not yet ported.
+failed timestamp bookkeeping does not fail a successful Training read.
+
+`POST /api/v1/admin/user/delete` requires `p004_deletion_tasks`. It refuses
+self-deletion and deletion of the last administrator, disconnects personally bound
+Coach credentials, cascades operational SQL data and records pending external
+cleanup in one transaction. Consumed invitations and historical audit are not
+deleted. Access ends at SQL commit, including late Coach results. The compatible
+response remains `{ok:true,id}`; it does not certify external cleanup. Media and
+secret files remain untouched until the separate cleanup executor is delivered;
+pending tasks retain the exact external references across restart. Invitation
+management, reset issuance and administrative audit are not yet ported.
 
 Prod uses `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
 `PLATFORM_MIGRATE_DIGEST` and `PLATFORM_OPS_DIGEST`: the hex suffix of tested local
@@ -409,6 +418,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `notifications --case subscription` | Owner endpoint transfer, original date/device fallback, cap twenty, VAPID continuity and restricted ACL/RLS. |
 | `notifications --case device_isolation` | HTTP activity/test/rest/cancel, owner/device isolation and legacy fallback, replacement/revocation, ephemeral presence/hidden grace, nudge suppression and restart without timer recovery. |
 | `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
+| `admin_delete --case atomic_delete` | Atomic SQL cascades, Coach disconnection and pending external references, access denial, safeguards, rollback/retry, concurrent revocation/deletion and restricted upgrade/ACLs. External cleanup remains a separate slice. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `shared_client --case canonical_sources` | Single shared JS/prompt source, generated assets, plain Node loading, HTTP pipeline and local phone Coach parity. Formats/bundle acceptance and OpenAPI relocation remain separate. |
 | `shared_client --case formats_and_bundles` | CSV/JSON/media backup/FIT hostile cases, catalogue/ID continuity, web Node/Python and mobile Python bundles, shared-source graph and byte-for-byte Android/iOS asset copies. |

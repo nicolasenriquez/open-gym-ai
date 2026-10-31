@@ -2,6 +2,7 @@
 
 import json
 import time
+from uuid import uuid4
 
 from opengym_platform.identity.sessions import authorize
 from opengym_platform.training.service import admin_projection
@@ -13,11 +14,11 @@ def checked(value):
     if value == {}:
         return 403, {"error": "forbidden"}
     if isinstance(value, dict) and "error" in value:
-        return (400 if value["error"] == "cannot disable an admin" else 404), value
+        return (404 if value["error"] == "no such user" else 400), value
     return 200, value
 
 
-async def handle(database, session, operation, body, config):
+async def handle(database, session, operation, body, config, coach):
     async with database.transaction() as tx:
         args = (session.owner, session.version, session.expires_at)
         if operation == "users":
@@ -89,6 +90,23 @@ async def handle(database, session, operation, body, config):
             )
             if status != 200:
                 return status, result
+            if operation == "delete":
+                if target == session.owner:
+                    return 400, {"error": "you cannot delete your own account"}
+                if not await coach.disconnect_owner(tx, session, target):
+                    raise PermissionError
+                rows = await tx.fetch(
+                    "SELECT administration.delete_user($1,$2,$3,$4,$5) AS view",
+                    *args,
+                    target,
+                    uuid4(),
+                )
+                status, result = checked(
+                    json.loads(rows[0]["view"]) if rows[0]["view"] else None
+                )
+                if status != 200:
+                    # Disconnection is a participant, never committed on a rejected deletion.
+                    raise PermissionError
             if operation == "user":
                 status, projection = checked(
                     await admin_projection(tx, session, target, detail=True)

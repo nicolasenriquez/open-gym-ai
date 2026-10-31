@@ -17,7 +17,11 @@ principles. Published entries below are preserved; see the
 - Python administrative user listing, workout/bodyweight inspection without media,
   and disable/enable safeguards with ordered authorization locks. Subscription
   presence and pull-only last-sync timestamps are preserved. Requires
-  `p004_admin_users`; deletion, invitations and administrative audit remain pending.
+  `p004_admin_users`. Account deletion now requires `p004_deletion_tasks` and
+  atomically disconnects bound Coach credentials, cascades operational SQL data
+  and records pending external cleanup references without deleting consumed
+  invitations or historical audit. Access ends at commit; external file cleanup,
+  invitations and administrative audit remain pending.
 - Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
   a twenty-device cap, private-address validation and persistent VAPID material.
   Requires `p005_subscriptions`. Internal local-date reminders and evening nudges

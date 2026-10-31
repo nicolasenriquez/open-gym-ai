@@ -293,12 +293,16 @@ async def open_database(environment, monkeypatch):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("deletion", ["sql", "admin"])
 async def test_deleted_owner_cannot_publish_late_provider_reply_or_recreate_usage(
-    identities, monkeypatch
+    identities, monkeypatch, deletion
 ):
     observer, environment = identities
     release = asyncio.Event()
-    async with provider([(200, wire())], release) as (base, calls):
+    async with (
+        provider([(200, wire())], release) as (base, calls),
+        server(environment) as client,
+    ):
         await configure(observer, base)
         database = await open_database(environment, monkeypatch)
         jobs = Jobs(database, pipeline=Pipeline(SECRET))
@@ -307,7 +311,21 @@ async def test_deleted_owner_cannot_publish_late_provider_reply_or_recreate_usag
             async with asyncio.timeout(3):
                 while not calls:
                     await asyncio.sleep(0.01)
-            await observer.execute("DELETE FROM identity.users WHERE id='A'")
+            if deletion == "sql":
+                await observer.execute("DELETE FROM identity.users WHERE id='A'")
+            else:
+                response = await client.post(
+                    "/api/v1/admin/user/delete",
+                    json={"id": "A"},
+                    headers={"Authorization": f"Bearer {B}"},
+                )
+                assert response.status_code == 200, response.text
+                assert (
+                    await observer.fetchval(
+                        "SELECT count(*) FROM administration.deletion_tasks"
+                    )
+                    == 1
+                )
             release.set()
             await asyncio.wait_for(asyncio.gather(*list(jobs.tasks)), 3)
             for table in (
@@ -383,6 +401,7 @@ async def test_forget_privileges_are_owner_scoped_and_upgrade_preserves_existing
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p004_deletion_tasks.py",
             "p005_delivery.py",
             "p004_admin_users.py",
             "p005_subscriptions.py",

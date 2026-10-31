@@ -195,10 +195,16 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   No tiene endpoint público ni habilita SDK/CLI, SELECT global runtime o credenciales
   personales. La lectura Training permanece bajo el RLS del actor.
 - `coach.disconnect_owner(actor text, sv bigint, exp timestamptz, target text)`
-  permite propio owner o admin activo, conserva referencia de limpieza y desconecta
+  permite propio owner o admin activo, conserva referencias exactas en el resultado
+  transaccional interno `app.deletion_cleanup` (target y refs) y desconecta
   sin transformar una credencial personal en compartida. `coach.read_results(actor
   text, sv bigint, exp timestamptz)` requiere admin y devuelve últimos 100 resultados
   mínimos. No concede lectura global de Training ni secretos al executor.
+  En 6.2, delete_user consume ese resultado en la misma TX y lo persiste en
+  deletion_tasks.secret_refs; verifica target y ausencia de vínculos personales.
+  El contexto nunca proviene del body HTTP; solo nombres externos, sin material
+  secreto. Se elimina con commit/rollback/reset del lease. La limpieza externa
+  posterior pertenece a 6.3.
 - `coach.credential_context(actor text, sv bigint, exp timestamptz)` es el ajuste
   aprobado expresamente para 5.5. Revalida actor/contexto owner y bloquea owner
   antes del singleton; devuelve exclusivamente provider/auth_mode/enabled,

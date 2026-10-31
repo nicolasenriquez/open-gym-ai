@@ -499,6 +499,7 @@ async def test_write_migration_preserves_genuine_training_document(
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_deletion_tasks.py",
             "p005_delivery.py",
             "p004_admin_users.py",
             "p005_subscriptions.py",
@@ -533,7 +534,7 @@ async def test_write_migration_preserves_genuine_training_document(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p005_delivery"
+        == "p004_deletion_tasks"
     )
     assert await observer.fetchrow("SELECT * FROM training.documents") == before
 

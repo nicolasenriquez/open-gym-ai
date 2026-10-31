@@ -397,6 +397,7 @@ async def test_forward_migration_and_reset_functions_keep_runtime_restricted(
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_deletion_tasks.py",
             "p005_delivery.py",
             "p004_admin_users.py",
             "p005_subscriptions.py",
@@ -428,7 +429,7 @@ async def test_forward_migration_and_reset_functions_keep_runtime_restricted(
     assert await observer.fetch("SELECT * FROM identity.password_resets") == before
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p005_delivery"
+        == "p004_deletion_tasks"
     )
     functions = await observer.fetch("""SELECT p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner) AS owner,
         EXISTS(SELECT FROM aclexplode(p.proacl) a WHERE a.grantee=0 AND a.privilege_type='EXECUTE') AS public

@@ -181,6 +181,15 @@ bajo el mismo handle. No hay entrada HTTP a esta facultad, sesiones fabricadas,
 tabla de medios, listado ni SELECT global. Conservar carpetas huérfanas y bytes ante
 fallo de DB/lectura. Ver catálogo en seguridad; comprobar ACL/RLS/lock y pool reales.
 
+**Ajuste de 6.2 autorizado expresamente:** `administration.deletion_tasks.secret_refs text[]`
+conserva las referencias externas desconectadas en la misma TX que el borrado.
+`coach.disconnect_owner` instala internamente un resultado transaccional
+`app.deletion_cleanup` con target y referencias; `administration.delete_user` lo
+consume tras verificar actor/target y ausencia de vínculos. No procede del HTTP,
+no contiene tokens/ciphertext y desaparece al liberar la transacción. Python
+coordina ambas interfaces con el mismo handle, sin filesystem antes del commit.
+El ejecutor externo y sus reintentos permanecen en 6.3.
+
 ### 8. Autoridad OpenAPI y compatibilidad de transporte
 
 Decisión técnica: conservar un contrato YAML editable y trasladarlo de
