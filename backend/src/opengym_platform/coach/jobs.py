@@ -338,39 +338,46 @@ class Jobs:
     async def _run(self, session, job, generation, opts):
         try:
             async with self.slots:
+                needs_abandon = False
                 async with self.database.transaction() as handle:
                     if not await self._authorize(handle, session):
-                        return
-                    if not await self._current(handle, job, generation):
-                        return
-                    config = await public_config(handle)
-                    if (
-                        not config
-                        or not config["enabled"]
-                        or (self.pipeline is None and config["provider"] != "fixture")
-                        or (self.pipeline is None and config["authMode"] != "instance")
-                    ):
-                        await self._finish(handle, job, "failed", "off")
-                        return
-                    if self.pipeline is not None:
-                        try:
-                            config = await self._config(handle, session)
-                        except Refused:
+                        # Defer cleanup until this handle closes: _abandon needs
+                        # its own owner-scoped transaction, never two at once.
+                        needs_abandon = True
+                    else:
+                        if not await self._current(handle, job, generation):
+                            return
+                        config = await public_config(handle)
+                        if (
+                            not config
+                            or not config["enabled"]
+                            or (self.pipeline is None and config["provider"] != "fixture")
+                            or (self.pipeline is None and config["authMode"] != "instance")
+                        ):
                             await self._finish(handle, job, "failed", "off")
                             return
-                        state = await coach_document(handle)
-                        previous_rows = await handle.fetch(
-                            "SELECT document FROM coach.pending_proposals"
+                        if self.pipeline is not None:
+                            try:
+                                config = await self._config(handle, session)
+                            except Refused:
+                                await self._finish(handle, job, "failed", "off")
+                                return
+                            state = await coach_document(handle)
+                            previous_rows = await handle.fetch(
+                                "SELECT document FROM coach.pending_proposals"
+                            )
+                            previous = (
+                                json.loads(previous_rows[0]["document"])
+                                if previous_rows
+                                else {}
+                            )
+                        await handle.execute(
+                            "UPDATE coach.jobs SET state='running' WHERE job_id=$1",
+                            job["id"],
                         )
-                        previous = (
-                            json.loads(previous_rows[0]["document"])
-                            if previous_rows
-                            else {}
-                        )
-                    await handle.execute(
-                        "UPDATE coach.jobs SET state='running' WHERE job_id=$1",
-                        job["id"],
-                    )
+                if needs_abandon:
+                    await self._abandon(session, job, generation)
+                    return
                 outcome, error, result = "nochange", None, {}
                 try:
                     async with asyncio.timeout(self.timeout):
@@ -405,11 +412,16 @@ class Jobs:
                     outcome, error = "failed", "timeout"
                 except Exception:  # noqa: BLE001 -- provider text must never escape into history/logs.
                     outcome, error = "failed", "internal"
+                needs_abandon = False
                 async with self.database.transaction() as handle:
-                    if await self._authorize(handle, session) and await self._current(
-                        handle, job, generation
-                    ):
-                        await self._finish(handle, job, outcome, error, result)
+                    if await self._authorize(handle, session):
+                        if await self._current(handle, job, generation):
+                            await self._finish(handle, job, outcome, error, result)
+                    else:
+                        # Session lapsed mid-run: free admission without publishing.
+                        needs_abandon = True
+                if needs_abandon:
+                    await self._abandon(session, job, generation)
         except DatabaseError:
             # Unknown admission/completion is never retried: recovery labels it restart.
             return
@@ -451,6 +463,19 @@ class Jobs:
         )
         await handle.execute("DELETE FROM coach.jobs WHERE job_id=$1", job["id"])
         await self._trim(handle)
+
+    async def _abandon(self, session, job, generation):
+        # Auth lost (expiry/disable/delete). session.owner is HMAC-proven at enqueue;
+        # only time passed, so scoping to it cannot forge another owner (RLS enforces).
+        # _current still gates forget-generation + consent; _finish with failed/expired
+        # archives history and deletes the job without touching pending/reading.
+        try:
+            async with self.database.transaction(owner_id=session.owner) as handle:
+                if not await self._current(handle, job, generation):
+                    return
+                await self._finish(handle, job, "failed", "expired")
+        except DatabaseError:
+            return
 
     async def close(self):
         self.closed = True
