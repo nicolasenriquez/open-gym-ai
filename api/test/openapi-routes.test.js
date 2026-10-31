@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 const API = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOT = path.join(API, '..');
 const read = f => fs.readFileSync(f, 'utf8');
-const spec = read(path.join(API, 'openapi.yaml')).replace(/\r\n/g, '\n');
+const spec = read(path.join(ROOT, 'backend', 'openapi.yaml')).replace(/\r\n/g, '\n').replaceAll('/api/v1/', '/api/');
 
 /** Every `'GET /api/x': async (req, res)` key in the route table. */
 const routeKeys = src => [...src.matchAll(/^\s*'(GET|POST|PUT|DELETE) (\/api\/[^']*)':/gm)].map(m => `${m[1]} ${m[2]}`);
@@ -44,7 +44,7 @@ test('every route the server registers is in openapi.yaml, and nothing else is',
   const ops = new Set(specOperations(spec));
   assert.ok(routes.size > 40, `only found ${routes.size} routes — the route table moved`);
 
-  assert.deepEqual([...routes].filter(r => !ops.has(r)).sort(), [], 'undocumented routes — add them to api/openapi.yaml');
+  assert.deepEqual([...routes].filter(r => !ops.has(r)).sort(), [], 'undocumented routes — add them to backend/openapi.yaml');
   assert.deepEqual([...ops].filter(o => !routes.has(o)).sort(), [], 'documented routes the server does not serve');
   // The Coach surface in particular: this test exists because all sixteen were missing.
   for (const r of ['GET /api/coach/status', 'POST /api/coach/review', 'GET /api/admin/coach', 'POST /api/admin/coach/connect']) {

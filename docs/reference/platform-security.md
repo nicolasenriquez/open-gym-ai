@@ -5,7 +5,7 @@ description: Contrato objetivo de autenticación, autorización, aislamiento y a
 ---
 # Plataforma — autenticación, autorización y auditoría
 
-**Estado:** contrato objetivo autorizado documentalmente el 2026-10-22; implementación y pruebas pendientes. [Arquitectura §12](../open-gym-evolution.architecture.md#12-gates-y-experimentos-antes-de-producción) gobierna los gates. [SELF_HOSTING](../SELF_HOSTING.md), [SECURITY](../../SECURITY.md) y [OpenAPI](../../api/openapi.yaml) describen el sistema actual.
+**Estado:** contrato objetivo autorizado documentalmente el 2026-10-22; implementación y pruebas pendientes. [Arquitectura §12](../open-gym-evolution.architecture.md#12-gates-y-experimentos-antes-de-producción) gobierna los gates. [SELF_HOSTING](../SELF_HOSTING.md), [SECURITY](../../SECURITY.md) y [OpenAPI](../../backend/openapi.yaml) describen el sistema actual.
 
 Leer al modificar identidad, sesiones, permisos, consumidores o eventos de seguridad. Esta referencia define el detalle técnico objetivo; el [PRD Evolution](../open-gym-evolution.prd.md) define resultados. La migración preserva la seguridad existente; OIDC/SSO u otros proveedores de identidad son ampliaciones independientes.
 

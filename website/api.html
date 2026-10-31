@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- GENERATED FILE - do not edit by hand.
-     Built by scripts/build-api-docs.mjs from api/openapi.yaml (openGym API v1.4.1).
+     Built by scripts/build-api-docs.mjs from backend/openapi.yaml (openGym API v1.4.1).
      Regenerate with: node scripts/build-api-docs.mjs -->
 <html lang="en">
 <head>
@@ -235,17 +235,17 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <p class="lead">Every route the openGym backend serves (passkey auth, state sync,
      push, pairing, admin) as one hand-written
      OpenAPI&nbsp;spec. The same file lives
-     <a href="https://github.com/DuarteSantos8/openGym/blob/main/api/openapi.yaml" rel="noopener">in the repository</a>
-     at <code>api/openapi.yaml</code>, next to the one server file it documents.</p>
+     <a href="https://github.com/nicolasenriquez/open-gym-ai/blob/main/backend/openapi.yaml" rel="noopener">in the repository</a>
+     at <code>backend/openapi.yaml</code>, maintained alongside the Python backend.</p>
   <div class="actions api-actions">
-    <a class="btn" href="openapi.yaml" download>
+    <a class="btn" href="https://raw.githubusercontent.com/nicolasenriquez/open-gym-ai/main/backend/openapi.yaml" download>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16"/></svg>
       Download openapi.yaml</a>
   </div>
   <p class="api-facts">
     <span>OpenAPI 3.1.0</span>
     <span>openGym v1.4.1</span>
-    <span>69 endpoints</span>
+    <span>68 endpoints</span>
     <span>AGPL-3.0-or-later</span>
   </p>
 
@@ -260,16 +260,16 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <div class="ov-grid">
   <div class="ov">
     <h3>Authentication</h3>
-<p>Sign-in is by <b>passkey</b> (WebAuthn, via <code>@simplewebauthn/server</code>). A successful <code>register/verify</code> or <code>login/verify</code> sets the session cookie; every authenticated route then works with that cookie. The paired mobile app has no shared cookie jar, so it redeems a short pairing code (<code>/api/pair/redeem</code>) for the <i>same</i> signed token and sends it as <code>Authorization: Bearer &lt;token&gt;</code> instead.</p>
-<p>An instance started with <code>PASSWORD_LOGIN=1</code> also offers <b>name-and-password sign-in</b> (tag <code>password</code>): opt-in per profile, scrypt-hashed, throttled, with an admin-issued one-time reset code instead of e-mail. A profile may also add an e-mail address to sign in with instead of its name (<code>/api/account/email</code>); no mail is ever sent to it. Its routes set exactly the same cookie. With the flag off (the default) every one of them answers 404.</p>
+<p>Sign-in is by <b>passkey</b> (WebAuthn, via <code>@simplewebauthn/server</code>). A successful <code>register/verify</code> or <code>login/verify</code> sets the session cookie; every authenticated route then works with that cookie. The paired mobile app has no shared cookie jar, so it redeems a short pairing code (<code>/api/v1/pair/redeem</code>) for the <i>same</i> signed token and sends it as <code>Authorization: Bearer &lt;token&gt;</code> instead.</p>
+<p>An instance started with <code>PASSWORD_LOGIN=1</code> also offers <b>name-and-password sign-in</b> (tag <code>password</code>): opt-in per profile, scrypt-hashed, throttled, with an admin-issued one-time reset code instead of e-mail. A profile may also add an e-mail address to sign in with instead of its name (<code>/api/v1/account/email</code>); no mail is ever sent to it. Its routes set exactly the same cookie. With the flag off (the default) every one of them answers 404.</p>
   </div>
   <div class="ov">
     <h3>Throttling</h3>
-<p>The <code>password</code> routes are counted per client address: at most 60 requests a minute across them, and wrong answers (a password, a reset code, an invite code on password signup, an e-mail address already in use) pause the address from the 21st on, for 30 s, doubling up to 15 min. Wrong passwords also pause the <i>account</i> they were tried against from the 6th on, for 1 min doubling up to 1 h (the same pause whether the account was named by its name or its e-mail), and an identifier that names no account is paused the same way, as typed. A password check counts from the moment it starts, so checks sent at once get no more tries than checks sent one by one. A paused caller gets <code>429 {&quot;error&quot;: …, &quot;code&quot;: &quot;locked&quot;, &quot;retryAfter&quot;: &lt;s&gt;}</code> with a <code>Retry-After</code> header. Passkey sign-up and sign-in and the pairing routes are not throttled (their failures reach the audit log at most ten a minute per address). The two routes that redeem a one-time device link (tag <code>passkeys</code>) share the per-address budget, and wrong codes pause the address for link redemption only, from the 21st on, the way wrong reset codes do. Adding or removing a passkey in Settings (<code>POST /api/account/passkeys/options</code>, <code>DELETE /api/account/passkeys</code>) and making a device code (<code>POST /api/account/device-link</code>) spend the per-address budget too, and a current password given there as proof counts like one given at sign-in. The address is the socket's, or with <code>TRUST_PROXY=1</code> the one a trusted proxy put in <code>CF-Connecting-IP</code> / the last <code>X-Forwarded-For</code> entry / <code>X-Real-IP</code>; IPv6 clients are counted by /64. Counters live in memory and reset on restart.</p>
+<p>The <code>password</code> routes are counted per client address: at most 60 requests a minute across them, and wrong answers (a password, a reset code, an invite code on password signup, an e-mail address already in use) pause the address from the 21st on, for 30 s, doubling up to 15 min. Wrong passwords also pause the <i>account</i> they were tried against from the 6th on, for 1 min doubling up to 1 h (the same pause whether the account was named by its name or its e-mail), and an identifier that names no account is paused the same way, as typed. A password check counts from the moment it starts, so checks sent at once get no more tries than checks sent one by one. A paused caller gets <code>429 {&quot;error&quot;: …, &quot;code&quot;: &quot;locked&quot;, &quot;retryAfter&quot;: &lt;s&gt;}</code> with a <code>Retry-After</code> header. Passkey sign-up and sign-in and the pairing routes are not throttled (their failures reach the audit log at most ten a minute per address). The two routes that redeem a one-time device link (tag <code>passkeys</code>) share the per-address budget, and wrong codes pause the address for link redemption only, from the 21st on, the way wrong reset codes do. Adding or removing a passkey in Settings (<code>POST /api/v1/account/passkeys/options</code>, <code>DELETE /api/v1/account/passkeys</code>) and making a device code (<code>POST /api/v1/account/device-link</code>) spend the per-address budget too, and a current password given there as proof counts like one given at sign-in. The address is the socket's, or with <code>TRUST_PROXY=1</code> the one a trusted proxy put in <code>CF-Connecting-IP</code> / the last <code>X-Forwarded-For</code> entry / <code>X-Real-IP</code>; IPv6 clients are counted by /64. Counters live in memory and reset on restart.</p>
   </div>
   <div class="ov">
     <h3>Sessions</h3>
-<p>The cookie/bearer value is <code>&lt;payload&gt;.&lt;hmac&gt;</code> where the payload is <code>&lt;uid&gt;:&lt;expiry-ms&gt;:&lt;session-version&gt;</code>, signed with a per-instance secret (HMAC-SHA256). Sessions last <code>SESSION_DAYS</code> (default 90). <code>POST /api/logout/all</code> bumps the user's session version, which invalidates every token ever issued for the account.</p>
+<p>The cookie/bearer value is <code>&lt;payload&gt;.&lt;hmac&gt;</code> where the payload is <code>&lt;uid&gt;:&lt;expiry-ms&gt;:&lt;session-version&gt;</code>, signed with a per-instance secret (HMAC-SHA256). Sessions last <code>SESSION_DAYS</code> (default 90). <code>POST /api/v1/logout/all</code> bumps the user's session version, which invalidates every token ever issued for the account.</p>
   </div>
   <div class="ov">
     <h3>CSRF</h3>
@@ -277,11 +277,11 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   </div>
   <div class="ov">
     <h3>Environment-dependent behavior</h3>
-<ul><li><code>INVITE_ONLY=1</code>: registration requires a valid invite code (minted by an admin).</li><li><code>ALLOW_GUEST=0</code>: hides the client-side &quot;continue without account&quot; mode; the server merely reports the flag via <code>GET /api/config</code> (guest mode never talks to this API at all).</li><li><code>ADMIN_UIDS=&lt;uid&gt;,&lt;uid&gt;</code>: user ids treated as admins (a <code>&quot;admin&quot;: true</code> flag on the user record in <code>db.json</code> works too). Admins get the <code>/api/admin/*</code> routes.</li><li><code>FIRST_USER_ADMIN</code> (default off; <code>1</code> turns it on): the first profile registered on an instance with no profiles gets that <code>&quot;admin&quot;: true</code> flag. Decided at registration only, never applied to an instance that already has profiles.</li><li><code>AUDIT_LOG</code> (default on), <code>AUDIT_MAX</code> (default 5000 events), <code>AUDIT_DAYS</code> (default 90), <code>AUDIT_IP</code> (<code>off</code> | <code>net</code> | <code>full</code>, default off) shape the audit log served by <code>GET /api/admin/audit</code>.</li><li><code>PASSWORD_LOGIN=1</code>: adds the <code>password</code> routes and <code>password_login: true</code> in <code>GET /api/config</code>. Off by default.</li><li><code>DEFAULT_LANG</code> (e.g. <code>pt-BR</code>; unset by default): <code>default_lang</code> in <code>GET /api/config</code>, the language of the sign-in screen and of every profile that never picked one.</li><li><code>TRUST_PROXY=1</code>: the throttle reads the client address from proxy headers (set by the bundled <code>docker-compose.yml</code>, where only the web container can reach the API).</li><li><code>MEDIA_UPLOADS</code> (default on; <code>0</code> removes the <code>media</code> routes and the <code>media</code> block of <code>GET /api/config</code>), <code>MEDIA_QUOTA_MB</code> (200 per profile, <code>0</code> = no cap), <code>MEDIA_IMAGE_MAX_MB</code> (2), <code>MEDIA_GIF_MAX_MB</code> (8), <code>MEDIA_VIDEO_MAX_MB</code> (40), <code>MEDIA_VIDEO_MAX_SEC</code> (60), <code>MEDIA_GC_GRACE_DAYS</code> (14), <code>MEDIA_UPLOADS_PER_HOUR</code> (600 per profile), <code>MEDIA_MIN_FREE_MB</code> (512, <code>0</code> = no floor): photos and videos of custom exercises (tag <code>media</code>). Every MB here is 2^20 bytes.</li></ul>
+<ul><li><code>INVITE_ONLY=1</code>: registration requires a valid invite code (minted by an admin).</li><li><code>ALLOW_GUEST=0</code>: hides the client-side &quot;continue without account&quot; mode; the server merely reports the flag via <code>GET /api/v1/config</code> (guest mode never talks to this API at all).</li><li><code>ADMIN_UIDS=&lt;uid&gt;,&lt;uid&gt;</code>: user ids treated as admins (a <code>&quot;admin&quot;: true</code> flag on the user record in <code>db.json</code> works too). Admins get the <code>/api/v1/admin/*</code> routes.</li><li><code>FIRST_USER_ADMIN</code> (default off; <code>1</code> turns it on): the first profile registered on an instance with no profiles gets that <code>&quot;admin&quot;: true</code> flag. Decided at registration only, never applied to an instance that already has profiles.</li><li><code>AUDIT_LOG</code> (default on), <code>AUDIT_MAX</code> (default 5000 events), <code>AUDIT_DAYS</code> (default 90), <code>AUDIT_IP</code> (<code>off</code> | <code>net</code> | <code>full</code>, default off) shape the audit log served by <code>GET /api/v1/admin/audit</code>.</li><li><code>PASSWORD_LOGIN=1</code>: adds the <code>password</code> routes and <code>password_login: true</code> in <code>GET /api/v1/config</code>. Off by default.</li><li><code>DEFAULT_LANG</code> (e.g. <code>pt-BR</code>; unset by default): <code>default_lang</code> in <code>GET /api/v1/config</code>, the language of the sign-in screen and of every profile that never picked one.</li><li><code>TRUST_PROXY=1</code>: the throttle reads the client address from proxy headers (set by the bundled <code>docker-compose.yml</code>, where only the web container can reach the API).</li><li><code>MEDIA_UPLOADS</code> (default on; <code>0</code> removes the <code>media</code> routes and the <code>media</code> block of <code>GET /api/v1/config</code>), <code>MEDIA_QUOTA_MB</code> (200 per profile, <code>0</code> = no cap), <code>MEDIA_IMAGE_MAX_MB</code> (2), <code>MEDIA_GIF_MAX_MB</code> (8), <code>MEDIA_VIDEO_MAX_MB</code> (40), <code>MEDIA_VIDEO_MAX_SEC</code> (60), <code>MEDIA_GC_GRACE_DAYS</code> (14), <code>MEDIA_UPLOADS_PER_HOUR</code> (600 per profile), <code>MEDIA_MIN_FREE_MB</code> (512, <code>0</code> = no floor): photos and videos of custom exercises (tag <code>media</code>). Every MB here is 2^20 bytes.</li></ul>
   </div>
   <div class="ov">
     <h3>Conventions</h3>
-<ul><li>Every response body is JSON with <code>Cache-Control: no-store</code>. The one exception is <code>GET /api/media/{hash}</code>, which answers with the stored file itself (<code>Cache-Control: private, no-store</code>).</li><li>Errors are always <code>{&quot;error&quot;: &quot;&lt;human-readable message&gt;&quot;}</code>. The <code>password</code>, throttle and <code>media</code> routes add a stable <code>code</code> for the client to word in its own language.</li><li>Unknown method+path pairs return <code>404 {&quot;error&quot;:&quot;not found&quot;}</code>; an unhandled exception returns <code>500 {&quot;error&quot;:&quot;server error&quot;}</code>.</li><li>Request bodies are parsed as JSON regardless of Content-Type. A body that does not parse, or parses to anything but an object (<code>null</code>, a string, an array), is <code>400 {&quot;error&quot;:&quot;invalid json&quot;}</code> on every route that reads one; an empty body counts as <code>{}</code>. A body over 5 MiB is <code>413 {&quot;error&quot;:&quot;body too large&quot;}</code>; the rest of the upload is discarded so the answer reaches the client.</li><li>CORS: the request's <code>Origin</code> is reflected in <code>Access-Control-Allow-Origin</code> <b>without</b> <code>Allow-Credentials</code>, so cross-origin callers can only ever authenticate with a Bearer token, never with the cookie.</li></ul>
+<ul><li>Every response body is JSON with <code>Cache-Control: no-store</code>. The one exception is <code>GET /api/v1/media/{hash}</code>, which answers with the stored file itself (<code>Cache-Control: private, no-store</code>).</li><li>Errors are always <code>{&quot;error&quot;: &quot;&lt;human-readable message&gt;&quot;}</code>. The <code>password</code>, throttle and <code>media</code> routes add a stable <code>code</code> for the client to word in its own language.</li><li>Unknown method+path pairs return <code>404 {&quot;error&quot;:&quot;not found&quot;}</code>; an unhandled exception returns <code>500 {&quot;error&quot;:&quot;server error&quot;}</code>.</li><li>Request bodies are parsed as JSON regardless of Content-Type. A body that does not parse, or parses to anything but an object (<code>null</code>, a string, an array), is <code>400 {&quot;error&quot;:&quot;invalid json&quot;}</code> on every route that reads one; an empty body counts as <code>{}</code>. A body over 5 MiB is <code>413 {&quot;error&quot;:&quot;body too large&quot;}</code>; the rest of the upload is discarded so the answer reaches the client.</li><li>CORS: the request's <code>Origin</code> is reflected in <code>Access-Control-Allow-Origin</code> <b>without</b> <code>Allow-Credentials</code>, so cross-origin callers can only ever authenticate with a Bearer token, never with the cookie.</li></ul>
   </div>
     </div>
   </section>
@@ -299,7 +299,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getHealth">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/health</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/health</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Health check</span>
   </summary>
@@ -327,14 +327,14 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getConfig">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/config</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/config</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Instance configuration</span>
   </summary>
   <div class="ep-body">
 <p>The flags the login screen needs before anyone is signed in. Both reflect environment variables on the server (<code>INVITE_ONLY</code>, <code>ALLOW_GUEST</code>), and so does <code>password_login</code>, which is there only when <code>PASSWORD_LOGIN=1</code>, and <code>default_lang</code>, which is there only when <code>DEFAULT_LANG</code> is set.</p>
 <p><code>media</code> is there unless the instance runs with <code>MEDIA_UPLOADS=0</code>, for everybody: the caps are not a secret, and its absence is how the app knows this server does not store photos and videos at all.</p>
-<p>A caller with a valid session also gets a <code>coach</code> key: the block when the instance has the AI Coach switched on <b>and</b> a provider connected, and <code>null</code> when it has not. A caller with no session gets no key at all. The block names the provider this instance talks to, which is the same fact <code>GET /api/coach/disclosure</code> will not hand out unauthenticated.</p>
+<p>A caller with a valid session also gets a <code>coach</code> key: the block when the instance has the AI Coach switched on <b>and</b> a provider connected, and <code>null</code> when it has not. A caller with no session gets no key at all. The block names the provider this instance talks to, which is the same fact <code>GET /api/v1/coach/disclosure</code> will not hand out unauthenticated.</p>
 <p>The key is always present for a session, <code>null</code> included, so a client that caches this answer can tell &quot;no Coach on this instance&quot; from &quot;you were not signed in when you asked&quot; and knows whether asking again would change it.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Public: no authentication required.</span></p>
 
@@ -359,7 +359,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getMe">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/me</code></span>
+    <span class="ep-path"><code>/api/v1/me</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Who am I?</span>
   </summary>
@@ -385,12 +385,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-registerOptions">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/register/options</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/register/options</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Start passkey registration (WebAuthn ceremony, step 1)</span>
   </summary>
   <div class="ep-body">
-<p>Returns <code>PublicKeyCredentialCreationOptions</code> (from <code>@simplewebauthn/server</code>'s <code>generateRegistrationOptions</code>) plus a challenge id <code>cid</code>. The client passes <code>options</code> to <code>navigator.credentials.create()</code> (or <code>@simplewebauthn/browser</code>'s <code>startRegistration</code>) and sends the result to <code>/api/register/verify</code> together with the <code>cid</code>. Challenges are one-shot and expire after 5 minutes.</p>
+<p>Returns <code>PublicKeyCredentialCreationOptions</code> (from <code>@simplewebauthn/server</code>'s <code>generateRegistrationOptions</code>) plus a challenge id <code>cid</code>. The client passes <code>options</code> to <code>navigator.credentials.create()</code> (or <code>@simplewebauthn/browser</code>'s <code>startRegistration</code>) and sends the result to <code>/api/v1/register/verify</code> together with the <code>cid</code>. Challenges are one-shot and expire after 5 minutes.</p>
 <p>CSRF-exempt (the challenge is the credential). No session required.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Public: no authentication required.</span></p>
 
@@ -431,7 +431,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-registerVerify">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/register/verify</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/register/verify</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Finish passkey registration (WebAuthn ceremony, step 2)</span>
   </summary>
@@ -443,7 +443,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">cid<em class="p-req" title="required">required</em></span>
     <span class="p-type">string</span>
-    <span class="p-desc">The challenge id from /api/register/options.</span>
+    <span class="p-desc">The challenge id from /api/v1/register/options.</span>
   </div>
   <div class="prow">
     <span class="p-name">credential<em class="p-req" title="required">required</em></span>
@@ -476,7 +476,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-loginOptions">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/login/options</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/login/options</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Start passkey login (WebAuthn ceremony, step 1)</span>
   </summary>
@@ -498,7 +498,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-loginVerify">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/login/verify</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/login/verify</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Finish passkey login (WebAuthn ceremony, step 2)</span>
   </summary>
@@ -510,7 +510,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">cid<em class="p-req" title="required">required</em></span>
     <span class="p-type">string</span>
-    <span class="p-desc">The challenge id from /api/login/options.</span>
+    <span class="p-desc">The challenge id from /api/v1/login/options.</span>
   </div>
   <div class="prow">
     <span class="p-name">credential<em class="p-req" title="required">required</em></span>
@@ -547,12 +547,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-logout">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/logout</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/logout</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Sign out (this device)</span>
   </summary>
   <div class="ep-body">
-<p>Clears the session cookie. Always succeeds: an invalid or missing session is a no-op. The token itself stays cryptographically valid until it expires; use /api/logout/all to revoke tokens.</p>
+<p>Clears the session cookie. Always succeeds: an invalid or missing session is a no-op. The token itself stays cryptographically valid until it expires; use /api/v1/logout/all to revoke tokens.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Public: no authentication required.</span></p>
 
 
@@ -569,7 +569,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-logoutAll">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/logout/all</code></span>
+    <span class="ep-path"><code>/api/v1/logout/all</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Sign out everywhere</span>
   </summary>
@@ -602,12 +602,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pairCreate">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/pair/create</code></span>
+    <span class="ep-path"><code>/api/v1/pair/create</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Mint a pairing code for the mobile app</span>
   </summary>
   <div class="ep-body">
-<p>Called from an already signed-in browser tab (Settings → &quot;Pair the mobile app&quot;). Returns an 8-character code (alphabet without 0/O/1/I) the phone redeems within 5 minutes via /api/pair/redeem. One-shot. One live code per profile: minting a new one retires the previous one.</p>
+<p>Called from an already signed-in browser tab (Settings → &quot;Pair the mobile app&quot;). Returns an 8-character code (alphabet without 0/O/1/I) the phone redeems within 5 minutes via /api/v1/pair/redeem. One-shot. One live code per profile: minting a new one retires the previous one.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 
@@ -628,7 +628,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pairRedeem">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/pair/redeem</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/pair/redeem</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Redeem a pairing code for a Bearer token</span>
   </summary>
@@ -670,12 +670,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-loginPassword">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/login/password</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/login/password</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Sign in with a profile name or e-mail and a password</span>
   </summary>
   <div class="ep-body">
-<p>Only a profile that has set a password can sign in this way. The identifier is the profile's display name or the e-mail address it added (<code>POST /api/account/email</code>), compared trimmed, NFKC-normalised and case-insensitively. Send it as <code>identifier</code> (what the app sends), <code>name</code> (the original field, still accepted) or <code>email</code>. In <code>identifier</code> and <code>name</code>, a value with an <code>@</code> is looked up as an e-mail first and then as a name; <code>email</code> is looked up only as an e-mail. A wrong password, an unknown name and a name whose profile has no password all get the same <code>401</code> after the same scrypt work, so neither the answer nor its timing says which names exist. So does a password that was right when its check started but was changed, reset or removed before the check finished. Five wrong passwords for an account are free and the sixth pauses it, whichever identifier they named it by (see <i>Throttling</i>); passkey sign-in is never paused by this. Sets the same session cookie as <code>/api/login/verify</code>. <b>Not</b> CSRF-exempt.</p>
+<p>Only a profile that has set a password can sign in this way. The identifier is the profile's display name or the e-mail address it added (<code>POST /api/v1/account/email</code>), compared trimmed, NFKC-normalised and case-insensitively. Send it as <code>identifier</code> (what the app sends), <code>name</code> (the original field, still accepted) or <code>email</code>. In <code>identifier</code> and <code>name</code>, a value with an <code>@</code> is looked up as an e-mail first and then as a name; <code>email</code> is looked up only as an e-mail. A wrong password, an unknown name and a name whose profile has no password all get the same <code>401</code> after the same scrypt work, so neither the answer nor its timing says which names exist. So does a password that was right when its check started but was changed, reset or removed before the check finished. Five wrong passwords for an account are free and the sixth pauses it, whichever identifier they named it by (see <i>Throttling</i>); passkey sign-in is never paused by this. Sets the same session cookie as <code>/api/v1/login/verify</code>. <b>Not</b> CSRF-exempt.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Public: no authentication required.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span></p><div class="ptab">
@@ -733,12 +733,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-registerPassword">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/register/password</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/register/password</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Create a profile with a name and password</span>
   </summary>
   <div class="ep-body">
-<p>For browsers that cannot make a passkey (plain http on a LAN address, some Firefox setups). Creates the profile and signs it in. The same invite rules as passkey registration apply: on an invite-only instance the code is checked first, checked again after hashing, and burned. The password must be 10–256 characters and not one of the passwords guessing scripts try first; no two profiles with a password may share a name. An optional <code>email</code> is stored as the profile's sign-in e-mail (see <code>POST /api/account/email</code>); one that is not an address is refused with <code>400 email-invalid</code>, one that is in use with <code>409 email-taken</code>. Both are asked only after the hash and the second invite check, so without a valid code it is never answered, which counts against the caller's address like a wrong invite code. <b>Not</b> CSRF-exempt.</p>
+<p>For browsers that cannot make a passkey (plain http on a LAN address, some Firefox setups). Creates the profile and signs it in. The same invite rules as passkey registration apply: on an invite-only instance the code is checked first, checked again after hashing, and burned. The password must be 10–256 characters and not one of the passwords guessing scripts try first; no two profiles with a password may share a name. An optional <code>email</code> is stored as the profile's sign-in e-mail (see <code>POST /api/v1/account/email</code>); one that is not an address is refused with <code>400 email-invalid</code>, one that is in use with <code>409 email-taken</code>. Both are asked only after the hash and the second invite check, so without a valid code it is never answered, which counts against the caller's address like a wrong invite code. <b>Not</b> CSRF-exempt.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Public: no authentication required.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span></p><div class="ptab">
@@ -801,12 +801,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-redeemPasswordReset">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/login/password-reset</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/login/password-reset</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Set a new password with an admin's one-time reset code</span>
   </summary>
   <div class="ep-body">
-<p>Redeems the code from <code>POST /api/admin/user/password-reset</code> (valid 24 h, single use, stored only as a hash; dashes, spaces and case do not matter) and signs in. A new password that breaks the policy is refused without using up the code. Every other session of the account ends. Wrong codes count against the caller's address only (see <i>Throttling</i>), never against the name, so they cannot keep a real code from working. The profile is named by its name or its sign-in e-mail, in <code>identifier</code>, <code>name</code> or <code>email</code> as at sign-in. <b>Not</b> CSRF-exempt.</p>
+<p>Redeems the code from <code>POST /api/v1/admin/user/password-reset</code> (valid 24 h, single use, stored only as a hash; dashes, spaces and case do not matter) and signs in. A new password that breaks the policy is refused without using up the code. Every other session of the account ends. Wrong codes count against the caller's address only (see <i>Throttling</i>), never against the name, so they cannot keep a real code from working. The profile is named by its name or its sign-in e-mail, in <code>identifier</code>, <code>name</code> or <code>email</code> as at sign-in. <b>Not</b> CSRF-exempt.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Public: no authentication required.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span></p><div class="ptab">
@@ -869,7 +869,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getAccountPassword">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/account/password</code></span>
+    <span class="ep-path"><code>/api/v1/account/password</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Whether this profile has a password</span>
   </summary>
@@ -895,12 +895,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-setAccountPassword">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/account/password</code></span>
+    <span class="ep-path"><code>/api/v1/account/password</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Set or change this profile's password</span>
   </summary>
   <div class="ep-body">
-<p>Proof first: <code>current</code> when the profile has a password, or a passkey assertion made for this request (<code>cid</code> from <code>POST /api/login/options</code>, <code>credential</code> signed by one of <i>this</i> profile's passkeys). The passkey is the only way to set a first password, and the way to replace a forgotten one. A session alone is never enough. Wrong <code>current</code> values count toward the same pause as wrong sign-ins. On success the session version is bumped, which ends every other session and pending pairing code of the account; the caller's own continues on a fresh cookie, or a fresh <code>token</code> for a Bearer caller.</p>
+<p>Proof first: <code>current</code> when the profile has a password, or a passkey assertion made for this request (<code>cid</code> from <code>POST /api/v1/login/options</code>, <code>credential</code> signed by one of <i>this</i> profile's passkeys). The passkey is the only way to set a first password, and the way to replace a forgotten one. A session alone is never enough. Wrong <code>current</code> values count toward the same pause as wrong sign-ins. On success the session version is bumped, which ends every other session and pending pairing code of the account; the caller's own continues on a fresh cookie, or a fresh <code>token</code> for a Bearer caller.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span></p><div class="ptab">
@@ -962,12 +962,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-removeAccountPassword">
   <summary>
     <span class="m delete">DELETE</span>
-    <span class="ep-path"><code>/api/account/password</code></span>
+    <span class="ep-path"><code>/api/v1/account/password</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Remove this profile's password</span>
   </summary>
   <div class="ep-body">
-<p>Refused while the profile has no passkey: the password would be its last way in. Otherwise the body carries the same proof setting one takes: <code>current</code>, the password itself, or a passkey assertion made for this request (<code>cid</code> from <code>POST /api/login/options</code>, <code>credential</code> signed by one of <i>this</i> profile's passkeys). A session alone is never enough: a stolen cookie must not take away the owner's way in where passkeys do not work. The last-way-in refusal comes before the proof is checked, and is checked again after it. Wrong <code>current</code> values count toward the same pause as wrong sign-ins. Existing sessions are left alone (<code>POST /api/logout/all</code> ends them). A profile without a password gets 200 as well, with no proof asked. Audited as <code>auth.password.remove</code>.</p>
+<p>Refused while the profile has no passkey: the password would be its last way in. Otherwise the body carries the same proof setting one takes: <code>current</code>, the password itself, or a passkey assertion made for this request (<code>cid</code> from <code>POST /api/v1/login/options</code>, <code>credential</code> signed by one of <i>this</i> profile's passkeys). A session alone is never enough: a stolen cookie must not take away the owner's way in where passkeys do not work. The last-way-in refusal comes before the proof is checked, and is checked again after it. Wrong <code>current</code> values count toward the same pause as wrong sign-ins. Existing sessions are left alone (<code>POST /api/v1/logout/all</code> ends them). A profile without a password gets 200 as well, with no proof asked. Audited as <code>auth.password.remove</code>.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 <p class="ep-h">Request body</p><p class="p-desc"><a href="#schema-OwnerProof">OwnerProof</a></p>
@@ -1004,12 +1004,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-setAccountEmail">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/account/email</code></span>
+    <span class="ep-path"><code>/api/v1/account/email</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Set, change or remove the e-mail this profile may sign in with</span>
   </summary>
   <div class="ep-body">
-<p>An e-mail address to type at <code>POST /api/login/password</code> instead of the profile name. No mail is ever sent to it (there is no verification and no reset mail; resets stay the admin's one-time code), so it is only an identifier. Stored trimmed, NFKC-normalised and lower-cased; at most 254 characters; unique across every profile, and never another password-holding profile's name. An empty or null <code>email</code> removes it (as <code>DELETE</code> does).</p>
+<p>An e-mail address to type at <code>POST /api/v1/login/password</code> instead of the profile name. No mail is ever sent to it (there is no verification and no reset mail; resets stay the admin's one-time code), so it is only an identifier. Stored trimmed, NFKC-normalised and lower-cased; at most 254 characters; unique across every profile, and never another password-holding profile's name. An empty or null <code>email</code> removes it (as <code>DELETE</code> does).</p>
 <p>The body carries the same proof as setting a password (see OwnerProof): a session alone is never enough. Saving the address the profile already has answers 200 with no proof asked. An address in use by another profile is refused only after the proof, with <code>409 email-taken</code>, and counts against the caller's address and account (20 free, then 30 s doubling to 15 min), so the answer never costs less than a passkey prompt or a password check, and runs out after a few tries. It says an address is in use somewhere on this instance, never by whom. Audited as <code>auth.email.set</code> / <code>auth.email.change</code> with the address masked (<code>a…@e…</code>).</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
@@ -1055,7 +1055,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-removeAccountEmail">
   <summary>
     <span class="m delete">DELETE</span>
-    <span class="ep-path"><code>/api/account/email</code></span>
+    <span class="ep-path"><code>/api/v1/account/email</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Remove the e-mail this profile may sign in with</span>
   </summary>
@@ -1100,7 +1100,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-listPasskeys">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/account/passkeys</code></span>
+    <span class="ep-path"><code>/api/v1/account/passkeys</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">This profile's passkeys</span>
   </summary>
@@ -1126,13 +1126,13 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-removePasskey">
   <summary>
     <span class="m delete">DELETE</span>
-    <span class="ep-path"><code>/api/account/passkeys</code></span>
+    <span class="ep-path"><code>/api/v1/account/passkeys</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Remove one passkey</span>
   </summary>
   <div class="ep-body">
 <p>Refused while it is the profile's last way in: its only passkey, and no password that can sign in (a password counts only while <code>PASSWORD_LOGIN</code> is on). Otherwise the body carries the same proof adding one takes (<code>OwnerProof</code>): a session alone is never enough, since a stolen cookie could otherwise choose which of the owner's passkeys is left. Any of the profile's passkeys may confirm, the one being removed included. The 404 and 409 refusals come before the proof is checked, and the last-way-in rule is checked again after it. Audited as <code>auth.passkey.remove</code>. An unused device code of the profile is dropped too, so one made with the removed passkey cannot add another afterwards.</p>
-<p>Sessions are not tied to the passkey that opened them, so a session it already opened carries on; <code>POST /api/logout/all</code> ends those.</p>
+<p>Sessions are not tied to the passkey that opened them, so a session it already opened carries on; <code>POST /api/v1/logout/all</code> ends those.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 <p class="ep-h">Query parameters</p><div class="ptab">
   <div class="prow">
@@ -1179,12 +1179,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-addPasskeyOptions">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/account/passkeys/options</code></span>
+    <span class="ep-path"><code>/api/v1/account/passkeys/options</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Add a passkey (step 1): prove it is you, get creation options</span>
   </summary>
   <div class="ep-body">
-<p>A session alone is never enough to add a way in that outlives &quot;sign out everywhere&quot;. The body carries the same proof <code>POST /api/account/password</code> takes: a passkey assertion made for this request (<code>cid</code> from <code>POST /api/login/options</code>, <code>credential</code> signed by one of <i>this</i> profile's passkeys), or <code>current</code>, the profile's password, only while <code>PASSWORD_LOGIN</code> is on. With it off, a password kept from before is not checked at all and the answer is <code>passkey-required</code>, so a password-only profile has to move onto a passkey while the flag is still on. Wrong passwords count toward the sign-in pause.</p>
+<p>A session alone is never enough to add a way in that outlives &quot;sign out everywhere&quot;. The body carries the same proof <code>POST /api/v1/account/password</code> takes: a passkey assertion made for this request (<code>cid</code> from <code>POST /api/v1/login/options</code>, <code>credential</code> signed by one of <i>this</i> profile's passkeys), or <code>current</code>, the profile's password, only while <code>PASSWORD_LOGIN</code> is on. With it off, a password kept from before is not checked at all and the answer is <code>passkey-required</code>, so a password-only profile has to move onto a passkey while the flag is still on. Wrong passwords count toward the sign-in pause.</p>
 <p>The options use the profile's own user handle and list its passkeys in <code>excludeCredentials</code>, so an authenticator that already holds one refuses. The challenge is good for 5 minutes, for this profile, and only while the session version is unchanged.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
@@ -1222,7 +1222,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-addPasskeyVerify">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/account/passkeys/verify</code></span>
+    <span class="ep-path"><code>/api/v1/account/passkeys/verify</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Add a passkey (step 2): store the new one</span>
   </summary>
@@ -1272,7 +1272,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-renamePasskey">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/account/passkeys/rename</code></span>
+    <span class="ep-path"><code>/api/v1/account/passkeys/rename</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Name one passkey</span>
   </summary>
@@ -1313,12 +1313,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-createDeviceLink">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/account/device-link</code></span>
+    <span class="ep-path"><code>/api/v1/account/device-link</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Make a one-time device link</span>
   </summary>
   <div class="ep-body">
-<p>For adding another device of the same person: returns a code of 12 characters from the pairing alphabet (60 bits), which the app also shows as a QR code of <code>&lt;app&gt;?link=&lt;code&gt;</code>. The other device redeems it with <code>/api/device-link/*</code> by creating a passkey of its own. The code is shown once, stored only as a SHA-256, good for 10 minutes and for one passkey; a newer one replaces it, and signing out everywhere, a new password, an admin reset or a disable drop it. Same proof as adding a passkey. Audited as <code>auth.link.create</code>.</p>
+<p>For adding another device of the same person: returns a code of 12 characters from the pairing alphabet (60 bits), which the app also shows as a QR code of <code>&lt;app&gt;?link=&lt;code&gt;</code>. The other device redeems it with <code>/api/v1/device-link/*</code> by creating a passkey of its own. The code is shown once, stored only as a SHA-256, good for 10 minutes and for one passkey; a newer one replaces it, and signing out everywhere, a new password, an admin reset or a disable drop it. Same proof as adding a passkey. Audited as <code>auth.link.create</code>.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 <p class="ep-h">Request body</p><p class="p-desc"><a href="#schema-OwnerProof">OwnerProof</a></p>
@@ -1355,7 +1355,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-deviceLinkOptions">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/device-link/options</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/device-link/options</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Redeem a device link (step 1): check the code, get creation options</span>
   </summary>
@@ -1398,7 +1398,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-deviceLinkVerify">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/device-link/verify</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/device-link/verify</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Redeem a device link (step 2): store the passkey and sign this device in</span>
   </summary>
@@ -1460,7 +1460,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getData">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/data</code></span>
+    <span class="ep-path"><code>/api/v1/data</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Pull the account's app state</span>
   </summary>
@@ -1486,7 +1486,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-putData">
   <summary>
     <span class="m put">PUT</span>
-    <span class="ep-path"><code>/api/data</code></span>
+    <span class="ep-path"><code>/api/v1/data</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Push the account's app state</span>
   </summary>
@@ -1545,12 +1545,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-undefined">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/data/rev</code></span>
+    <span class="ep-path"><code>/api/v1/data/rev</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Current revision of the caller's profile state</span>
   </summary>
   <div class="ep-body">
-<p>The <code>rev</code> that <code>GET /api/data</code> would return, without the document. Signed-in clients poll this while open and on every return to the foreground and fetch the document only when the number changed.</p>
+<p>The <code>rev</code> that <code>GET /api/v1/data</code> would return, without the document. Signed-in clients poll this while open and on every return to the foreground and fetch the document only when the number changed.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 
@@ -1578,7 +1578,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pushPublicKey">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/push/public-key</code><span class="ep-chip public">public</span></span>
+    <span class="ep-path"><code>/api/v1/push/public-key</code><span class="ep-chip public">public</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">VAPID public key</span>
   </summary>
@@ -1600,7 +1600,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pushSubscribe">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/push/subscribe</code></span>
+    <span class="ep-path"><code>/api/v1/push/subscribe</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Register a Web-Push subscription</span>
   </summary>
@@ -1641,7 +1641,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pushStatus">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/push/status</code></span>
+    <span class="ep-path"><code>/api/v1/push/status</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Does the server hold this subscription?</span>
   </summary>
@@ -1673,7 +1673,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pushUnsubscribe">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/push/unsubscribe</code></span>
+    <span class="ep-path"><code>/api/v1/push/unsubscribe</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Remove a Web-Push subscription</span>
   </summary>
@@ -1705,7 +1705,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pushTest">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/push/test</code></span>
+    <span class="ep-path"><code>/api/v1/push/test</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Send a test notification</span>
   </summary>
@@ -1731,7 +1731,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pushRestTimer">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/push/rest-timer</code></span>
+    <span class="ep-path"><code>/api/v1/push/rest-timer</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Schedule a server-side rest-timer push</span>
   </summary>
@@ -1748,7 +1748,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">deviceId</span>
     <span class="p-type">string</span>
-    <span class="p-desc">The browser's own token, see <code>POST /api/push/subscribe</code>. Optional.</span>
+    <span class="p-desc">The browser's own token, see <code>POST /api/v1/push/subscribe</code>. Optional.</span>
   </div>
 </div>
 <pre><code>{
@@ -1776,7 +1776,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-pushRestTimerCancel">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/push/rest-timer/cancel</code></span>
+    <span class="ep-path"><code>/api/v1/push/rest-timer/cancel</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Cancel the pending rest-timer push</span>
   </summary>
@@ -1815,7 +1815,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postActivity">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/activity</code></span>
+    <span class="ep-path"><code>/api/v1/activity</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Live-workout presence heartbeat</span>
   </summary>
@@ -1898,7 +1898,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getMedia">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/media/{hash}</code></span>
+    <span class="ep-path"><code>/api/v1/media/{hash}</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Download one of your photos or videos</span>
   </summary>
@@ -1929,7 +1929,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-putMedia">
   <summary>
     <span class="m put">PUT</span>
-    <span class="ep-path"><code>/api/media/{hash}</code></span>
+    <span class="ep-path"><code>/api/v1/media/{hash}</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Upload one photo, GIF or video</span>
   </summary>
@@ -1990,7 +1990,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-mediaMissing">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/media/missing</code></span>
+    <span class="ep-path"><code>/api/v1/media/missing</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Which of these files the server does not have</span>
   </summary>
@@ -2030,7 +2030,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-mediaSweep">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/media/sweep</code></span>
+    <span class="ep-path"><code>/api/v1/media/sweep</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Delete every file your current state does not reference</span>
   </summary>
@@ -2073,7 +2073,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getCoachDisclosure">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/coach/disclosure</code></span>
+    <span class="ep-path"><code>/api/v1/coach/disclosure</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">What the consent screen must say</span>
   </summary>
@@ -2100,7 +2100,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getCoachStatus">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/coach/status</code></span>
+    <span class="ep-path"><code>/api/v1/coach/status</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">The running job, the waiting proposal and today's budget</span>
   </summary>
@@ -2130,12 +2130,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postCoachPlan">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/coach/plan</code></span>
+    <span class="ep-path"><code>/api/v1/coach/plan</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Ask for a training plan</span>
   </summary>
   <div class="ep-body">
-<p>Queues a <code>create</code> job. With <code>intake</code> it builds a plan from the answers given on the intake screen; with <code>refine</code> it reworks the proposal already waiting, in the words of the person reading it. The answer is 202 and a job id; the result arrives through <code>GET /api/coach/status</code>.</p>
+<p>Queues a <code>create</code> job. With <code>intake</code> it builds a plan from the answers given on the intake screen; with <code>refine</code> it reworks the proposal already waiting, in the words of the person reading it. The answer is 202 and a job id; the result arrives through <code>GET /api/v1/coach/status</code>.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span> <span class="p-hint">(optional)</span></p><div class="ptab">
@@ -2170,7 +2170,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <div class="ptab">
   <div class="prow rrow">
     <span class="r-code s2">202</span>
-    <span class="p-desc">Queued. The job runs in the background; its outcome arrives through <code>GET /api/coach/status</code>, which the client polls.<span class="r-sig">{ job: object }</span></span>
+    <span class="p-desc">Queued. The job runs in the background; its outcome arrives through <code>GET /api/v1/coach/status</code>, which the client polls.<span class="r-sig">{ job: object }</span></span>
   </div>
   <div class="prow rrow">
     <span class="r-code s4">401</span>
@@ -2199,12 +2199,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postCoachReview">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/coach/review</code></span>
+    <span class="ep-path"><code>/api/v1/coach/review</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Ask for a review of the training since the last one</span>
   </summary>
   <div class="ep-body">
-<p>Queues a <code>review</code> job, the same job the weekly cadence queues on its own. The answer is either a change-set to accept or reject, or &quot;nothing to change&quot; with the reason, both delivered through <code>GET /api/coach/status</code>.</p>
+<p>Queues a <code>review</code> job, the same job the weekly cadence queues on its own. The answer is either a change-set to accept or reject, or &quot;nothing to change&quot; with the reason, both delivered through <code>GET /api/v1/coach/status</code>.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span> <span class="p-hint">(optional)</span></p><div class="ptab">
@@ -2223,7 +2223,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <div class="ptab">
   <div class="prow rrow">
     <span class="r-code s2">202</span>
-    <span class="p-desc">Queued. The job runs in the background; its outcome arrives through <code>GET /api/coach/status</code>, which the client polls.<span class="r-sig">{ job: object }</span></span>
+    <span class="p-desc">Queued. The job runs in the background; its outcome arrives through <code>GET /api/v1/coach/status</code>, which the client polls.<span class="r-sig">{ job: object }</span></span>
   </div>
   <div class="prow rrow">
     <span class="r-code s4">401</span>
@@ -2252,7 +2252,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postCoachDebrief">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/coach/debrief</code></span>
+    <span class="ep-path"><code>/api/v1/coach/debrief</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Ask for a read of one session</span>
   </summary>
@@ -2276,7 +2276,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <div class="ptab">
   <div class="prow rrow">
     <span class="r-code s2">202</span>
-    <span class="p-desc">Queued. The job runs in the background; its outcome arrives through <code>GET /api/coach/status</code>, which the client polls.<span class="r-sig">{ job: object }</span></span>
+    <span class="p-desc">Queued. The job runs in the background; its outcome arrives through <code>GET /api/v1/coach/status</code>, which the client polls.<span class="r-sig">{ job: object }</span></span>
   </div>
   <div class="prow rrow">
     <span class="r-code s4">401</span>
@@ -2305,12 +2305,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postCoachResolve">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/coach/pending/resolve</code></span>
+    <span class="ep-path"><code>/api/v1/coach/pending/resolve</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Apply or discard the waiting proposal</span>
   </summary>
   <div class="ep-body">
-<p>The client applies the accepted changes to its own state and syncs them through <code>PUT /api/data</code>; this only records the decision and clears the proposal. Sending it when nothing is waiting is a no-op, not an error.</p>
+<p>The client applies the accepted changes to its own state and syncs them through <code>PUT /api/v1/data</code>; this only records the decision and clears the proposal. Sending it when nothing is waiting is a no-op, not an error.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Requires a session: the cookie set at sign-in, or <code>Authorization: Bearer &lt;token&gt;</code> from mobile-app pairing.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span> <span class="p-hint">(optional)</span></p><div class="ptab">
@@ -2351,7 +2351,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getCoachCohort">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/coach/cohort</code></span>
+    <span class="ep-path"><code>/api/v1/coach/cohort</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">How this profile sits against the others who opted in</span>
   </summary>
@@ -2381,7 +2381,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postCoachCohortShare">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/coach/cohort/share</code></span>
+    <span class="ep-path"><code>/api/v1/coach/cohort/share</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Opt this profile in or out of the comparison</span>
   </summary>
@@ -2420,7 +2420,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getCoachAccount">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/coach/account</code></span>
+    <span class="ep-path"><code>/api/v1/coach/account</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Whose provider account this profile would spend</span>
   </summary>
@@ -2446,7 +2446,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postCoachForget">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/coach/forget</code></span>
+    <span class="ep-path"><code>/api/v1/coach/forget</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Drop everything the server holds for this profile</span>
   </summary>
@@ -2481,12 +2481,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminPasswordReset">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/user/password-reset</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/user/password-reset</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Issue a one-time password reset code</span>
   </summary>
   <div class="ep-body">
-<p>Returns a code (12 characters from the pairing alphabet, 60 bits) that is shown once, stored only as a SHA-256, valid for 24 h and good for one <code>POST /api/login/password-reset</code>. Issuing it removes the profile's current password and bumps its session version (every session and pending pairing code ends); passkeys keep working. A newer code replaces an older one. Admin accounts are refused; an admin sets their own password in Settings. Audited as <code>admin.password.reset</code>.</p>
+<p>Returns a code (12 characters from the pairing alphabet, 60 bits) that is shown once, stored only as a SHA-256, valid for 24 h and good for one <code>POST /api/v1/login/password-reset</code>. Issuing it removes the profile's current password and bumps its session version (every session and pending pairing code ends); passkeys keep working. A newer code replaces an older one. Admin accounts are refused; an admin sets their own password in Settings. Audited as <code>admin.password.reset</code>.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Admin only: a signed-in session whose user is an admin (<code>ADMIN_UIDS</code> or <code>admin:true</code>), as the session cookie or a Bearer token.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span></p><div class="ptab">
@@ -2529,7 +2529,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminUsers">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/admin/users</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/users</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">List all users</span>
   </summary>
@@ -2559,12 +2559,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminUser">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/admin/user</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/user</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">One user in detail</span>
   </summary>
   <div class="ep-body">
-<p>Drill-down: full workout history (newest first) and body-weight log for one user. Admin only. Anything in <code>routines</code>, <code>bodyweight</code> or <code>workouts</code> that is not an object is left out, and a list that is not an array reads as empty: PUT /api/data drops those entries now, but a state file written before it did still has them and this route has to answer for it. A workout's <code>media</code> (its photos and videos) is left out: they are the owner's own.</p>
+<p>Drill-down: full workout history (newest first) and body-weight log for one user. Admin only. Anything in <code>routines</code>, <code>bodyweight</code> or <code>workouts</code> that is not an object is left out, and a list that is not an array reads as empty: PUT /api/v1/data drops those entries now, but a state file written before it did still has them and this route has to answer for it. A workout's <code>media</code> (its photos and videos) is left out: they are the owner's own.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Admin only: a signed-in session whose user is an admin (<code>ADMIN_UIDS</code> or <code>admin:true</code>), as the session cookie or a Bearer token.</span></p>
 <p class="ep-h">Query parameters</p><div class="ptab">
   <div class="prow">
@@ -2599,7 +2599,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminUserDisable">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/user/disable</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/user/disable</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Disable or re-enable a user</span>
   </summary>
@@ -2648,12 +2648,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminUserDelete">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/user/delete</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/user/delete</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Delete a user and everything of theirs</span>
   </summary>
   <div class="ep-body">
-<p>Removes the account for good: the user record, their passkeys, their push subscriptions, their live presence, their training history file, their uploaded photos and videos (<code>DATA_DIR/uploads/&lt;uid&gt;/</code>) and any Coach credential stored for them. Not reversible; <code>/api/admin/user/disable</code> is the reversible one. An admin cannot delete their own account, and the last admin cannot be deleted. Audited by name, since the id stops meaning anything.</p>
+<p>Removes the account for good: the user record, their passkeys, their push subscriptions, their live presence, their training history file, their uploaded photos and videos (<code>DATA_DIR/uploads/&lt;uid&gt;/</code>) and any Coach credential stored for them. Not reversible; <code>/api/v1/admin/user/disable</code> is the reversible one. An admin cannot delete their own account, and the last admin cannot be deleted. Audited by name, since the id stops meaning anything.</p>
     <p class="ep-auth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Admin only: a signed-in session whose user is an admin (<code>ADMIN_UIDS</code> or <code>admin:true</code>), as the session cookie or a Bearer token.</span></p>
 
 <p class="ep-h">Request body <span class="p-hint">(JSON)</span></p><div class="ptab">
@@ -2692,7 +2692,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminInvites">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/admin/invites</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/invites</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">List invite codes</span>
   </summary>
@@ -2722,7 +2722,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminInviteNew">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/invites/new</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/invites/new</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Mint an invite code</span>
   </summary>
@@ -2758,7 +2758,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminInviteRevoke">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/invites/revoke</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/invites/revoke</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Revoke an unused invite code</span>
   </summary>
@@ -2802,7 +2802,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminAudit">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/admin/audit</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/audit</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Read the activity log</span>
   </summary>
@@ -2848,7 +2848,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-adminAuditClear">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/audit/clear</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/audit/clear</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Clear the activity log</span>
   </summary>
@@ -2878,7 +2878,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-getAdminCoach">
   <summary>
     <span class="m get">GET</span>
-    <span class="ep-path"><code>/api/admin/coach</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/coach</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">The Coach card</span>
   </summary>
@@ -2909,7 +2909,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postAdminCoachConfig">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/coach/config</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/coach/config</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Change the Coach settings</span>
   </summary>
@@ -2926,7 +2926,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">provider</span>
     <span class="p-type">string</span>
-    <span class="p-desc">Must be one of the ids GET /api/admin/coach lists.</span>
+    <span class="p-desc">Must be one of the ids GET /api/v1/admin/coach lists.</span>
   </div>
   <div class="prow">
     <span class="p-name">model</span>
@@ -2998,7 +2998,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postAdminCoachTest">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/coach/test</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/coach/test</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Run one round trip against the provider</span>
   </summary>
@@ -3029,7 +3029,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postAdminCoachModels">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/coach/models</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/coach/models</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">List the models the endpoint serves</span>
   </summary>
@@ -3059,7 +3059,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postAdminCoachConnect">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/coach/connect</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/coach/connect</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">File the provider credential</span>
   </summary>
@@ -3120,7 +3120,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
 <details class="ep" id="op-postAdminCoachDisconnect">
   <summary>
     <span class="m post">POST</span>
-    <span class="ep-path"><code>/api/admin/coach/disconnect</code><span class="ep-chip admin">admin</span></span>
+    <span class="ep-path"><code>/api/v1/admin/coach/disconnect</code><span class="ep-chip admin">admin</span></span>
     <span class="ep-chev" aria-hidden="true"></span>
     <span class="ep-sum">Remove the provider credential</span>
   </summary>
@@ -3277,7 +3277,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">cid</span>
     <span class="p-type">string</span>
-    <span class="p-desc">From POST /api/login/options.</span>
+    <span class="p-desc">From POST /api/v1/login/options.</span>
   </div>
   <div class="prow">
     <span class="p-name">credential</span>
@@ -3297,7 +3297,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <summary>
     <span class="sch-name"><code>SessionUser</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
-    <span class="ep-sum">The caller's identity, as returned by /api/me and the sign-in routes.</span>
+    <span class="ep-sum">The caller's identity, as returned by /api/v1/me and the sign-in routes.</span>
   </summary>
   <div class="ep-body">
 
@@ -3540,7 +3540,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <span class="ep-sum">The whole app state as one blob.</span>
   </summary>
   <div class="ep-body">
-<p>The server treats it as opaque (it only strips <code>active</code> on save and reads a few fields for reminders and the admin dashboard). The schema below is <b>representative, not enforced</b> (except <code>workouts</code> and <code>routines</code>, which must be arrays (or null) when present), and grows with the app. Concurrent writes are caught by the server's revision (<code>_rev</code>, see PUT /api/data); the client merges the two documents and decides by <code>_ts</code> which side's settings win.</p>
+<p>The server treats it as opaque (it only strips <code>active</code> on save and reads a few fields for reminders and the admin dashboard). The schema below is <b>representative, not enforced</b> (except <code>workouts</code> and <code>routines</code>, which must be arrays (or null) when present), and grows with the app. Concurrent writes are caught by the server's revision (<code>_rev</code>, see PUT /api/v1/data); the client merges the two documents and decides by <code>_ts</code> which side's settings win.</p>
 <div class="ptab">
   <div class="prow">
     <span class="p-name">_ts</span>
@@ -3565,12 +3565,12 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">deleted</span>
     <span class="p-type">object</span>
-    <span class="p-desc">When entries were removed, per list and entry key ({ workouts: { &lt;id&gt;: ms } }, weigh-ins by day, favourites by exercise id). A negative stamp is an add-back after a removal. Never shrinks on the server; stamped for writers that do not stamp (see PUT /api/data).</span>
+    <span class="p-desc">When entries were removed, per list and entry key ({ workouts: { &lt;id&gt;: ms } }, weigh-ins by day, favourites by exercise id). A negative stamp is an add-back after a removal. Never shrinks on the server; stamped for writers that do not stamp (see PUT /api/v1/data).</span>
   </div>
   <div class="prow">
     <span class="p-name">edited</span>
     <span class="p-type">object</span>
-    <span class="p-desc">When each setting and plan day was last changed, ms ({ queue: ms, 'week.3': ms, … }). Never shrinks on the server; stamped for writers that do not stamp (see PUT /api/data).</span>
+    <span class="p-desc">When each setting and plan day was last changed, ms ({ queue: ms, 'week.3': ms, … }). Never shrinks on the server; stamped for writers that do not stamp (see PUT /api/v1/data).</span>
   </div>
   <div class="prow">
     <span class="p-name">unit</span>
@@ -3731,7 +3731,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <span class="ep-sum">What the state knows of an uploaded file.</span>
   </summary>
   <div class="ep-body">
-<p>The bytes are behind <code>GET /api/media/{hash}</code>; the server keeps a file as long as some <code>customEx[].media.hash</code>, <code>workouts[].media[].hash</code> or <code>.poster.hash</code> of either in the profile's state names it, and for <code>MEDIA_GC_GRACE_DAYS</code> after.</p>
+<p>The bytes are behind <code>GET /api/v1/media/{hash}</code>; the server keeps a file as long as some <code>customEx[].media.hash</code>, <code>workouts[].media[].hash</code> or <code>.poster.hash</code> of either in the profile's state names it, and for <code>MEDIA_GC_GRACE_DAYS</code> after.</p>
 <div class="ptab">
   <div class="prow">
     <span class="p-name">kind<em class="p-req" title="required">required</em></span>
@@ -4023,7 +4023,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">media</span>
     <span class="p-type"><a href="#schema-MediaRef">MediaRef</a>[]</span>
-    <span class="p-desc">Photos and videos attached to this workout (a progress photo, a form-check clip), at most six in the app. Refs only; the bytes are behind <code>/api/media/{hash}</code>, and the server keeps every file any entry here names (the GC walks this list as it walks each custom exercise's <code>media</code>).</span>
+    <span class="p-desc">Photos and videos attached to this workout (a progress photo, a form-check clip), at most six in the app. Refs only; the bytes are behind <code>/api/v1/media/{hash}</code>, and the server keeps every file any entry here names (the GC walks this list as it walks each custom exercise's <code>media</code>).</span>
   </div>
   <div class="prow">
     <span class="p-name">_ts</span>
@@ -4210,7 +4210,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <summary>
     <span class="sch-name"><code>Presence</code></span>
     <span class="ep-chev" aria-hidden="true"></span>
-    <span class="ep-sum">Live-workout snapshot (from /api/activity heartbeats).</span>
+    <span class="ep-sum">Live-workout snapshot (from /api/v1/activity heartbeats).</span>
   </summary>
   <div class="ep-body">
 
@@ -4404,7 +4404,7 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
   <div class="prow">
     <span class="p-name">usedByName</span>
     <span class="p-type">string | null</span>
-    <span class="p-desc">Resolved display name (only in GET /api/admin/invites).</span>
+    <span class="p-desc">Resolved display name (only in GET /api/v1/admin/invites).</span>
   </div>
 </div>
   </div>

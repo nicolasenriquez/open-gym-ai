@@ -15,7 +15,7 @@ COPY --chown=1000:1000 pyproject.toml uv.lock ./
 RUN --mount=type=cache,id=opengym-platform-uv,target=/tmp/uv-cache,uid=1000,gid=1000 \
     uv lock --check && uv sync --locked --no-install-project && uv pip check && uv lock --check --offline
 FROM dependencies AS test-base
-COPY --chown=1000:1000 versions.json dependency-licenses.json ./
+COPY --chown=1000:1000 versions.json dependency-licenses.json openapi.yaml ./
 COPY --chown=1000:1000 src/ ./src/
 COPY --chown=1000:1000 tests/ ./tests/
 COPY --chown=1000:1000 contracts/identity-sessions.v1.json contracts/identity-passwords.v1.json contracts/identity-registration.v1.json contracts/identity-passkeys.v1.json contracts/training-stamps.v1.json ./contracts/

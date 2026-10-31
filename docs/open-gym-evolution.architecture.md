@@ -229,7 +229,7 @@ La matriz de consumidores anterior cubre persistencia; la sustitución Node → 
 
 | Área | Obligación de compatibilidad | Evidencia para GP/G3 |
 | --- | --- | --- |
-| Rutas HTTP/OpenAPI | Rutas/métodos, respuestas, errores, headers/cookies, límites, origen/CSRF y subpaths; contratos actuales de `api/openapi.yaml` y handlers | Casos positivos/negativos contra ambas implementaciones; no aceptar cambios involuntarios por defaults de FastAPI/Pydantic. |
+| Rutas HTTP/OpenAPI | Rutas/métodos, respuestas, errores, headers/cookies, límites, origen/CSRF y subpaths; autoridad `backend/openapi.yaml`, fixture Node congelado y handlers | Casos positivos/negativos contra ambas implementaciones; no aceptar cambios involuntarios por defaults de FastAPI/Pydantic. |
 | Identidad/acceso | IDs, WebAuthn/contadores, revocación, roles, passwords opcionales, pairing y device links | Vectores Node/Python, dos propietarios y casos de deshabilitación/eliminación concurrente. Biblioteca WebAuthn Python y compatibilidad de material heredado por verificar. |
 | Passwords y sesiones | Formato scrypt/NFKC y límites actuales; firma/encoding, expiración y revocación de sesiones | Credenciales sintéticas heredadas y Unicode; preservar sesiones o resolver reautenticación controlada explícita. No copiar bcrypt/JWT/OAuth de AI Tutor. |
 | Training y cliente | Contratos §7, validaciones legacy admitidas, campos internos, números/fechas, ausente/null, sesión activa local, invitado/offline y pendientes | Pruebas de paridad, JSONB, primera escritura concurrente, stamps, conflictos, reset, respuesta perdida y reconciliación tras restore. |

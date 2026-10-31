@@ -142,7 +142,7 @@ operación; constraints, transacciones y RLS respaldan integridad en PostgreSQL.
 Ninguno sustituye al otro. Los modelos HTTP no se convierten automáticamente en
 modelos de persistencia ni en nuevas reglas de entrenamiento.
 
-Durante la transición, `api/openapi.yaml` y los casos independientes de la matriz
+Durante la transición, el fixture congelado `backend/contracts/node-openapi.v1.yaml` y los casos independientes de la matriz
 son la referencia contrastada con Node. Cada ruta portada declara modelos y sus
 respuestas/errores, incluidos cookies, headers y coerciones relevantes. La salida
 OpenAPI de FastAPI se contrasta con esa referencia; no se mantienen dos contratos

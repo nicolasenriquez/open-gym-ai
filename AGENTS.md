@@ -69,7 +69,7 @@ consulta los `package.json` para ver las dependencias actuales.
   `media/img/` y `media/gif/`. `catalogue/media/` es distinto: forma parte del
   catálogo y se empaqueta en la imagen web.
 - Para arquitectura y comportamiento detallados, consulta `README.md`,
-  `CONTRIBUTING.md`, `docs/` y `api/openapi.yaml` según el área que vayas a cambiar.
+  `CONTRIBUTING.md`, `docs/` y `backend/openapi.yaml` según el área que vayas a cambiar.
 
 ## Orientación técnica
 

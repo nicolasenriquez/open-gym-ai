@@ -4,7 +4,7 @@
   "matrix": "backend/CONTRACTS.md",
   "policy": "Frozen independent expectations; no automatic regeneration or normalization except CRLF to LF. Resolve divergence explicitly; never update expectations merely to pass the port.",
   "files": {
-    "api/openapi.yaml": "1a9302b7cdb7682e5e4a8ffd11b48114a325bdc2e15b1e799446f6208d18d286",
+    "backend/contracts/node-openapi.v1.yaml": "1a9302b7cdb7682e5e4a8ffd11b48114a325bdc2e15b1e799446f6208d18d286",
     "api/test/adapters-http.test.js": "38dbc905623e117c6a6735459a36c2dc5849218afb9a3eabbff07d7ba73b62ca",
     "api/test/adapters.test.js": "c0513fa8a21a97957e47505c90d8990a30be5dbe17cb58052274dfa8d859cc2c",
     "api/test/config-migration.test.js": "d4632bf130ea2733b03f0a933bdac2c6e763a7aeba48477a0a8a16857fc60ef0",
@@ -12,7 +12,7 @@
     "api/test/jobs.test.js": "bd8504fedcb477995a1c0b229c906f0a638b92438165099b3756eed4dabd63c1",
     "api/test/media-gc.test.js": "8fe072430ecbc7d0f530e009da05ba4340da7ba97213d305229ca8758949db3a",
     "api/test/media-refs.test.js": "e43c27b55bd9cb06082a3f369900b60eb8dc4507ac30a97874b7b35cf34c8e45",
-    "api/test/openapi-routes.test.js": "c708cb2333db2b7d76afb8e24acefcc940e728ebd7bf5dc0d46ff83e7bba9fbf",
+    "api/test/openapi-routes.test.js": "575beda056bc61b675de7852d8680475ecd587a9e1a3df4ac1d051ebda5f7032",
     "api/test/password.test.js": "044c088014cfa145ba4c03dd1899916f99dd09bf25468fc15b4060c4deb6b34c",
     "api/test/payload.test.js": "26c98ecbb0e38f3c19b06bcb28891593da9e148569b67673dc374b420665d8ca",
     "api/test/server-admin-delete.test.js": "37b5dc55c8eab6ce074235b25ff5a20ecd1b2ddc4e130a8b56de3290063ee4af",

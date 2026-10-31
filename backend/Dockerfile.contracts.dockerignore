@@ -23,7 +23,7 @@
 !api/pnpm-lock.yaml
 !api/coach/
 !api/coach/**
-!api/openapi.yaml
+!backend/openapi.yaml
 !api/test/
 !api/test/**
 !frontend/

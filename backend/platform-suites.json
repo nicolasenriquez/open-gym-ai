@@ -361,6 +361,13 @@
   ],
   "contracts": [
     {
+      "id": "python_routes",
+      "target": "platform-test",
+      "command": ["tests/platform/test_openapi.py"],
+      "proof": "Canonical YAML covers Python methods and public HTTP responses; internal probes and framework endpoints stay private",
+      "checkpoint": "8.3 synthetic contract verification"
+    },
+    {
       "id": "baseline",
       "requirement": "Phase-bounded compatible capability port / Training pilot follows identity; Faithful import and retirement parity / OpenAPI authority moves without contract drift",
       "setup": "Frozen independent Node/client expectations, two synthetic owners, private network/tmpfs",

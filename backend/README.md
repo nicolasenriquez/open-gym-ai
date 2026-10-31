@@ -448,6 +448,16 @@ Unversioned routes are removed; there are no aliases or redirects.
 Nginx blocks the two internal probes while forwarding the public API.
 Swagger, ReDoc and the HTTP OpenAPI endpoint remain disabled.
 
+The hand-maintained public authority is `backend/openapi.yaml`. Regenerate the
+static reference with `node scripts/build-api-docs.mjs`; `--check` rejects drift.
+`node scripts/platform.mjs verify contracts --case python_routes` compares all
+public methods/paths and unauthenticated HTTP response status/JSON/cache headers
+against that YAML, with password sign-in and media enabled. Authenticated behavior
+is covered by the capability suites; the router comparison alone does not prove
+every response schema. Internal probes are excluded. The frozen Node YAML under
+`contracts/node-openapi.v1.yaml` is a hash-protected transition fixture, not editable
+authority. Node still uses `/api` and remains the deployed runtime until cutover.
+
 Frontend builds select their HTTP contract with `VITE_API_PREFIX`:
 `/api/v1` for Python and the default `/api` for Node. The Python Dev
 overlay sets this build argument. For a permanent Python web image, build from

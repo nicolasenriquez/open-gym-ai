@@ -203,7 +203,7 @@ Details and build instructions: [docs/MOBILE.md](docs/MOBILE.md).
 
 The training logic (progression rules, 1RM, how a logged session is read back) lives in pure
 functions under `frontend/src/lib/` with tests beside them. The HTTP API is documented as an
-OpenAPI spec in [`api/openapi.yaml`](api/openapi.yaml), browsable at
+OpenAPI spec in [`backend/openapi.yaml`](backend/openapi.yaml), browsable at
 [opengym.ch/api.html](https://opengym.ch/api.html).
 
 ### How sync works
