@@ -734,6 +734,7 @@ async def test_new_revision_preserves_previous_history_and_uses_restricted_owner
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p003_coach_client.py",
             "p003_coach_admin.py",
             "p003_coach_lifecycle.py",
             "p003_coach_http.py",
@@ -767,7 +768,7 @@ async def test_new_revision_preserves_previous_history_and_uses_restricted_owner
     ] == before
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach_admin"
+        == "p003_coach_client"
     )
     functions = await observer.fetch("""
         SELECT p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner) AS owner,

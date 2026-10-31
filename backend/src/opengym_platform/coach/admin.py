@@ -373,6 +373,7 @@ class Admin:
             "providers": [
                 {
                     "id": name,
+                    "available": name not in {"claude", "codex"},
                     "label": label,
                     "runtime": "HTTPS"
                     if name in DEFAULT_BASES

@@ -453,3 +453,14 @@ describe('CoachSetup — turning it off', () => {
     expect(field('password').getAttribute('placeholder')).toBe('sk-…')
   })
 })
+
+it('keeps phone HTTP available when a paired server imports a deferred provider', async () => {
+  mocks.config = { coach: { enabled: false, provider: 'claude', providerLabel: 'Claude (Anthropic)' } }
+  await mount()
+  expect(rowTitled('Use my self-hosted openGym').textContent).toContain('Not available right now.')
+  expect(rowTitled('Use my self-hosted openGym').textContent).toContain('Claude (Anthropic)')
+  await click(rowTitled('Use my self-hosted openGym'))
+  expect(mocks.setCoachLocal).not.toHaveBeenCalled()
+  await click(rowTitled('Bring my own API key'))
+  expect(host.textContent).toContain('What leaves this phone')
+})

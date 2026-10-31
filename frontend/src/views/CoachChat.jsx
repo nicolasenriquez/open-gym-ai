@@ -47,7 +47,8 @@ export default function CoachChat() {
   const storeReady = useStore(s => s.ready)
   const toast = useUI(s => s.toast)
   const openSheet = useUI(s => s.openSheet)
-  const { job, pending, cap, loading, lastError, last, refresh, maxMessageLen } = useCoachStatus(true)
+  const deferred = !!(user && !DEMO && !(MOBILE && coachLocal?.mode === 'byok') && config?.coach?.enabled === false && ['claude', 'codex'].includes(config?.coach?.provider))
+  const { job, pending, cap, loading, lastError, last, refresh, maxMessageLen } = useCoachStatus(!deferred)
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const endRef = useRef(null)
@@ -60,9 +61,9 @@ export default function CoachChat() {
   // empty state, decide there is no consent, and bounce a consenting user into the intake.
   useEffect(() => {
     if (!storeReady) return
-    if (!ok) nav('/home', { replace: true })
-    else if (!ready) nav('/coach/intake', { replace: true })
-  }, [storeReady, ok, ready])
+    if (!ok && !deferred) nav('/home', { replace: true })
+    else if (ok && !ready) nav('/coach/intake', { replace: true })
+  }, [storeReady, ok, ready, deferred])
 
   // A job that ends is either a proposal, "nothing to change", or a failure. The server tells
   // the client none of that directly — the job simply stops appearing — so the transition is
@@ -96,6 +97,11 @@ export default function CoachChat() {
 
   useEffect(() => { if (typeof endRef.current?.scrollIntoView === 'function') endRef.current.scrollIntoView({ block: 'end' }) }, [S.coach?.chat?.length, !!job, !!pending])
 
+  if (storeReady && deferred) return <div className="narrow">
+    <button className="iconbtn" onClick={() => nav('/plan')} aria-label={t('Back')}><Icon name="chevronLeft" /></button>
+    <h1>{t('Coach')}</h1>
+    <div className="card" role="status">{config.coach.providerLabel || config.coach.provider}: {t('Not available right now.')}</div>
+  </div>
   if (!ready) return null
   const coach = S.coach || emptyCoach()
   const community = !!config?.coach?.community && !DEMO && !(MOBILE && coachMode === 'byok')

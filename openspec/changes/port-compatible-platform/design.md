@@ -381,6 +381,43 @@ launcher Node/SDK/CLI ni aplicación automática de las propuestas a Training.
 
 ### 12. Cierre técnico de preparación
 
+#### Contexto interno consentido de 5.6 — aprobado
+
+El catálogo actual solo autoriza cohort_candidates con sesión de un actor y
+lock_media_owner para GC. No autoriza un tick Coach sin sesión ni instalar el
+contexto de otro participante. No reutilizar la facultad de medios para Coach,
+fabricar sesiones ni conceder SELECT global runtime.
+
+Se autoriza completar el catálogo mediante una revisión forward-only:
+- `coach.scheduled_candidates(at timestamptz)`: devuelve únicamente IDs de
+  cuentas activas con consentimiento y cadencia configurada, para el tick interno.
+- `coach.lock_scheduled_owner(owner text)`: revalida y bloquea el candidato
+  activo/consentido, devuelve su ID y generación; el servicio instala únicamente
+  el contexto retornado. No recibe solicitudes HTTP ni emite sesiones.
+- `coach.lock_cohort_owner(actor text, sv bigint, exp timestamptz, target text)`:
+  revalida actor y participación mutua con locks ordenados; devuelve únicamente
+  el ID autorizado para la colaboración pública Training. IDs y documentos de
+  terceros nunca se serializan al cliente ni se entregan crudos al proveedor.
+- `coach.reserve_scheduled_job(owner text, job_id text, expected_generation bigint,
+  at timestamptz)`: reserva exclusivamente review/scheduled bajo contexto interno
+  revalidado; comparte la invariancia de admisión/cuotas con reserve_job, sin una
+  segunda implementación de límites. Finalización revalida propietario,
+  consentimiento y generación sin fabricar cookie/Bearer.
+
+Funciones con executor NOLOGIN, search_path fijo y grants explícitos, sin ampliar
+la API pública, tipos de job, proveedores ni herramientas. La implementación debe
+probar revocación/opt-out durante esperas, RLS/pool limpio, caps atómicos y
+ausencia de replay. El promotor autorizó expresamente estas cuatro funciones para entregar 5.6;
+su implementación conserva las garantías de acceso descritas.
+Los colaboradores execution_config, credential_context y cohort_candidates reciben
+sv/exp NULL solo para el contexto interno, revalidado por lock_scheduled_owner.
+reserve_job exige además review/scheduled y conserva Q6/cuotas; no acepta una
+sesión fabricada ni un flag sin comprobación. Un job programado ya admitido puede
+finalizar después de apagar cadencia/proveedor, con consentimiento y generación
+vigentes; esto no admite trabajo nuevo. La hora semanal ambigua se fija en su
+primera ocurrencia y se compara como instante, evitando replay durante el cambio
+horario. Las cohortes no mantienen una caché de participantes.
+
 **Ajuste aprobado expresamente para 5.5:** el catálogo anterior no permitía
 resolver la referencia externa y el vínculo de una credencial para un usuario no
 administrador. Añadir únicamente `coach.credential_context(actor text, sv bigint,

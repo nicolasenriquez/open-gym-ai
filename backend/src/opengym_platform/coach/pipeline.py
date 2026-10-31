@@ -60,7 +60,9 @@ class Pipeline:
             else (config or {}).get("_key")
         )
 
-    async def run(self, owner, job, state, config, opts, previous, timeout):
+    async def run(
+        self, owner, job, state, config, opts, previous, timeout, *, cohort=None
+    ):
         if (
             job["kind"] == "debrief"
             and find_workout(state, opts.get("workoutId")) is None
@@ -69,6 +71,8 @@ class Pipeline:
         payload = build(
             state, owner, self.secret, job["kind"], opts, previous.get("bundle")
         )
+        if cohort is not None and job["kind"] in {"review", "debrief"}:
+            payload["cohort"] = cohort
         if len(dumps(payload).encode("utf-16-le")) // 2 > 300000:
             return {"outcome": "failed", "error": "toolarge"}
         prompts = ASSETS["prompts"]

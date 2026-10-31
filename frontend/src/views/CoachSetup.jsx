@@ -64,6 +64,8 @@ export default function CoachSetup() {
   const meta = HTTP_PROVIDERS[provider] || {}
   const host = hostOf(baseUrlFor(provider, { providerOptions: { [provider]: { baseUrl } } }))
   const serverHasCoach = !!(user && config?.coach?.enabled)
+  const serverUnavailable = !!(user && !serverHasCoach && ['claude', 'codex'].includes(config?.coach?.provider))
+  const serverUnavailableText = `${config?.coach?.providerLabel || config?.coach?.provider}: ${t('Not available right now.')}`
 
   const useServer = async () => {
     if (!user) return openSheet(close => <ConnectSheet close={close} />)
@@ -142,7 +144,7 @@ export default function CoachSetup() {
 
     <Section title={t('How should the Coach run?')} footer={current}>
       <Row icon="rocket" iconTint="var(--indigo)" title={t('Use my self-hosted openGym')}
-        subtitle={user ? (serverHasCoach ? t('Your server runs the Coach with whatever provider its admin set up. Nothing new leaves this phone beyond what already syncs.') : config == null ? t('Loading…') : t('Your server has no Coach enabled. Ask its admin, or bring your own key below.')) : t('Connect to my server')}
+        subtitle={user ? (serverHasCoach ? t('Your server runs the Coach with whatever provider its admin set up. Nothing new leaves this phone beyond what already syncs.') : config == null ? t('Loading…') : serverUnavailable ? serverUnavailableText : t('Your server has no Coach enabled. Ask its admin, or bring your own key below.')) : t('Connect to my server')}
         accessory="chevron" onClick={() => { if (!user || serverHasCoach) useServer(); else setChoice('server') }} />
       <Row icon="key" iconTint="var(--acc)" title={t('Bring my own API key')}
         subtitle={t('This phone calls the provider directly with your key. Every request is charged to your account.')}
@@ -150,6 +152,7 @@ export default function CoachSetup() {
     </Section>
 
     {choice === 'server' && !serverHasCoach && <div className="card">
+      {serverUnavailable && <div role="status">{serverUnavailableText}</div>}
       <div className="muted small">{t('Your server has no Coach enabled. Ask its admin, or bring your own key below.')}</div>
     </div>}
 

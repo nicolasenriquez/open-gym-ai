@@ -122,12 +122,13 @@ export default function AdminCoach() {
 
   const meta = d.providers.find(p => p.id === d.provider) || {}
   const authState = d.auth?.state
+  const unavailable = meta.available === false
   const authed = authState === 'connected' || authState === 'not-required' || authState === 'optional'
   const needsEndpoint = !!meta.baseUrl
   const hasEndpoint = !needsEndpoint || !!d.baseUrl
-  const live = d.enabled && d.runtime.ok && authed && hasEndpoint
+  const live = !unavailable && d.enabled && d.runtime.ok && authed && hasEndpoint
 
-  const status = !d.enabled ? 'Off. Users won’t see the Coach anywhere in the app.'
+  const status = unavailable ? 'Temporarily unavailable' : !d.enabled ? 'Off. Users won’t see the Coach anywhere in the app.'
     : live ? <>On · {meta.label}{d.model ? ' · ' + d.model : ''}</>
       : !hasEndpoint ? 'On, but no endpoint yet. Finish step 2.'
         : !authed ? 'On, but no credential yet. Finish the Credential step.'
@@ -137,11 +138,11 @@ export default function AdminCoach() {
   // Chips, grouped.
   const groups = [
     { title: 'Paste an API key', hint: 'Plain HTTPS to the provider. Works on the default api image, nothing extra to install.', items: d.providers.filter(p => p.http) },
-    { title: 'Runs a local AI runtime', hint: 'Needs the bigger api image built with --target coach.', items: d.providers.filter(p => RUNTIME_IDS.includes(p.id)) },
+    { title: 'Runs a local AI runtime', hint: d.providers.some(p => RUNTIME_IDS.includes(p.id) && p.available === false) ? 'These providers are temporarily unavailable on this server. Their configuration is preserved.' : 'Needs the bigger api image built with --target coach.', items: d.providers.filter(p => RUNTIME_IDS.includes(p.id)) },
     { title: 'Testing', hint: 'A built-in fake that answers instantly, so the whole loop can be tried without an account.', items: d.providers.filter(p => TESTING_IDS.includes(p.id)) }
   ]
 
-  const hasCredentialStep = !!(meta.setupToken || meta.apiKey)
+  const hasCredentialStep = !unavailable && !!(meta.setupToken || meta.apiKey)
   // The model this provider was explicitly GIVEN — as opposed to `d.model`, which falls back to
   // the provider's own default. Both halves of the Model step (the dropdown and the free-text
   // box) read this one value, so they cannot disagree about what is configured.
@@ -185,12 +186,13 @@ export default function AdminCoach() {
       <span className={'adm-pill ' + (live ? 'ok' : 'warn')}>{live ? 'ready' : 'not ready'}</span>
       <span>{status}</span>
     </div>
-    {!live && <div className="adm-progress" aria-hidden="true"><i style={{ width: Math.round(doneCount / flags.length * 100) + '%' }} /></div>}
-    <div className="adm-lead">
+    {!live && !unavailable && <div className="adm-progress" aria-hidden="true"><i style={{ width: Math.round(doneCount / flags.length * 100) + '%' }} /></div>}
+    {!unavailable && <div className="adm-lead">
       {live ? 'Users find the Coach under Plan → Coach. This switch is the only place it can be turned off for everyone.'
         : `${doneCount} of ${flags.length} steps done. Finish the open step and the next one unfolds.`}
-    </div>
+    </div>}
 
+    {unavailable && <div role="status" className="card">This provider is temporarily unavailable on this server. Its configuration is preserved. Choose an HTTP provider to use the Coach.</div>}
     {d.enabled && <>
       {/* ---------- provider ---------- */}
       <Step n={num()} title="Provider" hint={meta.label || 'Which AI answers the Coach'} done={step1Done} {...stepAt()}>
@@ -198,7 +200,7 @@ export default function AdminCoach() {
         {groups.map(g => !!g.items.length && <div key={g.title} className="adm-group">
           <div className="adm-group-t">{g.title}</div>
           <div className="adm-chips">
-            {g.items.map(p => <button key={p.id} className={'chip' + (p.id === d.provider ? ' on' : '')} disabled={busy}
+            {g.items.map(p => <button key={p.id} className={'chip' + (p.id === d.provider ? ' on' : '')} disabled={busy || p.available === false}
               onClick={() => { setTestResult(null); patch({ provider: p.id }) }}>
               {p.label}{p.connected && <span className="adm-chip-key">key saved</span>}
             </button>)}
@@ -290,7 +292,7 @@ export default function AdminCoach() {
       </Step>
 
       {/* ---------- test ---------- */}
-      <Step n={num()} title="Test" hint={step5Done ? 'passed' : 'one real round trip, no user data'} done={step5Done} {...stepAt()} forceOpen={!!testResult}>
+      {!unavailable && <Step n={num()} title="Test" hint={step5Done ? 'passed' : 'one real round trip, no user data'} done={step5Done} {...stepAt()} forceOpen={!!testResult}>
         <div className="adm-hint">Sends one tiny question to the provider and checks the answer. No training data is involved. Do this after every change above.</div>
         <div className="adm-actions">
           <Button size="sm" variant="primary" icon="check" disabled={busy || !authed || !hasEndpoint} onClick={test}>Test the Coach</Button>
@@ -307,8 +309,7 @@ export default function AdminCoach() {
           <span className="k">Runtime</span>
           <span className="v">{d.runtime.ok ? <span className="adm-pill ok">ready</span> : <span className="adm-pill bad">missing</span>}{d.runtime.version ? <div className="dim small">{d.runtime.version}</div> : null}{!d.runtime.ok && d.runtime.error ? <div className="small" style={{ color: 'var(--red)' }}>{d.runtime.error}</div> : null}</span>
         </div>
-      </Step>
-
+      </Step>}
       {/* ---------- advanced ---------- */}
       <details className="adm-fold">
         <summary>Advanced <Icon name="chevronRight" className="chev" /></summary>

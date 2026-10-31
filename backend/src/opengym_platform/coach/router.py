@@ -16,6 +16,9 @@ from opengym_platform.identity.sessions import verify
 def create_router(*, secret, secure):
     router = APIRouter()
 
+    @router.get("/coach/cohort")
+    @router.get("/coach/disclosure")
+    @router.post("/coach/cohort/share")
     @router.get("/coach/status")
     @router.post("/coach/plan")
     @router.post("/coach/review")
@@ -61,6 +64,25 @@ def create_router(*, secret, secure):
             )
         try:
             jobs = request.app.state.coach_jobs
+            if request.url.path.endswith("/disclosure"):
+                from opengym_platform.coach.payload import ASSETS
+                from opengym_platform.coach.service import LABELS
+                from opengym_platform.identity.sessions import authorize
+
+                async with jobs.database.transaction() as handle:
+                    if not await authorize(handle, session):
+                        raise Refused("unauthorized")
+                    rows = await handle.fetch("SELECT * FROM coach.public_disclosure()")
+                    provider = rows[0]["provider"]
+                return JSONResponse(
+                    {
+                        "provider": provider,
+                        "providerLabel": LABELS[provider],
+                        "categories": ASSETS["categories"],
+                        "version": 1,
+                    },
+                    headers=headers,
+                )
             if request.url.path.endswith("/account"):
                 return JSONResponse(
                     await request.app.state.coach_admin.handle(session, "account", {}),
@@ -74,6 +96,10 @@ def create_router(*, secret, secure):
                 )
             if request.url.path.endswith("/coach/forget"):
                 return JSONResponse(await jobs.forget(session), headers=headers)
+            if request.url.path.endswith("/cohort"):
+                from opengym_platform.coach.cohort import compute
+
+                return JSONResponse(await compute(jobs, session), headers=headers)
             if request.method == "GET":
                 return JSONResponse(await jobs.status(session), headers=headers)
             if not admin_route:
@@ -96,6 +122,12 @@ def create_router(*, secret, secure):
                     {"error": "invalid json"}, status_code=400, headers=headers
                 )
             body = body if isinstance(body, dict) else {}
+            if request.url.path.endswith("/cohort/share"):
+                from opengym_platform.coach.cohort import share
+
+                return JSONResponse(
+                    await share(jobs, session, body.get("share")), headers=headers
+                )
             if admin_route:
                 return JSONResponse(
                     await request.app.state.coach_admin.handle(

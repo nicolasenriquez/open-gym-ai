@@ -28,6 +28,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { SCHEMAS } from '../api/coach/core/schemas.js';
 import { SYSTEM_PROMPT } from '../api/coach/core/system-prompt.js';
 import { HTTP_PROVIDERS } from '../api/coach/core/providers.js';
+import { DATA_CATEGORIES } from '../api/coach/core/categories.js';
 import { ROUTINE_GLYPHS, LEGACY_ROUTINE_GLYPHS } from '../api/coach/core/glyphs.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -35,7 +36,7 @@ const core = join(root, 'api', 'coach', 'core');
 const check = process.argv.includes('--check');
 
 const outputs = [];
-const pythonAssets = { schemas: SCHEMAS, system: SYSTEM_PROMPT, providers: HTTP_PROVIDERS, glyphs: [...ROUTINE_GLYPHS, ...LEGACY_ROUTINE_GLYPHS] };
+const pythonAssets = { schemas: SCHEMAS, system: SYSTEM_PROMPT, providers: HTTP_PROVIDERS, categories: DATA_CATEGORIES, glyphs: [...ROUTINE_GLYPHS, ...LEGACY_ROUTINE_GLYPHS] };
 // Python's standard regex has no Unicode Extended_Pictographic property.
 pythonAssets.pictographs = [];
 const pictograph = /\p{Extended_Pictographic}/u;

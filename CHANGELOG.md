@@ -14,6 +14,10 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python Coach consent disclosure, opt-in cohort medians and scheduled reviews,
+  including restart protection and timezone handling. Deferred SDK/CLI providers
+  remain identifiable and unavailable in web/mobile setup and administration.
+  Requires `p003_coach_client`.
 - Python Coach administration, HTTP model/test checks and encrypted external
   credentials with profile ownership and separate decryption material.
 - Python Coach proposal resolution and lazy expiry with bounded event history;

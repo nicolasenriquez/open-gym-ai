@@ -382,7 +382,9 @@ async def test_forget_privileges_are_owner_scoped_and_upgrade_preserves_existing
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p003_coach_admin.py", "p003_coach_lifecycle.py"),
+        ignore=shutil.ignore_patterns(
+            "p003_coach_client.py", "p003_coach_admin.py", "p003_coach_lifecycle.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (

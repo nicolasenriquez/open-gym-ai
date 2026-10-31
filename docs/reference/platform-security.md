@@ -234,6 +234,24 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   consentida, devuelve solo IDs candidatos opt-in a la colaboración interna, nunca
   esos IDs al cliente. Revalidar consentimiento bajo cada owner lock al preparar
   agregados y conservar umbrales/supresión del cohort actual.
+- Ajuste expresamente aprobado de 5.6: `coach.scheduled_candidates(at timestamptz)`
+  enumera solo IDs activos, consentidos y con cadencia; `coach.lock_scheduled_owner
+  (owner text)` bloquea/revalida el candidato e instala únicamente su contexto
+  autorizado, devolviendo ID/generación. Un rechazo restaura el contexto previo.
+  Un review/scheduled ya admitido puede finalizar aunque se apague la cadencia o
+  el proveedor, siempre con cuenta activa, consentimiento y generación vigente.
+  `coach.reserve_scheduled_job(owner text, requested_job text,
+  expected_generation bigint, at timestamptz)` reutiliza reserve_job y solo admite
+  review/scheduled; Q6/off siguen impidiendo nuevas reservas y consumo.
+  `coach.lock_cohort_owner(actor text, sv bigint, exp timestamptz, target text)`
+  bloquea actor/target en orden textual y exige consentimiento y sharing mutuos;
+  Training se lee por su interfaz pública bajo el contexto retornado.
+  El contexto interno no es una sesión: la pareja sv/exp NULL de los colaboradores
+  execution_config, credential_context y cohort_candidates vuelve a validar
+  lock_scheduled_owner; reserve_job además exige review/scheduled. No basta un flag
+  del llamador. No se emiten tokens, sesiones ficticias ni SELECT global runtime.
+  Las funciones usan coach_executor NOLOGIN, search_path fijo y EXECUTE explícito;
+  no devuelven documentos, credenciales o IDs de terceros al cliente/proveedor.
 - `training.read_admin_summary(actor text, sv bigint, exp timestamptz, target text)`
   y `training.read_admin_detail(actor text, sv bigint, exp timestamptz, target text)`
   pertenecen a administration_executor con SELECT/política explícita sobre documents.

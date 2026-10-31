@@ -27,7 +27,7 @@ from opengym_platform.media.router import create_router as media_router
 from opengym_platform.media.service import Media
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p003_coach_admin"
+SCHEMA_REVISION = "p003_coach_client"
 
 
 async def recover_coach(database):
@@ -93,15 +93,18 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
                 if coach_execute is None
                 else None,
             )
+            from opengym_platform.coach.cadence import maintain
+
+            maintenance.append(asyncio.create_task(maintain(app.state.coach_jobs)))
             yield
         finally:
-            if getattr(app.state, "coach_jobs", None) is not None:
-                await app.state.coach_jobs.close()
             for task in maintenance:
                 task.cancel()
             for task in maintenance:
                 with suppress(asyncio.CancelledError):
                     await task
+            if getattr(app.state, "coach_jobs", None) is not None:
+                await app.state.coach_jobs.close()
             await database.close()
 
     app = FastAPI(

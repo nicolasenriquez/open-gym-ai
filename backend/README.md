@@ -238,6 +238,18 @@ availability UX remain in their later slice. No SDK/CLI launcher,
 credential cache mount, refresh or Node fallback is present; original credentials
 stay outside active runtime mounts.
 
+`p003_coach_client` adds authenticated consent disclosure, private opt-in cohort
+medians and scheduled reviews. Cohorts require three participants and three
+contributors per exercise; only coarse aggregates enter review/debrief prompts.
+Sharing and Coach consent are checked separately, without caching participants.
+The single worker checks configured cadence at startup and every minute, skips
+unread proposals and active jobs, and uses the existing atomic quota reservation.
+Finished reviews prevent replay on restart. Disabling cadence prevents new work;
+an already admitted review can finish under its original consent and generation.
+SDK/CLI selections remain unavailable without fallback or quota consumption;
+the web Coach and mobile server setup show their provider and unavailable state.
+The existing phone HTTP Coach remains independent of server availability.
+
 `p003_coach_admin` adds authenticated admin configuration, connect/disconnect,
 model listing and test routes under `/api/v1/admin/coach`, plus own
 `GET /api/v1/coach/account`. Provider switches preserve each provider's model,
@@ -337,6 +349,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `coach_state --case late_result` | Decisions/expiry and twenty-event history; own forgetting while unavailable, current-day usage retention, HTTP/queued cancellation, opt-out/reset rollback and late completion after forgetting or synthetic account deletion. |
 | `coach_http --case validated_proposal` | Private HTTP fixtures for all four wire formats, independent payload/validator/fingerprint vectors, one repair round, real timeout and safe failures; consent/RLS and pending proposals without changing Training. |
 | `coach_admin --case credentials` | Admin config/models/test/connect/disconnect and own account; external ciphertext, profile isolation, unreadable keys, rollback, late revocation/expiry and migration/ACL/RLS. |
+| `coach_client --case consent_and_availability` | Consent/sharing, coarse provider payloads, scheduled reviews/restart, timezone edges and bounded SQL grants/upgrades. UI proof is recorded separately from this backend case. |
 | `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |

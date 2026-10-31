@@ -1,4 +1,13 @@
 {
+  "coach_client": [{
+    "id": "consent_and_availability",
+    "requirement": "Compatible notification and coach state; Explicitly bounded coach delivery",
+    "setup": "Restricted HTTP/PostgreSQL, private providers and synthetic participants",
+    "target": "platform-test",
+    "command": ["tests/platform/test_coach_client.py"],
+    "proof": "Consent, private cohort/payload, cadence, restricted SQL and upgrade; UI evidence separately",
+    "checkpoint": "5.6; synthetic verification only"
+  }],
   "coach_admin": [
     {
       "id": "credentials",

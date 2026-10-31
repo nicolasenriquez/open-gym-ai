@@ -121,6 +121,16 @@ const mount = async () => { act(() => { root.render(<AdminCoach />) }); await se
 const tap = async el => { await act(async () => { el.click(); await new Promise(r => setTimeout(r, 0)) }) }
 
 const btn = label => [...host.querySelectorAll('button')].find(b => b.textContent === label)
+
+it('keeps an imported unavailable runtime visible without connect or test actions', async () => {
+  mocks.routes['/api/admin/coach'] = status({ provider: 'claude', providers: PROVIDERS.map(p => p.id === 'claude' ? { ...p, available: false } : p) })
+  await mount()
+  expect(chip('Claude Code').disabled).toBe(true)
+  expect(host.textContent).toContain('temporarily unavailable')
+  expect(host.textContent).not.toContain('See the Test step.')
+  expect(btn('Test the Coach')).toBeUndefined()
+  expect(sent('/api/admin/coach/connect')).toHaveLength(0)
+})
 // Remove asks first (2026-09-22). Tap it, then press the dialog's own confirm.
 const removeConfirmed = async () => {
   await tap(btn('Remove'))

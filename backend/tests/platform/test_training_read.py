@@ -249,6 +249,7 @@ async def test_training_migration_extends_existing_identity_without_replay(
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p003_coach_client.py",
             "p003_coach_admin.py",
             "p003_coach_lifecycle.py",
             "p003_coach_http.py",
@@ -276,7 +277,7 @@ async def test_training_migration_extends_existing_identity_without_replay(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p003_coach_admin"
+        == "p003_coach_client"
     )
     assert tuple(
         await observer.fetchrow("SELECT id,display_name,created_at FROM identity.users")

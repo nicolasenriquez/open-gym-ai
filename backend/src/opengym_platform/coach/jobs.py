@@ -46,6 +46,16 @@ class Jobs:
         self.timeout = environment_number("COACH_JOB_TIMEOUT_MS", 300000, 60000) / 1000
         self.closed = False
 
+    async def _authorize(self, handle, session):
+        from opengym_platform.coach.cadence import ScheduledOwner
+
+        if isinstance(session, ScheduledOwner):
+            rows = await handle.fetch(
+                "SELECT * FROM coach.lock_scheduled_owner($1)", session.owner
+            )
+            return bool(rows and rows[0]["forget_generation"] == session.generation)
+        return await authorize(handle, session)
+
     async def _config(self, handle, session):
         if self.closed or self.pipeline is None:
             raise Refused("off")
@@ -55,7 +65,7 @@ class Jobs:
         if not await coach_consent(handle):
             raise Refused("consent")
         config = await execution_config(handle, session)
-        if not await authorize(handle, session):
+        if not await self._authorize(handle, session):
             raise Refused("unauthorized")
         if (
             config
@@ -192,6 +202,55 @@ class Jobs:
         task.add_done_callback(lambda done: self.by_id.pop(job_id, None))
         return job
 
+    async def enqueue_scheduled(self, owner, at):
+        from opengym_platform.coach.cadence import ScheduledOwner, due
+
+        if self.closed:
+            raise Refused("off")
+        async with self.database.transaction() as handle:
+            rows = await handle.fetch(
+                "SELECT * FROM coach.lock_scheduled_owner($1)", owner
+            )
+            if not rows:
+                raise Refused("consent")
+            session = ScheduledOwner(owner, rows[0]["forget_generation"])
+            await self._config(handle, session)
+            if await handle.fetch(
+                "SELECT job_id FROM coach.jobs"
+            ) or await self._pending(handle, owner):
+                return None
+            reviewed = await handle.fetch("""SELECT max(occurred_at) AS at FROM coach.history_events
+                WHERE kind='review' AND (outcome IN ('ready','nochange') OR (outcome='failed' AND error_class='unusable'))""")
+            last = reviewed[0]["at"]
+            if not due(
+                await coach_document(handle), last.timestamp() * 1000 if last else 0, at
+            ):
+                return None
+            job_id = secrets.token_hex(8)
+            result = (
+                await handle.fetch(
+                    "SELECT * FROM coach.reserve_scheduled_job($1,$2,$3,$4)",
+                    owner,
+                    job_id,
+                    session.generation,
+                    at,
+                )
+            )[0]
+            if result["state"] != "queued":
+                raise Refused(result["state"])
+        job = {
+            "id": job_id,
+            "kind": "review",
+            "state": "queued",
+            "startedAt": int(at.timestamp() * 1000),
+        }
+        task = asyncio.create_task(self._run(session, job, session.generation, {}))
+        self.tasks.add(task)
+        self.by_id[job_id] = task
+        task.add_done_callback(self.tasks.discard)
+        task.add_done_callback(lambda done: self.by_id.pop(job_id, None))
+        return job
+
     async def resolve(self, session, body):
         async with self.database.transaction() as handle:
             if not await authorize(handle, session):
@@ -280,7 +339,7 @@ class Jobs:
         try:
             async with self.slots:
                 async with self.database.transaction() as handle:
-                    if not await authorize(handle, session):
+                    if not await self._authorize(handle, session):
                         return
                     if not await self._current(handle, job, generation):
                         return
@@ -316,6 +375,19 @@ class Jobs:
                 try:
                     async with asyncio.timeout(self.timeout):
                         if self.pipeline is not None:
+                            from opengym_platform.coach.cohort import compute
+
+                            cohort = (
+                                await compute(self, session, payload=True)
+                                if job["kind"] in {"review", "debrief"}
+                                else None
+                            )
+                            if (
+                                cohort
+                                and not cohort.get("exercises")
+                                and not cohort.get("people", 0) >= 3
+                            ):
+                                cohort = None
                             result = await self.pipeline.run(
                                 session.owner,
                                 job,
@@ -324,6 +396,7 @@ class Jobs:
                                 opts,
                                 previous,
                                 self.timeout,
+                                cohort=cohort,
                             )
                             outcome, error = result["outcome"], result.get("error")
                         else:
@@ -333,7 +406,7 @@ class Jobs:
                 except Exception:  # noqa: BLE001 -- provider text must never escape into history/logs.
                     outcome, error = "failed", "internal"
                 async with self.database.transaction() as handle:
-                    if await authorize(handle, session) and await self._current(
+                    if await self._authorize(handle, session) and await self._current(
                         handle, job, generation
                     ):
                         await self._finish(handle, job, outcome, error, result)
