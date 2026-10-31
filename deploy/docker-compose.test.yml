@@ -93,7 +93,7 @@ services:
         com.docker.compose.service: platform-contracts
     user: "1000:1000"
     read_only: true
-    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,mode=1777,size=268435456"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,mode=1777,size=1073741824"]
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     labels:

@@ -8,6 +8,15 @@
     "command": ["--test", "scripts/shared-client.test.mjs"],
     "proof": "Single neutral source, current generated assets, plain Node loading and local coach/payload/validator parity",
     "checkpoint": "8.1 only; formats, web/mobile bundle acceptance and OpenAPI authority remain 8.2/8.3"
+  }, {
+    "id": "formats_and_bundles",
+    "requirement": "Faithful import and retirement parity / Parity after removing the replaced backend",
+    "setup": "Pinned Node/client image, synthetic format fixtures and disposable web/mobile build workspace",
+    "target": "platform-contracts",
+    "entrypoint": "node",
+    "command": ["--test", "scripts/formats-and-bundles.test.mjs"],
+    "proof": "CSV/JSON/media backup/FIT hostile cases, catalogue continuity, web API prefixes and mobile assets copied intact to Android/iOS without Node API sources",
+    "checkpoint": "8.2 only; bundle/copy proof, not native compilation, device execution or shell publication; OpenAPI remains 8.3"
   }],
   "admin_users": [{
     "id": "actor_target",

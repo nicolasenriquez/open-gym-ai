@@ -46,7 +46,7 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
   });
   // Only selected non-ignored build inputs, never dotenv, ignored files or personal data.
   const files = ok(invoke('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])).split('\0').filter(file => file && existsSync(join(root, file)));
-  const allowed = /^(?:shared\/|catalogue\/exercises\/|backend\/|api\/(?:[^/]+\.(?:js|json|yaml)$|coach\/|test\/|scripts\/check-core-loadable\.mjs$)|frontend\/(?:(?:package\.json|pnpm-lock\.yaml)$|vite\.config\.js$|src\/|scripts\/)|scripts\/(?:build-api-docs|build-coach-assets|build-coach-library|shared-client.test)\.mjs$|LICENSE$|\.dockerignore$)/;
+  const allowed = /^(?:shared\/|catalogue\/|backend\/|api\/(?:[^/]+\.(?:js|json|yaml)$|coach\/|test\/|scripts\/check-core-loadable\.mjs$)|frontend\/(?:(?:package\.json|pnpm-lock\.yaml|index\.html|capacitor\.config\.json)$|vite\.config\.js$|src\/|scripts\/|public\/|android\/|ios\/)|scripts\/(?:build-api-docs|build-coach-assets|build-coach-library|shared-client.test|formats-and-bundles.test)\.mjs$|scripts\/catalogue\/|LICENSE$|\.dockerignore$)/;
   for (const file of files.filter(file => allowed.test(file))) {
     assert.ok(lstatSync(join(root, file)).isFile(), 'build inputs must not follow links');
     mkdirSync(dirname(join(fixture, file)), { recursive: true });

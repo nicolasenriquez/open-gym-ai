@@ -48,7 +48,7 @@ test('deployment relocation preserves project ownership, root paths and isolated
       assert.equal(selected.services.web.build.dockerfile, 'web/Dockerfile');
       assert.equal(selected.services.web.build.args.VITE_API_PREFIX, '/api/v1');
       assert.equal(resolve(selected.services.api.build.context), resolve(root, 'backend'));
-      assert.equal(resolve(selected.services.api.volumes[0].source), resolve(root, 'backend/src'));
+      assert.equal(resolve(selected.services.api.volumes.find(volume => volume.target === '/app/src').source), resolve(root, 'backend/src'));
     } else {
       for (const service of Object.values(selected.services)) assert.ok(!service.build);
       assert.equal(selected.services.api.image, `sha256:${digest}`);

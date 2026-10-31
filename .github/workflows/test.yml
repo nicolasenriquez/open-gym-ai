@@ -294,4 +294,5 @@ jobs:
       - run: node scripts/platform.mjs verify images
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node scripts/platform.mjs verify shared_client --case canonical_sources
+      - run: node scripts/platform.mjs verify shared_client --case formats_and_bundles
       - run: node --test scripts/platform-build.test.mjs

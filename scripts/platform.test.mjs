@@ -22,7 +22,7 @@ test('ownership: foreign and Foundation cleanup targets are rejected before Dock
 test('undelivered suites, cases and malformed commands return usage exit 2 before Docker', () => {
   for (const args of [[], ['verify'], ['verify', 'future_browser'], ['verify', 'harness', '--case', 'future'],
     ['verify', 'harness', '--case'], ['verify', 'harness', '--config', 'foreign.json'], ['verify', 'unknown'],
-    ['verify', 'shared_client', '--case', 'formats_and_bundles']]) {
+    ['verify', 'shared_client', '--case', 'future_formats']]) {
     const result = invoke(...args);
     assert.equal(result.status, 2);
     assert.doesNotMatch(result.stderr, /Docker|ENOENT|SyntaxError|MODULE_NOT_FOUND/);
@@ -30,7 +30,7 @@ test('undelivered suites, cases and malformed commands return usage exit 2 befor
 });
 
 test('a missing Docker prerequisite fails without crediting a contract or shared-client proof', () => {
-  for (const [suite, selected] of [['contracts', 'baseline'], ['shared_client', 'canonical_sources']]) {
+  for (const [suite, selected] of [['contracts', 'baseline'], ['shared_client', 'canonical_sources'], ['shared_client', 'formats_and_bundles']]) {
     const result = invoke('verify', suite, '--case', selected);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /Docker (unavailable|container failed)/);

@@ -411,6 +411,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `shared_client --case canonical_sources` | Single shared JS/prompt source, generated assets, plain Node loading, HTTP pipeline and local phone Coach parity. Formats/bundle acceptance and OpenAPI relocation remain separate. |
+| `shared_client --case formats_and_bundles` | CSV/JSON/media backup/FIT hostile cases, catalogue/ID continuity, web Node/Python and mobile Python bundles, shared-source graph and byte-for-byte Android/iOS asset copies. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
 The verifier uses `backend/empty.env`, unique `opengym-platform-test-<hex16>`
@@ -420,6 +421,17 @@ mounts and cleans up only owned resources. After confirming an interrupted run e
 `node scripts/platform.mjs cleanup <exact-printed-project>`
 
 No global prune, volume wipe or removal of foreign/shared images is part of cleanup.
+
+### Client formats and bundles
+
+Run `node scripts/platform.mjs verify shared_client --case formats_and_bundles`.
+The pinned contracts image runs the existing format cases and builds in a disposable
+workspace, leaving host `dist/` and native projects untouched. Source maps check
+that each bundle includes `shared/coach-core/` without Node API sources. The mobile
+build stages the repository's exercise media and uses Capacitor `copy` for both
+Android and iOS, checking all copied bytes. Its isolated tmpfs is capped at 1 GiB
+to hold the bundle and both media copies. This is portable bundle/copy evidence,
+not `cap sync`, Gradle/CocoaPods compilation, signing, device execution or publication.
 
 ### Browser proof
 
