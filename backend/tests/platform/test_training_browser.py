@@ -171,6 +171,15 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                         UPDATE identity.users SET session_version=session_version+1 WHERE id='A';
                     """)
                 return {"ok": True}
+            if path == "/audit-state":
+                return {
+                    "events": [
+                        dict(row)
+                        for row in await observer.fetch(
+                            "SELECT id,event FROM audit.events ORDER BY id DESC"
+                        )
+                    ]
+                }
             if path == "/admin-state":
                 return {
                     "invitations": await observer.fetchval(
@@ -324,6 +333,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 "media-queue",
                 "media-gc",
                 "admin-invites",
+                "admin-audit",
             ]
             assert result["errors"] == 0
             assert (
@@ -333,7 +343,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 == "foreign-sentinel"
             )
             print(
-                "PLATFORM_BROWSER_OK: thirteen cases; independent PG/filesystem sentinels preserved"
+                "PLATFORM_BROWSER_OK: fourteen cases; independent PG/filesystem sentinels preserved"
             )
         finally:
             await asyncio.to_thread(fixture.shutdown)

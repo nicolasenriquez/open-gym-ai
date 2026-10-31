@@ -182,9 +182,7 @@ async def test_cascades_preserve_history_foreign_bytes_and_restart(
         INSERT INTO coach.instance_daily_usage VALUES(current_date,1);
         INSERT INTO coach.pending_proposals(owner_id,document) VALUES('A','{"id":"p","kind":"review","expiresAt":12345}');
         INSERT INTO coach.history_events(owner_id,kind,outcome,occurred_at) VALUES('A','review','ready',now());
-        CREATE SCHEMA audit;
-        CREATE TABLE audit.events(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY, actor_id text, target_id text);
-        INSERT INTO audit.events(actor_id,target_id) VALUES('B','A');
+        INSERT INTO audit.events(occurred_at,event,ok,actor_id,target_id) VALUES(now(),'admin.user.disable',true,'B','A');
     """)
     for provider, ref in zip(("openai", "codex"), refs, strict=True):
         await observer.execute(
@@ -412,6 +410,7 @@ async def test_upgrade_privileges_and_transaction_local_cleanup(deployment, tmp_
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p004_audit.py",
             "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
@@ -430,7 +429,7 @@ async def test_upgrade_privileges_and_transaction_local_cleanup(deployment, tmp_
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p004_admin_invites"
+        == "p004_audit"
     )
     assert tuple(
         await observer.fetchrow(

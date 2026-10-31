@@ -43,6 +43,22 @@ export async function verifyAdminInvites({ browser, owner, control, until, repor
     await page.getByText(/^reset code until /).waitFor();
     assert.equal(errors.length, 0);
     await report('admin-invites', page);
+    await page.reload();
+    const log = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Activity log', exact: true }) });
+    await log.getByText(/^Issued a password reset code/).waitFor();
+    await log.getByRole('button', { name: 'Admin', exact: true }).click();
+    await log.getByText(/^Issued a password reset code/).waitFor();
+    const auditBefore = (await control('/audit-state')).events;
+    assert.ok(auditBefore.some(e => e.event === 'admin.invite.create'));
+    const highest = auditBefore[0].id;
+    await log.getByRole('button', { name: 'clear log', exact: true }).click();
+    await page.locator('#modal-root').getByRole('button', { name: 'Clear', exact: true }).click();
+    await log.getByText(/^Cleared the activity log/).waitFor();
+    await until(async () => { const events = (await control('/audit-state')).events; return events.length === 1 && events[0].event === 'admin.audit.clear' && events[0].id > highest; }, 'Audit clear did not persist with a forward sequence');
+    await page.reload();
+    await log.getByText(/^Cleared the activity log/).waitFor();
+    assert.equal((await control('/audit-state')).events.length, 1);
+    await report('admin-audit', page);
   } finally {
     await context.close();
   }

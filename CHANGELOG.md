@@ -27,7 +27,10 @@ principles. Published entries below are preserved; see the
   invitation listing/create/revoke and admin-issued one-use 24-hour password resets,
   preserving consumed history after deletion and revalidating current admin authority.
   Reset revokes old access atomically while retaining email/passkeys/disabled state.
-  Administrative audit remains pending.
+  `p004_audit` adds compatible administrative activity-log read/clear, retention,
+  persistent event IDs and IP-off defaults. Historical events survive account
+  deletion. Audit appends use separate best-effort transactions: failure cannot
+  undo a confirmed business operation or change its successful response.
 - Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
   a twenty-device cap, private-address validation and persistent VAPID material.
   Requires `p005_subscriptions`. Internal local-date reminders and evening nudges

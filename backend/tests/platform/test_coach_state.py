@@ -213,6 +213,7 @@ async def test_config_migrates_previous_head_without_replaying_or_touching_train
         package,
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_audit.py",
             "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
@@ -239,7 +240,7 @@ async def test_config_migrates_previous_head_without_replaying_or_touching_train
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p004_admin_invites"
+        == "p004_audit"
     )
     assert json.loads(
         await observer.fetchval("SELECT document FROM training.documents")

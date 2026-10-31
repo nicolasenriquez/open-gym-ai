@@ -360,6 +360,8 @@ El audit actual es un registro operativo JSON con retención, borrable por admin
 
 Cada evento definido identifica actor/recurso/acción/instante/resultado con datos mínimos; controlar acceso y evitar credenciales, contenido de entrenamiento/rehabilitación o secretos. No copiar nombres o payloads personales al tracing por reutilizar audit. El historial de correcciones Recovery tiene su contrato propio y no se reemplaza por audit operativo.
 
+La entrega 6.5 serializa append/clear/retención con el advisory xact lock **728325**, distinto del lock de endpoints push 728324. Read/clear revalidan actor y facultad antes de tomar el lock de audit; append no mantiene una transacción de negocio ni toma locks de cuentas. La retención se aplica al escribir/leer, sin servir filas vencidas; no añade un scheduler de purga física durante inactividad. El parámetro interno `after_id` de `read_events` representa el cursor exclusivo `id < before` del cliente legacy; `cat` y los límites privados se instalan mediante settings locales de transacción, nunca desde el body.
+
 Política aprobada: preservar best effort de eventos heredados, incluido login y administración, con fallo observable/código seguro. Audit se intenta en unidad separada o después del commit de negocio, sin abortarlo mediante un error SQL de auditoría ni devolver fallo tras éxito confirmado. No prometer entrega garantizada, atomicidad o reintento ilimitado; endurecimiento obligatorio por operación requiere otro cambio explícito. [Telemetría técnica](platform-observability.md) y audit son canales distintos: el muestreo de traces no decide qué eventos de seguridad/historia se conservan.
 
 ### Eliminación y restauración

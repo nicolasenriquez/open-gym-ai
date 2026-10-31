@@ -482,6 +482,7 @@ async def test_client_upgrade_keeps_deferred_configuration_and_has_bounded_funct
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p004_audit.py",
             "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
@@ -503,7 +504,7 @@ async def test_client_upgrade_keeps_deferred_configuration_and_has_bounded_funct
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p004_admin_invites"
+        == "p004_audit"
     )
     assert await observer.fetchval("SELECT provider FROM coach.settings") == "codex"
     assert (

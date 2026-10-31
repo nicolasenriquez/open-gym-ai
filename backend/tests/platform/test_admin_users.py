@@ -318,6 +318,7 @@ async def test_upgrade_sql_privileges_and_projection_permissions(deployment, tmp
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p004_audit.py",
             "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",

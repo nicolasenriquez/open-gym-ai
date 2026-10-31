@@ -51,7 +51,9 @@ async def test_identity_routes_keep_factory_configuration_and_collaborators_loca
 
     calls = []
 
-    async def login(database, passwords, throttle, address, body, secret, days):
+    async def login(
+        database, passwords, throttle, address, body, secret, days, *, audit=None
+    ):
         calls.append((database, passwords, throttle, secret, days))
         return 200, {"user": {"id": "A"}}, "synthetic-token"
 
@@ -599,6 +601,7 @@ async def test_password_migration_extends_genuine_session_revision(
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_audit.py",
             "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
@@ -633,7 +636,7 @@ async def test_password_migration_extends_genuine_session_revision(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p004_admin_invites"
+        == "p004_audit"
     )
     assert dict(
         await observer.fetchrow("SELECT id,created_at FROM identity.users")

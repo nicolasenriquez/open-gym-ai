@@ -94,7 +94,7 @@ def create_router(*, secret, secure, media):
                     )
                     if not isinstance(body, dict):
                         raise TypeError("invalid json")
-                except (ValueError, TypeError, RecursionError):
+                except ValueError, TypeError, RecursionError:
                     return JSONResponse(
                         {"error": "invalid json"}, status_code=400, headers=headers
                     )
@@ -102,6 +102,13 @@ def create_router(*, secret, secure, media):
                     status, result = await media.sweep(
                         request.app.state.database, session
                     )
+                    if status == 200:
+                        await request.app.state.audit.append(
+                            "media.sweep",
+                            request=request,
+                            actor=session.owner,
+                            message=f"{result['removed']} file(s)",
+                        )
                 else:
                     status, result = await media.missing(
                         request.app.state.database, session, body.get("hashes")
@@ -144,6 +151,18 @@ def create_router(*, secret, secure, media):
         except Refused as error:
             if error.status == 429:
                 headers["Retry-After"] = str(error.body["retryAfter"])
+                audit = request.app.state.audit
+                kind = "sweep" if digest == "sweep" else "upload"
+                if audit.allow_failure(
+                    "media.throttled", session.owner + "|" + kind, limit=1, seconds=3600
+                ):
+                    await audit.append(
+                        "media.throttled",
+                        request=request,
+                        actor=session.owner,
+                        ok=False,
+                        message=kind,
+                    )
             if error.status == 408:
                 headers["Connection"] = "close"
             return JSONResponse(error.body, status_code=error.status, headers=headers)

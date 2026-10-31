@@ -197,7 +197,7 @@ async def test_public_health_and_config_match_empty_node_instance(deployment):
         assert config.headers["cache-control"] == "no-store"
         assert (
             await observer.fetchval("SELECT version_num FROM public.alembic_version")
-            == "p004_admin_invites"
+            == "p004_audit"
         )
 
 
@@ -276,7 +276,7 @@ async def test_read_only_database_cannot_advertise_writable_or_ready(deployment)
         ["p002_training"],
         ["p002_media_gc"],
         ["p005_delivery"],
-        ["p004_admin_invites", "extra"],
+        ["p004_audit", "extra"],
     ],
 )
 async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, history):
@@ -305,7 +305,7 @@ async def test_unknown_history_is_not_ready_and_is_never_repaired(deployment, hi
         assert (await client.get("/api/v1/health/live")).status_code == 200
         await observer.execute("DELETE FROM public.alembic_version")
         await observer.execute(
-            "INSERT INTO public.alembic_version VALUES ('p004_admin_invites')"
+            "INSERT INTO public.alembic_version VALUES ('p004_audit')"
         )
         assert (await client.get("/api/v1/health/ready")).status_code == 200
 

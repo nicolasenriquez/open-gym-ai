@@ -336,7 +336,17 @@ class Accounts:
         )
 
     async def set_password(
-        self, database, passwords, throttle, address, body, secret, days, *, session
+        self,
+        database,
+        passwords,
+        throttle,
+        address,
+        body,
+        secret,
+        days,
+        *,
+        session,
+        audit=None,
     ):
         try:
             async with self.locked(database, session) as handle:
@@ -375,6 +385,14 @@ class Accounts:
                     secret,
                 )
             throttle.accounts.entries.pop("acct:" + session.owner, None)
+            if audit is not None:
+                await audit(
+                    "auth.password.set"
+                    if current["stored"] is None
+                    else "auth.password.change",
+                    actor=session.owner,
+                    message="passkey" if proof else "password",
+                )
             return (
                 200,
                 {"ok": True, **({"token": token} if session.bearer else {})},
@@ -384,7 +402,17 @@ class Accounts:
             return error.response()
 
     async def remove_password(
-        self, database, passwords, throttle, address, body, secret, days, *, session
+        self,
+        database,
+        passwords,
+        throttle,
+        address,
+        body,
+        secret,
+        days,
+        *,
+        session,
+        audit=None,
     ):
         try:
             async with self.locked(database, session) as handle:
@@ -414,6 +442,8 @@ class Accounts:
                 await handle.execute(
                     "UPDATE identity.login_aliases SET password_name_claim=false WHERE password_name_claim"
                 )
+            if audit is not None:
+                await audit("auth.password.remove", actor=session.owner)
             return 200, {"ok": True}, None
         except Refused as error:
             return error.response()
@@ -449,7 +479,17 @@ class Accounts:
         )
 
     async def remove_email(
-        self, database, passwords, throttle, address, body, secret, days, *, session
+        self,
+        database,
+        passwords,
+        throttle,
+        address,
+        body,
+        secret,
+        days,
+        *,
+        session,
+        audit=None,
     ):
         return await self.set_email(
             database,
@@ -460,10 +500,21 @@ class Accounts:
             secret,
             days,
             session=session,
+            audit=audit,
         )
 
     async def set_email(
-        self, database, passwords, throttle, address, body, secret, days, *, session
+        self,
+        database,
+        passwords,
+        throttle,
+        address,
+        body,
+        secret,
+        days,
+        *,
+        session,
+        audit=None,
     ):
         try:
             raw = body.get("email")
@@ -497,6 +548,16 @@ class Accounts:
                 await self.clear_email(handle)
                 if email:
                     await self.claim(handle, email, True)
+            if audit is not None:
+                await audit(
+                    "auth.email.remove"
+                    if removing
+                    else "auth.email.set"
+                    if not current["email"]
+                    else "auth.email.change",
+                    actor=session.owner,
+                    message="passkey" if proof else "password",
+                )
             return 200, {"ok": True, "email": email}, None
         except Refused as error:
             return error.response()

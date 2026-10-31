@@ -135,6 +135,12 @@ async def test_first_password_accepts_fresh_own_passkey_and_preserves_it(deploym
         assert await observer.fetchval("SELECT count(*) FROM identity.passkeys") == 1
         assert await observer.fetchval("SELECT counter FROM identity.passkeys") == 1
         assert (await client.get("/api/v1/account/password")).json()["set"] is True
+        assert (
+            await observer.fetchval(
+                "SELECT event FROM audit.events ORDER BY id DESC LIMIT 1"
+            )
+            == "auth.password.set"
+        )
         replay = await client.post(
             "/api/v1/account/password",
             json={
@@ -734,6 +740,7 @@ async def test_new_revision_preserves_previous_history_and_uses_restricted_owner
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_audit.py",
             "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
@@ -774,7 +781,7 @@ async def test_new_revision_preserves_previous_history_and_uses_restricted_owner
     ] == before
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p004_admin_invites"
+        == "p004_audit"
     )
     functions = await observer.fetch("""
         SELECT p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner) AS owner,

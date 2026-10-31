@@ -13,6 +13,8 @@ from opengym_platform.administration.cleanup import Cleanup
 from opengym_platform.administration.router import (
     create_router as administration_router,
 )
+from opengym_platform.audit.router import create_router as audit_router
+from opengym_platform.audit.service import Audit
 from opengym_platform.coach.admin import Admin
 from opengym_platform.coach.jobs import Jobs
 from opengym_platform.coach.pipeline import Pipeline
@@ -32,7 +34,7 @@ from opengym_platform.media.service import Media
 from opengym_platform.notifications.router import create_router as notifications_router
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p004_admin_invites"
+SCHEMA_REVISION = "p004_audit"
 
 
 async def recover_coach(database):
@@ -78,6 +80,7 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
             await passwords.warm_up()
         database = await Database.open_platform()
         app.state.database = database
+        app.state.audit = Audit(database)
         app.state.coach_admin = Admin(database, coach_secrets)
         maintenance = []
         if media is not None:
@@ -130,7 +133,9 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
         redirect_slashes=False,
     )
 
+    app.state.audit = Audit(None)
     public_api = APIRouter(prefix="/api/v1")
+    public_api.include_router(audit_router(secret=secret, secure=secure))
 
     @app.exception_handler(404)
     @app.exception_handler(405)

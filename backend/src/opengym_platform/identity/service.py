@@ -38,7 +38,7 @@ async def note_pull(database, session):
 
 
 async def password_login(
-    database, passwords, throttle, address, body, secret, session_days
+    database, passwords, throttle, address, body, secret, session_days, *, audit=None
 ):
     raw = next(
         (body[k] for k in ("identifier", "name", "email") if body.get(k) is not None),
@@ -129,6 +129,12 @@ async def password_login(
         if not failed:
             undo_account()
             undo_address()
+        elif audit is not None and throttle.accounts.wait(account_key):
+            await audit(
+                "auth.password.locked",
+                ok=False,
+                actor=observed["owner_id"] if observed else None,
+            )
 
 
 async def password_register(

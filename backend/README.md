@@ -124,7 +124,7 @@ is already clean. Symlinks, unexpected nested media paths, noncanonical owner ID
 live owner/path collisions and still-referenced Coach keys stay pending rather than
 risk another profile's bytes. Unknown/protected imported secret references require
 operator review; they are not guessed or traversed. Completed tasks retain `done`
-metadata for verification. Administrative audit is not yet ported.
+metadata for verification.
 
 Apply `p004_admin_invites` for `GET /api/v1/admin/invites` and
 `POST /api/v1/admin/invites/new` / `revoke`. Active administrators can create
@@ -141,8 +141,39 @@ target, removes the old password, reserves the normalized login name, replaces t
 stored digest, revokes sessions/device links and clears live presence/timers.
 Email, passkeys and disabled status are retained. A conflicting active alias
 returns 409 without changes; SQL failure rolls the whole operation back. The route
-is absent while password sign-in is disabled. No email delivery or audit API is
-added; the existing Admin UI's audit request remains unavailable until 6.5.
+is absent while password sign-in is disabled. No email delivery is added.
+
+Apply `p004_audit` for `GET /api/v1/admin/audit` and
+`POST /api/v1/admin/audit/clear`. Both revalidate the current administrator,
+including after lock waits. The existing Admin activity card reads newest-first
+ID pages (`limit`, `before`, `cat=auth|admin|fail`); clear deletes rows, not the
+identity sequence, and then attempts an `admin.audit.clear` event separately.
+Historical actor/target IDs and names have no account FK or deletion cascade.
+There is no new export or public diagnostic endpoint.
+
+Audit defaults to enabled, 5000 events, 90 days, IP off. `AUDIT_LOG=0` disables
+new events, not authorized history access or clear. `AUDIT_MAX` and `AUDIT_DAYS`
+apply both limits on append and read; zero disables that limit. Expired rows are
+never served, including after an idle restart. Physical pruning happens with
+those operations, not through a new scheduler. `AUDIT_IP=net` stores /24 IPv4 or
+/48 IPv6; `full` stores validated addresses. As with Node, proxy address headers
+require a proxy that overwrites untrusted values. No user-agent or failed passkey
+ID is stored.
+
+| Event producers | Recorded context |
+| --- | --- |
+| Password/passkey signup and login, reset consumption, pairing/device links | Success/failure and verified identity where available; no submitted identifier, code, password or credential. Anonymous passkey/signup/pair failures are capped at ten per address/event/minute and 120 per event globally. |
+| Own password/email/passkey changes, proof failures and logout/all | Verified owner, action and safe reason/proof labels; first password/email setup remains distinct from change. Plain logout clears cookies without revoking other sessions. |
+| First administrator, admin denial, enable/disable/delete, invite create/revoke and reset issuance | Administrative actor and applicable target; deleted display name remains historical. Invitation/reset codes and notes are not copied into new audit events. |
+| Media sweep and upload/sweep throttling | Owner and bounded file-count/kind summary; no paths, hashes or Training content. |
+
+Business transactions finish before audit starts its own transaction. Append is
+best effort with no retry queue or delivery guarantee: failure leaves the business
+response/cookie and committed data unchanged. A safe `AUDIT_WRITE_FAILED` warning
+is emitted once per degraded interval; the process-local `Audit.degraded` and
+`Audit.failures` state remains available even if the logging sink fails. A later
+successful append clears the degraded flag without replaying lost events.
+Operational status/diagnose wiring remains S9, not proof delivered by this slice.
 
 The private operator command uses the existing runtime environment and credential
 file, not an HTTP session, privileged database login or a new public endpoint.
@@ -225,8 +256,7 @@ case, spaces and dashes do not matter. Password-policy errors preserve the code.
 Successful redemption atomically claims the password alias, replaces the password,
 consumes the code, revokes sessions/device links and sets a new session cookie,
 preserving passkeys. Wrong codes share the password address budget, without a
-per-account lockout. Administrative issuance is described above; audit routes are
-not yet delivered.
+per-account lockout. Administrative issuance and audit routes are described above.
 `POST /api/v1/pair/create` makes one replaceable mobile pairing code per owner,
 valid for five minutes. Pairings remain process-local and disappear on restart.
 `POST /api/v1/pair/redeem` is CSRF-exempt and returns a bearer token and public user,
@@ -469,6 +499,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
 | `admin_delete --case atomic_delete` | Atomic SQL cascades, Coach disconnection and pending external references, access denial, safeguards, rollback/retry, concurrent revocation/deletion and restricted upgrade/ACLs. |
 | `admin_delete --case external_retry` | Real HTTP deletion followed by owner-only external cleanup, safe failure/backoff, restart/cancellation, private operator status/retry and preserved foreign sentinels. |
+| `admin_audit --case failure_and_retention` | Restricted admin read/clear, age/count retention, ID cursor/sequence, IP policy, anonymous failure caps, postcommit SQL failure isolation and upgrade/ACLs. |
 | `admin_invites --case consumed_history` | Current admin authority, preserved consumed history, create/revoke guards, atomic reset/reissue, alias conflicts, rollback and restricted upgrade/ACLs. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `shared_client --case canonical_sources` | Single shared JS/prompt source, generated assets, plain Node loading, HTTP pipeline and local phone Coach parity. Formats/bundle acceptance and OpenAPI relocation remain separate. |
@@ -510,8 +541,8 @@ the fixture control server. No fixture routes are added to the application.
 The current HTTP flow preserves the loaded page and saved dirty/active state offline,
 then reloads on reconnection. HTTPS service-worker cold launch and native devices are
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
-bundle; this does not verify nginx deployment. Screenshots for thirteen cases (including Admin invitation create/revoke and reset
-issuance with independent SQL observation and reload) and a sanitized
+bundle; this does not verify nginx deployment. Screenshots for fourteen cases (including Admin invitation create/revoke, reset
+issuance and audit filtering/clear with independent SQL observation and reload) and a sanitized
 result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 

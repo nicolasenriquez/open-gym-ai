@@ -416,7 +416,7 @@ async def test_previous_head_upgrade_catalog_and_no_direct_invitation_access(
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p004_admin_invites.py"),
+        ignore=shutil.ignore_patterns("p004_audit.py", "p004_admin_invites.py"),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (
@@ -436,7 +436,7 @@ async def test_previous_head_upgrade_catalog_and_no_direct_invitation_access(
     )
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p004_admin_invites"
+        == "p004_audit"
     )
     functions = await observer.fetch("""SELECT p.oid::regprocedure::text AS signature,p.prosecdef,p.proconfig,
         pg_get_userbyid(p.proowner) AS owner,has_function_privilege('opengym_api_runtime',p.oid,'EXECUTE') AS runtime,

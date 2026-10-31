@@ -35,6 +35,15 @@
     "proof": "Atomic account cascades, coach disconnection and durable pending cleanup; immediate denial and preserved history",
     "checkpoint": "6.2 only; external executor and retries remain 6.3"
   }],
+  "admin_audit": [{
+    "id": "failure_and_retention",
+    "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+    "setup": "Restricted HTTP/PostgreSQL, independent observer and synthetic events",
+    "target": "platform-test",
+    "command": ["tests/platform/test_audit.py"],
+    "proof": "Admin read/clear, retention, persistent sequence, IP policy and postcommit failure isolation",
+    "checkpoint": "6.5 synthetic only; operational diagnostics remain S9"
+  }],
   "admin_invites": [{
     "id": "consumed_history",
     "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Recoverable deletion and compatible audit",

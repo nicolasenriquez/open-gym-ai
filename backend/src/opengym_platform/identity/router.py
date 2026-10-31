@@ -2,6 +2,7 @@
 
 import json
 import os
+from functools import partial
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
@@ -184,12 +185,79 @@ def create_router(
     async def login_verify(request: Request):
         return await identity_request(request, passkeys.login_verify, exempt=True)
 
+    @router.post("/logout")
+    async def logout(request: Request):
+        site, origin = (
+            request.headers.get("sec-fetch-site"),
+            request.headers.get("origin"),
+        )
+        if not request.headers.get("authorization", "").startswith("Bearer "):
+            allowed = (
+                site in {"same-origin", "none"}
+                if site
+                else not origin
+                or origin.rstrip("/")
+                == os.environ.get("ORIGIN", "http://localhost:8080").rstrip("/")
+            )
+            if not allowed:
+                return JSONResponse(
+                    {"error": "cross-origin request refused"},
+                    status_code=403,
+                    headers={"Cache-Control": "no-store"},
+                )
+        session = verify(
+            ";".join(request.headers.getlist("cookie")),
+            request.headers.get("authorization", ""),
+            secure,
+            secret,
+        )
+        if session:
+            try:
+                current = await profile(
+                    request.app.state.database, session, secret, session_days
+                )
+                if current:
+                    user = current["user"]
+                    await request.app.state.audit.append(
+                        "auth.logout",
+                        request=request,
+                        actor=user["id"],
+                        name=user.get("name"),
+                    )
+            except DatabaseError:
+                pass
+        response = JSONResponse({"ok": True}, headers={"Cache-Control": "no-store"})
+        for name in ["__Host-gymsid", "gymsid"] if secure else ["gymsid"]:
+            response.headers.append(
+                "Set-Cookie",
+                f"{name}=; Path=/; Max-Age=0; HttpOnly;{' Secure;' if secure else ''} SameSite=Lax",
+            )
+        return response
+
     @router.post("/logout/all")
     async def logout_all(request: Request):
         return await identity_request(request, accounts.logout_all, protected=True)
 
     async def identity_request(request, operation, *, exempt=False, protected=False):
         headers = {"Cache-Control": "no-store"}
+
+        async def locked(error):
+            audit = request.app.state.audit
+            if audit.allow_failure("auth.throttled", address, limit=1):
+                await audit.append(
+                    "auth.throttled",
+                    request=request,
+                    ok=False,
+                    message="signup"
+                    if operation is register_password
+                    else "email"
+                    if operation == accounts.set_email
+                    else "link"
+                    if operation in (links.options, links.verify)
+                    else "password",
+                )
+            return locked_response(error)
+
         site = request.headers.get("sec-fetch-site")
         origin = request.headers.get("origin")
         if (
@@ -241,7 +309,7 @@ def create_router(
                     and operation not in (accounts.add_passkey_options, links.create),
                 )
         except LockedError as error:
-            return locked_response(error)
+            return await locked(error)
         session = None
         if protected:
             session = verify(
@@ -293,6 +361,18 @@ def create_router(
                 session_days,
                 **({"session": session} if protected else {}),
                 **(
+                    {"audit": partial(request.app.state.audit.append, request=request)}
+                    if operation
+                    in (
+                        login_password,
+                        accounts.set_password,
+                        accounts.remove_password,
+                        accounts.set_email,
+                        accounts.remove_email,
+                    )
+                    else {}
+                ),
+                **(
                     {
                         "credential_id": next(
                             iter(request.query_params.getlist("id")), ""
@@ -302,6 +382,20 @@ def create_router(
                     else {}
                 ),
             )
+            await request.app.state.audit.identity_result(
+                operation.__name__, status, result, session, request, address
+            )
+            if (
+                session
+                and result.get("code") == "current-wrong"
+                and throttle.accounts.wait("acct:" + session.owner)
+            ):
+                await request.app.state.audit.append(
+                    "auth.password.locked",
+                    request=request,
+                    actor=session.owner,
+                    ok=False,
+                )
             response = JSONResponse(result, status_code=status, headers=headers)
             if token:
                 name = "__Host-gymsid" if secure else "gymsid"
@@ -320,7 +414,7 @@ def create_router(
                     )
             return response
         except LockedError as error:
-            return locked_response(error)
+            return await locked(error)
         except BusyError:
             return JSONResponse(
                 {

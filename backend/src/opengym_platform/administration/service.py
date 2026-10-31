@@ -25,7 +25,7 @@ def checked(value):
     return 200, value
 
 
-async def handle(database, session, operation, body, config, coach):
+async def handle(database, session, operation, body, config, coach, event):
     async with database.transaction() as tx:
         args = (session.owner, session.version, session.expires_at)
         if operation in {"invites", "new", "revoke"}:
@@ -135,6 +135,7 @@ async def handle(database, session, operation, body, config, coach):
             if status != 200:
                 return status, result
             if operation == "delete":
+                event["message"] = result["name"]
                 if target == session.owner:
                     return 400, {"error": "you cannot delete your own account"}
                 if not await coach.disconnect_owner(tx, session, target):
@@ -191,4 +192,18 @@ async def handle(database, session, operation, body, config, coach):
         # Actor context is never the inspected target; expiry is checked after all waits.
         if not await authorize(tx, session):
             raise PermissionError
+        events = {
+            "new": "admin.invite.create",
+            "revoke": "admin.invite.revoke",
+            "password-reset": "admin.password.reset",
+            "delete": "admin.user.delete",
+            "disable": "admin.user.disable"
+            if result.get("disabled")
+            else "admin.user.enable",
+        }
+        if operation in events:
+            event["event"] = events[operation]
+            if operation in {"disable", "password-reset"}:
+                event["target"] = target
+            # Invitation/reset codes, notes and credential material never enter audit.
         return 200, result

@@ -65,8 +65,11 @@ def create_router(*, secret, secure, config):
                     access = json.loads(rows[0]["view"]) if rows[0]["view"] else None
                     if access is None:
                         return response({"error": "not signed in"}, 401)
-                    if not access:
-                        return response({"error": "forbidden"}, 403)
+                if not access:
+                    await request.app.state.audit.append(
+                        "admin.denied", actor=session.owner, ok=False, request=request
+                    )
+                    return response({"error": "forbidden"}, 403)
                 raw = bytearray()
                 async for chunk in request.stream():
                     if len(raw) + len(chunk) > 5 * 1024 * 1024:
@@ -83,10 +86,11 @@ def create_router(*, secret, secure, config):
                     )
                     if not isinstance(body, dict):
                         raise TypeError
-                except (ValueError, TypeError, RecursionError):
+                except ValueError, TypeError, RecursionError:
                     return response({"error": "invalid json"}, 400)
             else:
                 body = {"id": request.query_params.get("id")}
+            event: dict = {}
             status, result = await handle(
                 database,
                 session,
@@ -94,8 +98,17 @@ def create_router(*, secret, secure, config):
                 body,
                 config,
                 request.app.state.coach_admin,
+                event,
             )
+            if status == 403:
+                await request.app.state.audit.append(
+                    "admin.denied", actor=session.owner, ok=False, request=request
+                )
             if status == 200:
+                if "event" in event:
+                    await request.app.state.audit.append(
+                        actor=session.owner, request=request, **event
+                    )
                 notifications = request.app.state.notifications
                 if "users" in result:
                     for user in result["users"]:

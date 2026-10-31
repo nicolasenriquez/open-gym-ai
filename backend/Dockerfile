@@ -42,6 +42,7 @@ COPY src/opengym_platform/media/ /app/src/opengym_platform/media/
 COPY src/opengym_platform/coach/ /app/src/opengym_platform/coach/
 COPY src/opengym_platform/notifications/ /app/src/opengym_platform/notifications/
 COPY src/opengym_platform/administration/ /app/src/opengym_platform/administration/
+COPY src/opengym_platform/audit/ /app/src/opengym_platform/audit/
 USER 1000:1000
 ENTRYPOINT ["/app/.venv/bin/python"]
 CMD ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--workers", "1", "--no-access-log", "--no-proxy-headers"]
