@@ -9,6 +9,7 @@ import math
 import os
 import re
 import secrets
+import stat
 import time
 from pathlib import Path
 
@@ -372,10 +373,11 @@ class Media:
                 )
             self.reserved[session.owner] = self.reserved.get(session.owner, 0) + need
             reservation["bytes"] = need
-        directory = self.directory(session.owner)
-        for path in (self.root, directory, directory / ".tmp"):
-            path.mkdir(parents=True, exist_ok=True, mode=0o700)
-            path.chmod(0o700)
+            # Creation is protected by the owner lock; deletion cannot be followed by a stale mkdir.
+            directory = self.directory(session.owner)
+            for path in (self.root, directory, directory / ".tmp"):
+                path.mkdir(parents=True, exist_ok=True, mode=0o700)
+                path.chmod(0o700)
         temporary = directory / ".tmp" / secrets.token_hex(12)
         try:
             if self.min_free:
@@ -478,6 +480,55 @@ class Media:
         except FileNotFoundError:
             raise Refused(404, "media-missing", "no such file") from None
         return source, mime, path.suffix[1:]
+
+
+def remove_deleted_owner(data, owner):
+    """Remove exact deleted-owner bytes under no-follow descriptors; never recurse arbitrary paths."""
+    descriptors = []
+    try:
+        data_fd = os.open(data, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        descriptors.append(data_fd)
+        uploads = os.open(
+            "uploads", os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=data_fd
+        )
+        descriptors.append(uploads)
+        directory = os.open(
+            owner, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=uploads
+        )
+        descriptors.append(directory)
+        folders = [(directory, None)]
+        for name in os.listdir(directory):
+            if name == ".tmp":
+                temporary = os.open(
+                    name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory
+                )
+                descriptors.append(temporary)
+                folders.insert(0, (temporary, ".tmp"))
+        # Validate the complete flat layout before deleting; unexpected links/directories stay pending.
+        for folder, _ in folders:
+            for name in os.listdir(folder):
+                if folder == directory and name == ".tmp":
+                    continue
+                if not stat.S_ISREG(
+                    os.stat(name, dir_fd=folder, follow_symlinks=False).st_mode
+                ):
+                    raise ValueError("PLATFORM_MEDIA_PATH_INVALID")
+        for folder, child in folders:
+            for name in os.listdir(folder):
+                if folder == directory and name == ".tmp":
+                    continue
+                os.unlink(name, dir_fd=folder)
+            os.fsync(folder)
+            if child:
+                os.rmdir(child, dir_fd=directory)
+        os.rmdir(owner, dir_fd=uploads)
+        os.fsync(uploads)
+    except FileNotFoundError:
+        if os.path.lexists(data / "uploads" / owner):
+            raise
+    finally:
+        for descriptor in reversed(descriptors):
+            os.close(descriptor)
 
 
 def sync_directory(directory):

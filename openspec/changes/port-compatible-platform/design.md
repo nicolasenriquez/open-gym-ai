@@ -190,6 +190,17 @@ no contiene tokens/ciphertext y desaparece al liberar la transacción. Python
 coordina ambas interfaces con el mismo handle, sin filesystem antes del commit.
 El ejecutor externo y sus reintentos permanecen en 6.3.
 
+**Ajuste de 6.3 autorizado expresamente:** una revisión forward-only añade
+`deletion_tasks.next_attempt_at` y cinco funciones internas de Administration:
+claim/lock/finish/status/retry, detalladas en el catálogo de seguridad. El runtime
+solo recibe EXECUTE, no acceso directo a la tabla. Claim confirma el intento antes
+del filesystem; lock vuelve a comprobar cuenta/referencias bajo namespace y fila
+exacta hasta terminar los unlinks locales sin seguir enlaces. Fallo/cancelación
+conserva tarea e intento; cinco intentos por ciclo con backoff 1/5/15/60/300 s,
+luego solo reintento explícito de operador. Estado seguro por comando privado,
+sin endpoints nuevos ni cola general. Filas done se conservan para verificar
+finalización y consultar el resultado; no son contenido de usuario.
+
 ### 8. Autoridad OpenAPI y compatibilidad de transporte
 
 Decisión técnica: conservar un contrato YAML editable y trasladarlo de

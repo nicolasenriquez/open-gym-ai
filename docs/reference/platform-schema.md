@@ -177,7 +177,7 @@ generación y elimina jobs/propuestas/historial; resultados tardíos no los recr
 | Tabla | Columnas | Regla |
 | --- | --- | --- |
 | `audit.events` | `id bigint IDENTITY PK`, `occurred_at timestamptz`, `event text`, `ok boolean`, `actor_id/target_id text NULL`, `actor_name/target_name text NULL`, `message/action/ip text NULL` | IDs históricos sin FK a cuentas, mensajes mínimos acotados; importar y avanzar secuencia sin reiniciarla al limpiar. Política en seguridad. |
-| `administration.deletion_tasks` | `id uuid PK`, `deleted_owner_id text`, `created_at timestamptz`, `status text`, `attempts integer`, `last_error_code text NULL`, `secret_refs text[]` | Sin FK a usuario ya eliminado. Solo identificadores, referencias externas exactas (sin tokens/ciphertext), estado y errores seguros de limpieza externa. Retirar al verificar finalización. |
+| `administration.deletion_tasks` | `id uuid PK`, `deleted_owner_id text`, `created_at timestamptz`, `status text`, `attempts integer`, `last_error_code text NULL`, `secret_refs text[]`, `next_attempt_at timestamptz` | Sin FK a usuario ya eliminado. Solo identificadores, referencias externas exactas (sin tokens/ciphertext), estado y errores seguros de limpieza externa. Conservar estado done para verificar finalización y consulta privada; next_attempt_at limita reintentos persistidos (cinco por ciclo, luego operador). |
 
 El coordinador verifica las restricciones actuales de borrado, desconecta vínculos
 personales del coach y confirma eliminación SQL junto con la tarea de limpieza.
@@ -271,7 +271,9 @@ para registro y audit necesario para login, aunque sus rutas admin lleguen despu
   en Training. Acceso exclusivamente por interfaz coach, nunca por ID cliente.
 - `deletion_tasks.status` IN ('pending','retry','done'), attempts >= 0; ID UUID
   generado en aplicación sin extensión SQL. Error contiene solo código allowlisted.
-  `done` se elimina al verificar bytes/secretos ausentes; fallo mantiene pending/retry.
+  `done` conserva metadatos de finalización verificable; fallo mantiene pending/retry.
+  `next_attempt_at` persiste el backoff por intento; tras cinco intentos automáticos,
+  solo un reintento privado explícito inicia otro ciclo. No es una cola general.
 - FKs operativas owner→users ON DELETE CASCADE. Excepciones: users.invited_by→
   invitations.code RESTRICT; provider_settings.bound_owner_id→users RESTRICT;
   las referencias históricas de invitación/audit y deleted_owner_id no tienen FK.

@@ -139,6 +139,26 @@ class SecretFiles:
             except FileNotFoundError:
                 pass
 
+    def remove_owner(self, owner, references):
+        personal = f"coach-auth-{owner}.json"
+        names = {personal, *references}
+        if any(name != personal and not self.instance_name(name) for name in names):
+            raise ValueError("COACH_SECRET_PATH_INVALID")
+        try:
+            with self.directory_fd() as directory:
+                for name in names:
+                    try:
+                        info = os.stat(name, dir_fd=directory, follow_symlinks=False)
+                        if not stat.S_ISREG(info.st_mode):
+                            raise ValueError("COACH_SECRET_PATH_INVALID")
+                        os.unlink(name, dir_fd=directory)
+                    except FileNotFoundError:
+                        pass
+                os.fsync(directory)
+        except FileNotFoundError:
+            # A missing data directory is already clean; unsafe links still fail closed.
+            pass
+
     def resolve(self, context, owner):
         selected = context["provider"]
         mode = context["auth_mode"]

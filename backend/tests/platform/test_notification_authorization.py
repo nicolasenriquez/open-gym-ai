@@ -102,7 +102,9 @@ async def test_upgrade_acl_and_rejected_owner_preserve_context(deployment, tmp_p
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p004_deletion_tasks.py", "p005_delivery.py"),
+        ignore=shutil.ignore_patterns(
+            "p004_external_cleanup.py", "p004_deletion_tasks.py", "p005_delivery.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (
@@ -118,7 +120,7 @@ async def test_upgrade_acl_and_rejected_owner_preserve_context(deployment, tmp_p
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p004_deletion_tasks"
+        == "p004_external_cleanup"
     )
     assert (
         await observer.fetchval("SELECT document FROM training.documents") == original

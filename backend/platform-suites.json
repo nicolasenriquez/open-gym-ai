@@ -19,6 +19,14 @@
     "checkpoint": "8.2 only; bundle/copy proof, not native compilation, device execution or shell publication; OpenAPI remains 8.3"
   }],
   "admin_delete": [{
+    "id": "external_retry",
+    "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+    "setup": "Restricted real HTTP/PostgreSQL and private filesystem, independent observer and operator commands",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_cleanup.py"],
+    "proof": "Idempotent owner-only cleanup, durable bounded retries, pending/done status and private operator recovery",
+    "checkpoint": "6.3 synthetic only; no operational acceptance"
+  }, {
     "id": "atomic_delete",
     "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
     "setup": "Real restricted HTTP/PostgreSQL and independent observer, synthetic owners and external references",

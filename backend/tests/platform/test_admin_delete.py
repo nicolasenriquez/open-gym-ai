@@ -3,6 +3,7 @@
 import asyncio
 import json
 import shutil
+from contextlib import asynccontextmanager
 from pathlib import Path
 from uuid import uuid4
 
@@ -11,7 +12,32 @@ import pytest
 from test_identity_session import A, B, signed
 from test_identity_session import identities as identities  # noqa: PLC0414 -- pytest fixture export
 from test_lifecycle import deployment as deployment  # noqa: PLC0414 -- pytest fixture export
-from test_lifecycle import migration, server
+from test_lifecycle import migration
+from test_lifecycle import server as live_server
+
+
+def paused_cleanup_app():
+    from opengym_platform.administration.cleanup import Cleanup
+    from opengym_platform.application import create_app
+
+    async def paused(self):
+        await asyncio.Event().wait()
+
+    # Atomic-delete tests observe the commit independently of the separately tested worker.
+    Cleanup.maintain = paused
+    return create_app()
+
+
+@asynccontextmanager
+async def server(environment):
+    environment = {
+        **environment,
+        "PYTHONPATH": str(Path(__file__).parent) + ":" + environment["PYTHONPATH"],
+    }
+    async with live_server(
+        environment, factory="test_admin_delete:paused_cleanup_app"
+    ) as client:
+        yield client
 
 
 @pytest.mark.asyncio
@@ -385,7 +411,9 @@ async def test_upgrade_privileges_and_transaction_local_cleanup(deployment, tmp_
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p004_deletion_tasks.py"),
+        ignore=shutil.ignore_patterns(
+            "p004_external_cleanup.py", "p004_deletion_tasks.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (
@@ -400,7 +428,7 @@ async def test_upgrade_privileges_and_transaction_local_cleanup(deployment, tmp_
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p004_deletion_tasks"
+        == "p004_external_cleanup"
     )
     assert tuple(
         await observer.fetchrow(

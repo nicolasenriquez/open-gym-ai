@@ -20,8 +20,10 @@ principles. Published entries below are preserved; see the
   `p004_admin_users`. Account deletion now requires `p004_deletion_tasks` and
   atomically disconnects bound Coach credentials, cascades operational SQL data
   and records pending external cleanup references without deleting consumed
-  invitations or historical audit. Access ends at commit; external file cleanup,
-  invitations and administrative audit remain pending.
+  invitations or historical audit. Access ends at commit. External cleanup now
+  requires `p004_external_cleanup`: owner-only no-follow unlinks, durable bounded
+  retries and private operator status/retry, without reopening deleted access or
+  deleting still-referenced Coach keys. Invitations and administrative audit remain pending.
 - Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
   a twenty-device cap, private-address validation and persistent VAPID material.
   Requires `p005_subscriptions`. Internal local-date reminders and evening nudges

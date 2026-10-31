@@ -115,9 +115,40 @@ Coach credentials, cascades operational SQL data and records pending external
 cleanup in one transaction. Consumed invitations and historical audit are not
 deleted. Access ends at SQL commit, including late Coach results. The compatible
 response remains `{ok:true,id}`; it does not certify external cleanup. Media and
-secret files remain untouched until the separate cleanup executor is delivered;
-pending tasks retain the exact external references across restart. Invitation
-management, reset issuance and administrative audit are not yet ported.
+secret cleanup runs afterward under `p004_external_cleanup`. The single worker
+persists each attempt before unlinking, schedules the first attempt after one
+second and subsequent attempts after 5/15/60/300 seconds, and stops after five
+attempts per cycle. The final stored deadline never authorizes a sixth attempt. Failure retains `retry` and a safe
+`media`/`secret`/`internal` code; it never restores account access. A missing file
+is already clean. Symlinks, unexpected nested media paths, noncanonical owner IDs,
+live owner/path collisions and still-referenced Coach keys stay pending rather than
+risk another profile's bytes. Unknown/protected imported secret references require
+operator review; they are not guessed or traversed. Completed tasks retain `done`
+metadata for verification. Invitation management, reset issuance and administrative
+audit are not yet ported.
+
+The private operator command uses the existing runtime environment and credential
+file, not an HTTP session, privileged database login or a new public endpoint.
+Inside the configured API container, run:
+
+```sh
+python -m opengym_platform.administration.cleanup status
+python -m opengym_platform.administration.cleanup status <task-uuid>
+python -m opengym_platform.administration.cleanup retry <task-uuid>
+python -m opengym_platform.administration.cleanup run <task-uuid>
+```
+
+Use your existing isolated Compose configuration with `exec api` (or a one-off
+`run --rm --no-deps api -m ...` using its Python entrypoint when API is stopped).
+Do not mount original protected material to resolve a pending task. `status` lists
+at most 500 tasks, incomplete first, without secret references or content; exact-ID
+lookup remains available. `retry` resets only an exhausted task for one new bounded
+cycle after the operator fixes the cause. `run` performs at most one due attempt
+of that exact task; it exits 1 while incomplete, 0 when done. Repeated run/retry
+cannot reopen done work. A crash or cancellation consumes the committed attempt;
+restart respects its deadline and budget. A failed final SQL acknowledgment may
+leave retry after successful unlinks; missing-file idempotency resolves the next
+attempt. No automatic schema migration or external provider call is involved.
 
 Prod uses `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
 `PLATFORM_MIGRATE_DIGEST` and `PLATFORM_OPS_DIGEST`: the hex suffix of tested local
@@ -418,7 +449,8 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `notifications --case subscription` | Owner endpoint transfer, original date/device fallback, cap twenty, VAPID continuity and restricted ACL/RLS. |
 | `notifications --case device_isolation` | HTTP activity/test/rest/cancel, owner/device isolation and legacy fallback, replacement/revocation, ephemeral presence/hidden grace, nudge suppression and restart without timer recovery. |
 | `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
-| `admin_delete --case atomic_delete` | Atomic SQL cascades, Coach disconnection and pending external references, access denial, safeguards, rollback/retry, concurrent revocation/deletion and restricted upgrade/ACLs. External cleanup remains a separate slice. |
+| `admin_delete --case atomic_delete` | Atomic SQL cascades, Coach disconnection and pending external references, access denial, safeguards, rollback/retry, concurrent revocation/deletion and restricted upgrade/ACLs. |
+| `admin_delete --case external_retry` | Real HTTP deletion followed by owner-only external cleanup, safe failure/backoff, restart/cancellation, private operator status/retry and preserved foreign sentinels. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `shared_client --case canonical_sources` | Single shared JS/prompt source, generated assets, plain Node loading, HTTP pipeline and local phone Coach parity. Formats/bundle acceptance and OpenAPI relocation remain separate. |
 | `shared_client --case formats_and_bundles` | CSV/JSON/media backup/FIT hostile cases, catalogue/ID continuity, web Node/Python and mobile Python bundles, shared-source graph and byte-for-byte Android/iOS asset copies. |

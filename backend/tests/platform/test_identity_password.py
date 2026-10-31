@@ -599,6 +599,7 @@ async def test_password_migration_extends_genuine_session_revision(
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
             "p005_delivery.py",
             "p004_admin_users.py",
@@ -631,7 +632,7 @@ async def test_password_migration_extends_genuine_session_revision(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p004_deletion_tasks"
+        == "p004_external_cleanup"
     )
     assert dict(
         await observer.fetchrow("SELECT id,created_at FROM identity.users")

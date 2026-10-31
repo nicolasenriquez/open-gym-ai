@@ -318,7 +318,10 @@ async def test_upgrade_sql_privileges_and_projection_permissions(deployment, tmp
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
-            "p004_deletion_tasks.py", "p005_delivery.py", "p004_admin_users.py"
+            "p004_external_cleanup.py",
+            "p004_deletion_tasks.py",
+            "p005_delivery.py",
+            "p004_admin_users.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
@@ -391,7 +394,7 @@ async def test_upgrade_sql_privileges_and_projection_permissions(deployment, tmp
     functions = await observer.fetch(
         "SELECT prosecdef,proconfig,pg_get_userbyid(proowner) AS owner,NOT EXISTS(SELECT FROM aclexplode(proacl) WHERE grantee=0) AS private FROM pg_proc WHERE pronamespace IN ('administration'::regnamespace,'training'::regnamespace) AND prosecdef"
     )
-    assert len(functions) == 6
+    assert len(functions) == 11
     assert all(
         tuple(row)
         == (

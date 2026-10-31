@@ -205,6 +205,28 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   El contexto nunca proviene del body HTTP; solo nombres externos, sin material
   secreto. Se elimina con commit/rollback/reset del lease. La limpieza externa
   posterior pertenece a 6.3.
+- Ajuste 6.3 aprobado expresamente: `administration.claim_cleanup(requested uuid)`
+  reclama la tarea exacta o la próxima vencida (NULL), devuelve solo UUID/intento y
+  confirma attempts/next_attempt_at antes del filesystem. `lock_cleanup(task uuid,
+  attempt integer)` toma namespace 728323 antes de fila, revalida intento vigente,
+  cuenta ausente incluso ante colisión de ruta legacy de cuenta viva u otra baja
+  registrada, y ausencia global de referencias
+  todavía vinculadas; devuelve solo owner/refs exactos y código seguro media/secret.
+  Python conserva esos locks durante unlinks locales no-follow, sin red/crypto ni
+  threads supervivientes. `finish_cleanup(task uuid,attempt integer,error_code text)`
+  registra done o retry del intento exacto; solo NULL/media/secret/internal.
+  `cleanup_status(task uuid)` consulta metadatos seguros sin referencias/secretos
+  (NULL lista hasta 500, pendientes primero; UUID consulta exacta);
+  `retry_cleanup(task uuid)` reinicia explícitamente solo una tarea agotada, nunca done.
+  Cinco intentos automáticos por ciclo: primero a 1 s, siguientes a 5/15/60/300 s;
+  plazo persistido, el quinto agotado nunca habilita un sexto intento automático;
+  crash/cancel consume intento y no resucita acceso. Worker único y CLI privado
+  autorizado por posesión local de configuración/credencial runtime, sin HTTP.
+  Funciones definer de administration_executor NOLOGIN con search_path fijo y
+  EXECUTE runtime explícito, sin PUBLIC ni membresía. Executor recibe SELECT de
+  deletion_tasks, UPDATE solo status/attempts/last_error_code/next_attempt_at y
+  SELECT(secret_ref) de provider_settings con política existente; runtime no recibe
+  SELECT global ni acceso directo a tareas. Pruebas Q3 cubren ACL/RLS y filesystem.
 - `coach.credential_context(actor text, sv bigint, exp timestamptz)` es el ajuste
   aprobado expresamente para 5.5. Revalida actor/contexto owner y bloquea owner
   antes del singleton; devuelve exclusivamente provider/auth_mode/enabled,

@@ -257,6 +257,11 @@ FastAPI defaults. Missing route coverage blocks parity.
 - Retry command/internal worker uses exact deleted owner/task, bounded attempts (5
   automatic with backoff 1/5/15/60/300 s, then visible retry requiring operator); no
   generic queue. Missing bytes is idempotent success; unknown error retains task.
+  The authorized 6.3 adjustment adds next_attempt_at and the five narrow internal
+  Administration functions in the security catalog. Claim commits before files;
+  processing rechecks absent owner/unbound references under namespace and task locks
+  until local no-follow unlink completes. Private status/run/retry uses configured
+  runtime credentials, no new HTTP surface; done metadata remains inspectable.
 - Invitations consumed remain consumed after account deletion. Audit read/clear is
   admin-only, sequence retained; both age/count limits and IP-off default work.
   Failed audit append is observable after business commit, never converts success.
