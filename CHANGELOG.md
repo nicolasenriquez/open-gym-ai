@@ -14,6 +14,9 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
+  a twenty-device cap, private-address validation and persistent VAPID material.
+  Requires `p005_subscriptions`; sending and reminder scheduling remain pending.
 - Python Coach consent disclosure, opt-in cohort medians and scheduled reviews,
   including restart protection and timezone handling. Deferred SDK/CLI providers
   remain identifiable and unavailable in web/mobile setup and administration.

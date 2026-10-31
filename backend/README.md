@@ -59,6 +59,18 @@ to the API's key mount. For compatible session continuity, provision the origina
 signing key explicitly; never generate or rotate it implicitly during startup or port.
 Keep it separate from all database passwords and Coach decryption material.
 
+The Python subscription API provides `/api/v1/push/public-key`, `subscribe`,
+`status` and `unsubscribe`. VAPID keys stay in `DATA_DIR/vapid.json`, outside SQL
+and images. On the first public-key request a missing pair is created atomically
+with mode 0600; an unreadable or invalid existing pair returns 503 and is never
+replaced. Provision the original pair explicitly when porting existing subscribers.
+Status and unsubscribe are owner-scoped; endpoint transfer preserves the original
+creation date and valid device ID, with at most twenty subscriptions per owner.
+`ALLOWED_PRIVATE_IPS` retains the explicit address/range/CIDR exception contract.
+Registration checks HTTPS, credentials and private IP literals without contacting
+the endpoint. Actual push delivery, connection-time DNS checks, reminder scheduling
+and timers are not yet ported; storing a subscription does not prove delivery.
+
 Prod uses `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
 `PLATFORM_MIGRATE_DIGEST` and `PLATFORM_OPS_DIGEST`: the hex suffix of tested local
 image IDs, not tags or registry manifest digests. `just prod-config <absolute-prod.env>`

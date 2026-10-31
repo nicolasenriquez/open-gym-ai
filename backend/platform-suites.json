@@ -1,4 +1,13 @@
 {
+  "notifications": [{
+    "id": "subscription",
+    "requirement": "Compatible notification and coach state / Notification ownership and local dates",
+    "setup": "Real restricted HTTP/PostgreSQL, synthetic endpoints and independent observer; no external delivery",
+    "target": "platform-test",
+    "command": ["tests/platform/test_notifications.py"],
+    "proof": "Endpoint transfer, date/device preservation, cap, SSRF validation and owner isolation",
+    "checkpoint": "7.1 only; delivery, scheduler and timers remain 7.2/7.3"
+  }],
   "coach_client": [{
     "id": "consent_and_availability",
     "requirement": "Compatible notification and coach state; Explicitly bounded coach delivery",

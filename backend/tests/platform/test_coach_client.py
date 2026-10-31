@@ -481,7 +481,7 @@ async def test_client_upgrade_keeps_deferred_configuration_and_has_bounded_funct
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p003_coach_client.py"),
+        ignore=shutil.ignore_patterns("p005_subscriptions.py", "p003_coach_client.py"),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (
@@ -495,7 +495,7 @@ async def test_client_upgrade_keeps_deferred_configuration_and_has_bounded_funct
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p003_coach_client"
+        == "p005_subscriptions"
     )
     assert await observer.fetchval("SELECT provider FROM coach.settings") == "codex"
     assert (

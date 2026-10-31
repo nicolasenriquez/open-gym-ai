@@ -81,7 +81,7 @@ def probe_env(tmp_path, blocking):
     (package / "platform_migrations/versions/p001_probe.py").write_text(
         "from alembic import op\n\n"
         'revision = "p001_probe"\n'
-        'down_revision = "p003_coach_client"\n\n\n'
+        'down_revision = "p005_subscriptions"\n\n\n'
         "def upgrade():\n" + "\n".join(statements) + "\n",
         encoding="utf-8",
     )
@@ -126,9 +126,9 @@ async def migration_database():
                 DROP TABLE IF EXISTS public.alembic_version;
                 ALTER SCHEMA public OWNER TO opengym_platform_bootstrap;
                 DROP OWNED BY opengym_schema_owner, opengym_migrator, opengym_api_runtime,
-                    opengym_identity_executor, opengym_coach_executor;
+                    opengym_identity_executor, opengym_coach_executor, opengym_notifications_executor;
                 DROP ROLE opengym_schema_owner, opengym_migrator, opengym_api_runtime,
-                    opengym_identity_executor, opengym_coach_executor;
+                    opengym_identity_executor, opengym_coach_executor, opengym_notifications_executor;
             """)
         finally:
             await observer.close(timeout=5)
@@ -140,7 +140,7 @@ async def test_empty_database_reaches_head_and_runtime_cannot_mutate_history(
 ):
     observer = migration_database
     assert await migrate("up") == (0, {"code": "PLATFORM_MIGRATION_UP_OK"})
-    assert await history(observer) == ["p003_coach_client"]
+    assert await history(observer) == ["p005_subscriptions"]
     metadata = await observer.fetchrow("""
         SELECT pg_get_userbyid(n.nspowner) AS owner
         FROM pg_namespace n WHERE n.nspname = 'public'
@@ -177,7 +177,7 @@ async def test_empty_database_reaches_head_and_runtime_cannot_mutate_history(
             )
         ) AND NOT (
             member.rolname = 'opengym_schema_owner' AND m.roleid IN (
-                SELECT oid FROM pg_roles WHERE rolname IN ('opengym_identity_executor','opengym_coach_executor')
+                SELECT oid FROM pg_roles WHERE rolname IN ('opengym_identity_executor','opengym_coach_executor','opengym_notifications_executor')
             )
         )
     """)
@@ -185,7 +185,7 @@ async def test_empty_database_reaches_head_and_runtime_cannot_mutate_history(
     )
     runtime = await connect(RUNTIME_USER, RUNTIME_PASSWORD)
     try:
-        assert await history(runtime) == ["p003_coach_client"]
+        assert await history(runtime) == ["p005_subscriptions"]
         for statement in (
             "CREATE SCHEMA forbidden",
             "CREATE TABLE public.forbidden (id integer)",
@@ -295,7 +295,7 @@ async def test_interrupted_revision_preserves_prefix_and_rerun_recovers(
                     )
                 """):
                     await asyncio.sleep(0.02)
-            assert await history(observer) == ["p003_coach_client"]
+            assert await history(observer) == ["p005_subscriptions"]
             assert (
                 await observer.fetchval("SELECT to_regnamespace('schema_probe')")
                 is None
@@ -325,7 +325,7 @@ async def test_interrupted_revision_preserves_prefix_and_rerun_recovers(
     finally:
         await observer.fetchval("SELECT pg_advisory_unlock(728323)")
     await wait_for_lock(observer, 728322)
-    assert await history(observer) == ["p003_coach_client"]
+    assert await history(observer) == ["p005_subscriptions"]
     assert await observer.fetchval("SELECT to_regnamespace('schema_probe')") is None
     assert await migrate("up", env=env) == (0, {"code": "PLATFORM_MIGRATION_UP_OK"})
     assert await history(observer) == ["p001_probe"]
@@ -344,7 +344,7 @@ async def test_failed_revision_preserves_prefix_and_rerun_recovers(
         1,
         {"code": "PLATFORM_MIGRATION_FAILED"},
     )
-    assert await history(observer) == ["p003_coach_client"]
+    assert await history(observer) == ["p005_subscriptions"]
     await wait_for_lock(observer, 728322)
     await observer.execute("DROP SCHEMA schema_probe")
     assert await migrate("up", env=env) == (0, {"code": "PLATFORM_MIGRATION_UP_OK"})
@@ -401,7 +401,7 @@ async def test_only_lock_owner_applies_pending_revision_after_history_read(
                 1,
                 {"code": "PLATFORM_MIGRATION_LOCKED"},
             )
-            assert await history(observer) == ["p003_coach_client"]
+            assert await history(observer) == ["p005_subscriptions"]
             assert (
                 await observer.fetchval("SELECT to_regnamespace('schema_probe')")
                 is None

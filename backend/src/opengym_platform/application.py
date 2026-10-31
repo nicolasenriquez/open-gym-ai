@@ -25,9 +25,10 @@ from opengym_platform.identity.router import create_router
 from opengym_platform.identity.throttle import Throttle
 from opengym_platform.media.router import create_router as media_router
 from opengym_platform.media.service import Media
+from opengym_platform.notifications.router import create_router as notifications_router
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p003_coach_client"
+SCHEMA_REVISION = "p005_subscriptions"
 
 
 async def recover_coach(database):
@@ -245,6 +246,7 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
         )
 
     public_api.include_router(coach_router(secret=secret, secure=secure))
+    public_api.include_router(notifications_router(secret=secret, secure=secure))
 
     @public_api.get("/config")
     async def config(request: Request):

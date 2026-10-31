@@ -581,6 +581,7 @@ async def test_previous_head_upgrades_preserving_history_and_privileges(
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p005_subscriptions.py",
             "p003_coach_client.py",
             "p003_coach_admin.py",
             "p003_coach_lifecycle.py",

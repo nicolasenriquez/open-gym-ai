@@ -379,6 +379,26 @@ personales/conexión/administración permanecen en 5.5; 5.3 verifica los cuatro
 transports contra endpoints y claves sintéticos privados. Sin proveedores reales,
 launcher Node/SDK/CLI ni aplicación automática de las propuestas a Training.
 
+### Entrega incremental de suscripciones — 7.1
+
+S7 precede a S6 por `hasPush`. `p005_subscriptions` continúa el head real
+`p003_coach_client`, sin adelantar p004 ni crear revisiones vacías; entrega solo
+subscriptions, su índice owner/created y la función catalogada upsert_subscription.
+Delivery state y candidatos del scheduler corresponden a 7.2. El executor NOLOGIN
+se prepara mediante bootstrap y no concede membresía ni lectura global al runtime.
+El upsert toma 728324, owners ordenados y endpoint; revalida sesión tras la espera,
+transfiere sin revelar al propietario anterior y poda únicamente filas propias.
+Status/unsubscribe usan actor y FORCE RLS; las preferencias permanecen en Training.
+
+El consumidor existente necesita public-key antes de subscribe. VAPID conserva
+el fichero externo Node `DATA_DIR/vapid.json`: creación exclusiva atómica solo si
+falta, permisos 0600, validación de la pareja y fallo seguro sin rotación ante daño.
+No añade dependencia, transport ni generación de secretos en migraciones.
+Registro valida HTTPS/credenciales/literales privados y excepciones explícitas
+ALLOWED_PRIVATE_IPS, sin DNS/envío. La protección durante conexión/resolución y
+redirects se entrega con el transporte en 7.2; registrar no acredita recepción real.
+Sin cambios visuales o cadenas nuevas; regresiones del consumidor push/Settings.
+
 ### 12. Cierre técnico de preparación
 
 #### Contexto interno consentido de 5.6 — aprobado

@@ -222,6 +222,11 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   fecha original ni device_id válido si se omite el nuevo. La autorización/SSRF y
   parámetros criptográficos se validan también antes del SQL. Lock advisory xact
   728324 antes de owners, luego fila endpoint; releer propietarios bajo ese orden.
+  La entrega 7.1 devuelve únicamente boolean de admisión, usa executor NOLOGIN
+  sin BYPASSRLS y grant runtime de EXECUTE explícito. Runtime conserva solo
+  SELECT/DELETE de suscripciones bajo FORCE RLS, sin INSERT/UPDATE global ni
+  membresía en el executor. Status/unsubscribe revalidan actor bajo owner lock;
+  unsubscribe ajeno es un no-op compatible y no revela existencia.
   `notifications.delivery_candidates(at timestamptz)` retorna solo IDs candidatos
   al scheduler interno; no credenciales, documentos ni preferencias. Para cada ID,
   el service deriva contexto de trabajo desde esa lista autorizada, vuelve a
