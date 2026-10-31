@@ -81,16 +81,18 @@ server {
         proxy_send_timeout 300s;
     }
 
-    # Photos and videos of custom exercises (PUT and GET under api/media/). Nginx picks the
-    # longest matching prefix, so this block takes those requests from the one above wherever it
-    # sits. Same upstream, resolver and headers; what differs is the body. A video may be tens of
-    # MB, so the cap is MEDIA_UPLOAD_MAX (48m by default; keep it above MEDIA_VIDEO_MAX_MB)
-    # instead of 5m. The upload is passed to the API as it arrives rather than spooled to a temp
-    # file here first: the API checks size, hash and type while it streams and answers a refusal
-    # before the rest is sent, and spooling would double the disk writes and hide the progress.
-    # The two proxy timeouts are the gaps allowed between two reads or writes on the API side,
-    # generous for a slow uplink; a client that stops sending is still cut off by
-    # client_body_timeout (60 s between two reads), the same idle limit the API applies itself.
+    # Photos and videos of custom exercises (PUT and GET under api/media/ and api/v1/media/).
+    # Nginx picks the longest matching prefix, so these blocks take those requests from the one
+    # above wherever they sit. Same upstream, resolver and headers; what differs is the body.
+    # A video may be tens of MB, so the cap is MEDIA_UPLOAD_MAX (48m by default; keep it above
+    # MEDIA_VIDEO_MAX_MB) instead of 5m. The upload is passed to the API as it arrives rather
+    # than spooled to a temp file here first: the API checks size, hash and type while it
+    # streams and answers a refusal before the rest is sent, and spooling would double the disk
+    # writes and hide the progress. The two proxy timeouts are the gaps allowed between two
+    # reads or writes on the API side, generous for a slow uplink; a client that stops sending
+    # is still cut off by client_body_timeout (60 s between two reads), the same idle limit
+    # the API applies itself. Two blocks because the Node API serves /api/media/... while the
+    # Python backend serves /api/v1/media/...; nginx has no inheritance here, so keep them identical.
     location ^~ ${BASE_PATH}/api/media/ {
         client_max_body_size ${MEDIA_UPLOAD_MAX};
         proxy_request_buffering off;
@@ -101,6 +103,24 @@ server {
         set $api_upstream http://${BACKEND}:${PORT};
         # The same mapped target as the block above: under a prefix the upload has to reach the
         # API's /api/media/... route too.
+        proxy_pass $api_upstream$api_request_uri;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header CF-Connecting-IP "${CF_CONNECTING_IP}";
+    }
+    location ^~ ${BASE_PATH}/api/v1/media/ {
+        client_max_body_size ${MEDIA_UPLOAD_MAX};
+        proxy_request_buffering off;
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        resolver ${RESOLVER} valid=10s ipv6=off;
+        set $api_upstream http://${BACKEND}:${PORT};
+        # The same mapped target as the block above: under a prefix the upload has to reach the
+        # API's /api/v1/media/... route too.
         proxy_pass $api_upstream$api_request_uri;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
