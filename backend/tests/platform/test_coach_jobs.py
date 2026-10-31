@@ -427,6 +427,7 @@ async def test_jobs_upgrade_from_configuration_preserves_training_selection_and_
         Path(__file__).parents[2] / "src/opengym_platform",
         package,
         ignore=shutil.ignore_patterns(
+            "p004_admin_users.py",
             "p005_subscriptions.py",
             "p003_coach_client.py",
             "p003_coach_admin.py",
@@ -449,7 +450,7 @@ async def test_jobs_upgrade_from_configuration_preserves_training_selection_and_
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p005_subscriptions"
+        == "p004_admin_users"
     )
     assert await observer.fetchval("SELECT document FROM training.documents") == before
     assert tuple(

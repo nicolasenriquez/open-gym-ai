@@ -71,6 +71,18 @@ Registration checks HTTPS, credentials and private IP literals without contactin
 the endpoint. Actual push delivery, connection-time DNS checks, reminder scheduling
 and timers are not yet ported; storing a subscription does not prove delivery.
 
+Python administration provides `GET /api/v1/admin/users`, `GET /api/v1/admin/user?id=…`
+and `POST /api/v1/admin/user/disable`. Apply bootstrap and the `p004_admin_users`
+migration before starting the updated API. Active administrators can inspect the
+existing workout/bodyweight projection without media or internal document metadata.
+The list includes real subscription presence; live-workout presence remains pending.
+Password/email/reset availability is disclosed only with `PASSWORD_LOGIN=1`.
+Disabling any administrator is refused. Disabling another profile immediately denies
+its sessions and removes pending device links; re-enabling retains Node's session
+version behavior. Pull-only profiles update last-sync at most every ten minutes;
+failed timestamp bookkeeping does not fail a successful Training read. Deletion,
+invitation management, reset issuance and administrative audit are not yet ported.
+
 Prod uses `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
 `PLATFORM_MIGRATE_DIGEST` and `PLATFORM_OPS_DIGEST`: the hex suffix of tested local
 image IDs, not tags or registry manifest digests. `just prod-config <absolute-prod.env>`
@@ -364,6 +376,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `coach_client --case consent_and_availability` | Consent/sharing, coarse provider payloads, scheduled reviews/restart, timezone edges and bounded SQL grants/upgrades. UI proof is recorded separately from this backend case. |
 | `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
+| `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
 The verifier uses `backend/empty.env`, unique `opengym-platform-test-<hex16>`

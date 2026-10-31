@@ -510,8 +510,14 @@ async def test_final_catalog_has_exact_signatures_acl_force_rls_and_no_role_esca
     # Column grants are intentional: table-level checks alone miss accidental escalation.
     grants = {
         "users": {
-            "SELECT": {"id", "display_name", "is_admin", "session_version"},
-            "UPDATE": {"session_version"},
+            "SELECT": {
+                "id",
+                "display_name",
+                "is_admin",
+                "session_version",
+                "last_pull_at",
+            },
+            "UPDATE": {"session_version", "last_pull_at"},
         },
         "invitations": {},
         "login_aliases": {

@@ -288,6 +288,7 @@ jobs:
       - run: node scripts/platform.mjs verify coach_state
       - run: node scripts/platform.mjs verify coach_http --case validated_proposal
       - run: node scripts/platform.mjs verify coach_admin --case credentials
+      - run: node scripts/platform.mjs verify admin_users --case actor_target
       - run: node scripts/platform.mjs verify images
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node --test scripts/platform-build.test.mjs

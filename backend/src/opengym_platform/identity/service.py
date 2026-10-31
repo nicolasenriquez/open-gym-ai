@@ -1,10 +1,12 @@
 """Identity operations own their transaction; collaborators use its same handle."""
 
+import logging
 import os
 import secrets
 import time
 from datetime import UTC, datetime
 
+from opengym_platform.core.database import DatabaseError
 from opengym_platform.identity.passwords import (
     SPACE,
     BusyError,
@@ -19,6 +21,20 @@ from opengym_platform.identity.registration import (
 )
 from opengym_platform.identity.sessions import authorize, sign
 from opengym_platform.identity.throttle import LockedError
+
+
+async def note_pull(database, session):
+    """Best-effort admin sync timestamp; never changes a successful Training read."""
+    try:
+        async with database.transaction() as handle:
+            if await authorize(handle, session):
+                await handle.execute(
+                    """UPDATE identity.users SET last_pull_at=clock_timestamp()
+                    WHERE id=$1 AND (last_pull_at IS NULL OR last_pull_at<=clock_timestamp()-interval '10 minutes')""",
+                    session.owner,
+                )
+    except DatabaseError:
+        logging.getLogger(__name__).warning("TRAINING_PULL_NOTE_FAILED")
 
 
 async def password_login(

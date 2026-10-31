@@ -14,6 +14,10 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Python administrative user listing, workout/bodyweight inspection without media,
+  and disable/enable safeguards with ordered authorization locks. Subscription
+  presence and pull-only last-sync timestamps are preserved. Requires
+  `p004_admin_users`; deletion, invitations and administrative audit remain pending.
 - Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
   a twenty-device cap, private-address validation and persistent VAPID material.
   Requires `p005_subscriptions`; sending and reminder scheduling remain pending.

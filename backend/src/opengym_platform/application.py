@@ -9,6 +9,9 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException
 
+from opengym_platform.administration.router import (
+    create_router as administration_router,
+)
 from opengym_platform.coach.admin import Admin
 from opengym_platform.coach.jobs import Jobs
 from opengym_platform.coach.pipeline import Pipeline
@@ -28,7 +31,7 @@ from opengym_platform.media.service import Media
 from opengym_platform.notifications.router import create_router as notifications_router
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p005_subscriptions"
+SCHEMA_REVISION = "p004_admin_users"
 
 
 async def recover_coach(database):
@@ -247,6 +250,9 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
 
     public_api.include_router(coach_router(secret=secret, secure=secure))
     public_api.include_router(notifications_router(secret=secret, secure=secure))
+    public_api.include_router(
+        administration_router(secret=secret, secure=secure, config=public_config)
+    )
 
     @public_api.get("/config")
     async def config(request: Request):

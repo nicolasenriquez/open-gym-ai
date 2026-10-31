@@ -5,8 +5,22 @@ import json
 import logging
 import secrets
 
+from opengym_platform.identity.service import note_pull
 from opengym_platform.identity.sessions import authorize
 from opengym_platform.training.stamps import number, stamp_put
+
+
+async def admin_projection(handle, session, target, *, detail):
+    """Legacy admin projection; explicit actor/target, never target owner context."""
+    name = "read_admin_detail" if detail else "read_admin_summary"
+    rows = await handle.fetch(
+        f"SELECT training.{name}($1,$2,$3,$4) AS view",
+        session.owner,
+        session.version,
+        session.expires_at,
+        target,
+    )
+    return json.loads(rows[0]["view"]) if rows[0]["view"] else None
 
 
 async def coach_consent(handle):
@@ -40,7 +54,9 @@ async def read(database, session, *, revision_only):
         if document is not None:
             document.pop("_unstamped", None)
             document.pop("_prior", None)
-        return {"state": document, "rev": rows[0]["revision"] if rows else 0}
+        result = {"state": document, "rev": rows[0]["revision"] if rows else 0}
+    await note_pull(database, session)
+    return result
 
 
 async def write(database, session, body, note_state=None, *, coach=None):

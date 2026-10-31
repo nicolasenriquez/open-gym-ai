@@ -439,6 +439,7 @@ async def test_registration_migration_preserves_previous_head_and_restricted_gra
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_admin_users.py",
             "p005_subscriptions.py",
             "p003_coach_client.py",
             "p003_coach_admin.py",

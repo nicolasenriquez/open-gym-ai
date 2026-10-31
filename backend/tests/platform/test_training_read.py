@@ -172,6 +172,8 @@ async def test_rls_and_projection_privileges_are_restricted(identities):
         WHERE n.nspname='training' ORDER BY p.proname
     """)
     assert [tuple(row) for row in functions] == [
+        ("read_admin_detail", "v", False, True, True, False),
+        ("read_admin_summary", "v", False, True, True, False),
         ("revision_of", "i", True, False, True, False),
         ("write_id_of", "i", True, False, True, False),
     ]
@@ -249,6 +251,7 @@ async def test_training_migration_extends_existing_identity_without_replay(
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_admin_users.py",
             "p005_subscriptions.py",
             "p003_coach_client.py",
             "p003_coach_admin.py",
@@ -278,7 +281,7 @@ async def test_training_migration_extends_existing_identity_without_replay(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p005_subscriptions"
+        == "p004_admin_users"
     )
     assert tuple(
         await observer.fetchrow("SELECT id,display_name,created_at FROM identity.users")

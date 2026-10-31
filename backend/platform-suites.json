@@ -1,4 +1,13 @@
 {
+  "admin_users": [{
+    "id": "actor_target",
+    "requirement": "Executable schema and privileged functions / Existing administrative Training projection is preserved; Authenticated session to RLS ownership / Concurrent revocation is serialized with protected work",
+    "setup": "Real restricted HTTP/PostgreSQL and independent observer with synthetic accounts",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_users.py"],
+    "proof": "Actor-target permissions, bounded Training projections, hasPush and ordered disable/revocation",
+    "checkpoint": "6.1 only; deletion, invitations and audit remain later slices"
+  }],
   "notifications": [{
     "id": "subscription",
     "requirement": "Compatible notification and coach state / Notification ownership and local dates",

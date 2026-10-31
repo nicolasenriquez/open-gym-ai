@@ -633,6 +633,7 @@ async def test_management_upgrade_preserves_rows_and_forced_rls_grants(
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_admin_users.py",
             "p005_subscriptions.py",
             "p003_coach_client.py",
             "p003_coach_admin.py",

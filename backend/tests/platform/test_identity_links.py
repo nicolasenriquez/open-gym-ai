@@ -668,6 +668,7 @@ async def test_forward_migration_preserves_links_and_keeps_functions_and_runtime
         previous / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_admin_users.py",
             "p005_subscriptions.py",
             "p003_coach_client.py",
             "p003_coach_admin.py",
