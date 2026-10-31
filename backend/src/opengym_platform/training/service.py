@@ -32,7 +32,7 @@ async def coach_consent(handle):
 
 
 async def notification_document(handle):
-    """Scheduled notification input, only within a locked delivery-owner context."""
+    """Notification input, within an authorized actor or locked delivery-owner context."""
     rows = await handle.fetch("SELECT document FROM training.documents")
     return json.loads(rows[0]["document"]) if rows else None
 

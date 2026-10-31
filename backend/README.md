@@ -83,14 +83,26 @@ not followed. Dead 403/404/410 subscriptions are pruned only if still owned with
 same keys. Notification copy is generated from existing strings with
 `node scripts/build-push-assets.mjs`; `--check` detects drift. Verification uses a
 private TLS fixture and independent Node encryption vectors, not real push services
-or physical devices. Activity/presence updates and rest timers remain pending in
-7.3; the nudge's process-local active-owner hook is not yet wired to HTTP.
+or physical devices.
+
+`POST /api/v1/push/test` attempts all of the caller's subscriptions. Rest alerts use
+`POST /api/v1/push/rest-timer` and `/push/rest-timer/cancel`, with one replaceable
+timer per owner/device. Missing or invalid device IDs retain account-wide behavior;
+subscriptions without a device ID also receive device-specific alerts. Sends
+revalidate the initiating session, so expired/revoked sessions cannot send a pending
+alert. These operations do not require reminders to be enabled.
+`POST /api/v1/activity` supplies the ephemeral live-workout snapshot used by the
+admin list and nudge suppression. Presence expires after 70 seconds without a
+heartbeat or 45 seconds after the first hidden signal; a new heartbeat clears that
+signal. Navigation clears presence immediately. Disabling a profile clears its
+presence and pending timers. API shutdown cancels pending timers; restart restores
+neither timers nor presence. No migration or persistent timer store is added.
 
 Python administration provides `GET /api/v1/admin/users`, `GET /api/v1/admin/user?id=…`
 and `POST /api/v1/admin/user/disable`. Apply bootstrap and the `p004_admin_users`
 migration before starting the updated API. Active administrators can inspect the
 existing workout/bodyweight projection without media or internal document metadata.
-The list includes real subscription presence; live-workout presence remains pending.
+The list includes real subscription and ephemeral live-workout presence.
 Password/email/reset availability is disclosed only with `PASSWORD_LOGIN=1`.
 Disabling any administrator is refused. Disabling another profile immediately denies
 its sessions and removes pending device links; re-enabling retains Node's session
@@ -392,6 +404,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
 | `notifications --case subscription` | Owner endpoint transfer, original date/device fallback, cap twenty, VAPID continuity and restricted ACL/RLS. |
+| `notifications --case device_isolation` | HTTP activity/test/rest/cancel, owner/device isolation and legacy fallback, replacement/revocation, ephemeral presence/hidden grace, nudge suppression and restart without timer recovery. |
 | `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |

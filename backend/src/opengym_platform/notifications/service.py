@@ -7,6 +7,14 @@ from opengym_platform.identity.sessions import authorize
 from opengym_platform.notifications.endpoints import endpoint_error
 
 
+def device_id(value):
+    return (
+        value
+        if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_-]{8,64}", value)
+        else None
+    )
+
+
 async def preflight(database, session):
     async with database.transaction() as handle:
         return await authorize(handle, session)
@@ -36,11 +44,7 @@ async def handle(database, session, operation, body):
         error = endpoint_error(sub["endpoint"])
         if error:
             return response({"error": error}, 400)
-        device = body.get("deviceId")
-        if not isinstance(device, str) or not re.fullmatch(
-            r"[A-Za-z0-9_-]{8,64}", device
-        ):
-            device = None
+        device = device_id(body.get("deviceId"))
         async with database.transaction() as handle:
             rows = await handle.fetch(
                 "SELECT notifications.upsert_subscription($1,$2,$3,$4,$5,$6,$7,$8) AS accepted",

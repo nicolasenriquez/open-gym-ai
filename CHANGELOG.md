@@ -25,7 +25,9 @@ principles. Published entries below are preserved; see the
   back-off. HTTPS sends pin validated DNS addresses with original-host TLS and
   no redirects; verification uses private fixtures, not physical devices.
   Dates are claimed before sending without guaranteed retries or exactly-once
-  delivery. Activity/presence and rest timers remain pending.
+  delivery. Owner/device rest timers, test pushes and live-workout heartbeats now
+  use the same restricted API and transport. Presence drives the admin list and
+  nudge suppression; presence/timers are process-local and lost on API restart.
 - Python Coach consent disclosure, opt-in cohort medians and scheduled reviews,
   including restart protection and timezone handling. Deferred SDK/CLI providers
   remain identifiable and unavailable in web/mobile setup and administration.

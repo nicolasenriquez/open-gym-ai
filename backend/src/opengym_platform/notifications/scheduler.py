@@ -5,6 +5,8 @@ import logging
 from datetime import UTC, datetime
 
 from opengym_platform.core.database import DatabaseError
+from opengym_platform.identity.sessions import authorize
+from opengym_platform.notifications.activity import Presence
 from opengym_platform.notifications.endpoints import endpoint_error
 from opengym_platform.notifications.planner import message, planned
 from opengym_platform.training.service import notification_document
@@ -14,10 +16,40 @@ class Notifications:
     def __init__(self, database, send):
         self.database = database
         self.send = send
-        # Presence remains process-local; activity supplies updates in slice 7.3.
-        self.active = set()
+        self.active = Presence()
         self.lock = asyncio.Lock()
         self.workers = asyncio.Semaphore(4)
+        self.timers = {}
+        self.pending = set()
+
+    def schedule(self, session, device, seconds, payload):
+        self.cancel(session.owner, device, exact=True)
+        key = (session.owner, device)
+
+        async def fire():
+            try:
+                await asyncio.sleep(seconds)
+                self.timers.pop(key, None)
+                await self.push(session, payload, device)
+            except DatabaseError:
+                logging.getLogger(__name__).warning("PLATFORM_REST_PUSH_FAILED")
+
+        task = asyncio.create_task(fire())
+        self.timers[key] = task
+        self.pending.add(task)
+        task.add_done_callback(self.pending.discard)
+
+    def cancel(self, owner, device=None, *, exact=False):
+        for key in list(self.timers):
+            if key[0] == owner and (key[1] == device if device or exact else True):
+                self.timers.pop(key).cancel()
+
+    async def close(self):
+        for task in self.pending:
+            task.cancel()
+        await asyncio.gather(*self.pending, return_exceptions=True)
+        self.timers.clear()
+        self.active.clear()
 
     async def tick(self, now=None):
         async with self.lock:
@@ -39,7 +71,9 @@ class Notifications:
                 return
             state = await notification_document(handle)
             payloads = []
-            for kind, rid, day in planned(state, now, owner in self.active):
+            for kind, rid, day in planned(
+                state, now, self.active.live(owner) is not None
+            ):
                 column = "last_nudge_date" if kind == "nudge" else "last_reminder_date"
                 rows = await handle.fetch(
                     f"""INSERT INTO notifications.delivery_state(owner_id,{column}) VALUES($1,$2)
@@ -64,12 +98,36 @@ class Notifications:
             if any(isinstance(result, Exception) for result in results):
                 logging.getLogger(__name__).warning("PLATFORM_PUSH_BOOKKEEPING_FAILED")
 
-    async def send_one(self, owner, subscription, payload):
+    async def push(self, session, payload, device=None):
+        async with self.database.transaction() as handle:
+            if not await authorize(handle, session):
+                return
+            subscriptions = await handle.fetch(
+                "SELECT * FROM notifications.subscriptions WHERE $1::text IS NULL "
+                "OR device_id IS NULL OR device_id=$1",
+                device,
+            )
+        results = await asyncio.gather(
+            *(
+                self.send_one(session.owner, sub, payload, session=session)
+                for sub in subscriptions
+            ),
+            return_exceptions=True,
+        )
+        if any(isinstance(result, Exception) for result in results):
+            logging.getLogger(__name__).warning("PLATFORM_PUSH_BOOKKEEPING_FAILED")
+
+    async def send_one(self, owner, subscription, payload, *, session=None):
+        async def allowed(handle):
+            if session is not None:
+                return await authorize(handle, session)
+            return await handle.fetch(
+                "SELECT * FROM notifications.lock_delivery_owner($1)", owner
+            )
+
         async with self.workers:
             async with self.database.transaction() as handle:
-                if not await handle.fetch(
-                    "SELECT * FROM notifications.lock_delivery_owner($1)", owner
-                ):
+                if not await allowed(handle):
                     return
                 current = await handle.fetch(
                     "SELECT * FROM notifications.subscriptions WHERE endpoint=$1 AND p256dh=$2 AND auth=$3",
@@ -89,9 +147,7 @@ class Notifications:
                 logging.getLogger(__name__).warning("PLATFORM_PUSH_FAILED")
             if invalid or status in (403, 404, 410):
                 async with self.database.transaction() as handle:
-                    if await handle.fetch(
-                        "SELECT * FROM notifications.lock_delivery_owner($1)", owner
-                    ):
+                    if await allowed(handle):
                         await handle.execute(
                             "DELETE FROM notifications.subscriptions WHERE endpoint=$1 AND p256dh=$2 AND auth=$3",
                             subscription["endpoint"],
@@ -105,6 +161,7 @@ class Notifications:
         while True:
             await asyncio.sleep(10)
             try:
+                self.active.sweep()
                 await self.tick()
             except DatabaseError:
                 logging.getLogger(__name__).warning("PLATFORM_NOTIFICATION_UNAVAILABLE")

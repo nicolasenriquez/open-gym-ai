@@ -86,6 +86,18 @@ def create_router(*, secret, secure, config):
             status, result = await handle(
                 database, session, request.url.path.rsplit("/", 1)[-1], body, config
             )
+            if status == 200:
+                notifications = request.app.state.notifications
+                if "users" in result:
+                    for user in result["users"]:
+                        user["live"] = (
+                            None
+                            if user["disabled"]
+                            else notifications.active.live(user["id"])
+                        )
+                elif result.get("disabled"):
+                    notifications.active.update(result["id"], {"active": False})
+                    notifications.cancel(result["id"])
             return response(result, status)
         except PermissionError:
             return response({"error": "not signed in"}, 401)

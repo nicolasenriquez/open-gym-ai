@@ -1,6 +1,7 @@
 """Subscription operations authorize at the transaction boundary."""
 
 import json
+import math
 import os
 
 from fastapi import APIRouter, Request
@@ -8,10 +9,13 @@ from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
 from opengym_platform.core.database import DatabaseError
-from opengym_platform.identity.sessions import verify
+from opengym_platform.identity.sessions import authorize, verify
+from opengym_platform.notifications.activity import number
+from opengym_platform.notifications.planner import COPY, obj
+from opengym_platform.notifications.service import device_id, preflight
 from opengym_platform.notifications.service import handle as handle_operation
-from opengym_platform.notifications.service import preflight
 from opengym_platform.notifications.vapid import public_key
+from opengym_platform.training.service import notification_document
 
 
 def create_router(*, secret, secure):
@@ -31,6 +35,10 @@ def create_router(*, secret, secure):
                 headers={"Cache-Control": "no-store"},
             )
 
+    @router.post("/activity")
+    @router.post("/push/rest-timer")
+    @router.post("/push/rest-timer/cancel")
+    @router.post("/push/test")
     @router.get("/push/status")
     @router.post("/push/subscribe")
     @router.post("/push/unsubscribe")
@@ -70,19 +78,56 @@ def create_router(*, secret, secure):
             # Body validation does not grant access, including on a revoked session.
             if not await preflight(database, session):
                 return response({"error": "not signed in"}, 401)
-            if request.method == "POST":
+            operation = request.url.path.rsplit("/", 1)[-1]
+            if request.method == "POST" and operation != "test":
                 raw = bytearray()
                 async for chunk in request.stream():
                     if len(raw) + len(chunk) > 5 * 1024 * 1024:
                         return response({"error": "body too large"}, 413)
                     raw.extend(chunk)
                 try:
-                    body = json.loads(raw or b"{}")
+
+                    def invalid_constant(value):
+                        raise ValueError("invalid JSON")
+
+                    body = json.loads(raw or b"{}", parse_constant=invalid_constant)
                     if not isinstance(body, dict):
                         raise TypeError
-                except (ValueError, TypeError, UnicodeError):
+                except (ValueError, TypeError, UnicodeError, RecursionError):
                     return response({"error": "invalid JSON"}, 400)
-            operation = request.url.path.rsplit("/", 1)[-1]
+            if operation in {"test", "rest-timer", "cancel", "activity"}:
+                seconds = None
+                if operation == "rest-timer":
+                    value = body.get("seconds")
+                    n = number(value) if type(value) in (int, float, str) else 0
+                    if not n >= 1:
+                        return response({"error": "seconds required"}, 400)
+                    seconds = math.floor(min(3600, n) + 0.5)
+                async with database.transaction() as handle:
+                    if not await authorize(handle, session):
+                        return response({"error": "not signed in"}, 401)
+                    state = (
+                        obj(await notification_document(handle))
+                        if operation in {"test", "rest-timer"}
+                        else {}
+                    )
+                    lang = state.get("lang")
+                alerts = (
+                    COPY["alerts"].get(lang, COPY["alerts"]["en"])
+                    if isinstance(lang, str)
+                    else COPY["alerts"]["en"]
+                )
+                notifications = request.app.state.notifications
+                device = device_id(body.get("deviceId"))
+                if operation == "activity":
+                    notifications.active.update(session.owner, body)
+                elif operation == "test":
+                    await notifications.push(session, alerts["test"])
+                elif operation == "cancel":
+                    notifications.cancel(session.owner, device)
+                else:
+                    notifications.schedule(session, device, seconds, alerts["rest"])
+                return response({"ok": True})
             status, result = await handle_operation(
                 database,
                 session,

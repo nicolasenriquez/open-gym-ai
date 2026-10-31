@@ -9,6 +9,14 @@
     "checkpoint": "6.1 only; deletion, invitations and audit remain later slices"
   }],
   "notifications": [{
+    "id": "device_isolation",
+    "requirement": "Compatible notification and coach state / Notification ownership and local dates",
+    "setup": "Restricted HTTP/PostgreSQL, process-local activity/timers and private fake push",
+    "target": "platform-test",
+    "command": ["tests/platform/test_notification_activity.py"],
+    "proof": "Owner/device alert selection, cancellation, ephemeral presence and restart",
+    "checkpoint": "7.3 synthetic only; no real device delivery"
+  }, {
     "id": "local_dates",
     "requirement": "Compatible notification and coach state / Notification ownership and local dates",
     "setup": "Restricted PostgreSQL, internal scheduler, fixed clocks and private fake transport",

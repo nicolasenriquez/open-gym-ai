@@ -112,6 +112,8 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
             for task in maintenance:
                 with suppress(asyncio.CancelledError):
                     await task
+            if getattr(app.state, "notifications", None) is not None:
+                await app.state.notifications.close()
             if getattr(app.state, "coach_jobs", None) is not None:
                 await app.state.coach_jobs.close()
             await database.close()
