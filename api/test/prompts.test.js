@@ -7,12 +7,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const { PROMPTS } = await import('../coach/core/prompts.js');
-const { buildPrompt } = await import('../coach/core/prompt.js');
+const { PROMPTS } = await import('../../shared/coach-core/prompts.js');
+const { buildPrompt } = await import('../../shared/coach-core/prompt.js');
 
-const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'coach', 'prompts');
+const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'shared', 'coach-core', 'prompts');
 
-test('core/prompts.js matches api/coach/prompts/*.md byte for byte', () => {
+test('core/prompts.js matches shared/coach-core/prompts/*.md byte for byte', () => {
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.md')).sort();
   assert.deepEqual(Object.keys(PROMPTS).sort(), files.map(f => f.replace(/\.md$/, '')));
   for (const f of files) {

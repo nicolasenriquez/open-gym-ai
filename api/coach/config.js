@@ -26,8 +26,8 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { HTTP_PROVIDERS, baseUrlFor } from './core/providers.js';
-import { MAX_OUTPUT_TOKENS } from './core/adapters/http.js';
+import { HTTP_PROVIDERS, baseUrlFor } from '../../shared/coach-core/providers.js';
+import { MAX_OUTPUT_TOKENS } from '../../shared/coach-core/adapters/http.js';
 
 const DATA = process.env.DATA_DIR || '/data';
 const FILE = path.join(DATA, 'coach.json');

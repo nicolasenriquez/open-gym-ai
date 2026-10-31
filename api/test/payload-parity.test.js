@@ -17,7 +17,7 @@ import { readSession as frontendReadSession } from '../../frontend/src/lib/progr
 import { NOTE_MAX as frontendNoteMax } from '../../frontend/src/lib/history.js';
 
 tempData();
-const payload = await import('../coach/core/payload.js');
+const payload = await import('../../shared/coach-core/payload.js');
 const { handleFor } = await import('../coach/handle.js');
 
 /* The payload bounds a session note at the app's own cap, so a note the app let the athlete write

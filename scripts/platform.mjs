@@ -72,7 +72,7 @@ try {
         await runProject(async step => {
           await step(['config', '--quiet']);
           await step(['build', entry.target]);
-          await step(['run', '--rm', '--no-deps', entry.target, ...entry.command]);
+          await step(['run', '--rm', '--no-deps', ...(entry.entrypoint ? ['--entrypoint', entry.entrypoint] : []), entry.target, ...entry.command]);
         });
       } else throw new Error('PLATFORM_MAPPING_INVALID');
       console.log(JSON.stringify({ code: 'PLATFORM_CASE_OK', suite, case: entry.id }));

@@ -28,7 +28,7 @@ import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { unprivilegedIds } from './spawn.js';
-import { SYSTEM_PROMPT } from '../core/system-prompt.js';
+import { SYSTEM_PROMPT } from '../../../shared/coach-core/system-prompt.js';
 
 const PKG = '@anthropic-ai/claude-agent-sdk';
 const require_ = createRequire(import.meta.url);

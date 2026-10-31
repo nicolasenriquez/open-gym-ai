@@ -83,8 +83,8 @@ entry is excluded. Mixed sessions omit it. `active.noProg` is not a saved field.
 ## 7. Coach fingerprint
 
 Client [`coach.js`](../../frontend/src/lib/coach.js) and server
-[`payload.js`](../../api/coach/core/payload.js)/
-[`plan-hash.js`](../../api/coach/core/plan-hash.js) must agree on canonical plan and
+[`payload.js`](../../shared/coach-core/payload.js)/
+[`plan-hash.js`](../../shared/coach-core/plan-hash.js) must agree on canonical plan and
 fingerprint. Scalar and one-item-list days normalize identically; combined-day order
 is significant. A Coach `week` operation remains scalar and replaces a day, rather
 than composing several routines. See the [Coach guide](../AI_COACH.md).

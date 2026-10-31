@@ -15,7 +15,7 @@
  */
 import * as cfgStore from './config.js';
 import { readState, listUserIds, isSharing } from './jobs.js';
-import { libraryHas, libraryName } from './core/library.js';
+import { libraryHas, libraryName } from '../../shared/coach-core/library.js';
 
 export const MIN_PEOPLE = 3;
 export const MAX_EXERCISES = 12;

@@ -90,7 +90,7 @@ answers on instead, and a key only if it wants one.
 - **Use an API key** → paste it. It is encrypted into `./data/coach.json` and is never shown
   again.
 - **List models** asks the endpoint what it serves and turns the model field into a picker.
-  Each provider has a starting default (it is in `api/coach/core/providers.js`, and it is a
+  Each provider has a starting default (it is in `shared/coach-core/providers.js`, and it is a
   starting point, not a pin — names go stale, the list does not); the compatible endpoint has
   none, because it serves whatever you put behind it.
 - **Test the Coach** — a real round trip with no user data anywhere near it.
@@ -251,7 +251,7 @@ archive.
 
 ## What actually leaves your server
 
-[`api/coach/core/payload.js`](../api/coach/core/payload.js) is built as an allowlist: every field is copied in **by name**, nothing
+[`shared/coach-core/payload.js`](../shared/coach-core/payload.js) is built as an allowlist: every field is copied in **by name**, nothing
 is spread and nothing is passed through, so a field added to the state blob next year cannot
 ride along by accident. The categories it can send — the same list the consent screen
 renders from, so the screen cannot drift from the payload — are:
@@ -291,7 +291,7 @@ pins them against the originals over a table of configs, so the copies cannot dr
 
 ## What comes back, and what it is allowed to do
 
-The prompt asks for a shape and the model usually obliges. [`api/coach/core/validate.js`](../api/coach/core/validate.js) is where
+The prompt asks for a shape and the model usually obliges. [`shared/coach-core/validate.js`](../shared/coach-core/validate.js) is where
 "usually" stops mattering, and it — not the prompt — is the security boundary. Nothing reaches
 you that has not:
 
@@ -373,7 +373,7 @@ Codex CLI. Everything else in this section is about those two.
 - **`coach`** — the same image plus `@anthropic-ai/claude-agent-sdk`. Around 455 MB.
 
 ```
-docker build --target coach ./api          # or:
+docker build -f api/Dockerfile --target coach .          # or:
 API_TARGET=coach docker compose up --build api
 ```
 

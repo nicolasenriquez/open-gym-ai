@@ -6,9 +6,9 @@
 *.sh            text eol=lf
 frontend/scripts/check-mobile-bundle.mjs text eol=lf
 api/nudge-copy.js text eol=lf
-api/coach/prompts/*.md text eol=lf
-api/coach/core/library-data.js text eol=lf
-api/coach/core/prompts.js text eol=lf
+shared/coach-core/prompts/*.md text eol=lf
+shared/coach-core/library-data.js text eol=lf
+shared/coach-core/prompts.js text eol=lf
 *.template      text eol=lf
 Dockerfile      text eol=lf
 *.Dockerfile    text eol=lf

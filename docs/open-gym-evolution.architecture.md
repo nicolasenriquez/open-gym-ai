@@ -221,7 +221,7 @@ Referencias: [lifespan FastAPI](https://fastapi.tiangolo.com/advanced/events/), 
 | Medios (`api/media.js`) | Callback de estado para referencias/GC | Adaptar a nueva lectura; no borrar medios por tomar error de BD como ausencia de referencias. |
 | Administración y recordatorios | Usuarios/estado leídos en el servidor | Consultar autoridad actual y conservar ownership/permisos. |
 | Export/import/reset frontend (`Settings.jsx`, `useStore.js`, `backup-media.js`) | Documento Training local, merge y reemplazos deliberados | Mantener alcance y semántica. Export Training no debe prometer backup completo de Recovery. |
-| Coach payload (`api/coach/core/payload.js`) | Workouts, notas y ejercicios Training permitidos | Pruebas negativas: Recovery no se incorpora directa ni indirectamente. |
+| Coach payload (`shared/coach-core/payload.js`) | Workouts, notas y ejercicios Training permitidos | Pruebas negativas: Recovery no se incorpora directa ni indirectamente. |
 
 ### 9.1 Paridad del port y alcance de retirada
 

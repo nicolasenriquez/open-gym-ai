@@ -10,7 +10,7 @@ fs.writeFileSync(path.join(DIR, 'secret'), 'x'.repeat(64));
 
 const cfgStore = await import('../coach/config.js');
 const { warmOnce } = await import('../coach/warmup.js');
-const { buildPromptParts } = await import('../coach/core/prompt.js');
+const { buildPromptParts } = await import('../../shared/coach-core/prompt.js');
 
 test('warmup pings the compatible endpoint once per chat kind, with the real rules prefix', async t => {
   cfgStore.reset();

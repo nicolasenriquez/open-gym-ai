@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import { tempData } from './helpers.mjs';
 
 tempData();
-const { validatePlan, validateReview, CHANGE_TYPES } = await import('../coach/core/validate.js');
+const { validatePlan, validateReview, CHANGE_TYPES } = await import('../../shared/coach-core/validate.js');
 
 const PLAN = {
   routines: [{
@@ -445,7 +445,7 @@ test('a load step has an upper bound', () => {
 });
 
 /* ---------- debriefs ---------- */
-const { validateDebrief } = await import('../coach/core/validate.js');
+const { validateDebrief } = await import('../../shared/coach-core/validate.js');
 
 test('a debrief keeps summary, a clamped whole-number score and the three short lists', () => {
   const r = validateDebrief({

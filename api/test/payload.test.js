@@ -6,7 +6,7 @@ import { tempData, sampleState } from './helpers.mjs';
 mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 6, 21, 12) });
 after(() => mock.timers.reset());
 tempData();
-const payload = await import('../coach/core/payload.js');
+const payload = await import('../../shared/coach-core/payload.js');
 const { handleFor, HANDLE_LENGTH } = await import('../coach/handle.js');
 
 test('the server handle is stable per uid, distinct across uids, and never the uid', () => {

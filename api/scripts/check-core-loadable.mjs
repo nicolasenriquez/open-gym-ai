@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Does api/coach/core/ still load under plain node?
+/* Does shared/coach-core/ still load under plain node?
  *
  * The core is imported by two runtimes: the server under bare node, and the phone under Vite.
  * Vite forgives things node does not — `?raw`, `import.meta.glob`, JSON without an import
@@ -9,7 +9,7 @@
  */
 import { readdirSync } from 'node:fs';
 
-const CORE = new URL('../coach/core/', import.meta.url);
+const CORE = new URL('../../shared/coach-core/', import.meta.url);
 const files = readdirSync(CORE).filter(f => f.endsWith('.js')).sort();
 const adapters = readdirSync(new URL('adapters/', CORE)).filter(f => f.endsWith('.js')).sort().map(f => 'adapters/' + f);
 
@@ -36,4 +36,4 @@ if (failed) {
   console.error(`\n${failed} module(s) do not load under plain node — the api would not start.`);
   process.exit(1);
 }
-console.log('\napi/coach/core loads under plain node.');
+console.log('\nshared/coach-core loads under plain node.');

@@ -13,7 +13,7 @@ import { tempData, sampleState } from './helpers.mjs';
 mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 6, 21, 12) });
 after(() => mock.timers.reset());
 tempData();
-const payload = await import('../coach/core/payload.js');
+const payload = await import('../../shared/coach-core/payload.js');
 
 const HUGE = 'x'.repeat(200_000);
 const hugeProfile = () => ({

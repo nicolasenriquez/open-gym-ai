@@ -2,12 +2,8 @@
 !backend/
 backend/**
 !backend/Dockerfile.browser
-!api/
-api/**
-!api/coach/
-api/coach/**
-!api/coach/core/
-!api/coach/core/**
+!shared/
+!shared/**
 !frontend/
 frontend/**
 !frontend/index.html

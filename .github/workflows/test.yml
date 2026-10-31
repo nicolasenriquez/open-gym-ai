@@ -188,11 +188,11 @@ jobs:
 
       - run: node --test scripts/docker-build-context.test.mjs
       - run: docker build -f web/Dockerfile -t opengym-web:ci .
-      - run: docker build --target default -t opengym-api:default ./api
-      - run: docker build --target coach   -t opengym-api:coach   ./api
+      - run: docker build -f api/Dockerfile --target default -t opengym-api:default .
+      - run: docker build -f api/Dockerfile --target coach   -t opengym-api:coach   .
       # An untargeted build uses the last Dockerfile stage. Verify it remains runtime-free
       # for consumers building without --target, independently of the explicit default build.
-      - run: docker build -t opengym-api:published ./api
+      - run: docker build -f api/Dockerfile -t opengym-api:published .
 
       - name: The untargeted image excludes AI packages and executables
         run: docker run --rm -i opengym-api:published node --input-type=module < scripts/ci/assert-no-ai-executables.mjs
@@ -293,4 +293,5 @@ jobs:
       - run: node scripts/platform.mjs verify notifications
       - run: node scripts/platform.mjs verify images
       - run: node scripts/platform.mjs verify contracts --case baseline
+      - run: node scripts/platform.mjs verify shared_client --case canonical_sources
       - run: node --test scripts/platform-build.test.mjs

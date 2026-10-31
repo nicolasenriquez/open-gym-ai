@@ -2,10 +2,8 @@
 **
 !frontend/
 !frontend/**
-!api/
-!api/coach/
-!api/coach/core/
-!api/coach/core/**
+!shared/
+!shared/**
 !web/
 !web/Dockerfile
 !web/nginx.conf.template

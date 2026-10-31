@@ -6,8 +6,8 @@ import assert from 'node:assert/strict';
 import { tempData } from './helpers.mjs';
 
 tempData();
-const { runPipeline } = await import('../coach/core/pipeline.js');
-const { buildPromptParts } = await import('../coach/core/prompt.js');
+const { runPipeline } = await import('../../shared/coach-core/pipeline.js');
+const { buildPromptParts } = await import('../../shared/coach-core/prompt.js');
 
 const plan = {
   routines: [{ id: 'push', name: 'Push Day', ex: [{ id: '0001', sets: 3, reps: 8 }, { id: '0007', sets: 3, reps: 10 }] }],

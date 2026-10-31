@@ -13,7 +13,7 @@
 //   frontend/src/instr/<lang>.js              instruction steps, loaded with the language
 //   frontend/src/exercise-names/<lang>.js     translated names, loaded with the language
 //   frontend/src/exercise-desc/<lang>.js      descriptions, loaded when one is shown
-// and then api/coach/core/library-data.js through build-coach-assets.mjs.
+// and then shared/coach-core/library-data.js through build-coach-assets.mjs.
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'

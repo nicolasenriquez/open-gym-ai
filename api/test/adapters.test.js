@@ -21,9 +21,10 @@ const cfg = await import('../coach/config.js');
 test('the fixture provider runs from a path containing spaces and a URL fragment character', async t => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gym fixture # '));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  fs.cpSync(new URL('../coach/', import.meta.url), path.join(dir, 'coach'), { recursive: true });
+  fs.cpSync(new URL('../coach/', import.meta.url), path.join(dir, 'api/coach'), { recursive: true });
+  fs.cpSync(new URL('../../shared/', import.meta.url), path.join(dir, 'shared'), { recursive: true });
   fs.writeFileSync(path.join(dir, 'package.json'), '{"type":"module"}');
-  const { adapterFor } = await import(pathToFileURL(path.join(dir, 'coach/adapters/index.js')));
+  const { adapterFor } = await import(pathToFileURL(path.join(dir, 'api/coach/adapters/index.js')));
   const result = await adapterFor('fixture').invoke({ prompt: 'Return a small JSON object.', jobDir: dir, env: {}, timeoutMs: 5000 });
   assert.equal(result.code, 0, result.stderr);
   assert.equal(JSON.parse(result.text).ok, true);

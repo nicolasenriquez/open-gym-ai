@@ -4,7 +4,7 @@ WORKDIR /app/frontend
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN --mount=type=cache,id=opengym-platform-pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts --package-import-method=copy
-COPY api/coach/core/ /app/api/coach/core/
+COPY shared/ /app/shared/
 COPY frontend/index.html frontend/vite.config.js ./
 COPY frontend/src/ ./src/
 COPY frontend/scripts/ ./scripts/

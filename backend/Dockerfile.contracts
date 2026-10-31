@@ -21,12 +21,16 @@ COPY --from=frontend-deps --chown=node:node /app/frontend/ /app/frontend/
 WORKDIR /app/api
 COPY --chown=node:node api/*.js ./
 COPY --chown=node:node api/coach/ ./coach/
+COPY --chown=node:node api/scripts/check-core-loadable.mjs ./scripts/
+COPY --chown=node:node shared/ /app/shared/
+COPY --chown=node:node catalogue/exercises/ /app/catalogue/exercises/
+COPY --chown=node:node backend/src/opengym_platform/coach/assets.json /app/backend/src/opengym_platform/coach/assets.json
 COPY --chown=node:node api/test/ ./test/
 COPY --chown=node:node api/openapi.yaml ./
 COPY --chown=node:node frontend/src/ /app/frontend/src/
 COPY --chown=node:node frontend/scripts/ /app/frontend/scripts/
 COPY --chown=node:node frontend/vite.config.js /app/frontend/
-COPY --chown=node:node scripts/build-api-docs.mjs /app/scripts/
+COPY --chown=node:node scripts/build-api-docs.mjs scripts/build-coach-assets.mjs scripts/build-coach-library.mjs scripts/shared-client.test.mjs /app/scripts/
 COPY --chown=node:node backend/contracts/ /app/contracts/
 COPY --chown=node:node backend/contracts-run.mjs backend/contracts-compare.test.mjs backend/versions.json LICENSE /app/
 WORKDIR /app

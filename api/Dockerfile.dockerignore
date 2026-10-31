@@ -1,0 +1,21 @@
+# Root context for the Node API; only runtime sources and frozen dependency inputs.
+**
+!api/
+api/**
+!api/Dockerfile
+!api/package.json
+!api/pnpm-lock.yaml
+!api/*.js
+!api/coach/
+!api/coach/**
+!shared/
+!shared/**
+
+**/node_modules
+**/.env*
+**/*.env
+**/*.env.*
+**/.cache
+**/coverage
+**/test-results
+**/*.log

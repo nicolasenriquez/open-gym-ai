@@ -12,7 +12,7 @@
  */
 import * as cfgStore from './config.js';
 import { adapterFor } from './adapters/index.js';
-import { buildPromptParts } from './core/prompt.js';
+import { buildPromptParts } from '../../shared/coach-core/prompt.js';
 import { fetchFor } from './node-fetch.js';
 
 const INTERVAL_MS = 30 * 60000;

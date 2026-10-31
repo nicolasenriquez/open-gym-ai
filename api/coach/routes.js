@@ -9,8 +9,8 @@ import * as jobs from './jobs.js';
 import { computeCohort } from './cohort.js';
 import { adapterFor } from './adapters/index.js';
 import { canDropPrivileges } from './adapters/spawn.js';
-import { DATA_CATEGORIES } from './core/payload.js';
-import { validateBaseUrl, validateHeaders, baseUrlFor } from './core/providers.js';
+import { DATA_CATEGORIES } from '../../shared/coach-core/payload.js';
+import { validateBaseUrl, validateHeaders, baseUrlFor } from '../../shared/coach-core/providers.js';
 
 // Job failures the user sees, in the app's own voice. The raw provider detail never reaches
 // them — it goes to the admin card, which is where someone can act on it (FR-47).

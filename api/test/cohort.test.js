@@ -110,7 +110,7 @@ test('forgetting a profile takes it out of the room at once, cache or no cache',
 });
 
 test('three accounts that log the same made-up exercise cannot write into a fourth one\'s prompt', async () => {
-  const payload = await import('../coach/core/payload.js');
+  const payload = await import('../../shared/coach-core/payload.js');
   // Every entry's id is whatever that account's client wrote. Once three sharing accounts
   // log one, the room's medians used to carry it, as it was, into every other sharing
   // account's review and debrief.

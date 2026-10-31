@@ -1,4 +1,14 @@
 {
+  "shared_client": [{
+    "id": "canonical_sources",
+    "requirement": "Faithful import and retirement parity / Parity after removing the replaced backend",
+    "setup": "Pinned Node/client test image; canonical shared JS, generated assets and private provider fixtures",
+    "target": "platform-contracts",
+    "entrypoint": "node",
+    "command": ["--test", "scripts/shared-client.test.mjs"],
+    "proof": "Single neutral source, current generated assets, plain Node loading and local coach/payload/validator parity",
+    "checkpoint": "8.1 only; formats, web/mobile bundle acceptance and OpenAPI authority remain 8.2/8.3"
+  }],
   "admin_users": [{
     "id": "actor_target",
     "requirement": "Executable schema and privileged functions / Existing administrative Training projection is preserved; Authenticated session to RLS ownership / Concurrent revocation is serialized with protected work",

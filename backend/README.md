@@ -279,7 +279,10 @@ pseudonym, and proposals retain the client's plan fingerprint. The pipeline has
 one repair round; transports retain bounded transient retries, compatible endpoint
 and JSON-mode fallbacks, routed headers and classified safe failures. `httpx==0.28.1`
 is a runtime dependency. Prompts, schemas, catalogue and icon data are generated
-by `node scripts/build-coach-assets.mjs`; the editable sources remain singular.
+by `node scripts/build-coach-assets.mjs`. Runtime-neutral JavaScript and editable
+prompts live in `shared/coach-core/`; Node and the local phone Coach import that
+same tree. Generated Python assets are data, not a second editable source.
+`node scripts/build-coach-library.mjs --check` remains a supported alias.
 
 The four HTTP wire formats are verified with private endpoints and synthetic keys.
 A configured keyless compatible endpoint can execute. The application factory's
@@ -407,6 +410,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `notifications --case device_isolation` | HTTP activity/test/rest/cancel, owner/device isolation and legacy fallback, replacement/revocation, ephemeral presence/hidden grace, nudge suppression and restart without timer recovery. |
 | `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
+| `shared_client --case canonical_sources` | Single shared JS/prompt source, generated assets, plain Node loading, HTTP pipeline and local phone Coach parity. Formats/bundle acceptance and OpenAPI relocation remain separate. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 
 The verifier uses `backend/empty.env`, unique `opengym-platform-test-<hex16>`
@@ -472,7 +476,9 @@ replacement tests preserve its guarantee. Delivery status and retirement accepta
 remain in the [active port tasks](../openspec/changes/port-compatible-platform/tasks.md).
 
 Build contexts are allowlisted: root `.dockerignore` serves the web image,
-`api/.dockerignore` serves Node, and `backend/.dockerignore` serves Python.
+`api/Dockerfile.dockerignore` serves Node from the repository root, and
+`backend/.dockerignore` serves Python. Build Node with
+`docker build -f api/Dockerfile .`; its shared source is outside `api/`.
 The contracts/security/browser Dockerfiles have their own ignore files, which override the
 root filter. Keep each allowlist aligned with its Dockerfile's `COPY` inputs;
 exercise media and the shared coach core remain required web inputs.

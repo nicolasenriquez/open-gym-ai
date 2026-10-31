@@ -5,7 +5,7 @@
  *   spawns                                             true when a job runs a child process
  *
  * `spawns` decides whether the privilege drop is required before a job may run. The three
- * runtime-backed adapters say true; the HTTPS ones in ../core/adapters say false, because a
+ * runtime-backed adapters say true; the HTTPS ones in ../../../shared/coach-core/adapters say false, because a
  * fetch has no process to drop privileges on and must not be refused for lacking one.
  *
  * Adding a provider is a file here plus a row in config.PROVIDERS. Nothing else in the
@@ -15,10 +15,10 @@ import { run } from './spawn.js';
 import { fileURLToPath } from 'node:url';
 import claude from './claude.js';
 import codex from './codex.js';
-import anthropic from '../core/adapters/anthropic.js';
-import openai from '../core/adapters/openai.js';
-import gemini from '../core/adapters/gemini.js';
-import compatible from '../core/adapters/compatible.js';
+import anthropic from '../../../shared/coach-core/adapters/anthropic.js';
+import openai from '../../../shared/coach-core/adapters/openai.js';
+import gemini from '../../../shared/coach-core/adapters/gemini.js';
+import compatible from '../../../shared/coach-core/adapters/compatible.js';
 
 /**
  * The in-repo fake provider. Ships with the image on purpose: it is what CI drives, and it

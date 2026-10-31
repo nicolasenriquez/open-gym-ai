@@ -78,6 +78,11 @@ principles. Published entries below are preserved; see the
 
 ### Changed
 
+- Moved runtime-neutral Coach JavaScript and editable prompts to `shared/coach-core/`.
+  The local phone Coach and Node use one source; generated Python assets and the
+  generator's `--check` alias are preserved. Node image builds now use the repository
+  root: `docker build -f api/Dockerfile .`.
+
 - Migrated JavaScript installs to frozen pnpm locks; retained isolated uv-based Python tooling.
   Added correctness, workflow, dependency and source security checks, plus a packaged
   web/API smoke. Updated affected dependencies and retired the vulnerable legacy icon generator.

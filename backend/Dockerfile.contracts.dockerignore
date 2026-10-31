@@ -1,5 +1,16 @@
 **
 !LICENSE
+!shared/
+!shared/**
+!catalogue/
+!catalogue/exercises/
+!catalogue/exercises/**
+!backend/src/
+!backend/src/opengym_platform/
+!backend/src/opengym_platform/coach/
+!backend/src/opengym_platform/coach/assets.json
+!api/scripts/
+!api/scripts/check-core-loadable.mjs
 !backend/
 !backend/Dockerfile.contracts
 !backend/contracts-run.mjs
@@ -26,6 +37,9 @@
 !frontend/scripts/**
 !scripts/
 !scripts/build-api-docs.mjs
+!scripts/build-coach-assets.mjs
+!scripts/build-coach-library.mjs
+!scripts/shared-client.test.mjs
 **/node_modules
 **/.env*
 **/*.env
