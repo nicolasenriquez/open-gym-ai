@@ -14,6 +14,9 @@ from opengym_platform.identity.sessions import verify
 def create_router(*, secret, secure, config):
     router = APIRouter()
 
+    @router.get("/admin/invites")
+    @router.post("/admin/invites/new")
+    @router.post("/admin/invites/revoke")
     @router.get("/admin/users")
     @router.get("/admin/user")
     @router.post("/admin/user/disable")
@@ -101,13 +104,18 @@ def create_router(*, secret, secure, config):
                             if user["disabled"]
                             else notifications.active.live(user["id"])
                         )
-                elif result.get("disabled") or request.url.path.endswith("/delete"):
-                    notifications.active.update(result["id"], {"active": False})
-                    notifications.cancel(result["id"])
+                elif result.get("disabled") or request.url.path.endswith(
+                    ("/delete", "/password-reset")
+                ):
+                    target = body["id"]
+                    notifications.active.update(target, {"active": False})
+                    notifications.cancel(target)
             return response(result, status)
         except PermissionError:
             return response({"error": "not signed in"}, 401)
         except DatabaseError:
             return response({"error": "server error"}, 500)
 
+    if config.get("password_login"):
+        router.add_api_route("/admin/user/password-reset", users, methods=["POST"])
     return router

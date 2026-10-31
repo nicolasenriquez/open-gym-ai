@@ -318,6 +318,7 @@ async def test_upgrade_sql_privileges_and_projection_permissions(deployment, tmp
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
             "p005_delivery.py",
@@ -394,7 +395,7 @@ async def test_upgrade_sql_privileges_and_projection_permissions(deployment, tmp
     functions = await observer.fetch(
         "SELECT prosecdef,proconfig,pg_get_userbyid(proowner) AS owner,NOT EXISTS(SELECT FROM aclexplode(proacl) WHERE grantee=0) AS private FROM pg_proc WHERE pronamespace IN ('administration'::regnamespace,'training'::regnamespace) AND prosecdef"
     )
-    assert len(functions) == 11
+    assert len(functions) == 15
     assert all(
         tuple(row)
         == (

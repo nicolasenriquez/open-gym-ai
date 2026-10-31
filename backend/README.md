@@ -124,8 +124,25 @@ is already clean. Symlinks, unexpected nested media paths, noncanonical owner ID
 live owner/path collisions and still-referenced Coach keys stay pending rather than
 risk another profile's bytes. Unknown/protected imported secret references require
 operator review; they are not guessed or traversed. Completed tasks retain `done`
-metadata for verification. Invitation management, reset issuance and administrative
-audit are not yet ported.
+metadata for verification. Administrative audit is not yet ported.
+
+Apply `p004_admin_invites` for `GET /api/v1/admin/invites` and
+`POST /api/v1/admin/invites/new` / `revoke`. Active administrators can create
+64-bit uppercase hexadecimal codes, with notes limited to 60 UTF-16 units, and
+revoke unused codes. Existing legacy codes retain exact matching without a new
+length rule. Consumed history stays burned after the profile or issuer is deleted;
+the deleted profile's resolved display name becomes null. Runtime receives no
+direct invitation-table access. PostgreSQL-unrepresentable NUL/isolated surrogates
+are rejected without silent replacement.
+
+With `PASSWORD_LOGIN=1`, `POST /api/v1/admin/user/password-reset` returns a new
+one-use 24-hour code once to the authorized administrator. It refuses every admin
+target, removes the old password, reserves the normalized login name, replaces the
+stored digest, revokes sessions/device links and clears live presence/timers.
+Email, passkeys and disabled status are retained. A conflicting active alias
+returns 409 without changes; SQL failure rolls the whole operation back. The route
+is absent while password sign-in is disabled. No email delivery or audit API is
+added; the existing Admin UI's audit request remains unavailable until 6.5.
 
 The private operator command uses the existing runtime environment and credential
 file, not an HTTP session, privileged database login or a new public endpoint.
@@ -208,7 +225,8 @@ case, spaces and dashes do not matter. Password-policy errors preserve the code.
 Successful redemption atomically claims the password alias, replaces the password,
 consumes the code, revokes sessions/device links and sets a new session cookie,
 preserving passkeys. Wrong codes share the password address budget, without a
-per-account lockout. Administrative issuance and audit routes are not yet delivered.
+per-account lockout. Administrative issuance is described above; audit routes are
+not yet delivered.
 `POST /api/v1/pair/create` makes one replaceable mobile pairing code per owner,
 valid for five minutes. Pairings remain process-local and disappear on restart.
 `POST /api/v1/pair/redeem` is CSRF-exempt and returns a bearer token and public user,
@@ -451,6 +469,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
 | `admin_delete --case atomic_delete` | Atomic SQL cascades, Coach disconnection and pending external references, access denial, safeguards, rollback/retry, concurrent revocation/deletion and restricted upgrade/ACLs. |
 | `admin_delete --case external_retry` | Real HTTP deletion followed by owner-only external cleanup, safe failure/backoff, restart/cancellation, private operator status/retry and preserved foreign sentinels. |
+| `admin_invites --case consumed_history` | Current admin authority, preserved consumed history, create/revoke guards, atomic reset/reissue, alias conflicts, rollback and restricted upgrade/ACLs. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `shared_client --case canonical_sources` | Single shared JS/prompt source, generated assets, plain Node loading, HTTP pipeline and local phone Coach parity. Formats/bundle acceptance and OpenAPI relocation remain separate. |
 | `shared_client --case formats_and_bundles` | CSV/JSON/media backup/FIT hostile cases, catalogue/ID continuity, web Node/Python and mobile Python bundles, shared-source graph and byte-for-byte Android/iOS asset copies. |
@@ -491,7 +510,8 @@ the fixture control server. No fixture routes are added to the application.
 The current HTTP flow preserves the loaded page and saved dirty/active state offline,
 then reloads on reconnection. HTTPS service-worker cold launch and native devices are
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
-bundle; this does not verify nginx deployment. Screenshots for twelve cases and a sanitized
+bundle; this does not verify nginx deployment. Screenshots for thirteen cases (including Admin invitation create/revoke and reset
+issuance with independent SQL observation and reload) and a sanitized
 result are copied to `.scratch/platform-browser/<printed-project>/` before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 

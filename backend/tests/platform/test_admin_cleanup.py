@@ -470,7 +470,9 @@ async def test_previous_head_tasks_survive_upgrade_and_rerun(deployment, tmp_pat
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p004_external_cleanup.py"),
+        ignore=shutil.ignore_patterns(
+            "p004_admin_invites.py", "p004_external_cleanup.py"
+        ),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (

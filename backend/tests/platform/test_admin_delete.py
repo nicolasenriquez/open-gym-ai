@@ -412,7 +412,9 @@ async def test_upgrade_privileges_and_transaction_local_cleanup(deployment, tmp_
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
-            "p004_external_cleanup.py", "p004_deletion_tasks.py"
+            "p004_admin_invites.py",
+            "p004_external_cleanup.py",
+            "p004_deletion_tasks.py",
         ),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
@@ -428,7 +430,7 @@ async def test_upgrade_privileges_and_transaction_local_cleanup(deployment, tmp_
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p004_external_cleanup"
+        == "p004_admin_invites"
     )
     assert tuple(
         await observer.fetchrow(

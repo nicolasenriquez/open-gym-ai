@@ -201,6 +201,14 @@ luego solo reintento explícito de operador. Estado seguro por comando privado,
 sin endpoints nuevos ni cola general. Filas done se conservan para verificar
 finalización y consultar el resultado; no son contenido de usuario.
 
+**Ajuste de 6.4 autorizado expresamente:** añadir únicamente
+`administration.list_invitations(actor text, sv bigint, exp timestamptz)` al
+catálogo para el GET administrativo existente. La lectura directa de invitaciones
+sigue prohibida al runtime; el executor administrativo revalida sesión/facultad
+bajo namespace→actor y devuelve la proyección compatible con usedByName resuelto.
+Creación, revocación y emisión de reset conservan las tres firmas aprobadas.
+Sin nuevas tablas, roles, cola ni auditoría 6.5.
+
 ### 8. Autoridad OpenAPI y compatibilidad de transporte
 
 Decisión técnica: conservar un contrato YAML editable y trasladarlo de

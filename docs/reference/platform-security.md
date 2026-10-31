@@ -79,8 +79,19 @@ una función SQL no convierte un owner recibido en sesión autenticada.
 | `identity.finish_reset(owner text, digest bytea, new_hash text)` / `finish_device_link(owner text, digest bytea, credential_id text, public_key bytea, counter bigint, transports text[], label text)` | identity_executor; actor mínimo | Consumo único y expiración revalidada; límites/última vía. Reset revoca sesiones/enlaces y reserva/alias conjuntamente; link agrega solo la passkey verificada, nunca hash elegido por anónimo sin código vigente. |
 | `administration.list_users(actor text, sv bigint, exp timestamptz, page_size integer, after_id text)` / `inspect_user(actor text, sv bigint, exp timestamptz, target text)` | administration_executor; proyección admin compatible | Revalidar actor admin activo y límites antes de leer otro recurso; devuelve parte identity. Handler coordina proyección Training admin vigente mediante su interfaz, nunca documento interno completo ni secretos. Paginación interna no cambia respuesta pública vigente. |
 | `administration.set_disabled(actor text, sv bigint, exp timestamptz, target text, disabled boolean)` / `delete_user(actor text, sv bigint, exp timestamptz, target text, task_id uuid)` | administration_executor; resultado mínimo | Namespace y owners ordenados, actor revalidado; disable rechaza cualquier admin, delete rechaza propio actor y último admin, conforme a Node. Coordinador Python usa interfaces propietarias con mismo handle; delete exige vínculo coach desconectado y realiza cascadas + tarea externa. Solo el iniciador confirma. |
+| `administration.list_invitations(actor text, sv bigint, exp timestamptz)` | administration_executor; listado compatible de invitaciones | Ajuste de 6.4 autorizado expresamente: revalida admin activo bajo namespace/actor, resuelve usedByName sin impersonar owner; solo EXECUTE runtime, nunca SELECT directo de invitaciones. Conserva consumo histórico aunque desaparezca used_by. |
 | `administration.issue_reset(actor text, sv bigint, exp timestamptz, target text, digest bytea, expiry timestamptz)` / `create_invitation(actor text, sv bigint, exp timestamptz, code text, note text, created_at timestamptz)` / `revoke_invitation(actor text, sv bigint, exp timestamptz, code text)` | administration_executor; resultado admin vigente | Sin cambio implícito de flags; reset/versión/enlaces/alias en misma TX. Invitación consumida persiste y no se reabre al eliminar cuenta. Código de reset solo sale al operador autorizado, nunca a telemetría. |
 | `audit.append_event(at timestamptz, event text, ok boolean, actor_id text, target_id text, actor_name text, target_name text, message text, action text, ip text)` / `read_events(actor text, sv bigint, exp timestamptz, after_id bigint, page_size integer)` / `clear_events(actor text, sv bigint, exp timestamptz)` | administration_executor; append sin filas retornadas; read/clear solo admin activo | Campos tipados/allowlisted y tamaño acotado; append en TX separada, secuencia no se reinicia al clear. Retención aplica 90 d/5000 o configuración compatible; fallo separado no revierte negocio. |
+
+En la emisión administrativa de reset, Python normaliza el nombre inspeccionado
+bajo namespace→actor/target y fija `app.admin_reset_name`/`app.admin_reset_alias`
+mediante `SET LOCAL`, nunca desde campos de identidad del cliente. `issue_reset`
+revalida facultad, nombre y conflicto de alias; elimina el hash anterior, reserva
+el alias 24 h, reemplaza el digest, incrementa versión y elimina device-links en
+la misma TX. Conserva correo, passkeys y disabled; rechaza cualquier target admin.
+Las notas de invitación conservan el límite Node de 60 unidades UTF-16. NUL y
+surrogates aislados no representables en PostgreSQL fallan sin escribir ni
+sustituir caracteres silenciosamente.
 
 En el canje reset entregado, Python instala mediante `SET LOCAL` (`set_config`
 transaccional) `app.reset_identifier`, `app.reset_alias`, `app.reset_name` y

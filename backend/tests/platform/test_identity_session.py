@@ -427,6 +427,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
         tmp_path / "opengym_platform",
         ignore=shutil.ignore_patterns(
             "p003_coach.py",
+            "p004_admin_invites.py",
             "p004_external_cleanup.py",
             "p004_deletion_tasks.py",
             "p005_delivery.py",
@@ -458,7 +459,7 @@ async def test_genuine_p000_upgrades_to_identity_without_changing_p000(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM public.alembic_version")
-        == "p004_external_cleanup"
+        == "p004_admin_invites"
     )
 
 

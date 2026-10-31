@@ -48,6 +48,8 @@ The explicitly approved 5.2 exception SHALL add `coach.fail_interrupted_jobs() R
 
 The explicitly approved 5.3 adjustment SHALL add `coach.execution_config(actor text, sv bigint, exp timestamptz)` for consented execution settings and limits only. It SHALL revalidate the actor and owner context, disclose no secret or credential reference, use a restricted NOLOGIN executor and explicit runtime EXECUTE, and grant no global runtime SELECT. HTTP execution SHALL use the approved pinned `httpx==0.28.1` runtime dependency without introducing a provider SDK or subprocess.
 
+The explicitly approved 6.4 adjustment SHALL add `administration.list_invitations(actor text, sv bigint, exp timestamptz)` for the existing administrative invitation list. It SHALL revalidate active administrator authority under the namespace/actor locks, resolve the compatible usedByName projection without impersonating the target, preserve consumed history after deletion and grant only exact runtime EXECUTE, never direct invitation SELECT. Creation, revocation and reset issuance SHALL retain their approved signatures.
+
 #### Scenario: Migration failure and function grants
 - **WHEN** migration is attempted from empty/previous head, interrupted or raced by another migrator, or runtime invokes privileged SQL
 - **THEN** the dedicated lock bounds concurrency, failed revisions do not advance history and runtime cannot assume owner/executor roles or execute ungranted functions

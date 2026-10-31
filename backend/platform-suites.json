@@ -35,6 +35,15 @@
     "proof": "Atomic account cascades, coach disconnection and durable pending cleanup; immediate denial and preserved history",
     "checkpoint": "6.2 only; external executor and retries remain 6.3"
   }],
+  "admin_invites": [{
+    "id": "consumed_history",
+    "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Recoverable deletion and compatible audit",
+    "setup": "Real restricted HTTP/PostgreSQL with independently observed synthetic accounts and invitation history",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_invites.py"],
+    "proof": "Current admin authority, one-use invitations preserved after deletion and atomic 24-hour reset issuance",
+    "checkpoint": "6.4 only; administrative audit remains 6.5"
+  }],
   "admin_users": [{
     "id": "actor_target",
     "requirement": "Executable schema and privileged functions / Existing administrative Training projection is preserved; Authenticated session to RLS ownership / Concurrent revocation is serialized with protected work",
@@ -189,8 +198,8 @@
       "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
       "target": "platform-browser",
       "command": ["tests/platform/test_training_browser.py"],
-      "proof": "UI reset commits empty Training then collects only own bytes; real picker, pending upload/reload/retry and offline photo; device links, password reset, passkeys, 401/two 409s, lost reply and restored lineage",
-      "checkpoint": "4.1–4.3, 3.4 and 2.6–2.8 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
+      "proof": "Admin invitation create/revoke and reset issuance persist across reload with independent SQL proof; UI reset commits empty Training then collects only own bytes; real picker, pending upload/reload/retry and offline photo; device links, password reset, passkeys, 401/two 409s, lost reply and restored lineage",
+      "checkpoint": "6.4, 4.1–4.3, 3.4 and 2.6–2.8 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
     }
   ],
   "training_write": [

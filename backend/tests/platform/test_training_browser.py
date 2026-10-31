@@ -171,6 +171,24 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                         UPDATE identity.users SET session_version=session_version+1 WHERE id='A';
                     """)
                 return {"ok": True}
+            if path == "/admin-state":
+                return {
+                    "invitations": await observer.fetchval(
+                        "SELECT count(*) FROM identity.invitations"
+                    ),
+                    "version": await observer.fetchval(
+                        "SELECT session_version FROM identity.users WHERE id='A'"
+                    ),
+                    "passwords": await observer.fetchval(
+                        "SELECT count(*) FROM identity.password_credentials WHERE owner_id='A'"
+                    ),
+                    "reset": await observer.fetchval(
+                        "SELECT EXISTS(SELECT FROM identity.password_resets WHERE owner_id='A' AND issued_by='B' AND expires_at>clock_timestamp())"
+                    ),
+                    "digestBytes": await observer.fetchval(
+                        "SELECT octet_length(code_digest) FROM identity.password_resets WHERE owner_id='A'"
+                    ),
+                }
             if path == "/reset-state":
                 return {
                     "remaining": await observer.fetchval(
@@ -305,6 +323,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 "media",
                 "media-queue",
                 "media-gc",
+                "admin-invites",
             ]
             assert result["errors"] == 0
             assert (
@@ -314,7 +333,7 @@ async def test_real_frontend_training_browser(accounts, tmp_path):
                 == "foreign-sentinel"
             )
             print(
-                "PLATFORM_BROWSER_OK: twelve cases; independent PG/filesystem sentinels preserved"
+                "PLATFORM_BROWSER_OK: thirteen cases; independent PG/filesystem sentinels preserved"
             )
         finally:
             await asyncio.to_thread(fixture.shutdown)

@@ -7,6 +7,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { verifyPasskeyManagement } from './passkeys.mjs';
 import { verifyLinks } from './links.mjs';
+import { verifyAdminInvites } from './admin-invites.mjs';
 
 const root = resolve('public');
 const evidence = '/tmp/evidence';
@@ -50,8 +51,8 @@ let browser, context, page;
 let stage = 'setup';
 const cases = [], errors = [], statuses = [];
 const writes = new Set();
-const report = async id => {
-  await page.screenshot({ path: `${evidence}/${id}.png`, fullPage: true, animations: 'disabled' });
+const report = async (id, target = page) => {
+  await target.screenshot({ path: `${evidence}/${id}.png`, fullPage: true, animations: 'disabled' });
   cases.push(id);
   console.log(JSON.stringify({ case: id, status: 'PASS' }));
 };
@@ -367,6 +368,8 @@ try {
   assert.deepEqual((await snapshot()).B, { _rev: 2, workouts: [{ id: 'foreign-sentinel' }] });
   assert.equal(errors.length, 0);
   await report(stage);
+  stage = 'admin-invites';
+  await verifyAdminInvites({ browser, owner: context, control, until, report, errors });
   await page.goto('http://localhost:8080/#/settings/about');
   const frontend = await page.getByText(/^v\d.*\+platform-browser-proof$/).innerText();
   assert.equal(process.versions.node, '22.23.2');

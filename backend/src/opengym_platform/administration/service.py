@@ -1,9 +1,14 @@
 """Administration coordinates Identity and Training on the same transaction."""
 
+import hashlib
 import json
+import secrets
 import time
+from datetime import UTC, datetime
 from uuid import uuid4
 
+from opengym_platform.identity.links import ALPHABET
+from opengym_platform.identity.passwords import identifier_text, name_key
 from opengym_platform.identity.sessions import authorize
 from opengym_platform.training.service import admin_projection
 
@@ -14,14 +19,53 @@ def checked(value):
     if value == {}:
         return 403, {"error": "forbidden"}
     if isinstance(value, dict) and "error" in value:
-        return (404 if value["error"] == "no such user" else 400), value
+        return (
+            404 if value["error"] in {"no such user", "no such code"} else 400
+        ), value
     return 200, value
 
 
 async def handle(database, session, operation, body, config, coach):
     async with database.transaction() as tx:
         args = (session.owner, session.version, session.expires_at)
-        if operation == "users":
+        if operation in {"invites", "new", "revoke"}:
+            if operation == "invites":
+                query = "SELECT administration.list_invitations($1,$2,$3) AS view"
+                params = args
+            elif operation == "new":
+                note = identifier_text(body.get("note"))
+                note = note.encode("utf-16-le", "surrogatepass")[:120].decode(
+                    "utf-16-le", "surrogatepass"
+                )
+                if "\x00" in note or any(
+                    0xD800 <= ord(char) <= 0xDFFF for char in note
+                ):
+                    return 400, {"error": "invalid json"}
+                query = (
+                    "SELECT administration.create_invitation($1,$2,$3,$4,$5,$6) AS view"
+                )
+                params = (*args, secrets.token_hex(8).upper(), note, datetime.now(UTC))
+            else:
+                code = identifier_text(body.get("code")).upper()
+                if "\x00" in code or any(
+                    0xD800 <= ord(char) <= 0xDFFF for char in code
+                ):
+                    code = ""
+                query = "SELECT administration.revoke_invitation($1,$2,$3,$4) AS view"
+                params = (*args, code)
+            while True:
+                rows = await tx.fetch(query, *params)
+                status, result = checked(
+                    json.loads(rows[0]["view"]) if rows[0]["view"] else None
+                )
+                if status != 200:
+                    return status, result
+                if operation != "new" or not result.get("collision"):
+                    break
+                params = (*args, secrets.token_hex(8).upper(), note, datetime.now(UTC))
+            if operation == "invites":
+                result = {"invites": result, "invite_only": config["invite_only"]}
+        elif operation == "users":
             users = []
             after = None
             while True:
@@ -107,6 +151,33 @@ async def handle(database, session, operation, body, config, coach):
                 if status != 200:
                     # Disconnection is a participant, never committed on a rejected deletion.
                     raise PermissionError
+            if operation == "password-reset":
+                for key, value in (
+                    ("name", result["name"]),
+                    ("alias", name_key(result["name"])),
+                ):
+                    await tx.execute(
+                        "SELECT set_config($1,$2,true)", "app.admin_reset_" + key, value
+                    )
+                raw = "".join(
+                    ALPHABET[b % len(ALPHABET)] for b in secrets.token_bytes(12)
+                )
+                expiry_ms = int(time.time() * 1000) + 86400000
+                rows = await tx.fetch(
+                    "SELECT administration.issue_reset($1,$2,$3,$4,$5,$6) AS view",
+                    *args,
+                    target,
+                    hashlib.sha256(("opengym-reset:" + raw).encode()).digest(),
+                    datetime.fromtimestamp(expiry_ms / 1000, UTC),
+                )
+                status, result = checked(
+                    json.loads(rows[0]["view"]) if rows[0]["view"] else None
+                )
+                if result.get("code") == "name-taken":
+                    return 409, result
+                if status != 200:
+                    return status, result
+                result["code"] = "-".join(raw[i : i + 4] for i in (0, 4, 8))
             if operation == "user":
                 status, projection = checked(
                     await admin_projection(tx, session, target, detail=True)

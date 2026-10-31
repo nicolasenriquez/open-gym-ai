@@ -23,7 +23,11 @@ principles. Published entries below are preserved; see the
   invitations or historical audit. Access ends at commit. External cleanup now
   requires `p004_external_cleanup`: owner-only no-follow unlinks, durable bounded
   retries and private operator status/retry, without reopening deleted access or
-  deleting still-referenced Coach keys. Invitations and administrative audit remain pending.
+  deleting still-referenced Coach keys. `p004_admin_invites` adds compatible
+  invitation listing/create/revoke and admin-issued one-use 24-hour password resets,
+  preserving consumed history after deletion and revalidating current admin authority.
+  Reset revokes old access atomically while retaining email/passkeys/disabled state.
+  Administrative audit remains pending.
 - Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
   a twenty-device cap, private-address validation and persistent VAPID material.
   Requires `p005_subscriptions`. Internal local-date reminders and evening nudges

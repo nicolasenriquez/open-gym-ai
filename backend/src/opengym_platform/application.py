@@ -32,7 +32,7 @@ from opengym_platform.media.service import Media
 from opengym_platform.notifications.router import create_router as notifications_router
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p004_external_cleanup"
+SCHEMA_REVISION = "p004_admin_invites"
 
 
 async def recover_coach(database):
