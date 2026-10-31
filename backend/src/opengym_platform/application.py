@@ -31,7 +31,7 @@ from opengym_platform.media.service import Media
 from opengym_platform.notifications.router import create_router as notifications_router
 from opengym_platform.training.router import create_router as training_router
 
-SCHEMA_REVISION = "p004_admin_users"
+SCHEMA_REVISION = "p005_delivery"
 
 
 async def recover_coach(database):
@@ -100,6 +100,11 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
             from opengym_platform.coach.cadence import maintain
 
             maintenance.append(asyncio.create_task(maintain(app.state.coach_jobs)))
+            from opengym_platform.notifications.scheduler import Notifications
+            from opengym_platform.notifications.transport import send
+
+            app.state.notifications = Notifications(database, send)
+            maintenance.append(asyncio.create_task(app.state.notifications.maintain()))
             yield
         finally:
             for task in maintenance:

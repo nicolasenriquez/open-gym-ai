@@ -31,6 +31,12 @@ async def coach_consent(handle):
     return bool(rows and rows[0]["agreed"])
 
 
+async def notification_document(handle):
+    """Scheduled notification input, only within a locked delivery-owner context."""
+    rows = await handle.fetch("SELECT document FROM training.documents")
+    return json.loads(rows[0]["document"]) if rows else None
+
+
 async def coach_document(handle):
     """Owner's ephemeral Coach input, within the initiating authorized transaction."""
     rows = await handle.fetch("SELECT document FROM training.documents")

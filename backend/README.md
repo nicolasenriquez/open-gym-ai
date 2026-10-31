@@ -68,8 +68,23 @@ Status and unsubscribe are owner-scoped; endpoint transfer preserves the origina
 creation date and valid device ID, with at most twenty subscriptions per owner.
 `ALLOWED_PRIVATE_IPS` retains the explicit address/range/CIDR exception contract.
 Registration checks HTTPS, credentials and private IP literals without contacting
-the endpoint. Actual push delivery, connection-time DNS checks, reminder scheduling
-and timers are not yet ported; storing a subscription does not prove delivery.
+the endpoint. Apply `p005_delivery` before starting the updated API for internal
+reminders and missed-workout nudges. The single-worker scheduler reads Training
+preferences under a revalidated owner lock, uses local dates and atomically claims
+the day's alert before sending outside SQL. It catches up reminders within fifteen
+minutes and applies the existing evening window, queue/pins, excused days and
+three-miss back-off. Failed sends are not automatically retried for that date;
+claiming does not establish external receipt or exactly-once delivery.
+
+Web Push uses the existing external VAPID pair, RFC 8291 encryption and bounded
+HTTPS sends. Each connection resolves/checks all addresses, pins a checked IP and
+verifies TLS against the original hostname; redirects and environment proxies are
+not followed. Dead 403/404/410 subscriptions are pruned only if still owned with the
+same keys. Notification copy is generated from existing strings with
+`node scripts/build-push-assets.mjs`; `--check` detects drift. Verification uses a
+private TLS fixture and independent Node encryption vectors, not real push services
+or physical devices. Activity/presence updates and rest timers remain pending in
+7.3; the nudge's process-local active-owner hook is not yet wired to HTTP.
 
 Python administration provides `GET /api/v1/admin/users`, `GET /api/v1/admin/user?id=…`
 and `POST /api/v1/admin/user/disable`. Apply bootstrap and the `p004_admin_users`
@@ -376,6 +391,8 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `coach_client --case consent_and_availability` | Consent/sharing, coarse provider payloads, scheduled reviews/restart, timezone edges and bounded SQL grants/upgrades. UI proof is recorded separately from this backend case. |
 | `media_gc --case fail_safe` | Explicit/periodic GC, identity lock/RLS, unreadable references/marks, upload/revocation races, symlink sentinels and previous-head migration. |
 | `images` | Runtime/tool separation, dev/prod topology, private persistent media volumes and file-secret isolation. |
+| `notifications --case subscription` | Owner endpoint transfer, original date/device fallback, cap twenty, VAPID continuity and restricted ACL/RLS. |
+| `notifications --case local_dates` | Internal scheduler, local/DST dates, queue/pins and nudge back-off; concurrent revocation, date claims, private TLS transport/SSRF, independent encryption vectors and safe pruning. |
 | `admin_users --case actor_target` | Active admin/target separation, bounded Training projections, subscription presence, disable safeguards, ordered revocation, rollback, pull timestamps and restricted migration/ACLs. |
 | `checks` | Frozen dependencies, lint, format and types inside the test image. |
 

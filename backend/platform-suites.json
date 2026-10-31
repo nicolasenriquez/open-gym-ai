@@ -9,6 +9,14 @@
     "checkpoint": "6.1 only; deletion, invitations and audit remain later slices"
   }],
   "notifications": [{
+    "id": "local_dates",
+    "requirement": "Compatible notification and coach state / Notification ownership and local dates",
+    "setup": "Restricted PostgreSQL, internal scheduler, fixed clocks and private fake transport",
+    "target": "platform-test",
+    "command": ["tests/platform/test_notification_delivery.py", "tests/platform/test_notification_authorization.py"],
+    "proof": "Local dates, Training preferences, authorized candidates and failed/dead push semantics",
+    "checkpoint": "7.2 synthetic only; activity and timers remain 7.3, not real device delivery"
+  }, {
     "id": "subscription",
     "requirement": "Compatible notification and coach state / Notification ownership and local dates",
     "setup": "Real restricted HTTP/PostgreSQL, synthetic endpoints and independent observer; no external delivery",

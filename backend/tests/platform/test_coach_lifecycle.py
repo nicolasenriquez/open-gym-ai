@@ -383,6 +383,7 @@ async def test_forget_privileges_are_owner_scoped_and_upgrade_preserves_existing
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p005_delivery.py",
             "p004_admin_users.py",
             "p005_subscriptions.py",
             "p003_coach_client.py",

@@ -1066,6 +1066,7 @@ async def test_upgrade_preserves_configuration_references_and_usage(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
         ignore=shutil.ignore_patterns(
+            "p005_delivery.py",
             "p004_admin_users.py",
             "p005_subscriptions.py",
             "p003_coach_client.py",
@@ -1084,7 +1085,7 @@ async def test_upgrade_preserves_configuration_references_and_usage(
     await migration(environment, "up")
     assert (
         await observer.fetchval("SELECT version_num FROM alembic_version")
-        == "p004_admin_users"
+        == "p005_delivery"
     )
     assert tuple(
         await observer.fetchrow(

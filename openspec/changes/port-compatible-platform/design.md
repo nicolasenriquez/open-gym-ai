@@ -399,6 +399,17 @@ ALLOWED_PRIVATE_IPS, sin DNS/envío. La protección durante conexión/resolució
 redirects se entrega con el transporte en 7.2; registrar no acredita recepción real.
 Sin cambios visuales o cadenas nuevas; regresiones del consumidor push/Settings.
 
+### Contexto interno de notificaciones — ajuste aprobado para 7.2
+
+El promotor autorizó `notifications.lock_delivery_owner(owner text)` para cerrar
+el paso entre candidatos y lectura propietaria Training. El contrato exacto está en
+[seguridad](../../../docs/reference/platform-security.md#catálogo-sql-y-contexto-transaccional).
+Sin ampliar HTTP ni reutilizar permisos Coach/medios; una revisión forward-only
+parte del head real `p004_admin_users`. Se conservan fechas locales reclamadas antes
+del transporte, sin garantía exactly-once. Se aprueban los seams tick interno →
+PostgreSQL runtime restringido → transporte fake, reloj controlado y observador
+independiente; las pruebas de red no contactan proveedores reales.
+
 ### 12. Cierre técnico de preparación
 
 #### Contexto interno consentido de 5.6 — aprobado

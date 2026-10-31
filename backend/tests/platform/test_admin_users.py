@@ -317,7 +317,7 @@ async def test_upgrade_sql_privileges_and_projection_permissions(deployment, tmp
     shutil.copytree(
         Path(__file__).parents[2] / "src/opengym_platform",
         previous,
-        ignore=shutil.ignore_patterns("p004_admin_users.py"),
+        ignore=shutil.ignore_patterns("p005_delivery.py", "p004_admin_users.py"),
     )
     await migration({**environment, "PYTHONPATH": str(previous.parent)}, "up")
     assert (

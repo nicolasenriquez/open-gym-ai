@@ -17,6 +17,10 @@ def encode(value):
 
 
 def public_key():
+    return key_pair()["publicKey"]
+
+
+def key_pair():
     directory = Path(os.environ.get("DATA_DIR", "/data"))
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     with _directory(directory) as parent:
@@ -84,7 +88,7 @@ def public_key():
             )
             if value["publicKey"] != expected:
                 raise ValueError
-            return expected
+            return value
         finally:
             os.close(descriptor)
 

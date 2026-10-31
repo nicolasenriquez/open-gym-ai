@@ -232,6 +232,14 @@ catálogo adicional siguiente, con executor NOLOGIN por módulo (sin membresía 
   el service deriva contexto de trabajo desde esa lista autorizada, vuelve a
   comprobar cuenta/preferencias bajo owner lock y reclama fecha/envía por su
   interfaz, nunca desde un owner recibido por HTTP anónimo.
+  Ajuste aprobado para 7.2: `notifications.lock_delivery_owner(owner text)`
+  bloquea/revalida cuenta activa, suscripción y reminder habilitado; devuelve solo
+  el ID autorizado e instala su contexto transaccional. Rechazar conserva el contexto
+  previo. Executor NOLOGIN sin BYPASSRLS, search_path fijo y EXECUTE explícito;
+  sin sesión ficticia ni SELECT global runtime. Training se lee por su interfaz
+  propietaria y la fecha local se reclama bajo el mismo lock antes del envío.
+  El envío ocurre fuera de la transacción; un fallo posterior no promete reintento
+  ni exactly-once.
 
 - `coach.public_disclosure()` devuelve solo enabled/provider/auth_mode/community
   compatibles sin actor/secreto, aplicando disponibilidad Q6. `coach.cohort_candidates

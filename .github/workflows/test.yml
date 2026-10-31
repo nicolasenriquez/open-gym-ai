@@ -166,6 +166,7 @@ jobs:
       # that forgets to regenerate it would otherwise only surface as "the Coach can't find
       # that exercise" on somebody's instance.
       - run: node scripts/build-coach-assets.mjs --check
+      - run: node scripts/build-push-assets.mjs --check
       # website/api.html is generated from api/openapi.yaml and committed. Same reason.
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node scripts/build-api-docs.mjs --check
@@ -289,6 +290,7 @@ jobs:
       - run: node scripts/platform.mjs verify coach_http --case validated_proposal
       - run: node scripts/platform.mjs verify coach_admin --case credentials
       - run: node scripts/platform.mjs verify admin_users --case actor_target
+      - run: node scripts/platform.mjs verify notifications
       - run: node scripts/platform.mjs verify images
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node --test scripts/platform-build.test.mjs

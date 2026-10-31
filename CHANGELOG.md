@@ -20,7 +20,12 @@ principles. Published entries below are preserved; see the
   `p004_admin_users`; deletion, invitations and administrative audit remain pending.
 - Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
   a twenty-device cap, private-address validation and persistent VAPID material.
-  Requires `p005_subscriptions`; sending and reminder scheduling remain pending.
+  Requires `p005_subscriptions`. Internal local-date reminders and evening nudges
+  now require `p005_delivery`, preserving Training preferences, queue/pins and
+  back-off. HTTPS sends pin validated DNS addresses with original-host TLS and
+  no redirects; verification uses private fixtures, not physical devices.
+  Dates are claimed before sending without guaranteed retries or exactly-once
+  delivery. Activity/presence and rest timers remain pending.
 - Python Coach consent disclosure, opt-in cohort medians and scheduled reviews,
   including restart protection and timezone handling. Deferred SDK/CLI providers
   remain identifiable and unavailable in web/mobile setup and administration.
