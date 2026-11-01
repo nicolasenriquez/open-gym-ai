@@ -13,12 +13,12 @@ Todos desde raíz; cada fila ejecuta una suite/caso completo, sin -k ni omisione
 | Suite/caso | Comando | Pruebas actuales / observación |
 | --- | --- | --- |
 | lifecycle/readiness | `node scripts/platform.mjs verify lifecycle --case readiness` | `tests/platform/test_lifecycle.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
-| database/pool | `node scripts/platform.mjs verify database --case pool` | `tests/core/test_database.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
-| checks/toolchain | `node scripts/platform.mjs verify checks --case toolchain` | `tests/platform/test_toolchain.py tests/platform/test_proof_policy.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
+| database/pool | `node scripts/platform.mjs verify database --case pool` | `tests/core/test_database.py`; integración de pool/transacciones PostgreSQL, no recorrido HTTP/browser |
+| checks/toolchain | `node scripts/platform.mjs verify checks --case toolchain` | `tests/platform/test_toolchain.py tests/platform/test_proof_policy.py`; locks, dependencias, lint/formato/types y política de pruebas; no acredita HTTP/RLS |
 | training_read/owner_and_types | `node scripts/platform.mjs verify training_read --case owner_and_types` | `tests/platform/test_training_read.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
 | training_write/lineage_retry | `node scripts/platform.mjs verify training_write --case lineage_retry` | `tests/platform/test_training_lineage.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
 | training_write/first_write | `node scripts/platform.mjs verify training_write --case first_write` | `tests/platform/test_training_write.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
-| training_browser/offline_sync | `node scripts/platform.mjs verify training_browser --case offline_sync` | `tests/platform/test_training_browser.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
+| training_browser/offline_sync | `node scripts/platform.mjs verify training_browser --case offline_sync` | `tests/platform/test_training_browser.py`; frontend compilado/Chromium → HTTP Python → PG, con fixture y observaciones independientes |
 | identity_session/restricted_pool | `node scripts/platform.mjs verify identity_session --case restricted_pool` | `tests/core/test_database.py tests/platform/test_identity_restricted_pool.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
 | identity_session/actor | `node scripts/platform.mjs verify identity_session --case actor` | `tests/platform/test_identity_session.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
 | identity_password/login | `node scripts/platform.mjs verify identity_password --case login` | `tests/platform/test_identity_password.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
@@ -50,6 +50,8 @@ Todos desde raíz; cada fila ejecuta una suite/caso completo, sin -k ni omisione
 | backup/interrupted_capture | `node scripts/platform.mjs verify backup --case interrupted_capture` | `--test --test-reporter=tap scripts/platform-maintenance.test.mjs`; CLI/containers/archivos sintéticos |
 | contracts/python_routes | `node scripts/platform.mjs verify contracts --case python_routes` | `tests/platform/test_openapi.py`; HTTP/PG restringido y observador independiente; browser real si target browser |
 
+El target indica entorno de ejecución, no la garantía observada. Las filas HTTP/PG requieren contrastar las aserciones de la prueba seleccionada: no acreditan todas las rutas/ownership por sí solas. Toolchain no acredita seguridad funcional, HTTP no acredita UI y browser sintético no acredita hardware. La futura prueba de arquitectura en checks tampoco convierte la suite en prueba HTTP/RLS.
+
 ## Comandos frontend exactos y aplicación por tarea
 
 Desde frontend, con pnpm fijado y dependencias ya instaladas; no instalar herramientas por inferencia. Vitest observa operaciones y efectos de transporte/storage, no acredita browser ni hardware.
@@ -74,6 +76,17 @@ Desde frontend, con pnpm fijado y dependencias ya instaladas; no instalar herram
 
 Browser: comando exacto training_browser/offline_sync de la tabla, entrada frontend/e2e/platform/training.mjs mediante backend/tests/platform/test_training_browser.py. Ya cubre offline/auth/conflictos/respuesta perdida/passkeys/pairing/medios e invitaciones admin. Para recorridos UI Coach, borrado/audit y Notifications que el browser actual no cubra, se amplía ese caso y sus módulos de recorrido durante el slice respectivo, manteniendo su entrada/observador existentes; actualizar la lista de evidencias esperadas del runner junto con cada ampliación. No crear setters públicos ni endpoints de test de producto: usar acciones UI, control de fixture sintético ya existente y observador independiente. Ésta es cobertura nueva prevista, no un check actualmente aprobado. Los casos backend y Vitest no sustituyen ese recorrido cuando se modifica UI.
 
+### Aceptación browser de recorridos afectados
+
+| Recorrido / tareas | Acción UI mínima | Observación independiente |
+| --- | --- | --- |
+| Coach / 5.7–5.8 | Consentir, solicitar propuesta y cancelar o retirar consentimiento | Estado/job observado desde fixture/PG; respuesta tardía no aplica Training |
+| Administration: borrado / 6.10 | Eliminar usuario autorizado y observar cleanup pendiente/completo | Cuenta inaccesible y tarea/archivos propios observados fuera de la UI |
+| Administration: audit / 6.12 | Leer/limpiar audit con actor permitido y comprobar rechazo indebido | Eventos/resultado persistente observados independientemente |
+| Notifications / 6.13–6.15 | Cambiar preferencia/opt-out y cancelar timer del dispositivo | Estado autorizado y transporte fake existente; dispositivo ajeno intacto |
+
+Reutilizar cada recorrido existente que ya pruebe esas observaciones. El runner actual reconoce admin-audit: comprobar ejecución/aserciones y reutilizarlo antes de añadir otra prueba. Añadir solo cobertura faltante dentro del harness actual. Una captura sola no satisface el caso. Actualizar juntos productor, lector de evidencia y lista de casos requeridos en frontend/e2e/platform/training.mjs, backend/tests/platform/test_training_browser.py y scripts/platform.mjs según sus consumidores reales; nunca relajar la lista para admitir omisiones. El comando sigue siendo training_browser/offline_sync. Son mínimos de recorridos afectados, no nuevas capacidades ni pruebas reales de proveedores/dispositivos.
+
 ## Exportaciones e interfaces: decisión concreta
 
 Se permite la superficie explícita siguiente, no cualquier nombre exportado. No añadir archivos public.py de paso ni contratos por cada método. Los participantes usan contexto autorizado; no aceptar owner del caller HTTP como autoridad.
@@ -84,7 +97,7 @@ Se permite la superficie explícita siguiente, no cualquier nombre exportado. No
 | Metadata de esquema | Destino elegido core/schema.py: SCHEMA_REVISION, movida desde application sin duplicar valor | application, administration.cleanup y backup; stdlib solamente, sin carga HTTP |
 | Identidad/contexto | identity.sessions.Session, select_token, verify, authorize, lock_media_owner | routers/operaciones autorizadas y módulos que requieren ese contexto; sign solo emisión de sesión/fixtures independientes |
 | Training lectura | training.service.admin_projection, coach_consent, coach_document, notification_document; training.references.media_references y referenced_hashes | administration; Coach; Notifications; Media según proyección, con handle/actor y owner comprobado |
-| Guardado coordinado | Destino elegido training_save.py: save(database, session, body, note_state=None); único iniciador | training.router; pruebas HTTP de guardado; sin nuevo registry/event bus |
+| Guardado coordinado | Destino elegido training_save.py: save(database, session, body, note_state=None, *, coach); único iniciador | training.router inyecta la instancia Jobs propiedad del lifespan de application; sin registry/event bus |
 | Training escritura participante | Destino training.service.write_participant(handle, session, body); devuelve resultado/estado necesario sin commit ni objeto Coach | training_save.save; no accede a jobs/cuotas Coach |
 | Coach participación | Jobs.training_changed(handle, owner, current, document) y Jobs.cancel(job_id) | iniciador; cancel solo después del commit; owner proviene del contexto autorizado |
 | Coach entrada/lifecycle | Jobs.preflight, status, enqueue, resolve, forget, close | router/ejecución y composición; métodos con _ y SQL propios privados |
@@ -96,6 +109,8 @@ Se permite la superficie explícita siguiente, no cualquier nombre exportado. No
 | Frontend estado | useStore, useUI y acciones ya existentes pushState/pullState/adoptProfile; helpers puros existentes | features/hooks; se prohíbe un segundo store persistente de documento/revisiones |
 | Frontend transporte/Coach | lib/api.api y beacon; lib/remote.loadRemote/chooseLocal/forgetRemote/connect/renewToken; operaciones explícitas de lib/coach-api | clientes/hooks de capacidad, reutilizando transporte; selección local/demo/HTTP no se duplica |
 | Frontend medios | media-sync.createMediaSync/startMediaSync/syncMedia/fetchToStore/mayFetch/localMediaGc/settleMediaSync | bootstrap y capacidad Media; _setSharedMediaSync es seam de test, no interface de producto |
+
+El coordinador reutiliza la instancia inyectada: no crea Jobs, no consulta un singleton y no importa application. Training.write_participant no recibe Coach. Probar que training_changed y cancelación usan el mismo colaborador, que no hay cancelación tras rollback/commit fallido y que una respuesta tardía conserva sus restricciones.
 
 Los destinos nuevos son decisiones de planificación, no símbolos existentes ni código entregado. En 2.1 se corrige el consumo cruzado de _secret; no se añade excepción permanente. En 2.3 se adapta router al iniciador y participantes anteriores con pruebas de rollback/commit. El módulo raíz training_save tiene una responsabilidad concreta, no un framework global. Las rutas frontend pueden moverse por slices conservando operaciones; el mapa se actualiza en el mismo cambio.
 

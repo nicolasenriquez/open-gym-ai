@@ -15,12 +15,12 @@
 - [ ] 2.1 Separar metadata pura de compatibilidad de la composición HTTP; actualizar consumidores runtime/cleanup/backup y empaquetado afectado, conservando autoridad única y rechazo de esquema incompatible. Verificar import independiente, lifecycle y CLI afectadas.
   Traceability: Composition-independent compatibility metadata.
   Proof/Check: V1; import puro independiente y esquema incompatible rechazado en lifecycle y CLI.
-- [ ] 2.2 Caracterizar el guardado Training–Coach con iniciador, participantes, permisos, transacción y efectos postcommit; comprobar éxito, rollback del segundo participante, revocación durante espera y cancelación posterior al commit.
+- [ ] 2.2 Caracterizar el guardado Training–Coach con iniciador, participantes, permisos, transacción y efectos postcommit; comprobar éxito, rollback del segundo participante, revocación durante espera y cancelación posterior al commit y uso de la misma instancia Coach inyectada desde composición.
   Traceability: Explicit atomic Training and Coach collaboration; Single initiator and one-way participant knowledge.
   Proof/Check: V2; HTTP/PG independiente observa éxito, rollback, revocación durante espera y cancelación postcommit.
 - [ ] 2.3 Aplicar la menor reorganización que elimine conocimiento recíproco innecesario y haga explícita la colaboración; descartar fachada pasante/event bus. Repetir pruebas de 2.2 y actualizar el grafo propietario contrastándolo con consumidores reales.
   Traceability: Explicit atomic Training and Coach collaboration; Single initiator and one-way participant knowledge.
-  Proof/Check: V2 y revisión manual D6 ahora; repetir V3 en 8.2 después de entregar 3.2–3.3. Mismo resultado de 2.2; Training sin objeto Coach, un iniciador/handle y cero commits/pools participantes.
+  Proof/Check: V2 y revisión manual D6 ahora; repetir V3 en 8.2 después de entregar 3.2–3.3. Mismo resultado de 2.2; Training sin objeto Coach, un iniciador/handle y cero commits/pools participantes, sin crear Jobs ni buscarlo globalmente.
 
 ## 3. P1 — Navegación y controles para agentes
 
@@ -199,6 +199,8 @@
 
 ## Execution Order
 
+Cada recorrido entrega un diff coherente con sus callers, tests, fixtures y configuración necesarios. Antes del siguiente recorrido que comparta código/estado, registrar prueba, resultado y límites en su tarea. Mantener limpieza editorial/borrado separable de cambios ejecutables. No dividir una corrección atómica por archivo/capa ni exigir un commit por tarea; los commits siguen requiriendo autorización explícita.
+
 Cada ID aparece una vez; checkpoints de capacidad siguen a sus recorridos. Cada recorrido encadena caracterización → cambio necesario → prueba, sin reunir todos los tests al principio.
 
 - Entrada: 1.1 → 1.2 → 1.3.
@@ -239,7 +241,7 @@ Para tareas solo editoriales o de inventario no aplica RED runtime: la prueba co
 
 ## Orden y trazabilidad
 
-1 → 2 → 3 → 10 Docker → 4 → 5 → 6 → 7 residual → 8 técnico → 9 documental. La higiene de un slice puede acompañarlo mediante diff separable; 7.4 siempre precede a 7.5. No se ejecutan movimientos masivos ni se limpian evidencias de un slice todavía abierto. Las prioridades ordenan trabajo, no rebajan la obligatoriedad de requisitos al aceptar el cambio completo.
+1 → 2 → 3 → 10 Docker → 4 → 5 → 6 → 7 residual → 8 técnico → 9 documental. La higiene de un slice puede acompañarlo mediante diff separable; 7.4 siempre precede a 7.5. No se ejecutan movimientos masivos ni se limpian evidencias de un slice todavía abierto. La matriz browser del plan exige acción UI y observación independiente; capturas/nombres solos no cierran recorridos y se actualizan juntos sus productores/consumidores de evidencia. Las prioridades ordenan trabajo, no rebajan la obligatoriedad de requisitos al aceptar el cambio completo.
 
 | Requisitos | Tareas principales |
 | --- | --- |

@@ -250,3 +250,9 @@ Docker/Buildx es una restricción local de ejecución separada. Afecta builds y 
 ## D11. Comprobaciones de planificación completadas
 
 El [plan concreto](verification-plan.md) es parte de este diseño y sustituye las selecciones genéricas de V0–V10 a efectos de iniciar ejecución. Revisar nombres si hay drift, conservando las garantías especificadas. Los seams públicos/HTTP/PG/browser y fixtures negativas quedan definidos para la implementación solicitada; no se introducen hooks de producto ni se amplían permisos. Implementation Ready no equivale a autorización para implementar, publicar, archivar o hacer commit.
+
+### Precisiones localizadas tras la revisión ponytail ultra
+
+El coordinador save recibe coach como keyword obligatorio desde training.router, que reutiliza la instancia Jobs gestionada por el lifespan. No hay instancia adicional ni lookup global; Training participante sigue sin recibir Coach. La matriz browser del plan fija acciones/observaciones mínimas y reutiliza los recorridos existentes antes de ampliarlos, incluidos los de audit que ya estén ejecutados. El tipo de target de una prueba no es su garantía: distinguir toolchain, pool PostgreSQL, HTTP y UI.
+
+La unidad de entrega es un recorrido coherente con sus consumidores y pruebas, no un archivo/capa. Cada checkpoint registra resultado antes del siguiente recorrido solapado; los diffs editoriales son separables. No se agregan tareas, frameworks ni condiciones de otra OpenSpec; todos los IDs, el orden de etapas y la etapa 9 final se conservan.

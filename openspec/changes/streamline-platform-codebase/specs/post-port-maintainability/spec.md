@@ -47,6 +47,12 @@ Synchronization coordination SHALL be localized behind a cohesive interface with
 ### Requirement: Incremental locality across six frontend capabilities
 Training, Identity, Coach, Media, Administration and Notifications SHALL each have an independently reviewed slice with an ownership map, public interface, collaborators, state, failure cases and relevant tests. Feature-specific UI, hooks and clients SHALL be grouped where this reduces dispersal; shared transport and persistent state SHALL remain single authorities. Existing UX, localization, PWA/mobile, formats and public contracts MUST remain compatible.
 
+Changed UI journeys SHALL exercise actual user actions and independently observe their persistent or authorized side effects. Existing executable browser coverage SHALL be reused before extending the current harness.
+
+#### Scenario: Evidence exists without executing the required journey
+- **WHEN** an expected screenshot or case name exists but the required UI action and independent observation were not executed
+- **THEN** that journey remains unverified and its acceptance checkpoint does not pass
+
 #### Scenario: Training and Identity slices are accepted
 - **WHEN** Training/sync or Identity organization changes
 - **THEN** tests preserve offline sessions, owner adoption, pending data, login/pairing and rejection/revocation behavior for the affected slice without introducing a feature-specific persistent store
@@ -73,6 +79,12 @@ Current documentation SHALL identify each capability's owner, interfaces, collab
 ### Requirement: Single initiator and one-way participant knowledge
 The coordinated save SHALL have exactly one transaction initiator. The Training participant MUST NOT receive a Coach object or decide Coach policy; Coach SHALL own its consent, job and quota decisions and access Training only through declared public projections. Participants MUST NOT acquire another pool, commit independently or perform precommit runtime cancellation. Existing operations satisfying these conditions SHALL be reused without mandatory facade extraction.
 
+The composition-owned Coach collaborator SHALL be explicitly injected into the save coordinator. The coordinator MUST NOT construct another Jobs instance or obtain it through global application state.
+
+#### Scenario: Coordinator uses the application-owned collaborator
+- **WHEN** an authorized save invokes Coach participation and subsequently commits
+- **THEN** participation and postcommit cancellation use the injected collaborator without creating another worker or transaction
+
 #### Scenario: Hidden reciprocal collaboration remains
 - **WHEN** an import check passes but Training still invokes a supplied Coach object to coordinate the save
 - **THEN** backend reorganization is not accepted until coordination belongs to the single initiator and Training and Coach participants satisfy their declared interfaces
@@ -90,6 +102,12 @@ Architecture checks SHALL use a reviewed map of concrete module ownership and pu
 
 ### Requirement: Per-journey proof and task traceability
 Each task SHALL identify its requirement/scenario and observable check. Each runtime journey SHALL record the current exact command, cases, environment, observation seam and success/failure expectations before modification. Retired verifier commands SHALL be replaced with current native equivalents, not restored as legacy dependencies. Existing behavior-preserving refactors SHALL pass characterization before and after; a new rule SHALL include a negative proof. Six capabilities SHALL remain in scope but SHALL be delivered through bounded journeys with independent acceptance, not mandatory wholesale moves.
+
+Each journey SHALL form a coherent reviewable change including required consumers and verification. Editorial removals SHALL remain distinguishable from executable changes. Overlapping journeys MUST NOT advance without recording the preceding checkpoint result.
+
+#### Scenario: A subsequent journey overlaps unfinished changes
+- **WHEN** the next journey modifies code or state whose preceding checkpoint is unverified
+- **THEN** the overlapping journey waits while independent work may continue
 
 #### Scenario: Retired verifier command is referenced
 - **WHEN** a proposed proof command no longer exists after the port
