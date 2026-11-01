@@ -14,8 +14,8 @@ test('targets and real dev/ops Compose isolate credentials, networks and depende
   const { execute, docker, cleanup } = syntheticHarness({
     root: fileURLToPath(new URL('../', import.meta.url)), namespace: 'opengym-platform-test',
     label: 'org.opengym.platform', name: 'Platform',
-    services: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev', 'platform-diagnostics'],
-    images: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev', 'platform-diagnostics'], database: 'platform-db',
+    services: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev', 'platform-diagnostics', 'platform-web'],
+    images: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev', 'platform-diagnostics', 'platform-web'], database: 'platform-db',
   });
   const image = `${project}-platform-runtime:local`;
   try {
@@ -68,6 +68,9 @@ for name in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap'):
     await docker(['build', '--platform', 'linux/amd64', '--label', 'org.opengym.platform=synthetic',
       '--label', 'com.docker.compose.project=' + project, '--label', 'com.docker.compose.service=platform-diagnostics',
       '-t', project + '-platform-diagnostics:local', '-f', 'backend/diagnostics/Dockerfile', 'backend/diagnostics'], true);
+    await docker(['build', '--platform', 'linux/amd64', '--label', 'org.opengym.platform=synthetic',
+      '--label', 'com.docker.compose.project=' + project, '--label', 'com.docker.compose.service=platform-web',
+      '--build-arg', 'VITE_API_PREFIX=/api/v1', '-t', project + '-platform-web:local', '-f', 'web/Dockerfile', '.'], true);
     await deploymentProof({ project, image, docker });
   } finally {
     await cleanup(project);
@@ -83,7 +86,7 @@ async function deploymentProof({ project, image, docker }) {
     assert.ok(dockerfile.includes(`FROM ${pin}`));
   }
   const images = {};
-  for (const target of ['runtime', 'migrate', 'ops', 'diagnostics']) {
+  for (const target of ['runtime', 'migrate', 'ops', 'diagnostics', 'web']) {
     images[target] = JSON.parse(await docker(['image', 'inspect', `${project}-platform-${target}:local`]))[0].Id.slice(7);
   }
   const envFile = join(temporary, 'verify.env');
@@ -98,7 +101,7 @@ async function deploymentProof({ project, image, docker }) {
       writeFileSync(envFile, [
         `PLATFORM_WEB_PORT=${environment === 'dev' ? 8081 : 8080}`,
         `PLATFORM_SECRETS_DIR=${secretRoot.replaceAll('\\', '/')}`,
-        `PLATFORM_WEB_DIGEST=${images.runtime}`, `PLATFORM_RUNTIME_DIGEST=${images.runtime}`,
+        `PLATFORM_WEB_DIGEST=${images.web}`, `PLATFORM_RUNTIME_DIGEST=${images.runtime}`,
         `PLATFORM_MIGRATE_DIGEST=${images.migrate}`, `PLATFORM_OPS_DIGEST=${images.ops}`,
         `PLATFORM_DIAGNOSTICS_DIGEST=${images.diagnostics}`,
         'INVITE_ONLY=1', 'ALLOW_GUEST=0', 'PASSWORD_LOGIN=true', 'DEFAULT_LANG=es-CL', 'MEDIA_UPLOADS=0',
@@ -143,6 +146,7 @@ async function deploymentProof({ project, image, docker }) {
         assert.ok(!definition.privileged && !definition.cap_add?.length);
         assert.ok(definition.read_only && definition.user !== '0');
         assert.deepEqual(definition.cap_drop, ['ALL']);
+        if (!['db', 'web'].includes(service)) assert.equal(definition.logging.driver, 'none');
         if (service !== 'web') assert.ok(!definition.ports?.length);
         if (environment === 'ops') {
           assert.ok(!definition.build);
@@ -167,12 +171,13 @@ async function deploymentProof({ project, image, docker }) {
       volumeNames.push(config.volumes['postgres-data'].name);
       assert.equal(config.volumes['media-data'].name, `${instance}_${environment}-media-data`);
       assert.doesNotMatch(JSON.stringify(config), /docker\.sock|coach-auth|seccomp|FOUNDATION_DB_|PLATFORM_DB_PASSWORD"/);
-      // Run the resolved topology with owned labels and prebuilt images; web is a network probe, not UI acceptance.
+      // Run real nginx/API/PG on owned resources; no synthetic port competes with the user's instance.
       for (const [service, definition] of Object.entries(config.services)) {
         delete definition.build;
         definition.image = service === 'db' ? versions.postgresImage
           : service === 'bootstrap' || service === 'migrate' ? `${project}-platform-migrate:local`
           : service === 'diagnostics' ? `${project}-platform-diagnostics:local`
+          : service === 'web' ? `${project}-platform-web:local`
           : service === 'ops' ? `${project}-platform-ops:local` : image;
         definition.labels = { ...definition.labels, 'org.opengym.platform': 'synthetic' };
         definition.pull_policy = 'never';
@@ -184,6 +189,11 @@ async function deploymentProof({ project, image, docker }) {
       config.volumes['media-data'].labels = { 'org.opengym.platform': 'synthetic', 'com.docker.compose.service': 'api' };
       config.volumes['diagnostic-logs'].driver_opts = { type: 'tmpfs', device: 'tmpfs', o: 'size=268435456,uid=1000,gid=1000,mode=0700' };
       for (const name of ['diagnostic-logs', 'diagnostic-socket']) config.volumes[name].labels = { 'org.opengym.platform': 'synthetic', 'com.docker.compose.service': 'diagnostics' };
+      config.services.web.ports = [];
+      // Only this disposable supervisor's clock advances; product has no fast-retention flag.
+      config.services.diagnostics.entrypoint = ['python', '-c',
+        "import pathlib,time,subprocess,runpy; clock=time.monotonic; time.monotonic=lambda:clock()+(7200 if pathlib.Path('/state/advance').exists() else 0); runpy.run_path('/usr/local/bin/diagnostics.py',run_name='__main__')"];
+      config.services.ops.networks = { app: null };
       const configuration = join(temporary, `${environment}.json`);
       writeFileSync(configuration, JSON.stringify(config));
       const compose = [...args.slice(0, args.indexOf('-f')), '-f', configuration];
@@ -212,6 +222,17 @@ with urllib.request.urlopen('http://127.0.0.1:3000/api/v1/config', timeout=1) as
     assert json.load(response) == {'invite_only': True, 'allow_guest': False, 'password_login': True, 'default_lang': 'es-CL'}
 print('PLATFORM_COMPOSE_HTTP_OK')
 `], true);
+        await docker([...compose, 'up', '-d', '--no-deps', 'web']);
+        await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', `
+import json,time,urllib.request
+for _ in range(100):
+ try:
+  with urllib.request.urlopen('http://web:80/api/v1/health?SENSITIVE_9_4_URL',timeout=1) as r:assert json.load(r)['ok']
+  break
+ except OSError:time.sleep(.1)
+else:raise AssertionError('real nginx proxy not ready')
+print('PLATFORM_REAL_NGINX_PROXY_OK')
+`], true);
         await docker([...compose, 'run', '--rm', '--no-deps', 'ops', '-c', `
 import json,subprocess,sys
 result=subprocess.run([sys.executable,'-m','opengym_platform.operations','diagnose','--config','/run/operator/config.json'],capture_output=True,text=True,timeout=5)
@@ -237,6 +258,37 @@ print('PLATFORM_POSTGRES_LOG_OK')
         await docker([...compose, 'exec', '-T', 'db', 'psql', '--no-psqlrc', '--set=ON_ERROR_STOP=1',
           '-U', 'opengym_platform_bootstrap', '-d', config.services.db.environment.POSTGRES_DB,
           '-c', "INSERT INTO identity.users(id,display_name,is_admin,session_version) VALUES('diag-admin','Diagnostic fixture',true,0)"]);
+        const provider = `${instance}-ops-run-${randomBytes(6).toString('hex')}`;
+        await docker([...compose, 'run', '-d', '--no-deps', '--name', provider, 'ops', '-c', `
+from http.server import BaseHTTPRequestHandler,HTTPServer
+class Fixture(BaseHTTPRequestHandler):
+ def do_POST(self):
+  self.rfile.read(int(self.headers['Content-Length']))
+  body=b'{"error":"SENSITIVE_9_4_PROVIDER"}'
+  self.send_response(401);self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
+ def log_message(self,*args):pass
+HTTPServer(('0.0.0.0',9090),Fixture).serve_forever()
+`]);
+        await docker([...compose, 'exec', '-T', 'db', 'psql', '--no-psqlrc', '--set=ON_ERROR_STOP=1',
+          '-U', 'opengym_platform_bootstrap', '-d', config.services.db.environment.POSTGRES_DB,
+          '-c', `UPDATE coach.settings SET enabled=true,provider='compatible'; UPDATE coach.provider_settings SET model='fixture',options='{"baseUrl":"http://${provider}:9090"}'::jsonb WHERE provider='compatible'; INSERT INTO training.documents(owner_id,document) VALUES('diag-admin','{"coach":{"consent":{"agreedAt":1}},"routines":[],"workouts":[]}'); DO $$BEGIN RAISE WARNING 'SENSITIVE_9_4_SQL'; END$$;`]);
+        await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', `
+import json,time,urllib.request
+from opengym_platform.identity.sessions import sign
+from opengym_platform.core.platform_settings import load_session_secret
+token=sign('diag-admin:'+str(int(time.time()*1000)+60000)+':0',load_session_secret())
+headers={'Authorization':'Bearer '+token,'Content-Type':'application/json','Cookie':'fixture=SENSITIVE_9_4_COOKIE','X-Request-ID':'SENSITIVE_9_4_TRACE','User-Agent':'SENSITIVE_9_4_AGENT'}
+req=urllib.request.Request('http://web:80/api/v1/coach/review?SENSITIVE_9_4_QUERY',data=b'{"note":"SENSITIVE_9_4_PROMPT"}',headers=headers)
+with urllib.request.urlopen(req,timeout=3) as r:assert r.status==202
+for _ in range(100):
+ with urllib.request.urlopen(urllib.request.Request('http://web:80/api/v1/coach/status',headers=headers),timeout=3) as r:state=json.load(r)
+ if state.get('last') and not state.get('job'):
+  assert state['last']['errorClass']=='auth';break
+ time.sleep(.05)
+else:raise AssertionError('private provider fixture did not finish')
+print('PLATFORM_SENSITIVE_HTTP_DB_PROVIDER_FIXTURE_OK')
+`], true);
+        await diagnosticCopies({ compose, docker, instance, provider, database: config.services.db.environment.POSTGRES_DB });
         await docker([...compose, 'exec', '-T', 'diagnostics', 'python', '-c', `
 import errno,pathlib
 try:
@@ -252,7 +304,7 @@ import json,time,urllib.request
 from opengym_platform.identity.sessions import sign
 from opengym_platform.core.platform_settings import load_session_secret
 token=sign('diag-admin:'+str(int(time.time()*1000)+60000)+':0',load_session_secret())
-request=urllib.request.Request('http://127.0.0.1:3000/api/v1/admin/invites/new',data=b'{"note":"private-sink-note"}',headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'})
+request=urllib.request.Request('http://web:80/api/v1/admin/invites/new?SENSITIVE_9_4_FAULT',data=b'{"note":"SENSITIVE_9_4_NOTE"}',headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'})
 with urllib.request.urlopen(request,timeout=3) as response:assert response.status==200
 print('PLATFORM_HTTP_COMMIT_DURING_SINK_FAULT')
 `;
@@ -263,13 +315,46 @@ code,state=diagnose('/run/operator/config.json')
 assert code==1 and state['logging']['degraded'] and state['logging']['sink']=='full'
 print('PLATFORM_FULL_SINK_VISIBLE')
 `], true);
-        await docker([...compose, 'exec', '-T', 'diagnostics', 'python', '-c', "import pathlib;pathlib.Path('/logs/api.log.168').unlink()"]);
+        const closing = Date.now();
         await docker([...compose, 'stop', '--timeout', '5', 'diagnostics']);
+        assert.ok(Date.now() - closing < 5000, 'full collector shutdown exceeds five seconds');
+        assert.notEqual(JSON.parse(await docker(['inspect', `${instance}-diagnostics-1`]))[0].State.ExitCode, 137);
         await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', invitationDuringFault], true);
+        await docker([...compose, 'run', '--rm', '--no-deps', 'ops', '-c', `
+from opengym_platform.operations import diagnose
+code,state=diagnose('/run/operator/config.json')
+assert code==1 and state['logging']['degraded'] and state['logging']['failures']>0
+print('PLATFORM_STOPPED_SINK_VISIBLE')
+`], true);
+        await docker([...compose, 'run', '--rm', '--no-deps', '--entrypoint', 'python', 'diagnostics', '-c',
+          "import pathlib;pathlib.Path('/logs/api.log.168').unlink()"]);
         const committed = await docker([...compose, 'exec', '-T', 'db', 'psql', '--no-psqlrc', '-tAc',
           'SELECT count(*) FROM identity.invitations', '-U', 'opengym_platform_bootstrap', '-d', config.services.db.environment.POSTGRES_DB]);
         assert.equal(committed.trim(), '2', 'both fault-time HTTP writes must commit');
         await docker([...compose, 'up', '-d', '--wait', '--wait-timeout', '30', 'diagnostics']);
+        await docker([...compose, 'exec', '-T', 'diagnostics', 'rotate']);
+        await diagnosticCopies({ compose, docker, instance, provider, database: config.services.db.environment.POSTGRES_DB, allowTorn: true });
+        const stopping = Date.now();
+        await docker([...compose, 'stop', '--timeout', '5', 'api']);
+        assert.ok(Date.now() - stopping < 5000, 'API shutdown exceeds five seconds');
+        assert.notEqual(JSON.parse(await docker(['inspect', `${instance}-api-1`]))[0].State.ExitCode, 137);
+        await docker([...compose, 'exec', '-T', 'diagnostics', 'python', '-c', `
+import pathlib,time,os
+for name in ('api','nginx','postgres','ops'):
+ for suffix in ('','.1'):
+  p=pathlib.Path('/logs/'+name+'.log'+suffix);p.write_text('stopped-api-expired');os.utime(p,(time.time()-8*86400,)*2)
+pathlib.Path('/state/advance').touch()
+for _ in range(100):
+ try:
+  if not any(b'stopped-api-expired' in p.read_bytes() for p in pathlib.Path('/logs').glob('*.log*')):break
+ except FileNotFoundError:pass
+ time.sleep(.05)
+else:raise AssertionError('stopped API prevented hourly retention')
+print('PLATFORM_STOPPED_API_HOURLY_RETENTION_OK')
+`], true);
+        await docker([...compose, 'up', '-d', '--no-deps', '--wait', '--wait-timeout', '30', 'api']);
+        await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c',
+          "import urllib.request;assert urllib.request.urlopen('http://web:80/api/v1/health',timeout=3).status==200"]);
         await docker([...compose, 'run', '--rm', '--no-deps', '--entrypoint', '/app/.venv/bin/python', 'api', '-c', `
 import asyncio, pathlib, asyncpg
 assert pathlib.Path('/data/synthetic-4-1').read_text() == 'owned persistent media volume'
@@ -295,15 +380,15 @@ print('PLATFORM_DEPLOYMENT_FILES_OK')
 `], true);
         const db = JSON.parse(await docker(['container', 'inspect', `${instance}-db-1`]))[0];
         const address = Object.values(db.NetworkSettings.Networks)[0].IPAddress;
-        await docker([...compose, 'run', '--rm', '--no-deps', '--entrypoint', '/app/.venv/bin/python', 'web', '-c', `
-import socket, pathlib
+        await docker(['run', '--rm', '--name', `${instance}-web-run-${randomBytes(6).toString('hex')}`,
+          '--label', `com.docker.compose.project=${instance}`, '--label', 'com.docker.compose.service=web',
+          '--label', 'org.opengym.platform=synthetic', '--network', `${instance}_app`, '--read-only', '--cap-drop', 'ALL',
+          '--security-opt', 'no-new-privileges', '--log-driver', 'none', image, '-c', `
+import socket,pathlib
 assert not pathlib.Path('/run/secrets/database_password').exists()
-try:
-    socket.create_connection((${JSON.stringify(address)}, 5432), timeout=1).close()
-except OSError:
-    print('PLATFORM_WEB_DB_DENIED')
-else:
-    raise AssertionError('web reached the private database')
+try:socket.create_connection((${JSON.stringify(address)},5432),timeout=1).close()
+except OSError:print('PLATFORM_WEB_DB_DENIED')
+else:raise AssertionError('web network reached private database')
 `], true);
       } finally {
         await owner.cleanup(instance);
@@ -313,4 +398,68 @@ else:
   } finally {
     rmSync(temporary, { recursive: true, force: true });
   }
+}
+
+async function diagnosticCopies({ compose, docker, instance, provider, database, allowTorn = false }) {
+  for (const container of [...['api', 'web', 'db', 'diagnostics'].map(service => `${instance}-${service}-1`), provider]) {
+    const meta = JSON.parse(await docker(['inspect', container]))[0];
+    const service = meta.Config.Labels['com.docker.compose.service'];
+    assert.equal(meta.LogPath, '', `${service} must have no Docker log file`);
+    const config = meta.HostConfig.LogConfig;
+    assert.equal(config.Type, ['db', 'web'].includes(service) ? 'syslog' : 'none');
+    if (config.Type === 'syslog') {
+      assert.equal(config.Config.mode, 'non-blocking');
+      assert.equal(config.Config['max-buffer-size'], '1m');
+      assert.equal(config.Config['cache-disabled'], 'true');
+    }
+    assert.doesNotMatch(JSON.stringify(meta.State.Health || {}), /SENSITIVE_9_4/);
+    let refused = false;
+    try {
+      const output = execFileSync('docker', ['logs', container], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 5000 });
+      assert.equal(output, '');
+    } catch (error) {
+      assert.ok(error.status > 0);
+      assert.match(String(error.stderr), /configured logging driver does not support reading/);
+      assert.doesNotMatch(String(error.stdout) + String(error.stderr), /SENSITIVE_9_4/);
+      refused = true;
+    }
+    assert.ok(refused, `${service} unexpectedly supports a durable Docker log cache`);
+  }
+  await docker([...compose, 'exec', '-T', 'diagnostics', 'python', '-c', `
+import pathlib,json,time
+for _ in range(100):
+ if all(any(p.stat().st_size for p in pathlib.Path('/logs').glob(n+'.log*')) for n in ('api','nginx','postgres')):break
+ time.sleep(.05)
+else:raise AssertionError('privacy proof needs nonempty real source streams')
+for p in pathlib.Path('/logs').iterdir():
+ assert p.is_file() and not p.is_symlink()
+ assert p.stat().st_mode & 0o777 == 0o600
+ raw=p.read_text();assert 'SENSITIVE_9_4' not in raw
+ torn=0
+ for line in raw.splitlines():
+  try:record=json.loads(line)
+  except json.JSONDecodeError:
+   # ENOSPC can tear an omfile write. All bytes still undergo the privacy assertion above.
+   assert ${allowTorn ? 'True' : 'False'}
+   torn+=1;assert torn<=1;continue
+  if p.name.startswith('api.log'):
+   assert set(record)=={'service','revision','severity','request_id','operation','result','duration_ms','time'}
+  else:assert set(record)=={'service','event','severity'}
+assert pathlib.Path('/logs').stat().st_mode & 0o777 == 0o700
+assert sum(p.stat().st_size for p in pathlib.Path('/logs').iterdir()) < 256*1024*1024
+for p in pathlib.Path('/state').iterdir():
+ assert p.name in {'retention.lock','logrotate.state','rsyslog.pid','ready','advance'}
+ assert 'SENSITIVE_9_4' not in p.read_text()
+config=pathlib.Path('/etc/opengym/rsyslog.conf').read_text()
+assert 'queue.type="FixedArray" queue.size="256"' in config
+assert 'queue.filename' not in config
+print('PLATFORM_ALL_PRIVATE_STREAMS_AND_DOCKER_COPIES_OK')
+`], true);
+  const pg = await docker([...compose, 'exec', '-T', 'db', 'psql', '--no-psqlrc', '-tAc',
+    "SELECT current_setting('logging_collector')||','||current_setting('log_destination')||','||current_setting('log_statement')", '-U', 'opengym_platform_bootstrap', '-d', database]);
+  assert.equal(pg.trim(), 'off,stderr,none');
+  await docker([...compose, 'exec', '-T', 'db', 'sh', '-ec',
+    'test ! -e "$PGDATA/current_logfiles"; test ! -d "$PGDATA/log"; test ! -d "$PGDATA/pg_log"']);
+  await docker([...compose, 'exec', '-T', 'web', 'sh', '-ec',
+    'test "$(readlink /var/log/nginx/access.log)" = /dev/stdout; test "$(readlink /var/log/nginx/error.log)" = /dev/stderr']);
 }

@@ -323,6 +323,13 @@ configuration, CVE applicability and acceptance limits live in platform-observab
   for live status; no custom --request reader. HTTP/DB adapter/provider/job records
   share process-local context, including completion after 202, without external
   propagation or SQL/exception content.
+  9.4 reuses collector/image tests with persistent restart controls, real nginx and
+  a private provider; synthetic Compose ports are removed before execution. Timer
+  proofs advance only the disposable supervisor clock, plus utime on fixtures,
+  including an actual stopped API. Docker LogPath/cache/read rejection and native
+  file destinations cover diagnostic copies. ENOSPC may tear a record; privacy
+  checks every byte, and schema checks complete records. Business SQL/audit are not
+  diagnostic copies. The Unix socket backpressure proof remains operator_status.
 
 ### S10 — faithful import and recovery (tasks 10.*)
 

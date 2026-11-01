@@ -463,6 +463,11 @@ or forwarded. Fixed outcome codes and monotonic durations exclude SQL, URLs,
 credentials and provider content. In the private collector shell, run `rotate`
 before `grep -hF '<hex32>' /logs/api.log*` to follow an operation within retention.
 Verify with `node scripts/platform.mjs verify diagnostics --case correlation`.
+Use `node scripts/platform.mjs verify diagnostics --case retention_and_failure`
+for persistent retention/restart, stopped-API sweeps, full/stopped sinks and privacy
+across real nginx/API/PostgreSQL and Docker logging. The disposable supervisor's
+clock is advanced only in the test; host clocks and the personal instance are untouched.
+Disk exhaustion can leave incomplete log records; delivery remains best effort.
 
 All Python HTTP routes use `/api/v1`, including the internal probes
 `GET /api/v1/health/live` and `GET /api/v1/health/ready`.

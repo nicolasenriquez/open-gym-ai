@@ -21,7 +21,8 @@ principles. Published entries below are preserved; see the
 - Private Python diagnostics for live database/schema, pool, audit and logging
   state, with an isolated rsyslog/logrotate Compose collector. Native nginx and
   PostgreSQL logging uses non-blocking Docker syslog without durable caches;
-  age/space retention and sink-failure HTTP persistence are verified synthetically.
+  synthetic acceptance covers persistent age/space retention, restart, stopped-API
+  sweeps, full/stopped sinks and privacy across real nginx/API/PG and Docker copies.
 
 - Integrated Python image reproducibility verification from a clean checkout,
   reusing target isolation, cold/warm cache probes and HTTP database recovery tests.

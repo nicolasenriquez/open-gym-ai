@@ -10,7 +10,7 @@ test('private collector: Docker native transport, Unix API, quota, age and stopp
   const { docker, cleanup } = syntheticHarness({
     root: fileURLToPath(new URL('../', import.meta.url)), namespace: 'opengym-platform-test',
     label: 'org.opengym.platform', name: 'Platform', services: ['diagnostics'], images: ['diagnostics'],
-    networkNames: ['private'], extraVolumes: {},
+    networkNames: ['private'], extraVolumes: { 'diagnostic-logs': { name: 'diagnostic-logs', service: 'diagnostics' } },
   });
   const image = `${project}-diagnostics:local`, container = `${project}-diagnostics-1`;
   const labels = ['--label', `com.docker.compose.project=${project}`, '--label', 'org.opengym.platform=synthetic'];
@@ -19,10 +19,13 @@ test('private collector: Docker native transport, Unix API, quota, age and stopp
       '-f', 'backend/diagnostics/Dockerfile', 'backend/diagnostics'], true);
     await docker(['network', 'create', '--internal', ...labels, '--label', 'com.docker.compose.service=private',
       '--label', 'com.docker.compose.network=private', `${project}_private`]);
+    const volume = `${project}_diagnostic-logs`;
+    await docker(['volume', 'create', ...labels, '--label', 'com.docker.compose.service=diagnostics',
+      '--label', 'com.docker.compose.volume=diagnostic-logs', volume]);
     await docker(['run', '-d', '--name', container, ...labels, '--label', 'com.docker.compose.service=diagnostics',
       '--network', `${project}_private`, '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
       '--log-driver', 'none', '--tmpfs', '/state:rw,noexec,uid=1000,gid=1000,mode=0700,size=1048576',
-      '--tmpfs', '/logs:rw,noexec,uid=1000,gid=1000,mode=0700,size=268435456',
+      '--mount', `type=volume,source=${volume},target=/logs`,
       '--tmpfs', '/run/diagnostics:rw,noexec,uid=1000,gid=1000,mode=0711', image]);
     await docker(['exec', container, 'python', '-c', `import pathlib,time
 for _ in range(100):
@@ -66,6 +69,11 @@ for name in ('api','nginx','postgres','ops'):
   p=root/(name+'.log'+('.'+str(i) if i else ''));p.write_bytes(b'x'*(352*1024))
 subprocess.run(['/usr/local/bin/rotate'],check=True,timeout=10)
 assert sum(p.stat().st_size for p in root.iterdir()) < 256*1024*1024
+workers=[subprocess.Popen(['/usr/local/bin/rotate'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL) for _ in range(32)]
+codes=[p.wait(timeout=10) for p in workers]
+assert 0 in codes and set(codes)<={0,3}
+assert sum(p.stat().st_size for p in root.iterdir()) < 256*1024*1024
+assert sum(p.stat().st_blocks*512 for p in root.iterdir()) < 256*1024*1024
 for name in ('api','nginx','postgres','ops'):
  for suffix in ('','.1'):
   p=root/(name+'.log'+suffix);p.write_text('expired-marker');os.utime(p,(time.time()-8*86400,)*2)
@@ -76,11 +84,71 @@ os.utime(foreign,(time.time()-8*86400,)*2)
 subprocess.run(['/usr/local/bin/rotate'],check=True,timeout=10)
 assert foreign.read_text()=='foreign-sentinel'
 print('ALL_SOURCE_QUOTA_AND_AGE_OK')`], true);
+    await docker(['exec', container, 'python', '-c', `import socket,pathlib,time,json
+s=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM);s.connect('/run/diagnostics/log');s.setblocking(False)
+packet=('<14>opengym-api: '+json.dumps({'service':'api','operation':'bounded-ingress','result':200,'padding':'x'*4000})).encode()
+sent=0
+for _ in range(1500):
+ try:s.send(packet);sent+=1
+ except BlockingIOError:time.sleep(.001)
+assert sent>100
+time.sleep(1)
+assert sum(p.stat().st_size for p in pathlib.Path('/logs').iterdir()) < 256*1024*1024
+assert pathlib.Path('/state/ready').exists()
+assert sum(p.stat().st_size for p in pathlib.Path('/state').iterdir()) < 1024*1024
+print('CONCURRENT_ROTATION_AND_BOUNDED_INGRESS_OK')`], true);
+    // Preserve files across a real stop/start; a container tmpfs would hide expiry bugs.
+    await docker(['exec', container, 'python', '-c', `import pathlib,os,time
+for name in ('api','nginx','postgres','ops'):
+ for suffix in ('','.1'):
+  p=pathlib.Path('/logs/'+name+'.log'+suffix);p.write_text('startup-expired-marker');os.utime(p,(time.time()-8*86400,)*2)
+pathlib.Path('/logs/api.log.2').write_text('fresh-retained-marker')`]);
+    let started = Date.now();
+    await docker(['stop', '--time', '5', container]);
+    assert.ok(Date.now() - started < 5000, 'collector shutdown exceeds five seconds');
+    assert.notEqual(JSON.parse(await docker(['inspect', container]))[0].State.ExitCode, 137);
+    await docker(['start', container]);
+    await docker(['exec', container, 'python', '-c', `import pathlib,time
+for _ in range(100):
+ if pathlib.Path('/state/ready').exists():break
+ time.sleep(.05)
+else:raise AssertionError('restart not ready')
+files=list(pathlib.Path('/logs').glob('*.log*'))
+assert not any(b'startup-expired-marker' in p.read_bytes() for p in files)
+assert any(b'fresh-retained-marker' in p.read_bytes() for p in files)
+assert pathlib.Path('/logs/api.log.foreign-sentinel').read_text()=='foreign-sentinel'
+print('PERSISTENT_RESTART_RETENTION_OK')`], true);
     await docker(['stop', '--time', '5', container]);
     await docker(['run', '--rm', '--network', 'none', '--read-only', '--cap-drop', 'ALL',
       '--log-driver', 'syslog', '--log-opt', `syslog-address=udp://${ip}:5514`, '--log-opt', 'tag=opengym-postgres',
       '--log-opt', 'mode=non-blocking', '--log-opt', 'cache-disabled=true', '--entrypoint', 'python', image,
       '-c', 'print("sink unavailable",flush=True)']);
+    // Advance only the supervisor's monotonic clock; real rsyslog, commands and I/O stay intact.
+    // This exercises the hourly branch without a one-hour wall-clock wait or a product test flag.
+    await docker(['rm', container]);
+    await docker(['run', '-d', '--name', container, ...labels, '--label', 'com.docker.compose.service=diagnostics',
+      '--network', `${project}_private`, '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
+      '--log-driver', 'none', '--tmpfs', '/state:rw,noexec,uid=1000,gid=1000,mode=0700,size=1048576',
+      '--mount', `type=volume,source=${volume},target=/logs`,
+      '--tmpfs', '/run/diagnostics:rw,noexec,uid=1000,gid=1000,mode=0711', '--entrypoint', 'python', image, '-c',
+      "import pathlib,time,subprocess,runpy; clock=time.monotonic; time.monotonic=lambda:clock()+(7200 if pathlib.Path('/state/advance').exists() else 0); runpy.run_path('/usr/local/bin/diagnostics.py',run_name='__main__')"]);
+    await docker(['exec', container, 'python', '-c', `import pathlib,time,os
+for _ in range(100):
+ if pathlib.Path('/state/ready').exists():break
+ time.sleep(.05)
+else:raise AssertionError('timer supervisor not ready')
+for name in ('api','nginx','postgres','ops'):
+ for suffix in ('','.1'):
+  p=pathlib.Path('/logs/'+name+'.log'+suffix);p.write_text('idle-expired-marker');os.utime(p,(time.time()-8*86400,)*2)
+pathlib.Path('/state/advance').touch()
+for _ in range(100):
+ try:
+  if not any(b'idle-expired-marker' in p.read_bytes() for p in pathlib.Path('/logs').glob('*.log*')):break
+ except FileNotFoundError:pass
+ time.sleep(.05)
+else:raise AssertionError('hourly retention did not run without API or traffic')
+assert pathlib.Path('/logs/api.log.foreign-sentinel').read_text()=='foreign-sentinel'
+print('HOURLY_RETENTION_WITHOUT_API_OR_TRAFFIC_OK')`], true);
     assert.ok(readFileSync('backend/diagnostics/rsyslog.conf', 'utf8').includes('ruleset="native"'));
   } finally { await cleanup(project); }
 });

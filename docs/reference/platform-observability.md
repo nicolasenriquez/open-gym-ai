@@ -6,8 +6,8 @@ description: Contrato objetivo de señales, tracing, privacidad y evidencia de o
 # Plataforma — observabilidad y tracing
 
 **Estado:** contrato objetivo revisado de EV-08 para operación personal local.
-La retención 9.2 y correlación 9.3 se describen abajo; la matriz extendida 9.4
-sigue pendiente. La revisión sustituye el
+La retención 9.2, correlación 9.3 y matriz sintética 9.4 se describen abajo.
+La revisión sustituye el
 perfil OpenTelemetry/JSONL propio por diagnóstico mínimo verificable; tracing
 avanzado queda diferido. [Arquitectura §12](../open-gym-evolution.architecture.md#12-gates-y-experimentos-antes-de-producción)
 gobierna GO y [seguridad](platform-security.md) gobierna audit y secretos.
@@ -102,8 +102,11 @@ del sink; envío de datagrama siempre significa delivery=unconfirmed. No hay
 garantía de entrega ni replay. Un fallo puede perder eventos, pero no cambia
 respuestas/commits. Backup ausente se informa como missing/degradado: S10 aún no
 ha entregado evidencia de un punto verificado; no se inventa una fecha.
-La correlación 9.3 usa este mismo transporte y retención; la matriz extendida de
-fallos/privacidad permanece en 9.4.
+La correlación 9.3 usa este mismo transporte y retención. Con ENOSPC puede quedar
+un registro incompleto, incluso unido al siguiente tras recuperar espacio; el
+transporte best effort no garantiza registros íntegros ni entrega. El diagnóstico
+de estado y los commits conservan sus contratos. La comprobación de privacidad
+examina todos los bytes, también los fragmentos no parseables.
 
 Aplicabilidad de CVE de la versión fijada, según
 [Debian Security Tracker](https://security-tracker.debian.org/tracker/source-package/rsyslog):
@@ -147,6 +150,37 @@ comando --request ni endpoint público. Los registros distinguen HTTP 409 de neg
 503/500 con fallo DB y timeout externo, incluso con HTTP 202 ya confirmado.
 
 ## Evidencia para GO
+
+`node scripts/platform.mjs verify diagnostics --case retention_and_failure`
+ejecuta la matriz sintética con el colector estándar y Compose dev/ops, nginx
+construido desde web/Dockerfile, API/PG reales y proveedor HTTP privado. Los
+contenedores de prueba no publican puertos ni usan datos de la instancia personal.
+
+La retención se comprueba en un volumen persistente, con archivo activo/rotados
+de todas las fuentes, 32 rotaciones concurrentes, ingreso real, cuota lógica y
+bloques físicos. Un control reciente y un archivo ajeno sobreviven al reinicio;
+los vencidos desaparecen antes de readiness. Para ejercitar el timer sin esperar
+una hora se adelanta solo el reloj monotónico del supervisor desechable y se
+envejecen los fixtures con utime. No se cambia el reloj del host ni de rsyslog ni
+se añade una configuración de pruebas al producto. También se detiene la API real
+y se verifica el barrido horario sin su participación, seguido de su reinicio.
+
+La fixture lleva el volumen de logs de Compose a ENOSPC y detiene el colector;
+ambas escrituras HTTP atraviesan nginx y se observan confirmadas en PostgreSQL.
+Se comprueba cierre inferior a cinco segundos, sin SIGKILL del contenedor,
+buffer Docker de 1 MiB, cola rsyslog de 256 y estado tmpfs de 1 MiB sin spool.
+`verify diagnostics --case operator_status` cubre además socket Unix lleno/ausente
+y cierre HTTP. La captura Docker se comprueba con LogPath vacío, configuración
+efectiva sin caché y rechazo específico de lectura por el driver; un fallo de
+permisos o conexión no acredita ausencia de copia.
+
+Los marcadores de URL/cookie/agente/nota/prompt/error de proveedor y SQL están
+ausentes de los archivos activos/rotados y del estado. Se inspeccionan los streams
+no vacíos, permisos, metadatos de health de Docker y el proveedor simulado; los
+productores nativos conservan solo los campos fijos. nginx conserva sus enlaces
+stdout/stderr y PG no crea current_logfiles ni directorios de logging. Los datos
+de negocio y audit tienen sus propias políticas; no son copias diagnósticas.
+Esto no ensaya un apagado físico del host ni acredita aceptación operativa GO.
 
 | Caso sintético | Evidencia necesaria |
 | --- | --- |
