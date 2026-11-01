@@ -291,10 +291,104 @@ de un sentinel ajeno y material protegido. Checkout limpio, builds, paridad, seg
 restore y ausencia de dependencias activas legacy se verifican después del cleanup.
 Esto no autoriza borrar origen, releases ni respaldos protegidos.
 
+## Captura SQL entregada
+
+El wrapper `node scripts/platform.mjs operate backup --config <ruta-absoluta>
+--reason scheduled|startup|pre-migration` entrega únicamente parada limpia y dump
+SQL. **No es un backup recuperable**: incluso si captura correctamente, devuelve
+`BACKUP_CAPTURED_UNVERIFIED`, `verified: false` y código **1**. No marca ni sustituye
+un punto verificado. No usar esta fase para programar backups ni autorizar DDL.
+
+Requisitos de preparación explícita, no ejecutados automáticamente:
+
+- Imágenes runtime/ops probadas y selección Compose propia, sin puertos PG publicados,
+  clientes SQL externos ni escritores desconocidos. El proceso host controla Docker;
+  no se monta su socket ni se añade un protocolo de leases a la API.
+- Directorio de staging preexistente en **almacenamiento cifrado**, fuera de datos
+  activos, con espacio para el dump sin comprimir. Contiene datos completos en claro
+  hasta la futura entrega de cifrado/copia. En POSIX: propietario del operador y modo
+  0700, accesible por el UID 1000 de ops. En Windows: propietario actual y ACL sin
+  Allow para identidades distintas del propietario, SYSTEM o Administrators. El
+  wrapper valida permisos, no los modifica ni acredita el cifrado del volumen.
+- Aplicar `backend/backup-role.sql` al destino elegido mediante psql como bootstrap
+  autorizado, después del esquema. Provisionar por separado `opengym_backup` mediante
+  `\password` y el fichero privado `backup_password`; no poner contraseñas en SQL
+  versionado, argv ni variables de entorno. La preparación es repetible, no se ejecuta
+  al arrancar API ni en una migración. Tras cambios de catálogo, revisar y repetir
+  grants/policies explícitos antes de capturar.
+- Añadir `deploy/docker-compose.maintenance.yml` después de base y prod durante la
+  preparación autorizada de la instancia. No aplicarlo automáticamente sobre una
+  instancia personal: registrar los labels de DB puede recrear su contenedor.
+  El overlay monta estado y credencial backup solo en ops; API conserva su rol.
+
+El fichero de entorno explícito para Compose contiene referencias, no secretos:
+`PLATFORM_INSTANCE_ID`, `PLATFORM_MAINTENANCE_STATE_DIR` (ruta absoluta del estado),
+`PLATFORM_BACKUP_CONFIG_FILE` (ruta absoluta de la configuración ops),
+`PLATFORM_SECRETS_DIR` y los digests ya probados de prod. Los labels persistentes de
+DB fijan ID y ruta de estado; cambiar solo la ruta de configuración no elude exclusión.
+No se usa `.env` implícito. Configuración host de ejemplo, con todas las rutas
+sustituidas por las propias (en JSON Windows se pueden usar `/`):
+
+```json
+{
+  "instance_id": "personal-a",
+  "project": "opengym-ops",
+  "project_directory": "/srv/opengym/release",
+  "compose_files": [
+    "/srv/opengym/release/deploy/docker-compose.yml",
+    "/srv/opengym/release/deploy/docker-compose.prod.yml",
+    "/srv/opengym/release/deploy/docker-compose.maintenance.yml"
+  ],
+  "env_file": "/srv/opengym/private/maintenance.env",
+  "state_root": "/srv/opengym/private/capture",
+  "writers": ["api"]
+}
+```
+
+La configuración ops referenciada es distinta de la configuración host y de la de
+`diagnose`; contiene exactamente:
+
+```json
+{
+  "instance_id": "personal-a",
+  "project": "opengym-ops",
+  "staging_root": "/run/maintenance",
+  "expected_schema": "p004_audit"
+}
+```
+
+`writers` enumera todos los servicios escritores, incluida API; procesos internos
+Coach/audit/upload/GC/schedulers cesan al cerrar su contenedor. El wrapper comprueba
+salida limpia, PG vivo, imágenes seleccionadas y ausencia de peers desconocidos.
+Ops toma el lock 728322 y exporta una instantánea repeatable-read para `pg_dump`
+custom con RLS habilitado e INSERTs. Su rol no tiene superuser/BYPASSRLS/DML ni
+membresías privilegiadas; `backup_read` permite SELECT completo explícito y
+`pg_read_all_stats` permite rechazar otros clientes. No admite políticas restrictivas
+que pudieran ocultar filas. La fase interna `capture-sql` requiere journal/exclusión;
+no equivale al comando final `operations backup`, que sigue no implementado.
+
+Estado privado: `owner.json`, directorio `exclusive`, `journal.json` atómico y un
+subdirectorio por operación con `database.dump` y copia del journal. Se mide
+`pause_ms`. Tras captura y comprobación de esquema, se usa `start`, nunca `up`, solo
+para servicios antes activos. `pre-migration` **no reinicia** entre captura y DDL:
+queda bloqueado hasta la futura entrega de migración coordinada. Fallo/interrupción
+conserva journal/bloqueo; no hay recuperación por PID/TTL ni borrado automático.
+No retirar un bloqueo ni arrancar servicios a ciegas: recuperación del journal,
+barrera de arranque, copia de archivos, bundle cifrado, retención y programación
+siguen pendientes de sus slices autorizados.
+
+Verificación sintética: `node scripts/platform.mjs verify backup --case
+writer_shutdown` observa parada con PG vivo, exclusión, servicios inicialmente
+parados y dump restaurado por observador independiente. `verify training_browser`
+es la regresión separada de dirty/active/offline y cola de medios persistida; no
+es un ensayo integrado de navegador con el wrapper ni acredita clientes reales,
+recuperación completa, RPO/RTO o aceptación operativa.
+
 ## Procedimientos operativos especificados
 
-Son contratos de comandos **futuros**, no herramientas disponibles ni ejecuciones
-realizadas. El [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md)
+Los procedimientos completos siguientes son contratos **futuros**, salvo la fase
+SQL acotada descrita arriba; no acreditan herramientas completas ni ejecuciones
+reales. El [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md)
 fija prefijos Compose, suites, flags, salidas y checkpoints. Operador necesita
 Docker/Compose y Node 22+ para el wrapper host de parada/recuperación; Python,
 PostgreSQL y cifrado corren en target `ops`. Node no entra al runtime API.
@@ -337,7 +431,8 @@ de leases. El wrapper host futuro `node scripts/platform.mjs operate <command>
 backup exige además `--reason scheduled|startup|pre-migration`;
 controla Compose por argv allowlisted, sin shell ni flags arbitrarios. Es tooling
 host, nunca dependencia de la imagen API. Captura/cifrado/restore siguen en ops.
-Su implementación es parte de S10; no es un comando disponible hoy.
+S10 entrega estos comandos por fases; solo la captura SQL acotada está disponible
+actualmente, con fallo explícito mientras no exista bundle verificado.
 
 1. Backup scheduled/startup/pre-migration ejecuta preflight y exclusión host por
    instancia; el proceso ops toma además el mutex PG compartido. Registrar proyecto,

@@ -14,7 +14,10 @@ const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
 });
 
 try {
-  if (action === 'cleanup' && options.length === 0) {
+  if (action === 'operate') {
+    const { operate } = await import('./platform-maintenance.mjs');
+    await operate(suite, options);
+  } else if (action === 'cleanup' && options.length === 0) {
     if (!/^opengym-platform-test-[a-f0-9]{16}$/.test(suite ?? '')) throw new Error('Refusing non-test target');
     await cleanup(suite);
   } else if (action === 'config' && suite === undefined && options.length === 0) {
@@ -80,6 +83,7 @@ try {
     }
   }
 } catch (error) {
-  console.error(error.message);
+  console.error(action === 'operate' && !/^MAINTENANCE_[A-Z_]+$/.test(error.message)
+    ? 'MAINTENANCE_FAILED' : error.message);
   process.exitCode ||= 1;
 }

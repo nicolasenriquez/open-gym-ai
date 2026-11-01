@@ -61,6 +61,7 @@ def load_database(role):
             "runtime": "opengym_api_runtime",
             "migrator": "opengym_migrator",
             "bootstrap": "opengym_platform_bootstrap",
+            "backup": "opengym_backup",
         }[role]
         password = _secret("PLATFORM_DB_PASSWORD_FILE")
         return DatabaseTarget(

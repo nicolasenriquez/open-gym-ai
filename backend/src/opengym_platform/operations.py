@@ -99,12 +99,30 @@ async def serve_status(database, audit, schema, diagnostics):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["diagnose", "import"])
+    parser.add_argument(
+        "command", choices=["diagnose", "import", "capture-sql", "backup"]
+    )
     parser.add_argument("--config", required=True)
     parser.add_argument("--source")
     parser.add_argument("--target")
+    parser.add_argument("--check-only", action="store_true")
     args = parser.parse_args()
-    if args.command == "import":
+    if args.command == "backup":
+        code, result = 2, {"code": "BACKUP_BUNDLE_NOT_IMPLEMENTED"}
+    elif args.command == "capture-sql":
+        import importlib.util
+
+        if args.source or args.target:
+            code, result = 2, {"code": "BACKUP_ARGUMENTS_INVALID"}
+        elif importlib.util.find_spec("opengym_platform.backup") is None:
+            code, result = 2, {"code": "BACKUP_TOOL_UNAVAILABLE"}
+        else:
+            from opengym_platform.backup import capture
+
+            code, result = asyncio.run(capture(args.config, args.check_only))
+    elif args.check_only:
+        code, result = 2, {"code": "OPERATION_ARGUMENTS_INVALID"}
+    elif args.command == "import":
         import importlib.util
 
         if importlib.util.find_spec("opengym_platform.importer") is None:

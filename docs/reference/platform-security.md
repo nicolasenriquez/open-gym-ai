@@ -40,7 +40,7 @@ Diseño de roles aprobado para el port, pendiente de DDL y pruebas:
 | `api_runtime` LOGIN | Operaciones autorizadas por contexto transaccional/RLS y funciones allowlisted; sin ownership, DDL, superusuario o BYPASSRLS. |
 | `identity_executor` NOLOGIN | Funciones limitadas para preauth y credenciales; grants/políticas solo sobre tablas necesarias. |
 | `administration_executor` NOLOGIN | Funciones administrativas concretas, comprobando actor activo, privilegio, versión de sesión y acción/recurso. |
-| Rol operativo de backup | Lectura completa explícita y comprobada para dump coherente, separado de runtime y acceso cliente. |
+| Rol operativo de backup | Lectura completa explícita y comprobada para dump coherente, separado de runtime y acceso cliente. `backend/backup-role.sql` entrega SELECT y políticas `backup_read`, sin DML ni superuser/BYPASSRLS; `pg_read_all_stats` solo para detectar clientes externos. Ver [captura SQL](platform-operations.md#captura-sql-entregada), aún no backup verificado. |
 
 Runtime no puede asumir roles ejecutores; recibe EXECUTE sobre funciones revisadas.
 Preauth busca solo material mínimo para verificar una credencial, sin inventar un

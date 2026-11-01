@@ -661,6 +661,29 @@ This verification uses disposable PostgreSQL, actual operator commands, read-onl
 synthetic source files and HTTP after explicit test-only opening of that target.
 It proves no real-data cutover, backup or reviewed restore access.
 
+## Coordinated SQL capture
+
+The host wrapper `node scripts/platform.mjs operate backup --config <absolute-host-config>
+--reason scheduled|startup|pre-migration` stops the selected writers, keeps PostgreSQL
+available and runs the ops-only SQL capture with an explicitly provisioned restricted
+backup role. See [preparation, private configurations and limits](../docs/reference/platform-operations.md#captura-sql-entregada)
+and the optional `deploy/docker-compose.maintenance.yml` overlay before use.
+
+A captured dump is **not a verified backup**: the wrapper reports
+`BACKUP_CAPTURED_UNVERIFIED`, `verified: false`, exit 1. Encrypted bundles, file
+capture, scheduling and journal recovery are separate deliveries. Failures retain
+the private journal/lock; pre-migration capture does not reopen traffic. Never
+remove an unresolved lock or start the instance without reviewing its state.
+
+```sh
+node scripts/platform.mjs verify backup --case writer_shutdown
+node scripts/platform.mjs verify training_browser
+```
+
+The first command checks actual shutdown and independently reads the SQL capture;
+the second separately checks client offline/dirty/active and media-queue persistence.
+These are synthetic regression proofs, not a complete restore or real-client rehearsal.
+
 ## Retired transition tooling
 
 Standalone Node/Python Foundation stacks, runners and their exclusive prototype

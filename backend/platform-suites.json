@@ -1,4 +1,11 @@
 {
+  "backup": [{
+    "id": "writer_shutdown",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],
+    "proof": "Actual host wrapper, clean API stop, live PostgreSQL, all-owner SQL dump readback, exclusive private journal and conservative external-client rejection",
+    "checkpoint": "10.2 SQL capture only; no verified encrypted recovery point, journal recovery, scheduling or operational acceptance"
+  }],
   "import": [
     {
       "id": "faithful_or_blocked",
