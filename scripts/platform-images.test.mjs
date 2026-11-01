@@ -62,6 +62,7 @@ assert os.getuid() == 1000
 assert (importlib.util.find_spec('opengym_platform.importer') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (importlib.util.find_spec('opengym_platform.backup') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (importlib.util.find_spec('opengym_platform.bundle') is not None) == ${target === 'ops' ? 'True' : 'False'}
+assert (importlib.util.find_spec('opengym_platform.restore') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (shutil.which('age') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (shutil.which('age-keygen') is not None) == ${target === 'ops' ? 'True' : 'False'}
 import subprocess, sys, json

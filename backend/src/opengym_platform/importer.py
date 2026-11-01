@@ -651,12 +651,12 @@ def plan(source, files, admin_uids):
     return rows, copies
 
 
-async def target_guard(connection, target_id):
+async def target_guard(connection, target_id, kind="import"):
     require(
         await connection.fetchval(
             "SELECT shobj_description(oid,'pg_database') FROM pg_database WHERE datname=current_database()"
         )
-        == f"opengym-import:{target_id}",
+        == f"opengym-{kind}:{target_id}",
         "TARGET_OWNERSHIP",
     )
     require(

@@ -109,15 +109,18 @@ async def serve_status(database, audit, schema, diagnostics):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "command", choices=["diagnose", "import", "capture-sql", "backup"]
+        "command", choices=["diagnose", "import", "capture-sql", "backup", "restore"]
     )
     parser.add_argument("--config", required=True)
     parser.add_argument("--source")
+    parser.add_argument("--bundle")
     parser.add_argument("--target")
     parser.add_argument("--check-only", action="store_true")
     parser.add_argument("--reason", choices=["scheduled", "startup", "pre-migration"])
     args = parser.parse_args()
-    if args.reason is not None and args.command != "backup":
+    if (args.bundle is not None and args.command != "restore") or (
+        args.reason is not None and args.command != "backup"
+    ):
         code, result = 2, {"code": "OPERATION_ARGUMENTS_INVALID"}
     elif args.command == "backup":
         import importlib.util
@@ -130,6 +133,17 @@ def main():
             from opengym_platform.bundle import publish
 
             code, result = asyncio.run(publish(args.config, args.reason))
+    elif args.command == "restore":
+        import importlib.util
+
+        if args.source or args.check_only or not args.bundle or not args.target:
+            code, result = 2, {"code": "RESTORE_ARGUMENTS_INVALID"}
+        elif importlib.util.find_spec("opengym_platform.restore") is None:
+            code, result = 2, {"code": "RESTORE_TOOL_UNAVAILABLE"}
+        else:
+            from opengym_platform.restore import restore
+
+            code, result = asyncio.run(restore(args.config, args.bundle, args.target))
     elif args.command == "capture-sql":
         import importlib.util
 

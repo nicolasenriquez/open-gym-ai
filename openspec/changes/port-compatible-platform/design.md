@@ -125,6 +125,24 @@ arbitrarios/transitorios. Nombres USTAR no representables/manifiesto >32 MiB blo
 Sin restore, retención/programación, prueba física de disco/cifrado/power loss ni
 coordinación DDL: pre-migration sigue bloqueado por su slice.
 
+10.4 reutiliza lector/EOF age v1, mutex y guard de destino del importador (namespace
+restore, default import intacto), sin segunda máquina de recuperación ni dependencias.
+Plantilla Compose standalone con cluster/volúmenes nuevos, solo red internal y sin
+API/web/jobs/puertos; operador mantiene custodia y selecciona namespace/pins/credenciales
+nuevos. Bootstrap/migrador puntuales preparan roles/grants/FORCE RLS y funciones
+confiables; restore solo datos/secuencias (no DDL/ACL/passwords históricos). Exige DB
+comment propio, esquema/defaults vacíos, runtime CONNECT revocado y ningún peer.
+Primero autentica archivo completo y valida compatibilidad/inventario/espacio; extrae
+segunda pasada con data_filter/USTAR cerrado, sin links/duplicados/extensiones y límites
+de captura, contrasta capture.json y relee tamaños/SHA-256 destino antes de SQL.
+Carga pg_restore data-only/TX única sin transacción sobre crypto/transferencia,
+comprueba head/CONNECT y fuente estable. RESTORE_QUARANTINED/exit 0 guarda resultado
+privado y gate bloqueado; fallo/interrupción preserva parcial cerrado y rechaza reuso,
+sin auto-resume/cleanup. Q1/firma/sesiones/links/jobs/cliente y apertura quedan en
+10.5; SQL previo a reconciliar debe comparar con observador independiente, nunca
+superusuario como prueba RLS. Fuente/dump requieren custodia confiable: age autentica
+integridad, no autoría del recipient público. No declara RPO/RTO/restore completo.
+
 10.10 añade recuperación host explícita por operación y barrera de arranque local.
 API solo recibe `gate/` read_only, sin dumps/credencial backup: marcador provisionado
 para instancia nueva, ausente/corrupto/ajeno/bloqueado deniega antes de DB/escritores.

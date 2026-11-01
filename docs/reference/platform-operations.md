@@ -591,7 +591,8 @@ recuperación completa, RPO/RTO o aceptación operativa.
 ## Procedimientos operativos especificados
 
 Los procedimientos completos siguientes son contratos **futuros**, salvo la fase
-SQL/archivos, bundle cifrado opcional y recuperación descritos arriba; no acreditan herramientas completas ni ejecuciones
+SQL/archivos, bundle cifrado opcional, recuperación y restore de datos en cuarentena
+entregados en esta página; no acreditan herramientas completas ni ejecuciones
 reales. El [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md)
 fija prefijos Compose, suites, flags, salidas y checkpoints. Operador necesita
 Docker/Compose y Node 22+ para el wrapper host de parada/recuperación; Python,
@@ -680,6 +681,123 @@ Probar fallos antes/durante/después de parada, captura, reinicio y transferenci
 interrupción del wrapper y host, API inicialmente detenida, mutex ocupado, timeout,
 escritor externo y cliente dirty/offline. Retener evidencia de pausa medida y
 sentinels propios/ajenos. No afirmar recuperación ni RPO por mera programación.
+
+### Restore de datos entregado (cuarentena)
+
+`operations restore --config <privado> --bundle <hex32> --target <new-id>` entrega
+solo SQL/archivos a un **destino nuevo y cerrado**. No abre tráfico, revisa credenciales,
+rota firma, reconcilia clientes ni acredita Q1/RPO/RTO. Usa el fichero **standalone**
+`deploy/docker-compose.restore.yml`: nunca combinarlo con los overlays activos.
+Solo define DB/bootstrap/migrate/ops, sin API/web/jobs/puertos y con una red internal.
+No monta Docker socket, origen vivo ni credenciales bootstrap en API.
+
+Mantener custodia exclusiva de Docker, selección/configuración, bundle, clave y
+volúmenes destino toda la operación. Antes de crear nada, elegir ID nuevo distinto
+al origen (`[a-z0-9][a-z0-9-]{0,47}`) y proyecto exclusivo, por ejemplo
+`opengym-restore-restored-b`. Comprobar que **no existan** contenedores/volúmenes de
+ese proyecto ni sus nombres exactos `*_restore-postgres-data`/`*_restore-data`,
+incluso si les faltan labels. Si existen, parar y elegir otro destino; nunca vaciar
+un volumen para forzar el preflight. No usar el nombre/proyecto/volúmenes de la
+instancia activa. Inspecciones y montajes RO no congelan escritores host arbitrarios.
+
+Provisionar tres contraseñas **nuevas** (bootstrap/migrator/runtime, 32–4096 caracteres
+sin saltos internos), ficheros privados con esos nombres; no reutilizar contraseñas
+de roles del origen ni las capturadas. Preparar directorios 0700/ficheros 0600 en
+POSIX y ACL privada en Windows, sin enlaces/hardlinks. Bundle/identidad/configuración
+host son binds RO, con `create_host_path: false`; identidad separada, no Compose secret.
+El volumen Linux `restore-data` se inicializa desde `/data` de ops con UID 1000/0700.
+Comprobar almacenamiento cifrado y capacidad de **ambos** volúmenes con el operador:
+solo se sondea espacio libre del root de extracción (bytes declarados +32 MiB), no
+capacidad física del volumen PostgreSQL ni cifrado/disco independiente.
+
+Configuración privada de restore (rutas **dentro** del contenedor):
+
+```json
+{
+  "instance_id": "restored-b",
+  "target_root": "/data",
+  "bundle_root": "/bundles",
+  "identity_file": "/identity"
+}
+```
+
+El env-file host privado contiene `PLATFORM_RESTORE_TARGET=restored-b`,
+`PLATFORM_MIGRATE_DIGEST`/`PLATFORM_OPS_DIGEST` (64 hex, imágenes compatibles ya
+construidas, ops con restore), `PLATFORM_RESTORE_SECRETS_DIR`,
+`PLATFORM_RESTORE_BUNDLES`, `PLATFORM_RESTORE_IDENTITY` y `PLATFORM_RESTORE_CONFIG`
+(rutas host absolutas). Solo referencias/pins, nunca valores de secretos en env/argv.
+Limpiar `COMPOSE_*` heredadas y usar siempre `--env-file`, fichero standalone y
+`--project-name` explícitos. Con ese prefijo fijo:
+
+```sh
+docker compose --env-file /private/restore.env --project-name opengym-restore-restored-b -f deploy/docker-compose.restore.yml up -d --wait db
+docker compose --env-file /private/restore.env --project-name opengym-restore-restored-b -f deploy/docker-compose.restore.yml run --rm --no-deps bootstrap
+docker compose --env-file /private/restore.env --project-name opengym-restore-restored-b -f deploy/docker-compose.restore.yml run --rm --no-deps migrate
+```
+
+Aplicar también `backend/backup-role.sql` al **nuevo** DB con su psql local privilegiado,
+como en preparación de captura (sin copiar password histórico). Luego ejecutar en
+ese DB este SQL, sustituyendo el ID por el mismo de configuración/CLI:
+
+```sql
+COMMENT ON DATABASE opengym IS 'opengym-restore:restored-b';
+REVOKE CONNECT ON DATABASE opengym FROM opengym_api_runtime;
+```
+
+Bootstrap/migrador son one-offs terminados; nunca API startup. El restore requiere
+ese ownership explícito, head exacto, tablas vacías salvo defaults canónicos, runtime
+sin CONNECT, ningún otro cliente DB y mutex de sesión 728322 libre. No mantiene TX
+mientras descifra/transfiere. Con el mismo prefijo Compose:
+
+```sh
+docker compose --env-file /private/restore.env --project-name opengym-restore-restored-b -f deploy/docker-compose.restore.yml run --rm --no-deps ops -m opengym_platform.operations restore --config /run/operator/restore.json --bundle <hex32> --target restored-b
+```
+
+Solo seleccionar bundles propios bajo custodia: age autentica integridad/EOF, **no
+identidad del autor** que conocía el recipient público. Comprobar procedencia/hash
+contra evidencia privada protegida antes de entregar un dump a tooling privilegiado.
+Primero relee/autentica el bundle completo sin extraer, valida versión v1/major PG/
+head/tools/cobertura/inventario y espacio. Luego extrae en directorio nuevo 0700 con
+filtro `tarfile.data_filter`, USTAR estricto sin extensiones/enlaces/tipos especiales,
+traversal/duplicados, máx. 100.000 entradas/profundidad 64/manifiesto 32 MiB. Segunda
+pasada también exige EOF age; contrasta `capture.json` para no omitir secretos/config
+y **relee archivos extraídos** con tamaños/SHA-256 antes de cargar SQL. Comprueba
+ciphertext estable alrededor de extracción/carga; originales no se modifican.
+
+Roles/ownership/grants/FORCE RLS y funciones proceden del bootstrap/migraciones
+confiables del destino, **no de DDL/ACL/passwords del dump**. pg_restore aplica solo
+datos/secuencias, sin owner/ACL, con triggers temporalmente deshabilitados y TX única
+(timeout 300 s), tras vaciar exclusivamente las tablas de ese destino acreditado.
+Fallo/commit incierto conserva cuarentena, no rollback a datos viejos ni reintento
+automático. Antes de reconciliar/apertura se necesita comparación independiente de
+todas las tablas/owners/secuencias y RLS con rol runtime real, no SELECT superusuario.
+La prueba sintética aporta esa comparación con referencia independiente conocida;
+un exit 0 de este comando no aporta evidencia de vigencia de accesos históricos.
+
+Éxito: `RESTORE_QUARANTINED`, exit 0, `access: quarantined`. Bajo `/data/<new-id>`
+quedan datos/medios/GC/temporales, secretos/configuración **en cuarentena**, SQL,
+manifiesto y journal/`restore.json` privados, con `q1: pending`, `cleanup_pending: true`.
+No activar Compose/config capturados ni instalar secretos históricos como passwords
+PG. `gate/admission.json` bloquea arranque y runtime sigue sin CONNECT; futuras API
+solo podrán recibir data/gate adecuados, nunca este root con dump/bootstrap/clave.
+Cuentas/sesiones/links/jobs conservan snapshot para comparación: su tratamiento y
+firma nueva separados de decrypt Coach corresponden a 10.5, no están acreditados aquí.
+
+Clave errónea, corrupción/truncamiento, formato incompatible, inventario incompleto,
+espacio o destino ajeno/ocupado/no vacío fallan cerrados. Config/argumentos/destino
+no elegible devuelven 2; bloqueo operativo 1. No borrar parciales/directorios/journal
+para reusar un intento ni usar `maintenance-recover` para abrirlo: el restore no tiene
+reanudar automático. Tras interrupción o respuesta/persistencia incierta, acreditar
+cese de sus contenedores/clientes, preservar evidencias y mantener destino cerrado;
+elegir otro proyecto/volúmenes nuevos para otro intento. Limpieza/retirada requieren
+permiso operativo propio; no hay jobs ni borrado automático de datos/bundle/origen.
+
+`node scripts/platform.mjs verify restore --case isolated_target` reutiliza captura
+10.3 y ejecuta esta plantilla con fuentes/roles sintéticos: tablas, secuencias no
+triviales, ownership/ACL/FORCE RLS, conexión runtime A/B y password PG nuevo, bytes
+medios/GC/secretos/config, rechazo de corrupción posterior a extracción, ENOSPC real
+y muerte durante age. Comprueba red/puertos reales y API bloqueada sin bootstrap,
+sin atribuirlo a restore completo, Q1, hardware independiente o aceptación operativa.
 
 ### Restore aislado y revisión Q1
 

@@ -1,4 +1,11 @@
 {
+  "restore": [{
+    "id": "isolated_target",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-restore.test.mjs"],
+    "proof": "Real 10.3 bundle to new isolated PostgreSQL/files target; independent all-table digests, sequences, owner/grants/FORCE RLS and real runtime A/B; corrupt/unsafe/missing-secret bundles, foreign/exposed/nonempty/busy targets, mutex, real extraction ENOSPC and actual decrypt interruption stay quarantined",
+    "checkpoint": "10.4 only: no traffic/egress/bootstrap in API; no Q1 access review/signature rotation, full recovery/RPO/RTO or real instance acceptance"
+  }],
   "backup": [{
     "id": "verified_bundle",
     "target": "host",

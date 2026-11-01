@@ -374,6 +374,24 @@ real CLI/age/PG and bounded filesystem faults; no full restore/physical disk cla
 Windows host ACL attestation handles synthetic POSIX modes in Docker Desktop.
 Pre-migration stays held until coordinated DDL; no retention/scheduler delivery.
 
+10.4 delivers the documented ops restore CLI and standalone docker-compose.restore.yml,
+not a new host recovery protocol. Fresh isolated cluster/volumes/role passwords,
+explicit ownership comment, migrated exact schema/defaults, revoked runtime CONNECT,
+zero other DB peers and shared session mutex are required. Reuse authenticated age
+reader twice (no-extract preflight then safe extraction), strict USTAR/data_filter,
+bounded inventory and post-extraction rereads; compare capture.json and stable source.
+Load only data/sequences into trusted schema/roles/grants/FORCE RLS, never dump
+DDL/ACL/passwords. Exit 0 is RESTORE_QUARANTINED with private result/journal and
+blocked gate, not current credential approval or an exposed application. Partial or
+uncertain attempts remain closed, cannot be reused automatically and require operator
+review/new isolated target, not lock deletion or another recovery state machine.
+verify restore --case isolated_target uses the existing encrypted capture setup and
+the real standalone target template, independent all-table/file/sequence/catalog
+comparison and real runtime A/B, new PG passwords, corruption/missing secrets/unsafe
+archives, rejected foreign/exposed/nonempty/busy targets/mutex, real extraction ENOSPC
+and kill during age. No source mutation, API bootstrap, egress or access opening.
+Q1/signature/reconciliation/full timing remain 10.5/10.7, physical prerequisites unproven.
+
 10.10 adds `operate maintenance-recover --config <host-config> --operation <hex32>`
 using the same host/ops seams. API startup checks only a separate RO gate marker
 before creating DB/filesystem/background writers; missing/foreign/invalid admission

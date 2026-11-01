@@ -675,8 +675,8 @@ includes data/media/GC/Coach/VAPID, actual runtime secrets and selected host/Com
 configuration, with a private SHA-256 inventory. It rejects unsafe files, source
 changes and external containers sharing writable capture resources. The operator
 must control Docker and host sources throughout the pause; stability checks do not
-freeze arbitrary host writers. Scheduling and full restore remain separate
-deliveries. Failures retain the private journal/lock; pre-migration capture does not
+freeze arbitrary host writers. Scheduling and reviewed-access/full-recovery delivery
+remain separate; isolated data restore is described below. Failures retain the private journal/lock; pre-migration capture does not
 reopen traffic. Never remove an unresolved lock or edit startup admission blindly.
 
 With `bundle.destination`, `bundle.identity_file` and an X25519 `bundle.recipient`,
@@ -740,6 +740,41 @@ They preserve initially stopped services and unrelated sentinels, without restar
 the real host/daemon or proving physical power-loss recovery. The browser command separately checks client offline/dirty/active and
 media-queue persistence.
 These are synthetic regression proofs, not a complete restore or real-client rehearsal.
+
+## Isolated data restore
+
+`python -m opengym_platform.operations restore --config <private-json>
+--bundle <hex32> --target <new-id>` consumes the verified age v1 format in ops only.
+Use the standalone `deploy/docker-compose.restore.yml`, **never the active instance's
+project/volumes or combined overlays**. It has no API/web/jobs/ports and only an internal
+network. [Preparation, credentials and exact commands](../docs/reference/platform-operations.md#restore-de-datos-entregado-cuarentena)
+are prerequisites: new private target, fresh role passwords, trusted bootstrap/migrations,
+explicit DB ownership comment, runtime CONNECT revoked, no other DB peers.
+
+Restore takes the existing PG session mutex, authenticates before extraction, applies
+the standard tar data filter with strict USTAR/entry/path limits, checks capture
+inventory and rereads extracted files before SQL load. It restores **data and sequence
+state**, not old-cluster DDL/ownership/ACL/passwords, into the trusted migrated schema.
+Old configuration/runtime secrets remain private quarantine inputs, not active config.
+
+Success is `RESTORE_QUARANTINED`/exit 0, never traffic-ready. SQL/data/secret/config
+copies, private journal/result and a blocked startup gate remain under the new root;
+runtime still cannot connect. Q1 review, session-signing rotation, Coach decryption
+continuity, job/link cleanup and client reconciliation are separate. Never clear a
+partial target to retry; preserve uncertainty and choose a fresh isolated instance.
+The command does not clean, schedule or prove physical encrypted storage/full RPO/RTO.
+
+```sh
+node scripts/platform.mjs verify restore --case isolated_target
+```
+
+This runs the actual standalone template against a real 10.3 synthetic bundle and a
+separate PG cluster. Independent all-table/file comparison, nontrivial sequences,
+owner/grants/FORCE RLS and real runtime A/B prove the data copy. Wrong keys, missing
+secrets, corruption including after extraction, unsafe archives, incompatible metadata,
+foreign/exposed/nonempty/busy targets, mutex, real ENOSPC and killed age remain blocked.
+The API admission probe receives only gate RO and no bootstrap; source API/data and
+bundle stay unchanged. This is not reviewed access or a complete recovery rehearsal.
 
 ## Retired transition tooling
 

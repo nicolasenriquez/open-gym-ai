@@ -14,6 +14,11 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Ops-only isolated data restore from verified age bundles, with trusted fresh
+  roles/schema, exact sequence state, strict archive and post-extraction checksums,
+  separate Compose topology and persistent quarantine. Corruption, full staging or
+  interruption cannot open traffic; reviewed access and full recovery remain separate.
+
 - Optional verified age 1.3.2 encrypted backup publication after coordinated capture,
   with streaming versioned manifest, destination EOF/checksum/identity verification,
   atomic publication and private last-verification age. Wrong keys, corruption,

@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, w
 import { setTimeout as sleep } from 'node:timers/promises';
 import { createHash, randomBytes } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { restoreProof } from './platform-restore-proof.mjs';
 import { syntheticHarness } from './synthetic-harness.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -22,7 +23,7 @@ export async function backupProof(fault) {
   mkdirSync(state, { mode: 0o700 });
   const gate = join(state, 'gate');
   mkdirSync(gate, { mode: 0o700 });
-  if (fault === 'bundle') writeFileSync(join(gate, 'diagnose.json'), JSON.stringify({ diagnostic_socket: '/tmp/diagnose.sock' }));
+  if ((fault === 'bundle' || fault === 'restore')) writeFileSync(join(gate, 'diagnose.json'), JSON.stringify({ diagnostic_socket: '/tmp/diagnose.sock' }));
   writeFileSync(join(gate, 'admission.json'), JSON.stringify({ instance_id: 'synthetic-a', operation: '0'.repeat(32), allowed: true }), { mode: 0o600 });
   mkdirSync(data, { mode: 0o700 });
   mkdirSync(join(data, 'uploads'), { mode: 0o700 });
@@ -37,7 +38,7 @@ export async function backupProof(fault) {
     'coach-auth-A.json': '{"data":"synthetic-encrypted-record"}',
     'vapid.json': '{"publicKey":"synthetic-public","privateKey":"synthetic-private"}',
   };
-  if (fault === 'bundle') expectedFiles['uploads/A/pending-upload.tmp'] = 'x'.repeat(160_000);
+  if ((fault === 'bundle' || fault === 'restore')) expectedFiles['uploads/A/pending-upload.tmp'] = 'x'.repeat(160_000);
   for (const [name, bytes] of Object.entries(expectedFiles)) writeFileSync(join(data, name), bytes, { mode: 0o600 });
   const protect = path => {
     if (process.platform !== 'win32') return;
@@ -87,7 +88,7 @@ export async function backupProof(fault) {
       command: ['-m', 'opengym_platform.platform_migrate', '--deployment', 'bootstrap'] },
     api: { ...python, environment: { ...environment, PLATFORM_DB_PASSWORD_FILE: '/run/secrets/runtime',
       PLATFORM_INSTANCE_ID: 'synthetic-a', PLATFORM_MAINTENANCE_GATE_DIR: '/run/maintenance-gate',
-      ...(fault === 'bundle' ? { PLATFORM_DIAGNOSTIC_SOCKET: '/tmp/diagnose.sock' } : {}) },
+      ...((fault === 'bundle' || fault === 'restore') ? { PLATFORM_DIAGNOSTIC_SOCKET: '/tmp/diagnose.sock' } : {}) },
       volumes: [...secrets.filter(item => /runtime|session/.test(item.target)), { type: 'bind', source: data, target: '/data' },
         { type: 'bind', source: gate, target: '/run/maintenance-gate', read_only: true }],
       command: [...(fault === 'recover' ? ['/app/tests/platform/api_start_probe.py'] : ['-m', 'uvicorn']), 'opengym_platform.application:create_app', '--factory', '--host', '0.0.0.0',
@@ -114,7 +115,7 @@ else:raise AssertionError('API_NOT_READY')`]);
     await docker(['build', '--target', 'test', '--label', `com.docker.compose.project=${project}`,
       '--label', 'com.docker.compose.service=platform-test', '--label', 'org.opengym.platform=synthetic',
       '-t', image, '-f', 'backend/Dockerfile', 'backend'], true);
-    if (fault === 'bundle') {
+    if ((fault === 'bundle' || fault === 'restore')) {
       const destination = join(temporary, 'bundles');
       mkdirSync(destination, { mode: 0o700 });
       const recipient = (await docker([...compose, 'run', '--rm', '--no-deps', '--volume', `${temporary}:/work`,
@@ -135,13 +136,14 @@ print(subprocess.check_output(['age-keygen','-y','/work/identity'],text=True).st
       + "INSERT INTO identity.users(id,display_name) VALUES ('A','synthetic A'),('B','synthetic B'); "
       + `INSERT INTO training.documents(owner_id,document) VALUES ('A','{"_rev":7,"_wid":"a","_prior":{"notes":null},"workouts":[{"media":[{"hash":"${aHash}"}]}]}'),`
       + `('B','{"_rev":11,"_wid":"b","notes":"synthetic B","workouts":[{"media":[{"hash":"${bHash}"}]}]}')`);
+    if (fault === 'restore') await sql("SELECT setval('audit.events_id_seq',987,true); SELECT setval('coach.history_events_event_id_seq',123,false); SELECT setval('coach.instance_results_event_id_seq',456,true)");
     const tables = (await sql("SELECT format('%I.%I',schemaname,tablename) FROM pg_tables WHERE schemaname IN "
       + "('public','identity','training','coach','administration','notifications','audit') ORDER BY 1")).trim().split(/\r?\n/);
     const digestSQL = tables.map((table, index) => `SELECT ${index} AS n,count(*)::text || ':' || coalesce(md5(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text)::text),'empty') AS digest FROM ${table} t`).join(' UNION ALL ') + ' ORDER BY n';
     const expectedDigests = (await sql(digestSQL)).trim();
     await docker([...compose, 'up', '-d', '--no-deps', 'api']);
     await ready();
-    if (fault === 'bundle') {
+    if ((fault === 'bundle' || fault === 'restore')) {
       writeFileSync(join(state, 'allow-capture'), '');
       const result = invoke();
       assert.equal(result.status, 0, result.stderr);
@@ -154,6 +156,11 @@ print(subprocess.check_output(['age-keygen','-y','/work/identity'],text=True).st
       assert.equal((await diagnose()).backup.operation, receipt.operation);
       assert.equal(existsSync(join(state, 'exclusive')), false);
       await ready();
+      if (fault === 'restore') {
+        await restoreProof({ root, temporary, project, image, python, environment, user, docker, sql,
+          config, receipt, expectedFiles, expectedDigests, digestSQL, ready });
+        return;
+      }
       const destination = JSON.parse(readFileSync(config)).bundle.destination;
       const originalReceipt = readFileSync(join(gate, 'backup.json'));
       for (const [hours, expected] of [[4, 'overdue'], [7, 'rpo_exceeded']]) {

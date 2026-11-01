@@ -80,14 +80,26 @@ def safe_name(name):
         raise ValueError("BACKUP_ARCHIVE_PATH_INVALID")
 
 
-def verify(path, identity, expected):
+class BundleEntry(tarfile.TarInfo):
+    @classmethod
+    def frombuf(cls, buf, encoding, errors):
+        entry = super().frombuf(buf, encoding, errors)
+        # USTAR only: reject extension headers before tarfile allocates their payload.
+        if entry.type not in {tarfile.REGTYPE, tarfile.AREGTYPE, tarfile.DIRTYPE}:
+            raise ValueError("BACKUP_ARCHIVE_ENTRY_INVALID")
+        return entry
+
+
+def verify(path, identity, expected, destination=None):
     process = subprocess.Popen(
         ["age", "--decrypt", "--identity", str(identity), str(path)],
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
     )
     try:
-        with tarfile.open(fileobj=process.stdout, mode="r|") as archive:
+        with tarfile.open(
+            fileobj=process.stdout, mode="r|", tarinfo=BundleEntry
+        ) as archive:
             first = archive.next()
             if (
                 first is None
@@ -97,8 +109,30 @@ def verify(path, identity, expected):
             ):
                 raise ValueError("BACKUP_MANIFEST_INVALID")
             manifest = json.load(archive.extractfile(first), object_pairs_hook=unique)
-            if manifest != expected:
+            if not isinstance(manifest, dict) or (
+                expected is not None and manifest != expected
+            ):
                 raise ValueError("BACKUP_MANIFEST_INVALID")
+            if (
+                not isinstance(manifest.get("files"), list)
+                or len(manifest["files"]) > 100_000
+            ):
+                raise ValueError("BACKUP_MANIFEST_INVALID")
+            for item in manifest["files"]:
+                safe_name(item["path"])
+                if item["path"] == "manifest.json" or item["path"].count("/") > 64:
+                    raise ValueError("BACKUP_ARCHIVE_PATH_INVALID")
+                if item.get("directory") is True:
+                    if set(item) != {"path", "directory"}:
+                        raise ValueError("BACKUP_MANIFEST_INVALID")
+                elif (
+                    set(item) != {"path", "size", "sha256"}
+                    or type(item["size"]) is not int
+                    or item["size"] < 0
+                    or not isinstance(item["sha256"], str)
+                    or not re.fullmatch(r"[a-f0-9]{64}", item["sha256"])
+                ):
+                    raise ValueError("BACKUP_MANIFEST_INVALID")
             entries = {item["path"]: item for item in manifest["files"]}
             if len(entries) != len(manifest["files"]):
                 raise ValueError("BACKUP_DUPLICATE_FILE")
@@ -112,14 +146,41 @@ def verify(path, identity, expected):
                     raise ValueError("BACKUP_ARCHIVE_ENTRY_INVALID")
                 seen.add(member.name)
                 item = entries[member.name]
+                if destination is not None:
+                    tarfile.data_filter(member, str(destination))
+                    target = destination / member.name
+                    # Every ancestor must be an explicit directory in the manifest.
+                    for parent in reversed(
+                        target.relative_to(destination).parents[:-1]
+                    ):
+                        ancestor = destination / parent
+                        if entries.get(parent.as_posix()) != {
+                            "path": parent.as_posix(),
+                            "directory": True,
+                        }:
+                            raise ValueError("BACKUP_ARCHIVE_PATH_INVALID")
+                        ancestor.mkdir(mode=0o700, exist_ok=True)
                 if item.get("directory"):
                     if not member.isdir() or member.size != 0:
                         raise ValueError("BACKUP_ARCHIVE_ENTRY_INVALID")
+                    if destination is not None:
+                        target.mkdir(mode=0o700, exist_ok=True)
                 else:
                     if not member.isfile() or member.size != item["size"]:
                         raise ValueError("BACKUP_ARCHIVE_ENTRY_INVALID")
                     with archive.extractfile(member) as stream:
-                        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+                        if destination is None:
+                            digest = hashlib.file_digest(stream, "sha256").hexdigest()
+                        else:
+                            digestor = hashlib.sha256()
+                            with target.open("xb") as output:
+                                os.chmod(output.fileno(), 0o600)
+                                while chunk := stream.read(1024 * 1024):
+                                    digestor.update(chunk)
+                                    output.write(chunk)
+                                output.flush()
+                                os.fsync(output.fileno())
+                            digest = digestor.hexdigest()
                     if digest != item["sha256"]:
                         raise ValueError("BACKUP_CHECKSUM_INVALID")
             if seen != {"manifest.json", *entries}:
@@ -129,6 +190,7 @@ def verify(path, identity, expected):
             pass
         if process.wait(timeout=30) != 0:
             raise ValueError("BACKUP_AUTHENTICATION_FAILED")
+        return manifest
     finally:
         process.stdout.close()
         if process.poll() is None:
