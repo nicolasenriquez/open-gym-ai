@@ -1,5 +1,11 @@
 {
   "diagnostics": [{
+    "id": "correlation",
+    "target": "platform-test",
+    "command": ["tests/platform/test_correlation.py"],
+    "proof": "Internal request_id across real HTTP, restricted PostgreSQL and private asynchronous provider; safe outcomes and durations without exported trace context",
+    "checkpoint": "9.3 synthetic correlation only; full retention/failure matrix remains 9.4"
+  }, {
     "id": "operator_status",
     "target": "platform-test",
     "command": ["tests/platform/test_diagnostics.py"],

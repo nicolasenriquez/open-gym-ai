@@ -438,7 +438,7 @@ Public HTTP configuration retains the current names/defaults: `INVITE_ONLY`,
 `MEDIA_UPLOADS_PER_HOUR` (600) and `MEDIA_MIN_FREE_MB` (512, zero disables the floor).
 `MEDIA_GC_GRACE_DAYS` is private configuration too; zero disables the grace.
 Business routes arrive in their
-own slices. Uvicorn access logging is disabled; operational diagnostics are pending.
+own slices. Uvicorn access logging is disabled; private diagnostics are described below.
 
 ## HTTP API v1
 
@@ -452,9 +452,17 @@ backup evidence remains degraded. No public HTTP diagnostic route is added.
 `PLATFORM_LOG_SOCKET` selects the private local datagram syslog receiver. Logging
 uses fixed fields and route templates, excludes request content and never waits
 on a full socket. Transport failures remain visible until restart; a successful
-send reports delivery as unconfirmed. Collector/Compose retention integration is
-not delivered by this API-only integration; keep those settings unset on existing
-instances until the complete diagnostic setup has passed verification.
+send reports delivery as unconfirmed. Compose includes the pinned private
+rsyslog/logrotate collector; its transport and limits are documented in
+[platform observability](../docs/reference/platform-observability.md).
+
+Each HTTP request generates an internal random `request_id` shared by pool/query/
+transaction records and Coach provider calls, including asynchronous jobs after
+HTTP 202. Incoming trace headers are ignored and no diagnostic header is returned
+or forwarded. Fixed outcome codes and monotonic durations exclude SQL, URLs,
+credentials and provider content. In the private collector shell, run `rotate`
+before `grep -hF '<hex32>' /logs/api.log*` to follow an operation within retention.
+Verify with `node scripts/platform.mjs verify diagnostics --case correlation`.
 
 All Python HTTP routes use `/api/v1`, including the internal probes
 `GET /api/v1/health/live` and `GET /api/v1/health/ready`.

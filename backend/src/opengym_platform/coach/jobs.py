@@ -4,11 +4,13 @@ import asyncio
 import json
 import os
 import secrets
+import time
 from datetime import UTC, datetime
 
 from opengym_platform.coach.payload import cut
 from opengym_platform.coach.service import execution_config, public_config
 from opengym_platform.core.database import DatabaseError
+from opengym_platform.core.diagnostics import record
 from opengym_platform.core.platform_settings import environment_number
 from opengym_platform.identity.sessions import authorize
 from opengym_platform.training.service import coach_consent, coach_document
@@ -385,6 +387,7 @@ class Jobs:
                     await self._abandon(session, job, generation)
                     return
                 outcome, error, result = "nochange", None, {}
+                started = time.monotonic()
                 try:
                     async with asyncio.timeout(self.timeout):
                         if self.pipeline is not None:
@@ -416,8 +419,15 @@ class Jobs:
                             await self.execute(session.owner, job)
                 except TimeoutError:
                     outcome, error = "failed", "timeout"
+                except asyncio.CancelledError:
+                    outcome, error = "failed", "cancelled"
+                    raise
                 except Exception:  # noqa: BLE001 -- provider text must never escape into history/logs.
                     outcome, error = "failed", "internal"
+                finally:
+                    record(
+                        "coach.execution", error or outcome, time.monotonic() - started
+                    )
                 needs_abandon = False
                 async with self.database.transaction() as handle:
                     if await self._authorize(handle, session):

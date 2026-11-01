@@ -122,7 +122,7 @@ Commands are future contracts, not permission to install Node or run operations.
 | `forward-repair --config /run/operator/config.json --incident <id> --release <compatible-digest>` | Surviving destination and independently verified acknowledged writes; nonzero keeps maintenance/no-go. |
 | `maintenance-recover --config /run/operator/config.json --operation <id>` | Host wrapper verifies journal ownership, exclusion, stopped capture processes and compatible schema before restoring only previously running services. |
 | `restore-access-recover --config /run/operator/config.json --target <id> --review /run/review/review.json` | New path on isolated restored target for explicitly selected verified account; historical doubtful credentials stay blocked, no role elevation. Authorization/private delivery contract must be resolved before 10.5. |
-| `diagnose --config /run/operator/config.json` | Private redacted status; optional `--request <hex32>`; exit 1 degraded and 2 invalid config/usage. |
+| `diagnose --config /run/operator/config.json` | Private redacted live status; exit 1 degraded and 2 invalid config/usage. Request lookup uses standard rotate/grep in the private collector shell. |
 | `diagnostics-retain --config /run/operator/config.json` | Exact owned diagnostic volume only; age/space cleanup even when API is stopped, no business backups touched. |
 
 `<id>` is a validated opaque identifier resolved under configured roots, not an
@@ -319,6 +319,10 @@ configuration, CVE applicability and acceptance limits live in platform-observab
   HTTP/commit contract, bounded buffers and shutdown.
 - Checkpoint: CLI distinguishes 409, DB failure and external timeout by correlated
   records; green health alone is insufficient. No advanced tracing is claimed.
+  9.3 uses private collector rotate/grep for hex32 lookup and existing ops diagnose
+  for live status; no custom --request reader. HTTP/DB adapter/provider/job records
+  share process-local context, including completion after 202, without external
+  propagation or SQL/exception content.
 
 ### S10 — faithful import and recovery (tasks 10.*)
 

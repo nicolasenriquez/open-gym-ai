@@ -158,7 +158,22 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
 
     @app.middleware("http")
     async def public_headers(request: Request, call_next):
-        started = time.monotonic()
+        with diagnostics.request():
+            started = time.monotonic()
+            result = 500
+            try:
+                response = await respond(request, call_next)
+                result = response.status_code
+                return response
+            finally:
+                route = request.scope.get("route")
+                path = getattr(route, "path", "unmatched")
+                # Included FastAPI routers retain their local template in scope.
+                if path.startswith("/") and not path.startswith("/api/v1/"):
+                    path = "/api/v1" + path
+                diagnostics.emit(path, result, time.monotonic() - started)
+
+    async def respond(request, call_next):
         origin = request.headers.get("origin")
         if request.method == "OPTIONS" and request.url.path.startswith("/api/v1/"):
             response = Response(
@@ -183,12 +198,6 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
         if origin:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
-        route = request.scope.get("route")
-        diagnostics.emit(
-            getattr(route, "path", "unmatched"),
-            response.status_code,
-            time.monotonic() - started,
-        )
         return response
 
     @public_api.get("/health/live")

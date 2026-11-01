@@ -107,6 +107,13 @@ Diagnóstico privado con logging estándar, request_id, resultados/duraciones, s
 pool y backup; logs 7 d/256 MiB. Seleccionar/fijar retención estándar antes de 9.2–9.4.
 Sin OpenTelemetry, spans, sampling ni snapshots métricos.
 
+9.3 conserva request_id aleatorio interno mediante ContextVar, también en jobs
+asíncronos iniciados por HTTP. DB registra espera/consulta/TX desde el adaptador
+Python sin SQL/valores ni cambio de esquema. El transporte coach registra códigos
+cerrados; el job distingue timeout de cancelación del transporte. No se propaga
+contexto al proveedor ni se altera el contrato HTTP. La consulta privada reutiliza
+rotate y grep estándar sobre API logs, sin índice ni lector/exporter adicional.
+
 ### 5. Gates y autorización
 
 Foundation archivada aporta la entrada sintética, no la aceptación operativa. GP/GO previos al corte,

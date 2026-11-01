@@ -40,7 +40,7 @@ else: raise AssertionError('socket not ready')`]);
     }
     await docker(['exec', container, 'python', '-c', `import socket,time,pathlib,json
 s=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM);s.connect('/run/diagnostics/log')
-s.send(b'<14>opengym-api: {"service":"api","result":200}')
+s.send(b'<14>opengym-api: {"service":"api","request_id":"00112233445566778899aabbccddeeff","result":200}')
 u=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 u.sendto(b'<14>opengym-api: private-forged-marker',('127.0.0.1',5514))
 for _ in range(100):
@@ -54,6 +54,11 @@ assert '"service":"api"' in pathlib.Path('/logs/api.log').read_text()
 assert '"service":"nginx"' in pathlib.Path('/logs/nginx.log').read_text()
 assert '"service":"postgres"' in pathlib.Path('/logs/postgres.log').read_text()
 print('NATIVE_AND_UNIX_PRIVACY_OK')`], true);
+    await docker(['exec', container, 'rotate']);
+    const correlated = await docker(['exec', container, 'grep', '-hF',
+      '00112233445566778899aabbccddeeff', '/logs/api.log.1']);
+    assert.equal(JSON.parse(correlated.trim()).request_id, '00112233445566778899aabbccddeeff');
+    console.log('PRIVATE_CORRELATION_LOOKUP_AFTER_ROTATION_OK');
     await docker(['exec', container, 'python', '-c', `import pathlib,subprocess,os,time
 root=pathlib.Path('/logs')
 for name in ('api','nginx','postgres','ops'):

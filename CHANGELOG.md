@@ -14,6 +14,10 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Internal request correlation across Python HTTP, PostgreSQL adapter operations
+  and Coach HTTP providers, including asynchronous completion and safe failure
+  codes. Trace context stays local and logs exclude request/provider contents.
+
 - Private Python diagnostics for live database/schema, pool, audit and logging
   state, with an isolated rsyslog/logrotate Compose collector. Native nginx and
   PostgreSQL logging uses non-blocking Docker syslog without durable caches;

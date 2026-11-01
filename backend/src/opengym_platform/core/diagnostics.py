@@ -1,12 +1,48 @@
 """Bounded best-effort standard logging to a private local syslog socket."""
 
+import asyncio
 import json
 import logging
 import logging.handlers
 import os
 import re
+import secrets
 import socket
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+_context: ContextVar[tuple[Diagnostics, str] | None] = ContextVar(
+    "diagnostic_request", default=None
+)
+
+
+def record(name, result, duration):
+    if context := _context.get():
+        context[0].emit(name, result, duration)
+
+
+@contextmanager
+def operation(name):
+    """Measure fixed local operations; never serialize exceptions or their values."""
+    started = time.monotonic()
+    event = {"result": "ok"}
+    try:
+        yield event
+    except BaseException as error:
+        if event["result"] == "ok":
+            event["result"] = (
+                "commit_unknown"
+                if getattr(error, "commit_outcome", None) == "unknown"
+                else "cancelled"
+                if isinstance(error, asyncio.CancelledError)
+                else "timeout"
+                if isinstance(error, TimeoutError)
+                else "failed"
+            )
+        raise
+    finally:
+        record(name, event["result"], time.monotonic() - started)
 
 
 class LocalSysLogHandler(logging.handlers.SysLogHandler):
@@ -35,6 +71,14 @@ class Diagnostics:
         self.logger = logging.Logger("opengym.diagnostic", logging.INFO)  # noqa: LOG001
         self.handler = None
 
+    @contextmanager
+    def request(self):
+        token = _context.set((self, secrets.token_hex(16)))
+        try:
+            yield
+        finally:
+            _context.reset(token)
+
     def emit(self, operation, result, duration):
         if not self.path:
             return
@@ -46,9 +90,11 @@ class Diagnostics:
                 self.handler.ident = "opengym-api: "
                 self.handler.handleError = self.failed
                 self.logger.addHandler(self.handler)
+            context = _context.get()
             record = json.dumps(
                 {
                     "service": "api",
+                    "request_id": context[1] if context else None,
                     "revision": self.revision,
                     "severity": "INFO",
                     "operation": operation,

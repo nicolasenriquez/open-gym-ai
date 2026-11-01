@@ -8,6 +8,7 @@ from urllib.parse import quote, urlsplit
 import httpx
 
 from opengym_platform.coach.payload import ASSETS, obj
+from opengym_platform.core.diagnostics import operation
 
 DEFAULT_BASES = {
     provider: meta["defaultBase"] or ""
@@ -77,6 +78,13 @@ def extra_headers(config):
 
 
 async def models(config, key):
+    with operation("provider.models") as event:
+        result = await _models(config, key)
+        event["result"] = "ok" if result["ok"] else "provider"
+        return result
+
+
+async def _models(config, key):
     selected = config["provider"]
     base = base_url(config)
     if not base:
@@ -152,6 +160,13 @@ async def models(config, key):
 
 
 async def invoke(config, key, prompt, system, schema, timeout):
+    with operation("provider.invoke") as event:
+        result = await _invoke(config, key, prompt, system, schema, timeout)
+        event["result"] = result.get("error", "ok")
+        return result
+
+
+async def _invoke(config, key, prompt, system, schema, timeout):
     global versionless_base
     selected, model = config["provider"], config["model"]
     maximum = config["max_output_tokens"]

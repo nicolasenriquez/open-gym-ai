@@ -6,8 +6,8 @@ description: Contrato objetivo de señales, tracing, privacidad y evidencia de o
 # Plataforma — observabilidad y tracing
 
 **Estado:** contrato objetivo revisado de EV-08 para operación personal local.
-La selección/configuración de retención 9.2 se describe abajo; correlación 9.3 y
-matriz extendida 9.4 siguen pendientes. La revisión sustituye el
+La retención 9.2 y correlación 9.3 se describen abajo; la matriz extendida 9.4
+sigue pendiente. La revisión sustituye el
 perfil OpenTelemetry/JSONL propio por diagnóstico mínimo verificable; tracing
 avanzado queda diferido. [Arquitectura §12](../open-gym-evolution.architecture.md#12-gates-y-experimentos-antes-de-producción)
 gobierna GO y [seguridad](platform-security.md) gobierna audit y secretos.
@@ -24,6 +24,22 @@ gobierna GO y [seguridad](platform-security.md) gobierna audit y secretos.
 No entregar OpenTelemetry, exporter propio, sampling, almacenamiento de spans ni
 snapshots métricos. Incorporarlos exige una necesidad diagnóstica concreta y otro
 cambio. No alterar el contrato público para añadir headers diagnósticos.
+
+9.3 genera hex32 con secrets por petición y lo conserva con ContextVar durante
+adquisición del pool, consultas, transacción y transporte HTTP del coach. Las
+tareas asíncronas heredan el contexto de la petición iniciadora aun después de su
+202; las peticiones concurrentes tienen identificadores distintos. No se guarda en
+tablas ni se envía al proveedor. Trabajo periódico sin petición no recibe un ID HTTP.
+Los registros DB son del adaptador Python alrededor de PostgreSQL real; el stream
+nativo PostgreSQL conserva solo servicio/severidad según la política de privacidad.
+
+HTTP conserva su status y plantilla completa /api/v1; DB informa ok, failed,
+timeout, cancelled o commit_unknown. provider.invoke/provider.models registran
+códigos cerrados, sin mensajes del proveedor. coach.execution distingue ready,
+nochange, auth, provider, timeout, cancelled e internal, entre otros códigos
+internos de validación. Un timeout del job cancela el transporte y registra el
+resultado timeout bajo el mismo request_id. Las duraciones usan reloj monotónico;
+la duración HTTP del 202 no incluye la finalización posterior del job.
 
 ## Privacidad y acceso
 
@@ -86,7 +102,8 @@ del sink; envío de datagrama siempre significa delivery=unconfirmed. No hay
 garantía de entrega ni replay. Un fallo puede perder eventos, pero no cambia
 respuestas/commits. Backup ausente se informa como missing/degradado: S10 aún no
 ha entregado evidencia de un punto verificado; no se inventa una fecha.
-Correlación completa sigue en 9.3 y la matriz extendida de fallos/privacidad en 9.4.
+La correlación 9.3 usa este mismo transporte y retención; la matriz extendida de
+fallos/privacidad permanece en 9.4.
 
 Aplicabilidad de CVE de la versión fijada, según
 [Debian Security Tracker](https://security-tracker.debian.org/tracker/source-package/rsyslog):
@@ -115,13 +132,19 @@ coordina esos comandos y sus locks.
 - Fallo visible mediante estado/código seguro; no reintento ni bucle de logs ilimitado.
 - Archivos privados y acceso solo de API/tooling operador; sin puertos diagnósticos públicos.
 
-Comando futuro `ops diagnose --config /run/operator/config.json`, con el prefijo
+Comando `ops diagnose --config /run/operator/config.json`, con el prefijo
 Compose del [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md#commands-and-safety-contract),
-reporta salud diferenciada, pool, audit_degraded y último backup verificado.
-`--request <hex32>` consulta registros saneados de una operación, nunca owner/nombre.
-Sale 0 saludable, 1 degradado, 2 configuración/uso inválido. Backup ausente/fallido
-o edad > 3 h advierte; > 6 h marca objetivo RPO incumplido. No depende de sampling,
-perfil opcional ni un exporter. Distingue 409 de negocio, 5xx DB y timeout externo.
+reporta salud diferenciada, pool y audit_degraded; backup missing hasta S10.
+Sale 0 saludable, 1 degradado, 2 configuración/uso inválido. Las advertencias de
+edad de backup a 3 h y objetivo RPO a 6 h quedan sujetas a la evidencia de S10.
+
+La consulta por request_id usa grep estándar en el shell privado del colector,
+con el mismo prefijo Compose y servicio diagnostics. Ejecutar primero `rotate`;
+después `grep -hF '<hex32>' /logs/api.log*`, sustituyendo hex32 por el ID del
+registro. El barrido de edad precede al acceso; la rotación puede acortar el
+histórico. grep sale 0 con coincidencias, 1 sin ellas, 2 por error. No hay índice,
+comando --request ni endpoint público. Los registros distinguen HTTP 409 de negocio,
+503/500 con fallo DB y timeout externo, incluso con HTTP 202 ya confirmado.
 
 ## Evidencia para GO
 

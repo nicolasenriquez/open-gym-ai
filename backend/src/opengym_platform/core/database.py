@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 import asyncpg
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
+from opengym_platform.core.diagnostics import operation as diagnostic_operation
+
 _DRIVER_ERRORS = (
     asyncpg.PostgresError,
     asyncpg.InterfaceError,
@@ -104,10 +106,12 @@ class _Handle:
         raise DatabaseError("DATABASE_QUERY_FAILED")
 
     async def execute(self, sql, *args):
-        return await self._query(self._connection.execute, sql, args)
+        with diagnostic_operation("db.query"):
+            return await self._query(self._connection.execute, sql, args)
 
     async def fetch(self, sql, *args):
-        return await self._query(self._connection.fetch, sql, args)
+        with diagnostic_operation("db.query"):
+            return await self._query(self._connection.fetch, sql, args)
 
 
 class Database:
@@ -169,9 +173,10 @@ class Database:
             raise DatabaseError("DATABASE_CLOSED")
         code = "DATABASE_ACQUIRE_FAILED"
         try:
-            connection = await self._pool.acquire(
-                timeout=self._settings.acquire_timeout
-            )
+            with diagnostic_operation("db.acquire"):
+                connection = await self._pool.acquire(
+                    timeout=self._settings.acquire_timeout
+                )
         except TimeoutError:
             code = "DATABASE_ACQUIRE_TIMEOUT"
         except _DRIVER_ERRORS:
@@ -205,6 +210,12 @@ class Database:
 
     @asynccontextmanager
     async def transaction(self, owner_id=None):
+        with diagnostic_operation("db.transaction"):
+            async with self._transaction(owner_id) as handle:
+                yield handle
+
+    @asynccontextmanager
+    async def _transaction(self, owner_id):
         async with self._lease() as connection:
             transaction = connection.transaction()
             started = False
