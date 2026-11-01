@@ -4,7 +4,19 @@
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],
     "proof": "Actual host wrapper, clean API stop, live PostgreSQL, all-owner SQL dump readback, exclusive private journal and conservative external-client rejection",
-    "checkpoint": "10.2 SQL capture only; no verified encrypted recovery point, journal recovery, scheduling or operational acceptance"
+    "checkpoint": "10.2 writer shutdown, with 10.8 SQL/files and 10.10 interruption regressions; no verified encrypted recovery point"
+  }, {
+    "id": "sql_files_coherence",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],
+    "proof": "Actual host/ops capture, independent SQL readback and exact media/GC/Coach/runtime-secret/config bytes and SHA-256, measured pause, protected staging, unknown early/late file writers and host-file mutation rejected",
+    "checkpoint": "10.8 capture plus 10.10 regression; operator controls Docker and host files during pause; no arbitrary host-writer barrier, encryption, verified backup or restore"
+  }, {
+    "id": "interrupted_capture",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],
+    "proof": "Actual wrapper and recovery death, live controller/concurrent recovery rejection, owned capture/check process termination, persisted API startup admission, incompatible schema and failed restart blocked, initially stopped API preserved and pre-migration held without DDL or recursive startup backup",
+    "checkpoint": "10.10 explicit recovery only; no TTL release, automatic takeover with missing process proof, physical power-loss rehearsal, encrypted backup, restore or migration delivery"
   }],
   "import": [
     {

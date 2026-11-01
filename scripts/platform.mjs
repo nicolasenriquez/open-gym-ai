@@ -34,7 +34,7 @@ try {
     for (const entry of selected) {
       if (entry.target === 'host') {
         const output = await execute(process.execPath, entry.command, false,
-          suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : 300_000);
+          suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' ? 600_000 : 300_000);
         if (!/\btests [1-9]\d*/.test(output) || /\b(?:skipped|todo|cancelled) [1-9]\d*/.test(output)) {
           throw new Error('PLATFORM_REQUIRED_PROOF_MISSING');
         }

@@ -344,6 +344,32 @@ remain blocked rather than discarded/invented. Source stopping, backup/restore a
 Q1 review are separate tasks. SQL/readback/file equivalence precedes completion;
 sequence RESTART rolls back on copy failure, partial files remain quarantined.
 
+10.8 extends the existing host/ops capture with data/GC/Coach/VAPID, actual runtime
+secret mounts and selected host inputs plus resolved Compose/runtime configuration.
+The approved trust boundary requires exclusive operator custody of Docker/host
+sources during the pause. Observed early/late external writable mounts, changed
+source inventories/bytes/identity, unsafe links and selected/runtime secret mismatch
+block capture/restart. Read-only mounts and point-in-time inspection do not freeze
+arbitrary host writers or exclude transient containers; no such guarantee is made.
+Private staging retains an unverified checksummed set; encryption/verified recovery
+and restore remain their separate tasks; explicit journal recovery is delivered in 10.10 below. The three backup case IDs
+reuse the integration proof with a bounded ten-minute harness deadline; individual
+capture budget remains 120 seconds. Actual pause is measured, not inferred.
+
+10.10 adds `operate maintenance-recover --config <host-config> --operation <hex32>`
+using the same host/ops seams. API startup checks only a separate RO gate marker
+before creating DB/filesystem/background writers; missing/foreign/invalid admission
+fails closed. Only explicit new-instance provisioning initializes admission; the
+fixed gate directory is never replaced to clear a hold. Controller ownership uses
+OS creation identity plus host/PID, with atomic immutable recovery successors and
+no TTL release. A live owner blocks; incomplete legacy/identity/journal or uncertain
+capture creation requires forensic review, not automatic takeover. Registered ops
+capture/check containers and Docker client must cease, originals/images/schema must
+match, and actual API readiness precedes success. Failed restart reblocks/stops
+writers. Recovery of recovery is covered, as are unrelated sentinels and stopped API;
+startup never calls another backup. Pre-migration stays held without DDL. This is
+service recovery, not a verified backup, hardware power-loss or real host rehearsal.
+
 - Scope: host Compose wrapper, `operations/` CLI, ops image, manifest/age/staging and
   private operation journal; no business router migration at startup. Test actual
   commands with synthetic bundles. Stop/start uses host Docker CLI, never a container

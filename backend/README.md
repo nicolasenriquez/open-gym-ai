@@ -665,23 +665,52 @@ It proves no real-data cutover, backup or reviewed restore access.
 
 The host wrapper `node scripts/platform.mjs operate backup --config <absolute-host-config>
 --reason scheduled|startup|pre-migration` stops the selected writers, keeps PostgreSQL
-available and runs the ops-only SQL capture with an explicitly provisioned restricted
+available and runs the ops-only SQL/files capture with an explicitly provisioned restricted
 backup role. See [preparation, private configurations and limits](../docs/reference/platform-operations.md#captura-sql-entregada)
 and the optional `deploy/docker-compose.maintenance.yml` overlay before use.
 
 A captured dump is **not a verified backup**: the wrapper reports
-`BACKUP_CAPTURED_UNVERIFIED`, `verified: false`, exit 1. Encrypted bundles, file
-capture, scheduling and journal recovery are separate deliveries. Failures retain
-the private journal/lock; pre-migration capture does not reopen traffic. Never
-remove an unresolved lock or start the instance without reviewing its state.
+`BACKUP_CAPTURED_UNVERIFIED`, `verified: false`, exit 1. The protected staging set
+includes data/media/GC/Coach/VAPID, actual runtime secrets and selected host/Compose
+configuration, with a private SHA-256 inventory. It rejects unsafe files, source
+changes and external containers sharing writable capture resources. The operator
+must control Docker and host sources throughout the pause; stability checks do not
+freeze arbitrary host writers. Encrypted bundles and scheduling are separate
+deliveries. Failures retain the private journal/lock; pre-migration capture does not
+reopen traffic. Never remove an unresolved lock or edit startup admission blindly.
+
+The maintenance overlay also gives API a separate read-only `gate/` directory, not
+staging or backup credentials. Provision its initial admission explicitly **only
+for a new instance without pending maintenance**, as described in the operation
+reference. Missing/invalid/foreign/blocked admission prevents application startup
+before DB/background writers. The directory stays fixed; the wrapper atomically
+updates only its marker. No leases, control listener or startup backup is added.
+
+`node scripts/platform.mjs operate maintenance-recover --config <absolute-host-config>
+--operation <journal-hex32-id>` explicitly takes ownership after proving the old
+controller ended (OS creation identity, not PID/TTL alone). It stops only recorded
+ops capture/check containers, waits for their Docker client, verifies original
+writers/DB/images and compatible schema, then starts only previously running IDs.
+API must become ready; failed restart closes admission and stops writers again.
+Success is `MAINTENANCE_RECOVERED`, exit 0, **still unverified**, not a valid backup.
+Interrupted recovery can itself be recovered; live/concurrent controllers block.
+Unknown ownership/missing process proof or uncertain capture creation stays blocked
+for operator investigation. Older journals without controller proof are not guessed.
+Pre-migration recovery stays `MAINTENANCE_MIGRATION_HELD`/exit 1 without DDL or restart.
 
 ```sh
 node scripts/platform.mjs verify backup --case writer_shutdown
+node scripts/platform.mjs verify backup --case sql_files_coherence
+node scripts/platform.mjs verify backup --case interrupted_capture
 node scripts/platform.mjs verify training_browser
 ```
 
-The first command checks actual shutdown and independently reads the SQL capture;
-the second separately checks client offline/dirty/active and media-queue persistence.
+The backup cases reuse the same integration proof: actual shutdown, independent SQL
+readback and exact file bytes/checksums, plus early/late external writers, host-file
+mutation and real wrapper/recovery death, startup admission and failed restart.
+They preserve initially stopped services and unrelated sentinels, without restarting
+the real host/daemon or proving physical power-loss recovery. The browser command separately checks client offline/dirty/active and
+media-queue persistence.
 These are synthetic regression proofs, not a complete restore or real-client rehearsal.
 
 ## Retired transition tooling

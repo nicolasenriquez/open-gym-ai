@@ -14,6 +14,18 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Explicit owned-operation maintenance recovery after wrapper/capture/restart
+  interruption, with OS process identity, persisted read-only API startup admission,
+  schema verification and actual readiness before crediting service restoration.
+  Live controllers and uncertain ownership stay blocked; previously stopped services
+  and pre-migration holds are preserved. Recovery does not verify a backup or run DDL.
+
+- Coordinated host/ops SQL and file capture with stopped application writers,
+  protected staging, exact media/GC/configuration/secret inventories and measured
+  pause. External shared-volume writers and changed host files block capture.
+  Operator custody of Docker/host sources is required; captured sets are not yet
+  encrypted, verified recovery points or a complete restore facility.
+
 - A separate Python operations importer for frozen Node data and empty quarantined
   PostgreSQL targets, with per-capability equivalence, external encrypted secrets,
   transactional sequence continuation and protected failure reports. Incompatible

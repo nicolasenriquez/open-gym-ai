@@ -24,6 +24,7 @@ from opengym_platform.coach.secrets import SecretFiles
 from opengym_platform.coach.service import public_config as coach_config
 from opengym_platform.core.database import Database, DatabaseError
 from opengym_platform.core.diagnostics import Diagnostics
+from opengym_platform.core.maintenance import check_startup
 from opengym_platform.core.platform_settings import (
     load_public_config,
     load_session_secret,
@@ -62,6 +63,7 @@ async def recover_coach(database):
 
 
 def create_app(*, training_note_state=None, coach_execute=None, coach_credentials=None):
+    check_startup()
     public_config = load_public_config()
     secret = load_session_secret()
     coach_secrets = SecretFiles()

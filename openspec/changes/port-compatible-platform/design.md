@@ -97,6 +97,29 @@ arranque vencido/pre-migración, retención 30 días, disco independiente y clav
 separada; restore mensual. RPO 6 h/RTO 24 h y pausa requieren medición, no prometen
 PITR, off-host ni pérdida completa del equipo cubierta.
 
+Límite de confianza 10.8 aprobado: operador mantiene custodia exclusiva de Docker y
+fuentes host durante la pausa. Tooling rechaza contenedores activos ajenos con
+montajes de escritura solapados y compara contenido/identidad de fuentes; ni esas
+inspecciones puntuales ni un bind read_only congelan procesos host arbitrarios o
+contenedores transitorios. Sin esa custodia no se acredita coherencia. La captura
+conserva selección Compose resuelta, imágenes/config runtime y ficheros originales
+en staging privado; cifrado y punto verificado permanecen en 10.3.
+
+10.10 añade recuperación host explícita por operación y barrera de arranque local.
+API solo recibe `gate/` read_only, sin dumps/credencial backup: marcador provisionado
+para instancia nueva, ausente/corrupto/ajeno/bloqueado deniega antes de DB/escritores.
+No polling, lease, listener ni backup desde API. Directorio fijo y marcador atómico;
+custodia prohíbe renombrar/reemplazar el bind durante su uso. Controlador host registra
+hostname/PID/identidad de creación (Windows PowerShell, Linux /proc+boot ID), no TTL.
+Recuperador toma sucesor atómico e inmutable de controlador muerto; otro vivo bloquea,
+y otro intento puede recuperar al recuperador muerto. Identidad/journal insuficiente,
+creación incierta, host distinto o límite de 64 sucesores quedan para revisión forense,
+sin borrado/guess de locks antiguos. Capture/check containers propios permanecen
+nombrados para acreditar cese, incluido cliente Docker registrado; después se verifica
+esquema con ops existente. Reanudar por IDs originales exige readiness API; fallo
+recierra admisión y detiene escritores. Recuperar servicio sigue `verified: false`;
+pre-migration conserva gate/exclusión sin DDL ni apertura entre copia/migración futura.
+
 Q1 invalida sesiones y bloquea credenciales dudosas. Permite continuidad con evidencia
 suficiente o nueva vía local autorizada para cuenta verificada, sin cambiar ID/rol,
 resucitar credenciales ni bootstrap admin. Backup/login/audit best effort no prueban

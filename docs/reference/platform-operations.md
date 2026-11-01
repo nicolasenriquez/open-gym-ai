@@ -295,7 +295,7 @@ Esto no autoriza borrar origen, releases ni respaldos protegidos.
 
 El wrapper `node scripts/platform.mjs operate backup --config <ruta-absoluta>
 --reason scheduled|startup|pre-migration` entrega únicamente parada limpia y dump
-SQL. **No es un backup recuperable**: incluso si captura correctamente, devuelve
+SQL y conjunto de archivos coherente. **No es un backup recuperable**: incluso si captura correctamente, devuelve
 `BACKUP_CAPTURED_UNVERIFIED`, `verified: false` y código **1**. No marca ni sustituye
 un punto verificado. No usar esta fase para programar backups ni autorizar DDL.
 
@@ -319,7 +319,28 @@ Requisitos de preparación explícita, no ejecutados automáticamente:
 - Añadir `deploy/docker-compose.maintenance.yml` después de base y prod durante la
   preparación autorizada de la instancia. No aplicarlo automáticamente sobre una
   instancia personal: registrar los labels de DB puede recrear su contenedor.
-  El overlay monta estado y credencial backup solo en ops; API conserva su rol.
+  El overlay monta staging y credencial backup solo en ops; API conserva su rol
+  y recibe únicamente `gate/` en solo lectura, nunca dumps ni credencial backup.
+  Durante captura, el wrapper añade a ops montajes de solo lectura de los orígenes
+  seleccionados; no amplía permisos de la API.
+
+Antes del primer arranque gestionado, crear `gate/` dentro del estado privado, con
+propietario/permisos compatibles con el UID de API/ops, directorio 0700 y
+`gate/admission.json` 0600. **Solo para una instancia nueva, sin operación pendiente**,
+el operador provisiona explícitamente:
+
+```json
+{"instance_id":"personal-a","operation":"00000000000000000000000000000000","allowed":true}
+```
+
+No inicializar, reemplazar ni renombrar ese directorio para desbloquear una captura.
+Después de preparar el bind, el wrapper modifica únicamente el fichero por rename
+atómico; el directorio debe permanecer estable. Marcador ausente/corrupto/ajeno,
+enlace o `allowed: false` impide crear la aplicación antes de abrir DB o arrancar
+escritores. No hay polling, lease, socket ni llamada a backup en el arranque API.
+El overlay exige un directorio existente (`create_host_path: false`); instalarlo o
+actualizar una imagen/instancia preparada anteriormente requiere preparación propia,
+no lo hace `maintenance-recover`.
 
 El fichero de entorno explícito para Compose contiene referencias, no secretos:
 `PLATFORM_INSTANCE_ID`, `PLATFORM_MAINTENANCE_STATE_DIR` (ruta absoluta del estado),
@@ -360,6 +381,21 @@ La configuración ops referenciada es distinta de la configuración host y de la
 `writers` enumera todos los servicios escritores, incluida API; procesos internos
 Coach/audit/upload/GC/schedulers cesan al cerrar su contenedor. El wrapper comprueba
 salida limpia, PG vivo, imágenes seleccionadas y ausencia de peers desconocidos.
+Antes de parar y después de capturar, también inspecciona contenedores activos de
+otros proyectos: un montaje de escritura sobre los medios, secretos/configuración
+o staging protegido bloquea la operación, aunque ese contenedor no comparta red DB.
+La API debe coincidir con imagen, entorno/comando seleccionado y origen de datos;
+los volúmenes nombrados deben pertenecer al proyecto. No se admiten montajes anidados
+bajo `DATA_DIR` ni secretos/configs sin fichero local explícito.
+
+**Límite de confianza:** durante toda la pausa el operador debe mantener control
+exclusivo de Docker y de los ficheros host seleccionados, sin rotación/edición ni
+escritores host ajenos. Inspecciones puntuales no son una barrera contra contenedores
+transitorios ni procesos host arbitrarios. El wrapper compara hash e identidad de
+los ficheros host antes/después; detectar estabilidad no equivale a congelarlos.
+Un bind `read_only` tampoco congela su origen. Si no puede garantizarse esta custodia,
+no ejecutar captura ni acreditar coherencia.
+
 Ops toma el lock 728322 y exporta una instantánea repeatable-read para `pg_dump`
 custom con RLS habilitado e INSERTs. Su rol no tiene superuser/BYPASSRLS/DML ni
 membresías privilegiadas; `backup_read` permite SELECT completo explícito y
@@ -367,19 +403,93 @@ membresías privilegiadas; `backup_read` permite SELECT completo explícito y
 que pudieran ocultar filas. La fase interna `capture-sql` requiere journal/exclusión;
 no equivale al comando final `operations backup`, que sigue no implementado.
 
-Estado privado: `owner.json`, directorio `exclusive`, `journal.json` atómico y un
-subdirectorio por operación con `database.dump` y copia del journal. Se mide
-`pause_ms`. Tras captura y comprobación de esquema, se usa `start`, nunca `up`, solo
+Estado privado: `owner.json`, directorio `exclusive` con identidad del controlador
+host (hostname, PID y token de creación del sistema), `gate/`, `journal.json` atómico y un
+subdirectorio por operación con `database.dump`, `data/`, `runtime-secrets/`,
+`configuration/`, `capture.json` y copia del journal. `data/` conserva medios por
+propietario, marcas GC, temporales pendientes, registros Coach cifrados y VAPID.
+Solo se admiten `uploads/`, `vapid.json` y registros `coach-auth-*`/`coach-key-*` en
+la raíz de datos; material desconocido bloquea, no se descarta. Configuración incluye
+los ficheros host/env/Compose, selección Compose resuelta e imagen/config runtime,
+configs/secrets de la selección y los ficheros bind
+bajo `/run/secrets/` y `/run/operator/`. Los secretos runtime montados realmente en
+API se conservan además de los seleccionados y deben coincidir en contenido.
+El fichero privado `<operación>.selection.json` queda en el estado y en el conjunto
+capturado; no publicar su entorno ni rutas. El manifiesto privado relaciona
+orígenes/destinos, tamaños y SHA-256, snapshot/esquema y `verified: false`.
+
+Ops compara inventarios/identidad y hashes antes de SQL, al copiar y al releer las
+fuentes. Rechaza enlaces, hardlinks de archivos, dispositivos, nombres inseguros,
+entradas duplicadas y cambios de contenido/árbol. Directorios 0700 y archivos 0600;
+los archivos y directorios copiados se sincronizan. Presupuesto de captura 120 s,
+con límites de profundidad 64 y 100 000 entradas; sobrepasarlos bloquea sin avanzar
+un punto recuperable. Staging sigue **en claro sobre almacenamiento cifrado**;
+la protección del volumen y su capacidad son prerrequisitos del operador, no una
+propiedad acreditada por el wrapper. Logs/caches SDK/clave age no son orígenes de
+captura. Se registran `pause_started_at`, `pause_ms`, `capture_ms` y presupuesto.
+Tras captura y comprobación de esquema, se usa `start`, nunca `up`, solo
 para servicios antes activos. `pre-migration` **no reinicia** entre captura y DDL:
 queda bloqueado hasta la futura entrega de migración coordinada. Fallo/interrupción
-conserva journal/bloqueo; no hay recuperación por PID/TTL ni borrado automático.
-No retirar un bloqueo ni arrancar servicios a ciegas: recuperación del journal,
-barrera de arranque, copia de archivos, bundle cifrado, retención y programación
-siguen pendientes de sus slices autorizados.
+conserva journal/bloqueo; no hay recuperación automática por PID/TTL ni borrado global.
+Bundle cifrado, retención y programación siguen pendientes. No retirar un bloqueo
+ni editar admisión/arrancar servicios a ciegas.
+
+### Recuperación explícita del journal
+
+```sh
+node scripts/platform.mjs operate maintenance-recover --config <ruta-host-absoluta> --operation <id-hex32-del-journal>
+```
+
+Operación privada y explícita, bajo la misma custodia exclusiva de Docker/ficheros.
+Valida configuración/ownership, operación exacta, contenedores e imágenes originales.
+Un controlador vivo impide takeover. Windows usa PowerShell y tiempo de creación;
+Linux usa `/proc` con boot ID/start time. Un PID reutilizado no identifica el proceso
+anterior; un tiempo vencido nunca autoriza apertura. La recuperación toma un sucesor
+atómico `exclusive/recovery/` con identidad propia; otro recuperador vivo bloquea.
+Si ese recuperador muere, otra invocación explícita puede tomar su sucesor. Se limita
+a 64 niveles; no se retiran locks con identidad ausente, corrupta, host distinto o
+imposible de comprobar. Los temporales de escrituras interrumpidas se conservan.
+
+Antes de recuperar servicio, cierra admisión y detiene solo contenedores capture/check
+registrados de esa operación, con nombre, proyecto, servicio e imagen comprobados.
+Comprueba cese del cliente Docker registrado, detiene/verifica escritores originales
+y rechaza peers DB o montajes de escritura externos sobre fuentes protegidas.
+Reutiliza `capture-sql --check-only` con mutex/rol backup para verificar esquema,
+catálogo/permisos y ausencia de clientes SQL; no vuelve a capturar ni restaura datos.
+Los checkers tienen nombre persistido, no `--rm`, para poder acreditar su cese tras
+morir el wrapper. Solo después admite y arranca por ID los servicios antes activos;
+API debe alcanzar readiness real. Si un arranque falla, vuelve a cerrar admisión y
+detiene escritores, dejando exclusión/journal para otro intento explícito.
+
+Éxito: `MAINTENANCE_RECOVERED`, exit **0**, fase `recovered_unverified` y
+`verified: false`; significa servicio recuperado, **no backup válido**. No modifica
+el último punto verificado ni elimina staging. `startup` no se vuelve a invocar:
+se conserva la operación y la API no lanza el wrapper. Un servicio antes parado
+permanece parado. `pre-migration` devuelve `MAINTENANCE_MIGRATION_HELD`, exit **1**,
+con fase `migration_held`, exclusión y admisión cerrada: nunca ejecuta DDL ni abre
+tráfico entre copia y la futura migración coordinada. Errores/estado incierto salen
+con **1**; argumentos/configuración inválidos con **2**.
+
+Un journal antiguo sin prueba de controlador, una creación de captura incierta
+sin contenedor persistido o un fallo antes de persistir identidad/journal no se
+adivina ni se convierte en éxito: requiere revisión forense del operador. No borrar
+el lock para eludirlo. Esta entrega no acredita apagado físico, durabilidad del
+hardware, recuperación universal de archivos dañados ni aceptación operativa.
 
 Verificación sintética: `node scripts/platform.mjs verify backup --case
 writer_shutdown` observa parada con PG vivo, exclusión, servicios inicialmente
-parados y dump restaurado por observador independiente. `verify training_browser`
+parados y dump restaurado por observador independiente. `verify backup --case
+sql_files_coherence` añade bytes/checksums de medios/GC/config/secretos y referencias
+Training del SQL capturado, rechazo de escritores externos antes/durante captura y
+cambio de fichero host durante la pausa, enlace inseguro, medio alterado después del
+dump real y secreto seleccionado distinto del runtime, conservando bloqueo/journal
+sin reinicio inseguro. `verify backup --case interrupted_capture` añade muerte real
+de wrapper/recuperador, contenedores ops aún activos, arranque API con barrera
+persistida y marcador inválido, concurrencia, esquema incompatible y fallo de
+restart; verifica API inicialmente parada y pre-migración retenida sin DDL.
+Los tres IDs reutilizan la prueba integrada. No reinicia el daemon Docker ni el
+host real: el nuevo proceso API sobre estado persistido ensaya esa barrera local.
+`verify training_browser`
 es la regresión separada de dirty/active/offline y cola de medios persistida; no
 es un ensayo integrado de navegador con el wrapper ni acredita clientes reales,
 recuperación completa, RPO/RTO o aceptación operativa.
@@ -387,7 +497,7 @@ recuperación completa, RPO/RTO o aceptación operativa.
 ## Procedimientos operativos especificados
 
 Los procedimientos completos siguientes son contratos **futuros**, salvo la fase
-SQL acotada descrita arriba; no acreditan herramientas completas ni ejecuciones
+SQL/archivos acotada descrita arriba; no acreditan herramientas completas ni ejecuciones
 reales. El [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md)
 fija prefijos Compose, suites, flags, salidas y checkpoints. Operador necesita
 Docker/Compose y Node 22+ para el wrapper host de parada/recuperación; Python,
@@ -431,8 +541,10 @@ de leases. El wrapper host futuro `node scripts/platform.mjs operate <command>
 backup exige además `--reason scheduled|startup|pre-migration`;
 controla Compose por argv allowlisted, sin shell ni flags arbitrarios. Es tooling
 host, nunca dependencia de la imagen API. Captura/cifrado/restore siguen en ops.
-S10 entrega estos comandos por fases; solo la captura SQL acotada está disponible
-actualmente, con fallo explícito mientras no exista bundle verificado.
+S10 entrega estos comandos por fases; están disponibles captura SQL/archivos y
+recuperación explícita del journal descritas arriba. Captura sigue devolviendo
+fallo explícito mientras no exista bundle verificado; recuperación exit 0 no cambia
+ese contrato ni entrega `migrate`.
 
 1. Backup scheduled/startup/pre-migration ejecuta preflight y exclusión host por
    instancia; el proceso ops toma además el mutex PG compartido. Registrar proyecto,

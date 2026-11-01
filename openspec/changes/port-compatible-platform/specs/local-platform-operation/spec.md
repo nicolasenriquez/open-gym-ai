@@ -26,6 +26,8 @@ Runtime API SHALL run without root privileges, added coach capabilities, a Docke
 ### Requirement: Coordinated encrypted recovery points
 Operation SHALL provide backup every three hours, startup catch-up when overdue, pre-migration backup and monthly isolated restore rehearsal. Retention SHALL be 30 days on storage independent of the instance disk, with bundle key separate. PostgreSQL/media/configuration/required secrets SHALL form a verified coherent recovery point. A host wrapper SHALL exclusively coordinate clean shutdown of the API and every application writer before capture, keep PostgreSQL available, and restore only previously running services after capture processes have stopped and schema compatibility is established. Encryption/transfer SHALL occur outside that pause. No application lease protocol, maintenance control socket or container Docker socket SHALL be introduced. RPO six hours/RTO 24 hours SHALL remain accepted objectives until measured, not guarantees or claims of PITR/off-host disaster coverage.
 
+The operator SHALL maintain exclusive control of Docker and host capture sources throughout the pause. Tooling SHALL reject observed external containers with writable overlapping capture mounts and source inventory/content/identity changes. These checks and read-only bind mounts SHALL NOT be represented as freezing arbitrary host processes or excluding transient containers between inspections. Without that operational custody, coherent capture SHALL remain uncredited.
+
 #### Scenario: Capture with internal writers and failed transfer
 - **WHEN** clients, coach or internal metadata writers compete with backup capture and transfer later fails
 - **THEN** clean writer shutdown establishes a coherent SQL/files recovery set, client pending work is preserved and pause duration/deadlines are recorded
@@ -35,6 +37,9 @@ Operation SHALL provide backup every three hours, startup catch-up when overdue,
 - **WHEN** shutdown/capture/restart fails, the host wrapper dies or the capture budget expires
 - **THEN** incomplete captures never become recovery points and a private operation journal prevents unsafe startup until capture termination and compatibility are verified
 - **AND** explicit owned-operation recovery takes exclusive ownership, verifies process termination and restores only previously running services; no TTL-only release, recursive startup backup or global cleanup is allowed
+- **AND** a new API process checks persisted local startup admission before opening database/filesystem/background writers; missing, invalid, foreign or blocked admission fails closed without receiving backup credentials or staging contents
+- **AND** recovery of an interrupted recovery remains exclusive, actual API readiness precedes successful service restoration, failed restart reblocks/stops writers, and pre-migration recovery does not run DDL or reopen traffic before coordinated migration
+- **AND** missing controller/process proof or uncertain capture creation remains blocked for explicit forensic review, never treated as a successful recovery
 
 #### Scenario: Scheduled failures do not satisfy recovery objectives
 - **WHEN** scheduled/startup/pre-migration backup or monthly rehearsal is overdue, fails or has no valid verified bundle
