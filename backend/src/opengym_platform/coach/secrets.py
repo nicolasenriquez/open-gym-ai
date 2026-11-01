@@ -20,10 +20,10 @@ SHARED = "This instance is configured with a single shared account. Ask your adm
 
 
 class SecretFiles:
-    def __init__(self):
+    def __init__(self, key=None):
         self.directory = Path(os.environ.get("DATA_DIR", "/data"))
-        self.key = None
-        if os.environ.get("PLATFORM_COACH_SECRET_FILE"):
+        self.key = key
+        if key is None and os.environ.get("PLATFORM_COACH_SECRET_FILE"):
             secret = _secret("PLATFORM_COACH_SECRET_FILE").strip()
             if len(secret) < 32:
                 raise ValueError("PLATFORM_COACH_CONFIG_INVALID")

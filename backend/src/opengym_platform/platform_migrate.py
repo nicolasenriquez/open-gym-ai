@@ -8,10 +8,14 @@ from pathlib import Path
 
 import asyncpg
 
-from opengym_platform.core.platform_settings import DatabaseTarget, load_database
+from opengym_platform.core.platform_settings import (
+    PLATFORM_LOCK_KEY,
+    DatabaseTarget,
+    load_database,
+)
 
 # Session lock shared with migrator/import/restore for the whole platform.
-LOCK_KEY = 728322
+LOCK_KEY = PLATFORM_LOCK_KEY
 DATABASE = "opengym_platform_test"
 BOOTSTRAP_USER = "opengym_platform_bootstrap"
 BOOTSTRAP_PASSWORD = "synthetic-opengym-platform-only"

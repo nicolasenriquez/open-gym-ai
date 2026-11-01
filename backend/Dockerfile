@@ -21,6 +21,7 @@ COPY --chown=1000:1000 tests/ ./tests/
 COPY --chown=1000:1000 contracts/identity-sessions.v1.json contracts/identity-passwords.v1.json contracts/identity-registration.v1.json contracts/identity-passkeys.v1.json contracts/training-stamps.v1.json ./contracts/
 # Windows build contexts may otherwise mark Python source as executable.
 RUN find src tests -type f -name '*.py' -exec chmod 0644 {} +
+RUN .venv/bin/python tests/platform/import_fixtures.py /app/import-fixtures
 ENV PYTHONPATH=/app/src PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH=/app/.venv/bin:$PATH
 
 FROM dependencies AS production-deps
@@ -59,6 +60,7 @@ ENTRYPOINT ["/app/.venv/bin/python", "-m", "opengym_platform.platform_migrate"]
 CMD ["--deployment", "up"]
 
 FROM runtime AS ops
+COPY src/opengym_platform/importer.py /app/src/opengym_platform/
 COPY --from=pg-tools /tools/ /opt/pg-tools/
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_dump
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_restore

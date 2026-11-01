@@ -14,6 +14,11 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- A separate Python operations importer for frozen Node data and empty quarantined
+  PostgreSQL targets, with per-capability equivalence, external encrypted secrets,
+  transactional sequence continuation and protected failure reports. Incompatible
+  legacy data blocks without silent correction; no cutover or restore is implied.
+
 - Internal request correlation across Python HTTP, PostgreSQL adapter operations
   and Coach HTTP providers, including asynchronous completion and safe failure
   codes. Trace context stays local and logs exclude request/provider contents.

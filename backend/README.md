@@ -638,6 +638,29 @@ provider credentials, host dependencies and caches are excluded separately.
 Node/web dependency installs use builder-local pnpm cache mounts with frozen locks;
 the package store is not copied into images or mixed with application data.
 
+## Isolated legacy import
+
+The `ops` image includes `python -m opengym_platform.operations import --config
+/run/import/operator.json --source /run/import/source --target new-a`. It requires
+a frozen read-only Node data source and a separately provisioned empty PostgreSQL
+target, explicitly marked for that ID and denied runtime CONNECT. It does not
+bootstrap/migrate the database or start/promote an application.
+
+Full internal Training state, identity, subscriptions, Coach state, audit and
+external media/HTTP secrets are compared before completion. Unsupported data
+blocks with a private report; nothing is silently dropped or normalized. Deferred
+Claude/Codex credentials remain in the protected origin. See the
+[preconditions, configuration and capability matrix](../docs/reference/platform-operations.md#importación-aislada-de-origen-node),
+including known blocking differences in legacy Coach logs/current jobs.
+
+```sh
+node scripts/platform.mjs verify import --case faithful_or_blocked
+```
+
+This verification uses disposable PostgreSQL, actual operator commands, read-only
+synthetic source files and HTTP after explicit test-only opening of that target.
+It proves no real-data cutover, backup or reviewed restore access.
+
 ## Retired transition tooling
 
 Standalone Node/Python Foundation stacks, runners and their exclusive prototype

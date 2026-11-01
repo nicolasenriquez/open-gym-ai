@@ -1,4 +1,15 @@
 {
+  "import": [
+    {
+      "id": "faithful_or_blocked",
+      "requirement": "Faithful import and retirement parity / Unrepresentable legacy data; Explicitly bounded coach delivery / Imported deferred provider remains unavailable",
+      "setup": "Frozen read-only legacy files, actual private operator command, isolated PostgreSQL and independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_import.py"],
+      "proof": "Equivalent IDs, full documents, counters, secrets and Q6; incompatible data blocks without changing source or target",
+      "checkpoint": "10.1 only; no cutover, backup or restore acceptance"
+    }
+  ],
   "diagnostics": [{
     "id": "retention_and_failure",
     "target": "host",

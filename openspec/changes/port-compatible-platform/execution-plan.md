@@ -333,6 +333,17 @@ configuration, CVE applicability and acceptance limits live in platform-observab
 
 ### S10 — faithful import and recovery (tasks 10.*)
 
+10.1 delivers the separate ops-only import command described in
+[the operation reference](../../../docs/reference/platform-operations.md#importación-aislada-de-origen-node).
+It requires a provisioned empty target with explicit DB ownership marker, denied
+runtime CONNECT and no connected writers; it never bootstraps/migrates or opens
+traffic. Q3 proofs use image-frozen read-only files, the actual command, real PG,
+independent inspection and HTTP only after explicit synthetic target opening.
+Unknown data, personal instance-result details and current jobs without trigger
+remain blocked rather than discarded/invented. Source stopping, backup/restore and
+Q1 review are separate tasks. SQL/readback/file equivalence precedes completion;
+sequence RESTART rolls back on copy failure, partial files remain quarantined.
+
 - Scope: host Compose wrapper, `operations/` CLI, ops image, manifest/age/staging and
   private operation journal; no business router migration at startup. Test actual
   commands with synthetic bundles. Stop/start uses host Docker CLI, never a container

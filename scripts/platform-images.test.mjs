@@ -31,6 +31,7 @@ for executable in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap', 'pg_d
 for module in ('pytest', 'ruff', 'mypy', 'pip'):
     assert importlib.util.find_spec(module) is None, module
 assert not pathlib.Path('/app/tests').exists()
+assert importlib.util.find_spec('opengym_platform.importer') is None
 assert not pathlib.Path('/app/src/opengym_platform/runner.py').exists()
 import fastapi, asyncpg, uvicorn, httpx
 assert httpx.__version__ == '0.28.1'
@@ -56,6 +57,12 @@ print('PLATFORM_RUNTIME_ISOLATION_OK')
         `${project}-platform-${target}:local`, '-c', `
 import importlib.util, os, pathlib, shutil
 assert os.getuid() == 1000
+assert (importlib.util.find_spec('opengym_platform.importer') is not None) == ${target === 'ops' ? 'True' : 'False'}
+import subprocess, sys, json
+result = subprocess.run([sys.executable, '-m', 'opengym_platform.operations', 'import',
+    '--config', '/missing-import-config', '--source', '/missing-source', '--target', 'new-a'], capture_output=True)
+assert result.returncode == 2 and result.stderr == b''
+assert json.loads(result.stdout)['code'] == ${target === 'ops' ? "'IMPORT_BLOCKED'" : "'IMPORT_TOOL_UNAVAILABLE'"}
 assert not pathlib.Path('/app/tests').exists()
 for name in ('pytest', 'ruff', 'mypy', 'pip'):
     assert importlib.util.find_spec(name) is None

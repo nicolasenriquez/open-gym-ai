@@ -99,10 +99,28 @@ async def serve_status(database, audit, schema, diagnostics):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["diagnose"])
+    parser.add_argument("command", choices=["diagnose", "import"])
     parser.add_argument("--config", required=True)
+    parser.add_argument("--source")
+    parser.add_argument("--target")
     args = parser.parse_args()
-    code, result = diagnose(args.config)
+    if args.command == "import":
+        import importlib.util
+
+        if importlib.util.find_spec("opengym_platform.importer") is None:
+            code, result = 2, {"code": "IMPORT_TOOL_UNAVAILABLE"}
+        elif not args.source or not args.target:
+            code, result = 2, {"code": "IMPORT_ARGUMENTS_INVALID"}
+        else:
+            from opengym_platform.importer import import_source
+
+            code, result = asyncio.run(
+                import_source(args.config, args.source, args.target)
+            )
+    elif args.source or args.target:
+        code, result = 2, {"code": "DIAGNOSTIC_CONFIG_INVALID"}
+    else:
+        code, result = diagnose(args.config)
     print(json.dumps(result, separators=(",", ":")))
     return code
 

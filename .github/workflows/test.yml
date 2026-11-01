@@ -295,6 +295,7 @@ jobs:
       - run: node scripts/platform.mjs verify admin_delete
       - run: node scripts/platform.mjs verify notifications
       - run: node scripts/platform.mjs verify diagnostics
+      - run: node scripts/platform.mjs verify import
       - run: node scripts/platform.mjs verify images --case reproducibility
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node scripts/platform.mjs verify contracts --case python_routes

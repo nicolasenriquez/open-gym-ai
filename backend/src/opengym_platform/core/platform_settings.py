@@ -7,6 +7,8 @@ import stat
 from dataclasses import dataclass, field
 from pathlib import Path
 
+PLATFORM_LOCK_KEY = 728322
+
 
 @dataclass(frozen=True)
 class DatabaseTarget:

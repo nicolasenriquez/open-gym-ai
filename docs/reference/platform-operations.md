@@ -156,6 +156,101 @@ permitir sobrescritura silenciosa por una restauración. La reautenticación tra
 restore es una medida de recuperación; durante el port normal se conserva la sesión
 si es segura/compatible y solo se admite excepción documentada probada.
 
+## Importación aislada de origen Node
+
+La imagen Python `ops` incluye el importador separado de Alembic y de HTTP. El
+comando no crea la base, no ejecuta DDL de negocio, no arranca servicios ni abre
+tráfico. Solo acepta un destino recién provisionado con las migraciones vigentes,
+sin datos de negocio y con los siete proveedores/configuración iniciales intactos.
+No es restore, corte ni aprobación de las credenciales históricas de Q1.
+
+Preparar un PostgreSQL/volumen independiente, sin API ni otros clientes conectados.
+Después del bootstrap/migraciones, su administrador debe marcar explícitamente la
+base con `COMMENT ON DATABASE ... IS 'opengym-import:new-a'` y retirar `CONNECT`
+de `opengym_api_runtime`; PUBLIC tampoco debe concederlo. El ID debe coincidir con
+la configuración y `--target`. No marcar una base existente para reutilizarla:
+el importador comprueba vacío, defaults, revisión, conexiones y lock 728322. No
+modifica roles/grants para sortear una denegación.
+
+En un contenedor `ops` aislado, montar exclusivamente el origen congelado en
+`/run/import/source:ro`, configuración privada en `/run/import/operator.json:ro`,
+los tres ficheros de passwords DB y un directorio de destinos escribible privado.
+Configurar explícitamente `PLATFORM_ENV`, `PLATFORM_DB_MODE=local_compose`,
+`PLATFORM_DB_HOST=db`, `PLATFORM_DB_PORT=5432`, `PLATFORM_DB_NAME`,
+`PLATFORM_DB_TLS=disable` y los ficheros `PLATFORM_DB_PASSWORD_FILE` (bootstrap),
+`PLATFORM_MIGRATOR_PASSWORD_FILE` y `PLATFORM_RUNTIME_PASSWORD_FILE`, según
+[configuración de imágenes](../../backend/README.md#platform-images-and-compose).
+El servicio `ops` normal de Compose conserva sus mounts de diagnóstico: estos
+mounts/variables adicionales se proporcionan solo al comando de importación sobre
+el destino independiente; no se añaden secretos privilegiados a diagnose/API.
+
+Configuración del importador, sin passwords ni rutas elegidas por HTTP:
+
+```json
+{"target_id":"new-a","target_root":"/run/import/targets","admin_uids":[]}
+```
+
+`admin_uids` declara expresamente los IDs que tenían facultad por `ADMIN_UIDS` en
+la configuración protegida del origen, además de `user.admin`. No usar el entorno
+heredado para decidirlos. Conservar también la configuración de despliegue original;
+este comando no interpreta `.env` ni instala su configuración en una instancia.
+El directorio raíz debe existir, pertenecer al UID operativo y tener modo 0700.
+El subdirectorio `new-a` debe ser nuevo; ni enlaces ni destinos anteriores se usan.
+
+Dentro de la imagen `ops`, ejecutar:
+
+```sh
+python -m opengym_platform.operations import --config /run/import/operator.json --source /run/import/source --target new-a
+```
+
+El origen exige filesystem/mount de solo lectura, UTF-8 y archivos regulares sin
+symlinks/hardlinks. Congelar realmente sus escritores es una precondición operativa:
+un bind `ro` no detiene otro escritor del host. Se comparan inventarios SHA-256 antes
+y después de leer/copiar; discrepancia bloquea. Límite de lectura: 64 MiB por archivo
+y 512 MiB por origen; un exceso bloquea, nunca trunca. Backups `db.json.bak` quedan
+solo en el origen protegido. Archivos/propiedades desconocidos, temporales u owners
+sin resolver bloquean en vez de perderse. No se consulta el cache SDK/CLI externo.
+
+| Capacidad | Equivalencia exigida o bloqueo |
+| --- | --- |
+| Identidad | IDs/roles efectivos, alias NFKC, hash scrypt completo, sv, passkeys/contadores/bytes COSE, resets y device links/digests. Fechas históricas ausentes permanecen nulas; colisiones/credenciales inválidas bloquean. |
+| Training | Documento interno completo, `_prior`, `_unstamped`, linaje, tipos y ausente/null; ninguna fila para un owner sin documento. Proyecciones derivadas de SQL, sin convertir strings ni redondear `_rev`. |
+| Medios | Bytes/hash por owner y `.gc.json` conservados fuera de SQL. Owner/nombre/hash incorrectos bloquean. |
+| Notificaciones | Endpoint/owner/keys/device/fecha originales, fechas locales reminder/nudge y pareja VAPID válida. No se envían notificaciones durante importación. |
+| Coach | Selección/modelos/opciones/vínculos, compartir, cuotas diarias, propuestas completas e historial como eventos; IDs de job repetidos no colisionan. Secretos HTTP cifrados externos por perfil o referencia estable, sin descifrado en SQL/reporte. |
+| Excepción Q6 | `claude`/`codex` conservan selección/configuración/vínculo no secreto. Sus credenciales y los registros personales de una selección diferida quedan únicamente en el origen protegido, fuera del destino activo; sin remap, login/refresh, job ni cuota nueva. |
+| Administración/audit | Invitaciones consumidas/revocadas e IDs históricos sin FK destructiva. Audit conserva IDs; los eventos Coach sin ID SQL reciben ordinales, conservando job ID/orden. Las tres secuencias continúan después del máximo importado. |
+
+La equivalencia compara todas las filas/campos mapeados mediante una lectura SQL
+posterior, dentro de la misma transacción; las copias externas se releen byte a byte.
+Las secuencias usan `ALTER SEQUENCE RESTART`, transaccional, en lugar de `setval`.
+No se desactivan constraints, RLS ni triggers. El importador requiere la credencial
+bootstrap explícita solo en el contenedor operativo; la API no recibe esa facultad.
+
+Dos diferencias concretas del origen actual no se corrigen automáticamente:
+`coach.json.log` con UID o detalle no vacío carece de representación en el contrato
+SQL de resultados anónimos (`summary={}`); un trabajo `current` sin `trigger` no
+permite deducir manual/scheduled. Ambos bloquean intactos, sin descartar el log,
+inventar un trigger o repetir trabajo. Resolverlos exige caracterización y una
+decisión explícita antes del corte. Igual ocurre con JSON duplicado, Unicode/NUL,
+fechas o tipos no representables y líneas audit dañadas.
+
+Salida 0 significa importación equivalente en cuarentena; 1 bloqueo/dato/IO/DB;
+2 configuración/uso inválidos o imagen sin herramienta. Stdout solo emite códigos
+cerrados. El reporte privado `import-report-<aleatorio>.json` (0600) registra códigos
+y, en éxito, conteos por tabla y huella del origen; nunca passwords/SQL/ciphertext.
+El destino contiene `data/`, `session-secret` y `coach-secret` separados (0600,
+directorios 0700), y `import.json` solo tras commit confirmado. El comando mantiene
+CONNECT denegado incluso después de éxito. No equivale a autorización para usar los
+secretos/datos originales ni para borrar el origen.
+
+Un error previo a copiar deja SQL/secuencias y subdirectorio destino intactos. Un
+fallo de copia revierte SQL/secuencias, pero puede conservar un subdirectorio parcial
+sin marcador. Un commit incierto o un fallo posterior tampoco permite promoción:
+mantener cuarentena, conservar reporte/material y revisar independientemente; no
+reintentar sobre ese destino ni limpiar automáticamente. La creación de backup,
+parada/journal de escritores y restauración quedan en sus procedimientos separados.
+
 ## Corte, retirada y conservación
 
 G0 e inventario de orígenes/usuarios/clientes comprobados; G1/GP/GO previos al corte.
