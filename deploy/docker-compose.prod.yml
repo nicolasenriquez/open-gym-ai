@@ -1,6 +1,9 @@
 # No build/reload/source mounts: each reference must identify an already tested image.
 name: opengym-ops
 services:
+  diagnostics:
+    image: sha256:${PLATFORM_DIAGNOSTICS_DIGEST:?set tested local diagnostic image ID}
+    pull_policy: never
   api:
     image: sha256:${PLATFORM_RUNTIME_DIGEST:?set tested local runtime image ID}
     pull_policy: never

@@ -199,7 +199,7 @@ leave retry after successful unlinks; missing-file idempotency resolves the next
 attempt. No automatic schema migration or external provider call is involved.
 
 Prod uses `PLATFORM_WEB_DIGEST`, `PLATFORM_RUNTIME_DIGEST`,
-`PLATFORM_MIGRATE_DIGEST` and `PLATFORM_OPS_DIGEST`: the hex suffix of tested local
+`PLATFORM_MIGRATE_DIGEST`, `PLATFORM_OPS_DIGEST` and `PLATFORM_DIAGNOSTICS_DIGEST`: the hex suffix of tested local
 image IDs, not tags or registry manifest digests. `just prod-config <absolute-prod.env>`
 validates configuration without starting services. API never migrates at startup.
 A failed bootstrap/migration stops the Dev recipe before API/web startup.
@@ -442,6 +442,20 @@ own slices. Uvicorn access logging is disabled; operational diagnostics are pend
 
 ## HTTP API v1
 
+The Python Compose stack includes private diagnostics. Set
+`PLATFORM_DIAGNOSTIC_SOCKET` to an unused Unix socket path in a private writable
+directory to enable live operator status (mode 0600). A JSON operator config with
+only `diagnostic_socket` selects it for
+`python -m opengym_platform.operations diagnose --config <operator.json>`.
+The command reports DB/schema, pool and audit/logging degradation; missing verified
+backup evidence remains degraded. No public HTTP diagnostic route is added.
+`PLATFORM_LOG_SOCKET` selects the private local datagram syslog receiver. Logging
+uses fixed fields and route templates, excludes request content and never waits
+on a full socket. Transport failures remain visible until restart; a successful
+send reports delivery as unconfirmed. Collector/Compose retention integration is
+not delivered by this API-only integration; keep those settings unset on existing
+instances until the complete diagnostic setup has passed verification.
+
 All Python HTTP routes use `/api/v1`, including the internal probes
 `GET /api/v1/health/live` and `GET /api/v1/health/ready`.
 Unversioned routes are removed; there are no aliases or redirects.
@@ -558,6 +572,15 @@ containers are removed. Browser state, passwords and SQL documents are not expor
 
 Cold/warm/source/manifest cache and lockfile regressions live in
 `scripts/platform-build.test.mjs`. Contract ownership and retention are described below.
+
+`node scripts/platform.mjs verify images --case reproducibility` runs the existing
+target, cache and HTTP lifecycle proofs from a clean detached HEAD worktree.
+It verifies the committed runtime, excluding uncommitted changes; commit nothing
+just to run it. Evidence and the tested revision remain under
+`.scratch/platform-reproducibility/`; the owned worktree/builders/images are removed.
+Cold builds use isolated caches and can take several minutes. CI uses this case
+instead of repeating the cache matrix separately. Retention tooling remains a
+prerequisite of diagnostic tasks 9.2–9.4, not image verification.
 
 ### Compatibility fixtures and transition baseline
 

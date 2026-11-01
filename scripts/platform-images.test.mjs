@@ -14,8 +14,8 @@ test('targets and real dev/ops Compose isolate credentials, networks and depende
   const { execute, docker, cleanup } = syntheticHarness({
     root: fileURLToPath(new URL('../', import.meta.url)), namespace: 'opengym-platform-test',
     label: 'org.opengym.platform', name: 'Platform',
-    services: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev'],
-    images: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev'], database: 'platform-db',
+    services: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev', 'platform-diagnostics'],
+    images: ['platform-runtime', 'platform-test', 'platform-migrate', 'platform-ops', 'platform-dev', 'platform-diagnostics'], database: 'platform-db',
   });
   const image = `${project}-platform-runtime:local`;
   try {
@@ -65,6 +65,9 @@ for name in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap'):
     }
     await docker(['run', '--rm', '--read-only', '--network', 'none', '--cap-drop', 'ALL',
       '--security-opt', 'no-new-privileges', `${project}-platform-ops:local`], true);
+    await docker(['build', '--platform', 'linux/amd64', '--label', 'org.opengym.platform=synthetic',
+      '--label', 'com.docker.compose.project=' + project, '--label', 'com.docker.compose.service=platform-diagnostics',
+      '-t', project + '-platform-diagnostics:local', '-f', 'backend/diagnostics/Dockerfile', 'backend/diagnostics'], true);
     await deploymentProof({ project, image, docker });
   } finally {
     await cleanup(project);
@@ -80,7 +83,7 @@ async function deploymentProof({ project, image, docker }) {
     assert.ok(dockerfile.includes(`FROM ${pin}`));
   }
   const images = {};
-  for (const target of ['runtime', 'migrate', 'ops']) {
+  for (const target of ['runtime', 'migrate', 'ops', 'diagnostics']) {
     images[target] = JSON.parse(await docker(['image', 'inspect', `${project}-platform-${target}:local`]))[0].Id.slice(7);
   }
   const envFile = join(temporary, 'verify.env');
@@ -97,14 +100,15 @@ async function deploymentProof({ project, image, docker }) {
         `PLATFORM_SECRETS_DIR=${secretRoot.replaceAll('\\', '/')}`,
         `PLATFORM_WEB_DIGEST=${images.runtime}`, `PLATFORM_RUNTIME_DIGEST=${images.runtime}`,
         `PLATFORM_MIGRATE_DIGEST=${images.migrate}`, `PLATFORM_OPS_DIGEST=${images.ops}`,
+        `PLATFORM_DIAGNOSTICS_DIGEST=${images.diagnostics}`,
         'INVITE_ONLY=1', 'ALLOW_GUEST=0', 'PASSWORD_LOGIN=true', 'DEFAULT_LANG=es-CL', 'MEDIA_UPLOADS=0',
       ].join('\n'));
       const instance = `opengym-platform-test-${randomBytes(8).toString('hex')}`;
       const owner = syntheticHarness({
         root, namespace: 'opengym-platform-test', label: 'org.opengym.platform', name: 'Platform',
-        services: ['api', 'web', 'db', 'migrate', 'bootstrap', 'ops'], images: [], database: 'db',
-        networkNames: ['app', 'database'], volumeName: `${environment}-postgres-data`,
-        extraVolumes: { 'media-data': { name: `${environment}-media-data`, service: 'api' } },
+        services: ['api', 'web', 'db', 'migrate', 'bootstrap', 'ops', 'diagnostics'], images: [], database: 'db',
+        networkNames: ['app', 'database', 'diagnostics'], volumeName: `${environment}-postgres-data`,
+        extraVolumes: { 'diagnostic-logs': { name: `${environment}-diagnostic-logs`, service: 'diagnostics' }, 'diagnostic-socket': { name: `${environment}-diagnostic-socket`, service: 'diagnostics' }, 'media-data': { name: `${environment}-media-data`, service: 'api' } },
       });
       const args = ['compose', '--project-directory', root, '--env-file', envFile, '-p', instance, '--profile', '*',
         '-f', join(root, 'deploy/docker-compose.yml'), '-f', join(root, `deploy/docker-compose.${environment === 'ops' ? 'prod' : 'dev'}.yml`)];
@@ -122,6 +126,14 @@ async function deploymentProof({ project, image, docker }) {
       const config = JSON.parse(await docker([...args, 'config', '--format', 'json']));
       assert.equal(config.services.db.image, versions.postgresImage);
       assert.equal(config.networks.database.internal, true);
+      assert.equal(config.networks.diagnostics.internal, true);
+      assert.equal(config.services.diagnostics.logging.driver, 'none');
+      assert.equal(config.services.api.logging.driver, 'none');
+      for (const source of ['db', 'web']) {
+        assert.equal(config.services[source].logging.driver, 'syslog');
+        assert.equal(config.services[source].logging.options.mode, 'non-blocking');
+        assert.equal(config.services[source].logging.options['cache-disabled'], 'true');
+      }
       assert.ok(!config.networks.app.internal);
       assert.deepEqual(Object.keys(config.services.web.networks), ['app']);
       assert.deepEqual(Object.keys(config.services.db.networks), ['database']);
@@ -150,7 +162,7 @@ async function deploymentProof({ project, image, docker }) {
         assert.equal(config.services.web.build.dockerfile, 'web/Dockerfile');
         assert.equal(config.services.web.build.args.VITE_API_PREFIX, '/api/v1');
         assert.ok(config.services.api.command.includes('--reload'));
-        assert.deepEqual(config.services.api.volumes.map(volume => volume.target).sort(), ['/app/src', '/data']);
+        assert.deepEqual(config.services.api.volumes.map(volume => volume.target).sort(), ['/app/src', '/data', '/run/diagnostic-logs', '/run/diagnostics']);
       } else assert.ok(!config.services.api.command.includes('--reload'));
       volumeNames.push(config.volumes['postgres-data'].name);
       assert.equal(config.volumes['media-data'].name, `${instance}_${environment}-media-data`);
@@ -160,15 +172,18 @@ async function deploymentProof({ project, image, docker }) {
         delete definition.build;
         definition.image = service === 'db' ? versions.postgresImage
           : service === 'bootstrap' || service === 'migrate' ? `${project}-platform-migrate:local`
+          : service === 'diagnostics' ? `${project}-platform-diagnostics:local`
           : service === 'ops' ? `${project}-platform-ops:local` : image;
         definition.labels = { ...definition.labels, 'org.opengym.platform': 'synthetic' };
         definition.pull_policy = 'never';
       }
-      for (const name of ['app', 'database']) config.networks[name].labels = {
+      for (const name of ['app', 'database', 'diagnostics']) config.networks[name].labels = {
         'org.opengym.platform': 'synthetic', 'com.docker.compose.service': name,
       };
       config.volumes['postgres-data'].labels = { 'org.opengym.platform': 'synthetic', 'com.docker.compose.service': 'db' };
       config.volumes['media-data'].labels = { 'org.opengym.platform': 'synthetic', 'com.docker.compose.service': 'api' };
+      config.volumes['diagnostic-logs'].driver_opts = { type: 'tmpfs', device: 'tmpfs', o: 'size=268435456,uid=1000,gid=1000,mode=0700' };
+      for (const name of ['diagnostic-logs', 'diagnostic-socket']) config.volumes[name].labels = { 'org.opengym.platform': 'synthetic', 'com.docker.compose.service': 'diagnostics' };
       const configuration = join(temporary, `${environment}.json`);
       writeFileSync(configuration, JSON.stringify(config));
       const compose = [...args.slice(0, args.indexOf('-f')), '-f', configuration];
@@ -197,6 +212,64 @@ with urllib.request.urlopen('http://127.0.0.1:3000/api/v1/config', timeout=1) as
     assert json.load(response) == {'invite_only': True, 'allow_guest': False, 'password_login': True, 'default_lang': 'es-CL'}
 print('PLATFORM_COMPOSE_HTTP_OK')
 `], true);
+        await docker([...compose, 'run', '--rm', '--no-deps', 'ops', '-c', `
+import json,subprocess,sys
+result=subprocess.run([sys.executable,'-m','opengym_platform.operations','diagnose','--config','/run/operator/config.json'],capture_output=True,text=True,timeout=5)
+assert result.returncode==1 and result.stderr==''
+state=json.loads(result.stdout)
+assert state['database']=='writable' and state['schema']=='current'
+assert state['backup']=={'state':'missing','verified':False}
+assert state['logging']['sink']=='space_available'
+assert state['pool']['size']<=state['pool']['maximum']
+print('PLATFORM_PRIVATE_DIAGNOSE_OK')
+`], true);
+        await docker([...compose, 'exec', '-T', 'diagnostics', 'python', '-c', `
+import pathlib,time
+for _ in range(50):
+ p=pathlib.Path('/logs/postgres.log')
+ if p.exists() and p.stat().st_size:break
+ time.sleep(.1)
+else:raise AssertionError('native PostgreSQL stream missing')
+assert '"service":"postgres"' in p.read_text()
+assert 'synthetic-' not in p.read_text()
+print('PLATFORM_POSTGRES_LOG_OK')
+`], true);
+        await docker([...compose, 'exec', '-T', 'db', 'psql', '--no-psqlrc', '--set=ON_ERROR_STOP=1',
+          '-U', 'opengym_platform_bootstrap', '-d', config.services.db.environment.POSTGRES_DB,
+          '-c', "INSERT INTO identity.users(id,display_name,is_admin,session_version) VALUES('diag-admin','Diagnostic fixture',true,0)"]);
+        await docker([...compose, 'exec', '-T', 'diagnostics', 'python', '-c', `
+import errno,pathlib
+try:
+ with pathlib.Path('/logs/api.log.168').open('wb') as stream:
+  for _ in range(65):stream.write(b'x'*(4*1024*1024))
+except OSError as error:
+ assert error.errno==errno.ENOSPC
+else:raise AssertionError('fixture did not fill tmpfs')
+print('PLATFORM_DIAGNOSTIC_DISK_FULL')
+`], true);
+        const invitationDuringFault = `
+import json,time,urllib.request
+from opengym_platform.identity.sessions import sign
+from opengym_platform.core.platform_settings import load_session_secret
+token=sign('diag-admin:'+str(int(time.time()*1000)+60000)+':0',load_session_secret())
+request=urllib.request.Request('http://127.0.0.1:3000/api/v1/admin/invites/new',data=b'{"note":"private-sink-note"}',headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'})
+with urllib.request.urlopen(request,timeout=3) as response:assert response.status==200
+print('PLATFORM_HTTP_COMMIT_DURING_SINK_FAULT')
+`;
+        await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', invitationDuringFault], true);
+        await docker([...compose, 'run', '--rm', '--no-deps', 'ops', '-c', `
+from opengym_platform.operations import diagnose
+code,state=diagnose('/run/operator/config.json')
+assert code==1 and state['logging']['degraded'] and state['logging']['sink']=='full'
+print('PLATFORM_FULL_SINK_VISIBLE')
+`], true);
+        await docker([...compose, 'exec', '-T', 'diagnostics', 'python', '-c', "import pathlib;pathlib.Path('/logs/api.log.168').unlink()"]);
+        await docker([...compose, 'stop', '--timeout', '5', 'diagnostics']);
+        await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', invitationDuringFault], true);
+        const committed = await docker([...compose, 'exec', '-T', 'db', 'psql', '--no-psqlrc', '-tAc',
+          'SELECT count(*) FROM identity.invitations', '-U', 'opengym_platform_bootstrap', '-d', config.services.db.environment.POSTGRES_DB]);
+        assert.equal(committed.trim(), '2', 'both fault-time HTTP writes must commit');
+        await docker([...compose, 'up', '-d', '--wait', '--wait-timeout', '30', 'diagnostics']);
         await docker([...compose, 'run', '--rm', '--no-deps', '--entrypoint', '/app/.venv/bin/python', 'api', '-c', `
 import asyncio, pathlib, asyncpg
 assert pathlib.Path('/data/synthetic-4-1').read_text() == 'owned persistent media volume'

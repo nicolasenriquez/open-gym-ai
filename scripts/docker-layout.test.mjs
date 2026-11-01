@@ -30,7 +30,7 @@ test('deployment relocation preserves project ownership, root paths and isolated
   ]) {
     writeFileSync(envFile, [
       `PLATFORM_WEB_PORT=${port}`, `PLATFORM_SECRETS_DIR=${temporary.replaceAll('\\', '/')}`,
-      ...['WEB', 'RUNTIME', 'MIGRATE', 'OPS'].map(target => `PLATFORM_${target}_DIGEST=${digest}`),
+      ...['WEB', 'RUNTIME', 'MIGRATE', 'OPS', 'DIAGNOSTICS'].map(target => `PLATFORM_${target}_DIGEST=${digest}`),
     ].join('\n'));
     const selected = config(['docker-compose.yml', `docker-compose.${overlay}.yml`]);
     assert.equal(selected.name, project);

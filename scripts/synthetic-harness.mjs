@@ -11,10 +11,10 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
 
   const docker = (args, live = false) => execute('docker', args, live);
 
-  function execute(program, args, live = false) {
+  function execute(program, args, live = false, timeoutMs = 300_000) {
     return new Promise((resolve, reject) => {
       // An unref'ed deadline also lets a missing executable exit immediately.
-      const child = spawn(program, args, { cwd: root, env: dockerEnv, signal: AbortSignal.timeout(300_000), stdio: ['ignore', 'pipe', 'pipe'] });
+      const child = spawn(program, args, { cwd: root, env: dockerEnv, signal: AbortSignal.timeout(timeoutMs), stdio: ['ignore', 'pipe', 'pipe'] });
       activeChild = child;
       const chunks = [];
       let size = 0;

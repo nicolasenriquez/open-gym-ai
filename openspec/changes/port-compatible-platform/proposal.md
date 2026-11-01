@@ -44,7 +44,7 @@ por slice. S11 queda pendiente de transferencia explícita antes de archive; com
 ensayos no acepta plataforma ni autoriza Recovery. DDL/funciones conservan permisos;
 no duplicar reglas Python/SQL ni funciones por simetría. Selección/configuración de
 retención estándar y autorización/entrega privada de acceso nuevo son prerrequisitos
-pendientes antes de S9/10.5, no requisitos del harness inicial. Validar Markdown no
+pendientes antes de 9.2–9.4/10.5, no requisitos del harness inicial. Validar Markdown no
 resuelve esos contratos ni demuestra producto. Inventario real, acceso a datos, ejecución del corte o borrado requieren
 su autorización operativa posterior. No reabre ni modifica la evidencia de Foundation.
 

@@ -16,7 +16,20 @@ x-python: &python
   cap_drop: [ALL]
   security_opt: [no-new-privileges:true]
   restart: "no"
+  logging: {driver: none}
 services:
+  diagnostics:
+    <<: *python
+    image: ${PLATFORM_DIAGNOSTICS_IMAGE:-opengym-platform-diagnostics:unselected}
+    volumes: [diagnostic-logs:/logs, diagnostic-socket:/run/diagnostics]
+    tmpfs: ["/state:rw,noexec,nosuid,nodev,uid=1000,gid=1000,mode=0700,size=1048576"]
+    networks:
+      diagnostics: {ipv4_address: "${PLATFORM_DIAGNOSTICS_IP:-10.253.245.2}"}
+    healthcheck:
+      test: [CMD, python, -c, "import pathlib; assert pathlib.Path('/state/ready').is_file()"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
   web:
     image: ${PLATFORM_WEB_IMAGE:-opengym-platform-web:unselected}
     platform: linux/amd64
@@ -32,6 +45,14 @@ services:
     ports: ["127.0.0.1:${PLATFORM_WEB_PORT:-8080}:80"]
     networks: [app]
     restart: "no"
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://${PLATFORM_DIAGNOSTICS_IP:-10.253.245.2}:5514"
+        tag: opengym-nginx
+        mode: non-blocking
+        max-buffer-size: 1m
+        cache-disabled: "true"
   api:
     <<: *python
     image: ${PLATFORM_RUNTIME_IMAGE:-opengym-platform-runtime:unselected}
@@ -59,7 +80,10 @@ services:
       MEDIA_MIN_FREE_MB: ${MEDIA_MIN_FREE_MB:-512}
       MEDIA_GC_GRACE_DAYS: ${MEDIA_GC_GRACE_DAYS:-14}
       DATA_DIR: /data
-    volumes: [media-data:/data]
+      PLATFORM_LOG_SOCKET: /run/diagnostics/log
+      PLATFORM_LOG_DIRECTORY: /run/diagnostic-logs
+      PLATFORM_DIAGNOSTIC_SOCKET: /run/diagnostics/api-status.sock
+    volumes: [media-data:/data, diagnostic-socket:/run/diagnostics, diagnostic-logs:/run/diagnostic-logs:ro]
     secrets:
       - {source: runtime_password, target: database_password}
       - session_secret
@@ -67,6 +91,7 @@ services:
     networks: [app, database]
     depends_on:
       db: {condition: service_healthy}
+      diagnostics: {condition: service_healthy}
     healthcheck:
       test: [CMD, /app/.venv/bin/python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/api/v1/health/ready', timeout=2)"]
       interval: 2s
@@ -76,6 +101,9 @@ services:
   db:
     <<: *python
     image: postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+    command: [postgres, -c, logging_collector=off, -c, log_destination=stderr, -c, log_statement=none, -c, log_min_error_statement=panic]
+    depends_on:
+      diagnostics: {condition: service_healthy}
     environment:
       POSTGRES_USER: opengym_platform_bootstrap
       POSTGRES_DB: opengym
@@ -87,6 +115,14 @@ services:
       - /var/run/postgresql:rw,noexec,nosuid,nodev,mode=1777,size=16777216
     volumes: [postgres-data:/var/lib/postgresql]
     networks: [database]
+    logging:
+      driver: syslog
+      options:
+        syslog-address: "udp://${PLATFORM_DIAGNOSTICS_IP:-10.253.245.2}:5514"
+        tag: opengym-postgres
+        mode: non-blocking
+        max-buffer-size: 1m
+        cache-disabled: "true"
     healthcheck:
       test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, opengym]
       interval: 1s
@@ -123,10 +159,22 @@ services:
     image: ${PLATFORM_OPS_IMAGE:-opengym-platform-ops:unselected}
     profiles: [tools]
     networks: [database]
+    volumes: [diagnostic-socket:/run/diagnostics:ro]
+    configs: [{source: operator_config, target: /run/operator/config.json}]
+configs:
+  operator_config: {file: ./deploy/operator.json}
 networks:
   app: {}
   database: {internal: true}
+  diagnostics:
+    internal: true
+    ipam:
+      config: [{subnet: "${PLATFORM_DIAGNOSTICS_SUBNET:-10.253.245.0/29}"}]
 volumes:
+  diagnostic-logs:
+    name: ${COMPOSE_PROJECT_NAME}_ops-diagnostic-logs
+  diagnostic-socket:
+    name: ${COMPOSE_PROJECT_NAME}_ops-diagnostic-socket
   media-data:
     name: ${COMPOSE_PROJECT_NAME}_ops-media-data
   postgres-data:

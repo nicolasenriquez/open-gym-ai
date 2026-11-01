@@ -351,8 +351,14 @@ class Jobs:
                         if (
                             not config
                             or not config["enabled"]
-                            or (self.pipeline is None and config["provider"] != "fixture")
-                            or (self.pipeline is None and config["authMode"] != "instance")
+                            or (
+                                self.pipeline is None
+                                and config["provider"] != "fixture"
+                            )
+                            or (
+                                self.pipeline is None
+                                and config["authMode"] != "instance"
+                            )
                         ):
                             await self._finish(handle, job, "failed", "off")
                             return

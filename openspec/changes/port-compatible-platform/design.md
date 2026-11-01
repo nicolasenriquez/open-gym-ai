@@ -77,6 +77,13 @@ usuario por cascada. Resultados tardíos verifican owner/consentimiento/generaci
 
 ### 4. Operación y recuperación
 
+Ajuste autorizado de 9.2: colector local estándar rsyslog/logrotate fijado,
+sin root/capacidades/egress/puertos publicados. Unix para API; driver Docker
+syslog no bloqueante y sin caché durable para nginx/PostgreSQL, con input UDP
+privado y ruleset nativo sin mensajes crudos. Se descarta el enlace /dev/log
+de build porque Docker sustituye /dev. Configuración y evaluación de CVE en
+platform-observability; no añade collector propio ni autoriza despliegue real.
+
 web/api/db, loopback:8080/web:80/API:3000/PG:5432 privada, un worker Linux/amd64.
 Red app con egress autorizado y DB internal. Overlays dev/ops y datos distintos;
 targets test/runtime/migrate y herramientas puntuales, sin instalar al arrancar.
@@ -97,7 +104,7 @@ vigencia. Especificar autorización y entrega privada antes de implementar 10.5;
 sin salida completa probada no se acredita recuperación. Incluir revisión/verificación
 en RTO; no crear ledger.
 Diagnóstico privado con logging estándar, request_id, resultados/duraciones, salud,
-pool y backup; logs 7 d/256 MiB. Seleccionar/fijar retención estándar antes de S9.
+pool y backup; logs 7 d/256 MiB. Seleccionar/fijar retención estándar antes de 9.2–9.4.
 Sin OpenTelemetry, spans, sampling ni snapshots métricos.
 
 ### 5. Gates y autorización
@@ -519,7 +526,7 @@ Decisiones técnicas, no requisitos funcionales nuevos:
   ajeno; no eliminar esa capacidad ni ampliar acceso a Recovery.
 - [Diagnóstico](../../../docs/reference/platform-observability.md#configuración-cerrada-y-límites-iniciales):
   logging estándar/correlación y diagnose privado, sin OpenTelemetry/exporter propio.
-  Seleccionar/fijar retención estándar antes de S9; probar todas las copias. Se
+  Seleccionar/fijar retención estándar antes de 9.2–9.4; probar todas las copias. Se
   difieren tracing avanzado e históricos métricos, no privacidad ni audit.
 - [Recuperación](../../../docs/reference/platform-operations.md#procedimientos-operativos-especificados):
   age streaming y backup con parada por wrapper host/exclusión/journal, sin leases
@@ -562,7 +569,7 @@ protegido automáticamente.
 No volver a abrirlas por defecto.
 
 **Prerrequisitos localizados pendientes:** selección/configuración del tooling estándar
-de retención antes de S9 y autorización/entrega privada de vía nueva antes de 10.5.
+de retención antes de 9.2–9.4 y autorización/entrega privada de vía nueva antes de 10.5.
 No impiden el harness inicial ni autorizan implementar esos mecanismos sin resolverlos.
 DDL/catálogo y OpenAPI §8 se conservan; Q5 no se adopta. RED/GREEN, imágenes y ensayos
 son obligaciones de entrega, no resultados de esta revisión.
@@ -572,7 +579,7 @@ inventario real, disco/rutas/claves, clientes/orígenes, ventana medida, ensayo 
 reparación posterior a nuevas escrituras y evidencia G0/GP/GO. Sin ellos no hay corte.
 
 **Readiness por slice, no aceptación global de implementación.**
-Antes de S9 resolver selección/configuración de retención estándar; antes de 10.5
+Antes de 9.2–9.4 resolver selección/configuración de retención estándar; antes de 10.5
 especificar autorización local y entrega privada de acceso nuevo. Esos slices están
 bloqueados por sus prerrequisitos; harness inicial no requiere tooling futuro.
 OpenSpec/OKF/diff-check comprueban artefactos, no producto. No se han ejecutado pruebas

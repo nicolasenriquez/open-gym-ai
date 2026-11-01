@@ -1,5 +1,8 @@
 name: opengym-dev
 services:
+  diagnostics:
+    image: opengym-platform-diagnostics:dev
+    build: {context: ./backend/diagnostics}
   web:
     image: opengym-platform-web:dev
     build:
@@ -36,6 +39,10 @@ services:
     image: opengym-platform-ops:dev
     build: {context: ./backend, target: ops}
 volumes:
+  diagnostic-logs:
+    name: ${COMPOSE_PROJECT_NAME}_dev-diagnostic-logs
+  diagnostic-socket:
+    name: ${COMPOSE_PROJECT_NAME}_dev-diagnostic-socket
   media-data:
     name: ${COMPOSE_PROJECT_NAME}_dev-media-data
   postgres-data:

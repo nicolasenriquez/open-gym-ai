@@ -1,4 +1,17 @@
 {
+  "diagnostics": [{
+    "id": "operator_status",
+    "target": "platform-test",
+    "command": ["tests/platform/test_diagnostics.py"],
+    "proof": "Private live pool/DB/schema/audit/backup state; HTTP commits and bounded shutdown with missing/full logging socket, plus quota status",
+    "checkpoint": "9.2; backup absent is degraded until S10 supplies verified evidence"
+  }, {
+    "id": "collector_retention",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/diagnostic-collector.test.mjs"],
+    "proof": "Unix and Docker native transport without durable cache or published ports; privacy, all-source quota/age and stopped collector",
+    "checkpoint": "9.2 baseline selection/configuration; full failure matrix remains 9.4"
+  }],
   "shared_client": [{
     "id": "canonical_sources",
     "requirement": "Faithful import and retirement parity / Parity after removing the replaced backend",
@@ -327,6 +340,13 @@
     }
   ],
   "images": [
+    {
+      "id": "reproducibility",
+      "target": "host",
+      "command": ["--test", "--test-reporter=tap", "scripts/platform-reproducibility.test.mjs"],
+      "proof": "Clean HEAD worktree: real dev/ops targets, isolated cold/repeat/source/test/metadata/lock matrix and HTTP DB loss/reconnection",
+      "checkpoint": "9.1 only; retention selection still blocks 9.2–9.4"
+    },
     {
       "id": "isolation",
       "requirement": "Isolated local Compose operation / Resolved topology and environment isolation; Controlled images migrations and lifecycle / Deferred coach runtimes do not expand operation",

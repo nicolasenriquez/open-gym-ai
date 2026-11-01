@@ -96,11 +96,11 @@ actual host wrapper and ops commands on synthetic projects, not mock-only CLI.
 installed binary (replace only the explicit operator.env placeholder):
 
 ```sh
-docker compose --project-directory . --env-file <absolute-operator.env> -p opengym-ops -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml run --rm ops
+docker compose --project-directory . --env-file <absolute-operator.env> -p opengym-ops -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml run --rm ops -m opengym_platform.operations
 ```
 
-Append one command below; ops image entrypoint is
-`python -m opengym_platform.operations`. Operator env contains only non-secret
+Append one command below; ops keeps its Python entrypoint and the prefix selects
+`opengym_platform.operations`. Operator env contains only non-secret
 configuration/file refs; `/run/operator/config.json` is mounted read-only. Secrets
 are distinct restricted file mounts. The revised operation also requires Node 22+
 on the host for the small Compose wrapper, not in API images. Wrapper contract:
@@ -300,10 +300,17 @@ faking hasPush or introducing a forward dependency on an uncreated table in S6.
 
 ### S9 — delivered images and diagnosis (tasks 9.*)
 
+9.2 resolves the retention prerequisite with pinned rsyslog/logrotate and its
+private Compose collector. Promoter approved Unix for API and non-blocking Docker
+syslog without durable cache/published ports for nginx/PostgreSQL. The delivered
+configuration, CVE applicability and acceptance limits live in platform-observability.
+
+- 9.1 is independently authorized for image/cache/lifecycle verification; retention
+  selection/configuration gates only 9.2–9.4.
 - Scope: delivered images, standard structured logging and private diagnose;
   no OpenTelemetry, custom exporter, span store or metric snapshots.
 - Prerequisite: select/pin standard rotation and age/space retention tooling and
-  enumerate all durable copies, including Docker/nginx/PG. Resolve before S9 code;
+  enumerate all durable copies, including Docker/nginx/PG. Resolve before 9.2–9.4 code;
   this revision does not claim a tested tool/configuration.
 - Proofs: cold/repeat/source-only/lock-change/test-only builds; DB/schema readiness,
   reconnect and bounded shutdown. Follow HTTP→DB→fake external call using request_id,
@@ -373,7 +380,7 @@ critical check stops the dependent task; no checkbox is completed by drafting te
 
 Readiness is slice-local: delivered task has executable case+suite, prerequisites
 and decisions resolved, Q6 explicit and seams within Q3. Initial harness does not
-require future browser/diagnostic tooling. S9 is blocked until standard retention
+require future browser/diagnostic tooling. 9.2–9.4 are blocked until standard retention
 selection/configuration is fixed; 10.5 until local recovery authorization/private
 delivery is specified and tested. This documentary revision does not resolve those
 prerequisites or claim whole-change Implementation Ready. Delivery prerequisites (actual tools, built images, initial RED, measurements,

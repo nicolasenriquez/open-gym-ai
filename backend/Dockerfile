@@ -29,13 +29,14 @@ RUN --mount=type=cache,id=opengym-platform-uv,target=/tmp/uv-cache,uid=1000,gid=
 
 FROM python:3.14.9-slim-bookworm@sha256:945c2676dc2b18e0c1f16879244122c57c0ffede60006bf3df159c507a31bcae AS runtime
 RUN python -m pip uninstall --yes pip
-RUN mkdir /data && chown 1000:1000 /data && chmod 0700 /data
+RUN mkdir -p /data /run/diagnostics && chown 1000:1000 /data /run/diagnostics && chmod 0700 /data && chmod 0711 /run/diagnostics
 ENV PYTHONPATH=/app/src PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH=/app/.venv/bin:$PATH HOME=/tmp
 WORKDIR /app
 COPY --from=production-deps /app/.venv/ /app/.venv/
 COPY src/opengym_platform/__init__.py /app/src/opengym_platform/
 COPY src/opengym_platform/core/ /app/src/opengym_platform/core/
 COPY src/opengym_platform/application.py /app/src/opengym_platform/
+COPY src/opengym_platform/operations.py /app/src/opengym_platform/
 COPY src/opengym_platform/identity/ /app/src/opengym_platform/identity/
 COPY src/opengym_platform/training/ /app/src/opengym_platform/training/
 COPY src/opengym_platform/media/ /app/src/opengym_platform/media/

@@ -258,6 +258,13 @@ class Database:
                 _discard(connection)
             raise DatabaseError(code)
 
+    def pool_status(self):
+        return {
+            "size": self._pool.get_size(),
+            "idle": self._pool.get_idle_size(),
+            "maximum": self._pool.get_max_size(),
+        }
+
     async def close(self):
         if self._closing:
             await self._closed.wait()

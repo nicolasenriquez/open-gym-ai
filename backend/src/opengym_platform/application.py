@@ -3,6 +3,7 @@
 import asyncio
 import math
 import os
+import time
 from contextlib import asynccontextmanager, suppress
 
 from fastapi import APIRouter, FastAPI, Request
@@ -22,6 +23,7 @@ from opengym_platform.coach.router import create_router as coach_router
 from opengym_platform.coach.secrets import SecretFiles
 from opengym_platform.coach.service import public_config as coach_config
 from opengym_platform.core.database import Database, DatabaseError
+from opengym_platform.core.diagnostics import Diagnostics
 from opengym_platform.core.platform_settings import (
     load_public_config,
     load_session_secret,
@@ -72,6 +74,7 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
         session_days = 90.0
 
     passwords = Passwords()
+    diagnostics = Diagnostics()
     throttle = Throttle()
 
     @asynccontextmanager
@@ -112,7 +115,12 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
 
             app.state.notifications = Notifications(database, send)
             maintenance.append(asyncio.create_task(app.state.notifications.maintain()))
-            yield
+            from opengym_platform.operations import serve_status
+
+            async with serve_status(
+                database, app.state.audit, SCHEMA_REVISION, diagnostics
+            ):
+                yield
         finally:
             for task in maintenance:
                 task.cancel()
@@ -124,6 +132,7 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
             if getattr(app.state, "coach_jobs", None) is not None:
                 await app.state.coach_jobs.close()
             await database.close()
+            diagnostics.close()
 
     app = FastAPI(
         lifespan=lifespan,
@@ -134,6 +143,7 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
     )
 
     app.state.audit = Audit(None)
+    app.state.diagnostics = diagnostics
     public_api = APIRouter(prefix="/api/v1")
     public_api.include_router(audit_router(secret=secret, secure=secure))
 
@@ -148,6 +158,7 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
 
     @app.middleware("http")
     async def public_headers(request: Request, call_next):
+        started = time.monotonic()
         origin = request.headers.get("origin")
         if request.method == "OPTIONS" and request.url.path.startswith("/api/v1/"):
             response = Response(
@@ -172,6 +183,12 @@ def create_app(*, training_note_state=None, coach_execute=None, coach_credential
         if origin:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
+        route = request.scope.get("route")
+        diagnostics.emit(
+            getattr(route, "path", "unmatched"),
+            response.status_code,
+            time.monotonic() - started,
+        )
         return response
 
     @public_api.get("/health/live")

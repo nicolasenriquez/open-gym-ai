@@ -14,6 +14,14 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Private Python diagnostics for live database/schema, pool, audit and logging
+  state, with an isolated rsyslog/logrotate Compose collector. Native nginx and
+  PostgreSQL logging uses non-blocking Docker syslog without durable caches;
+  age/space retention and sink-failure HTTP persistence are verified synthetically.
+
+- Integrated Python image reproducibility verification from a clean checkout,
+  reusing target isolation, cold/warm cache probes and HTTP database recovery tests.
+
 - Python administrative user listing, workout/bodyweight inspection without media,
   and disable/enable safeguards with ordered authorization locks. Subscription
   presence and pull-only last-sync timestamps are preserved. Requires

@@ -21,5 +21,11 @@
     "pnpm": "MIT",
     "playwright": "Apache-2.0"
   },
-  "pnpm": "10.34.8"
+  "pnpm": "10.34.8",
+  "diagnostics": {
+    "rsyslog": "8.2302.0-1+deb12u1",
+    "logrotate": "3.21.0-1",
+    "platform": "linux/amd64",
+    "nativeTransport": "docker-syslog-udp-nonblocking-no-cache"
+  }
 }

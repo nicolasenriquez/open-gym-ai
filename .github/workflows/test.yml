@@ -294,9 +294,9 @@ jobs:
       - run: node scripts/platform.mjs verify admin_users --case actor_target
       - run: node scripts/platform.mjs verify admin_delete
       - run: node scripts/platform.mjs verify notifications
-      - run: node scripts/platform.mjs verify images
+      - run: node scripts/platform.mjs verify diagnostics
+      - run: node scripts/platform.mjs verify images --case reproducibility
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node scripts/platform.mjs verify contracts --case python_routes
       - run: node scripts/platform.mjs verify shared_client --case canonical_sources
       - run: node scripts/platform.mjs verify shared_client --case formats_and_bundles
-      - run: node --test scripts/platform-build.test.mjs
