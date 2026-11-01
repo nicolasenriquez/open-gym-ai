@@ -14,7 +14,13 @@ USER 1000:1000
 COPY --chown=1000:1000 pyproject.toml uv.lock ./
 RUN --mount=type=cache,id=opengym-platform-uv,target=/tmp/uv-cache,uid=1000,gid=1000 \
     uv lock --check && uv sync --locked --no-install-project && uv pip check && uv lock --check --offline
+FROM dependencies AS age-tools
+COPY --chown=1000:1000 versions.json age-tools.py ./
+RUN .venv/bin/python age-tools.py
+
 FROM dependencies AS test-base
+COPY --from=age-tools /tmp/age-tools/ /usr/local/bin/
+COPY age.LICENSE /usr/share/licenses/age/LICENSE
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_dump
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_restore
 COPY --chown=1000:1000 versions.json dependency-licenses.json openapi.yaml ./
@@ -62,7 +68,10 @@ ENTRYPOINT ["/app/.venv/bin/python", "-m", "opengym_platform.platform_migrate"]
 CMD ["--deployment", "up"]
 
 FROM runtime AS ops
-COPY src/opengym_platform/backup.py /app/src/opengym_platform/
+COPY --from=age-tools /tmp/age-tools/ /usr/local/bin/
+COPY age.LICENSE /usr/share/licenses/age/LICENSE
+COPY versions.json /app/versions.json
+COPY src/opengym_platform/backup.py src/opengym_platform/bundle.py /app/src/opengym_platform/
 COPY src/opengym_platform/importer.py /app/src/opengym_platform/
 COPY --from=pg-tools /tools/ /opt/pg-tools/
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_dump

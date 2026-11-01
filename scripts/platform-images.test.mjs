@@ -26,13 +26,14 @@ test('targets and real dev/ops Compose isolate credentials, networks and depende
       '--security-opt', 'no-new-privileges', image, '-c', `
 import importlib.util, os, pathlib, shutil
 assert os.getuid() == 1000
-for executable in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap', 'pg_dump'):
+for executable in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap', 'pg_dump', 'age', 'age-keygen'):
     assert shutil.which(executable) is None, executable
 for module in ('pytest', 'ruff', 'mypy', 'pip'):
     assert importlib.util.find_spec(module) is None, module
 assert not pathlib.Path('/app/tests').exists()
 assert importlib.util.find_spec('opengym_platform.importer') is None
 assert importlib.util.find_spec('opengym_platform.backup') is None
+assert importlib.util.find_spec('opengym_platform.bundle') is None
 assert not pathlib.Path('/app/src/opengym_platform/runner.py').exists()
 import fastapi, asyncpg, uvicorn, httpx
 assert httpx.__version__ == '0.28.1'
@@ -60,6 +61,9 @@ import importlib.util, os, pathlib, shutil
 assert os.getuid() == 1000
 assert (importlib.util.find_spec('opengym_platform.importer') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (importlib.util.find_spec('opengym_platform.backup') is not None) == ${target === 'ops' ? 'True' : 'False'}
+assert (importlib.util.find_spec('opengym_platform.bundle') is not None) == ${target === 'ops' ? 'True' : 'False'}
+assert (shutil.which('age') is not None) == ${target === 'ops' ? 'True' : 'False'}
+assert (shutil.which('age-keygen') is not None) == ${target === 'ops' ? 'True' : 'False'}
 import subprocess, sys, json
 result = subprocess.run([sys.executable, '-m', 'opengym_platform.operations', 'import',
     '--config', '/missing-import-config', '--source', '/missing-source', '--target', 'new-a'], capture_output=True)

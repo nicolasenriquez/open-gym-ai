@@ -33,6 +33,12 @@ The operator SHALL maintain exclusive control of Docker and host capture sources
 - **THEN** clean writer shutdown establishes a coherent SQL/files recovery set, client pending work is preserved and pause duration/deadlines are recorded
 - **AND** incomplete/corrupt/untransferred artifacts are not credited as verified recovery points and degradation is visible locally
 
+#### Scenario: Encrypted publication authenticates the destination through EOF
+- **WHEN** a coherently captured SQL/files set is encrypted and copied outside the capture pause
+- **THEN** the encrypted versioned manifest records release/schema/tools/coverage/sizes/checksums, the destination partial is reread/decrypted through authenticated EOF, and only a complete verified artifact is atomically published before updating last-verification evidence
+- **AND** the bundle identity remains separate from capture sources, Compose secrets/configs and API; wrong identity, truncation, unsafe/duplicate entries, changed ciphertext including after decrypt completion, full destination or occupied mutex do not displace the prior valid point
+- **AND** the private diagnostic reads snapshot-based age from bounded local verification evidence, rejects missing/invalid/foreign evidence, and does not claim current physical disk availability or a complete restore
+
 #### Scenario: Interrupted capture remains controlled
 - **WHEN** shutdown/capture/restart fails, the host wrapper dies or the capture budget expires
 - **THEN** incomplete captures never become recovery points and a private operation journal prevents unsafe startup until capture termination and compatibility are verified

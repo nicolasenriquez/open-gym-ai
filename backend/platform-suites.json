@@ -1,5 +1,11 @@
 {
   "backup": [{
+    "id": "verified_bundle",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-bundle.test.mjs"],
+    "proof": "Actual host/ops age bundle, independent decrypt/tar/SQL/files readback and key exclusion, EOF authentication, corruption/unsafe entries/ENOSPC/wrong key, private status and interrupted encryption preserve last valid point",
+    "checkpoint": "10.3 synthetic encrypted publication only; no full restore, physical independent-disk acceptance, scheduling or retention"
+  }, {
     "id": "writer_shutdown",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],

@@ -1,4 +1,11 @@
 {
+  "age": {
+    "version": "1.3.2",
+    "url": "https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz",
+    "sha256": "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10",
+    "license": "BSD-3-Clause",
+    "platform": "linux/amd64"
+  },
   "python": "3.14.9",
   "pythonImage": "python:3.14.9-slim-bookworm@sha256:945c2676dc2b18e0c1f16879244122c57c0ffede60006bf3df159c507a31bcae",
   "uv": "0.13.5",

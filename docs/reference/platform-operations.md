@@ -294,8 +294,9 @@ Esto no autoriza borrar origen, releases ni respaldos protegidos.
 ## Captura SQL entregada
 
 El wrapper `node scripts/platform.mjs operate backup --config <ruta-absoluta>
---reason scheduled|startup|pre-migration` entrega únicamente parada limpia y dump
-SQL y conjunto de archivos coherente. **No es un backup recuperable**: incluso si captura correctamente, devuelve
+--reason scheduled|startup|pre-migration`, **sin la sección `bundle`**, entrega parada
+limpia, dump SQL y conjunto de archivos coherente. Esa captura sola **no es un backup
+recuperable**: incluso si captura correctamente, devuelve
 `BACKUP_CAPTURED_UNVERIFIED`, `verified: false` y código **1**. No marca ni sustituye
 un punto verificado. No usar esta fase para programar backups ni autorizar DDL.
 
@@ -401,7 +402,8 @@ custom con RLS habilitado e INSERTs. Su rol no tiene superuser/BYPASSRLS/DML ni
 membresías privilegiadas; `backup_read` permite SELECT completo explícito y
 `pg_read_all_stats` permite rechazar otros clientes. No admite políticas restrictivas
 que pudieran ocultar filas. La fase interna `capture-sql` requiere journal/exclusión;
-no equivale al comando final `operations backup`, que sigue no implementado.
+no equivale al comando `operations backup`, que empaqueta/verifica después de la
+captura acreditada y del reinicio compatible, sin volver a capturar SQL.
 
 Estado privado: `owner.json`, directorio `exclusive` con identidad del controlador
 host (hostname, PID y token de creación del sistema), `gate/`, `journal.json` atómico y un
@@ -431,8 +433,100 @@ Tras captura y comprobación de esquema, se usa `start`, nunca `up`, solo
 para servicios antes activos. `pre-migration` **no reinicia** entre captura y DDL:
 queda bloqueado hasta la futura entrega de migración coordinada. Fallo/interrupción
 conserva journal/bloqueo; no hay recuperación automática por PID/TTL ni borrado global.
-Bundle cifrado, retención y programación siguen pendientes. No retirar un bloqueo
+El bundle cifrado opcional se describe debajo; retención y programación siguen pendientes. No retirar un bloqueo
 ni editar admisión/arrancar servicios a ciegas.
+
+### Bundle cifrado entregado
+
+Para habilitar publicación cifrada en el mismo comando, añadir a la configuración
+**host** (no al fichero de `capture-sql`):
+
+```json
+{
+  "bundle": {
+    "destination": "/mnt/backup-disk/opengym",
+    "identity_file": "/srv/opengym/private-keys/backup.agekey",
+    "recipient": "<recipient-X25519-age1>"
+  }
+}
+```
+
+Sustituir el recipient por el valor X25519 completo, no el placeholder. Provisionar
+la identidad separadamente con herramientas age; no se genera ni imprime desde el
+wrapper. Destino y clave deben existir, con rutas absolutas sin enlaces/hardlinks,
+fuera de staging/datos/fuentes capturadas y sin solaparse entre sí. Destino 0700 y
+clave 0600 en POSIX, accesibles al UID ops; en Windows el wrapper exige ACL privada
+como para staging, también en el fichero clave y destino. Docker Desktop puede
+presentar permisos POSIX sintéticos: ops solo acepta esa excepción por la prueba
+host `win32` registrada tras verificar las ACL. El wrapper no configura permisos,
+cifra volúmenes ni acredita físicamente que el destino sea un disco independiente.
+
+Mantener privados y estables configuración Compose/ops, estado, clave y destino
+**durante toda la operación**. Las fuentes activas solo se congelan durante captura;
+API vuelve a trabajar mientras se cifra/transfiere. La clave se monta RO únicamente
+en ese contenedor puntual, fuera de `/run/secrets/` y de la selección de captura;
+**no declararla como secreto/config Compose**: la captura conserva esos ficheros.
+Nunca copiarla dentro de datos, staging o configuración. Un solapamiento detectado
+bloquea; inspecciones/hash no excluyen escritores host arbitrarios o transitorios.
+
+Tras parada/captura/check/restart, el wrapper conserva exclusión y registra fase
+`bundling`, cliente y contenedor ops nombrado, con imagen fijada al ID inspeccionado.
+Ops requiere esa prueba, operación exacta y mutex PG 728322 (sesión, sin transacción
+durante IO). Usa age **1.3.2** oficial Linux/amd64 fijado por SHA-256 en
+`backend/versions.json`; licencia BSD-3-Clause en `backend/age.LICENSE`. Binarios solo
+en ops/pruebas, no API/dev/migrate ni instalación host o al arrancar.
+
+El formato v1 es tar USTAR sin comprimir, enviado por streaming a age X25519. El
+manifiesto cifrado contiene versión, instancia/operación, `snapshot_at`, head SQL,
+imágenes reales, versiones age/PG, cobertura e inventario de directorios y archivos
+con tamaños/SHA-256. Incluye SQL, datos/medios/GC/temporales, registros Coach/VAPID,
+secretos runtime, configuración y procedencia de captura/journal. No incluye clave
+age, logs ni caches SDK. Nombres no representables por USTAR o manifiestos >32 MiB
+bloquean sin truncar. Inventario de captura y fuentes deben coincidir; enlaces,
+tipos especiales, traversal, duplicados y cambios de bytes bloquean.
+
+Primero crea `bundle.age` en staging protegido, fsync; copia cifrado a
+`<destination>/<operation>.age.partial`, fsync y relee **desde ese destino** con age.
+Verifica manifiesto, entradas/tamaños/checksums y consume hasta EOF, exigiendo exit 0
+de age: el EOF de tar por sí solo no acredita el último chunk autenticado. Compara
+SHA-256/identidad del ciphertext alrededor de la verificación y antes de publicar.
+Solo entonces hace rename al nombre único `.age`, fsync del directorio y actualización
+atómica de `gate/backup.json`. El fichero anterior no se sobrescribe por un fallo de
+copia, clave incorrecta, corrupción, truncamiento, ENOSPC o mutex ocupado.
+
+Éxito host: `BACKUP_VERIFIED`, `verified: true`, exit **0**, journal `verified`.
+Acredita publicación íntegra del bundle, **no restore completo, acceso Q1 ni RPO/RTO**.
+Sin `bundle` continúa `BACKUP_CAPTURED_UNVERIFIED`/exit 1. `startup` explícito puede
+publicar, pero catch-up/programación siguen sin entregar; `pre-migration` conserva
+el bloqueo previo y falla sin publicar ni ejecutar DDL hasta su coordinación propia.
+
+Un fallo conserva exclusión/journal y parciales protegidos; API ya reiniciada puede
+seguir trabajando. `maintenance-recover` también acredita cese del contenedor/cliente
+de cifrado antes de liberar, sin borrar o acreditar parciales ni volver a capturar.
+Interrupción tras una publicación completa pero antes de unlock conserva el punto
+válido; recuperación de servicio no lo invalida ni equivale a una publicación nueva.
+Si falla la persistencia final o se pierde la respuesta, el resultado puede ser
+incierto: conservar bundle/recibo/lock y revisar, nunca sobrescribir o adivinar éxito.
+
+`gate/backup.json` es recibo privado de la última verificación (instancia/operación,
+snapshot/verificación, tamaño/SHA-256 del ciphertext y `cleanup_pending: true`). API
+solo lee ese resumen por su bind RO: diagnóstico privado muestra edad calculada desde
+**snapshot**, `current` <3 h, `overdue` 3–6 h y `rpo_exceeded` >6 h; ausente/corrupto/
+ajeno no se acredita. Es evidencia de última verificación, **no una sonda actual de
+presencia del disco ni una nueva comprobación criptográfica**. No publica rutas,
+claves o manifiesto; salud global requiere además DB/esquema y logging saludables.
+
+Staging sigue en claro sobre volumen cifrado, con copia cifrada y parciales propios.
+Esta entrega registra cleanup pendiente protegido; no borra automáticamente capturas,
+puntos anteriores o archivos ajenos. Reservar capacidad para captura+ciphertext y
+destino, revisar/liberar solo material propio mediante permiso operativo separado.
+Retención y limpieza/programación automática quedan en sus slices, sin jobs reales.
+
+Prueba sintética: `node scripts/platform.mjs verify backup --case verified_bundle`.
+Reutiliza setup/captura/cleanup existentes, con lector age/tar y SQL independientes,
+fallos reales acotados de disco, corrupción incluso posterior al decrypt EOF,
+interrupción durante cifrado y después de publicar antes de unlock. No ejecuta el
+comando de restore futuro ni prueba pérdida física del equipo.
 
 ### Recuperación explícita del journal
 
@@ -450,7 +544,7 @@ Si ese recuperador muere, otra invocación explícita puede tomar su sucesor. Se
 a 64 niveles; no se retiran locks con identidad ausente, corrupta, host distinto o
 imposible de comprobar. Los temporales de escrituras interrumpidas se conservan.
 
-Antes de recuperar servicio, cierra admisión y detiene solo contenedores capture/check
+Antes de recuperar servicio, cierra admisión y detiene solo contenedores capture/check/bundle
 registrados de esa operación, con nombre, proyecto, servicio e imagen comprobados.
 Comprueba cese del cliente Docker registrado, detiene/verifica escritores originales
 y rechaza peers DB o montajes de escritura externos sobre fuentes protegidas.
@@ -462,7 +556,7 @@ API debe alcanzar readiness real. Si un arranque falla, vuelve a cerrar admisió
 detiene escritores, dejando exclusión/journal para otro intento explícito.
 
 Éxito: `MAINTENANCE_RECOVERED`, exit **0**, fase `recovered_unverified` y
-`verified: false`; significa servicio recuperado, **no backup válido**. No modifica
+`verified: false`; significa servicio recuperado, **no una nueva verificación de backup**. No modifica
 el último punto verificado ni elimina staging. `startup` no se vuelve a invocar:
 se conserva la operación y la API no lanza el wrapper. Un servicio antes parado
 permanece parado. `pre-migration` devuelve `MAINTENANCE_MIGRATION_HELD`, exit **1**,
@@ -497,7 +591,7 @@ recuperación completa, RPO/RTO o aceptación operativa.
 ## Procedimientos operativos especificados
 
 Los procedimientos completos siguientes son contratos **futuros**, salvo la fase
-SQL/archivos acotada descrita arriba; no acreditan herramientas completas ni ejecuciones
+SQL/archivos, bundle cifrado opcional y recuperación descritos arriba; no acreditan herramientas completas ni ejecuciones
 reales. El [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md)
 fija prefijos Compose, suites, flags, salidas y checkpoints. Operador necesita
 Docker/Compose y Node 22+ para el wrapper host de parada/recuperación; Python,
@@ -518,8 +612,8 @@ y **age 1.3.2**, [release oficial inspeccionada](https://github.com/FiloSottile/
 para cifrado autenticado streaming X25519 de un tar de formato versionado; no extender
 el envelope AES-GCM en memoria del harness Foundation a backups completos. Justificación:
 herramienta estándar fuera del runtime API, sin protocolo criptográfico propio ni
-SDK de nube. Fijar asset/digest/licencia en imagen ops durante delivery y probar
-cifrado/decrypt/truncamiento/clave equivocada; consulta de release no es aceptación.
+SDK de nube. Asset/digest/licencia quedan fijados en la imagen ops entregada y sus pruebas;
+la consulta de release por sí sola no acredita cifrado o recuperación.
 
 Entregar plantillas de Task Scheduler Windows y cron Linux, sin instalarlas desde
 la app: backup cada 3 h y al inicio si han pasado 3 h desde snapshot verificado,
@@ -542,9 +636,9 @@ backup exige además `--reason scheduled|startup|pre-migration`;
 controla Compose por argv allowlisted, sin shell ni flags arbitrarios. Es tooling
 host, nunca dependencia de la imagen API. Captura/cifrado/restore siguen en ops.
 S10 entrega estos comandos por fases; están disponibles captura SQL/archivos y
-recuperación explícita del journal descritas arriba. Captura sigue devolviendo
-fallo explícito mientras no exista bundle verificado; recuperación exit 0 no cambia
-ese contrato ni entrega `migrate`.
+recuperación explícita del journal y bundle opcional descritos arriba. Sin `bundle`,
+captura devuelve fallo explícito; recuperación exit 0 no acredita una copia nueva.
+Esto no entrega `migrate` ni desbloquea pre-migración.
 
 1. Backup scheduled/startup/pre-migration ejecuta preflight y exclusión host por
    instancia; el proceso ops toma además el mutex PG compartido. Registrar proyecto,

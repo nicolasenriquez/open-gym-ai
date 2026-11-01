@@ -103,7 +103,27 @@ montajes de escritura solapados y compara contenido/identidad de fuentes; ni esa
 inspecciones puntuales ni un bind read_only congelan procesos host arbitrarios o
 contenedores transitorios. Sin esa custodia no se acredita coherencia. La captura
 conserva selección Compose resuelta, imágenes/config runtime y ficheros originales
-en staging privado; cifrado y punto verificado permanecen en 10.3.
+en staging privado; el bundle opcional 10.3 se publica después de recuperar servicio.
+
+10.3 reutiliza exclusión/journal y ops, con age 1.3.2 X25519 oficial fijado por
+asset SHA-256/licencia (solo ops/test). Sección host bundle opt-in preserva captura
+unverified/exit 1 existente si falta; no convierte una copia en éxito implícito.
+Clave RO solo en proceso puntual, nunca secreto/config Compose o fuente capturada;
+rutas privadas separadas, ACL host Windows o permisos POSIX. Imagen ops por ID,
+mutex PG de sesión sin TX durante IO, tar USTAR v1/manifiesto cifrado con release,
+head/tools/cobertura/tamaños/SHA-256 y SQL/archivos/secretos/config. Cifra a staging,
+copia .partial a destino, fsync y relee/decrypt hasta EOF con exit 0 de age,
+validando inventario y ciphertext alrededor de verificación y antes de rename.
+Publica .age único y luego recibo atómico gate/backup.json; solo evidencia completa
+avanza el punto. Pérdida de respuesta/commit incierto exige conservar/revisar, no
+adivinar éxito. Recibo RO para diagnóstico de edad snapshot, no sonda de disco vivo.
+Fallos conservan punto anterior y parciales protegidos; cleanup queda pendiente.
+Recuperación también cesa bundle/client y cubre publicación antes de unlock sin
+invalidar el punto válido. Config/estado/clave/destino bajo custodia toda la operación,
+fuentes activas congeladas solo en pausa; sin garantía frente a escritores host
+arbitrarios/transitorios. Nombres USTAR no representables/manifiesto >32 MiB bloquean.
+Sin restore, retención/programación, prueba física de disco/cifrado/power loss ni
+coordinación DDL: pre-migration sigue bloqueado por su slice.
 
 10.10 añade recuperación host explícita por operación y barrera de arranque local.
 API solo recibe `gate/` read_only, sin dumps/credencial backup: marcador provisionado

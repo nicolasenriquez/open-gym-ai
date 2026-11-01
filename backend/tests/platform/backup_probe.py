@@ -10,6 +10,9 @@ from pathlib import Path
 
 root = Path("/run/maintenance")
 proof = json.loads((root / "journal.json").read_text())
+if proof["phase"] == "bundling":
+    sys.argv = sys.argv[2:]
+    runpy.run_path("/app/tests/platform/bundle_probe.py", run_name="__main__")
 if proof["phase"] == "checking" and (root / "pause-check").is_file():
     (root / "check-paused").touch()
     for _ in range(600):

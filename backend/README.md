@@ -669,43 +669,71 @@ available and runs the ops-only SQL/files capture with an explicitly provisioned
 backup role. See [preparation, private configurations and limits](../docs/reference/platform-operations.md#captura-sql-entregada)
 and the optional `deploy/docker-compose.maintenance.yml` overlay before use.
 
-A captured dump is **not a verified backup**: the wrapper reports
+Without the optional host `bundle` configuration, a captured dump is **not a verified backup**: the wrapper reports
 `BACKUP_CAPTURED_UNVERIFIED`, `verified: false`, exit 1. The protected staging set
 includes data/media/GC/Coach/VAPID, actual runtime secrets and selected host/Compose
 configuration, with a private SHA-256 inventory. It rejects unsafe files, source
 changes and external containers sharing writable capture resources. The operator
 must control Docker and host sources throughout the pause; stability checks do not
-freeze arbitrary host writers. Encrypted bundles and scheduling are separate
+freeze arbitrary host writers. Scheduling and full restore remain separate
 deliveries. Failures retain the private journal/lock; pre-migration capture does not
 reopen traffic. Never remove an unresolved lock or edit startup admission blindly.
+
+With `bundle.destination`, `bundle.identity_file` and an X25519 `bundle.recipient`,
+the same host command publishes an age 1.3.2 encrypted USTAR bundle outside the writer
+pause. See [bundle preparation and limits](../docs/reference/platform-operations.md#bundle-cifrado-entregado).
+The official asset/digest/license are pinned in `versions.json`; age binaries exist
+only in ops/test, never API/dev/migrate or host installs. **Do not declare the age
+identity as a Compose secret/config**: selected files are capture inputs. The wrapper
+mounts the separate identity RO only for encryption/verification, outside capture.
+
+Ops takes the shared session mutex without holding a transaction over file IO,
+streams ciphertext to protected staging and the destination `.partial`, fsyncs and
+rereads/decrypts the destination to authenticated EOF with manifest/checksum and
+ciphertext identity checks before atomic publication. `BACKUP_VERIFIED`/exit 0 credits
+an intact bundle, not a complete restore or Q1/RPO/RTO acceptance. Wrong key, corruption,
+ENOSPC or interruption preserves the prior valid point; named bundle processes also
+participate in explicit recovery. Pre-migration remains held pending coordination.
+Staging/partials remain protected with cleanup pending; no retention job or automatic
+capture deletion is added. Physical independent-disk/encrypted-volume acceptance
+remains an operator prerequisite, not synthetic proof.
 
 The maintenance overlay also gives API a separate read-only `gate/` directory, not
 staging or backup credentials. Provision its initial admission explicitly **only
 for a new instance without pending maintenance**, as described in the operation
 reference. Missing/invalid/foreign/blocked admission prevents application startup
 before DB/background writers. The directory stays fixed; the wrapper atomically
-updates only its marker. No leases, control listener or startup backup is added.
+updates its admission marker and last verified backup receipt. Private diagnose reads
+snapshot age from that receipt (not a live disk availability/crypto probe), rejecting
+invalid/foreign evidence. No leases, control listener or startup backup is added.
 
 `node scripts/platform.mjs operate maintenance-recover --config <absolute-host-config>
 --operation <journal-hex32-id>` explicitly takes ownership after proving the old
 controller ended (OS creation identity, not PID/TTL alone). It stops only recorded
-ops capture/check containers, waits for their Docker client, verifies original
+ops capture/check/bundle containers, waits for their Docker client, verifies original
 writers/DB/images and compatible schema, then starts only previously running IDs.
 API must become ready; failed restart closes admission and stops writers again.
-Success is `MAINTENANCE_RECOVERED`, exit 0, **still unverified**, not a valid backup.
+Success is `MAINTENANCE_RECOVERED`, exit 0: service recovery, not a new backup
+verification. It does not discard or advance an existing verified backup receipt.
 Interrupted recovery can itself be recovered; live/concurrent controllers block.
 Unknown ownership/missing process proof or uncertain capture creation stays blocked
 for operator investigation. Older journals without controller proof are not guessed.
 Pre-migration recovery stays `MAINTENANCE_MIGRATION_HELD`/exit 1 without DDL or restart.
 
 ```sh
+node scripts/platform.mjs verify backup --case verified_bundle
 node scripts/platform.mjs verify backup --case writer_shutdown
 node scripts/platform.mjs verify backup --case sql_files_coherence
 node scripts/platform.mjs verify backup --case interrupted_capture
 node scripts/platform.mjs verify training_browser
 ```
 
-The backup cases reuse the same integration proof: actual shutdown, independent SQL
+The capture/recovery cases reuse the existing integration proof; `verified_bundle`
+uses its shared setup in a separate test to avoid repeating the longer encryption
+matrix for each older case. It adds independent age/tar/SQL/file readback, identity
+exclusion, authenticated EOF, unsafe/corrupt archive and post-verification mutation,
+real bounded ENOSPC, mutex/wrong key, private status and interruption before unlock.
+The capture proof includes actual shutdown, independent SQL
 readback and exact file bytes/checksums, plus early/late external writers, host-file
 mutation and real wrapper/recovery death, startup admission and failed restart.
 They preserve initially stopped services and unrelated sentinels, without restarting

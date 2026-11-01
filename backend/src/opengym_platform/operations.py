@@ -36,6 +36,7 @@ def diagnose(config):
 
 async def status(database, audit, schema, diagnostics):
     from opengym_platform.core.database import DatabaseError
+    from opengym_platform.core.maintenance import backup_status
 
     result = {
         "healthy": False,
@@ -44,7 +45,7 @@ async def status(database, audit, schema, diagnostics):
         "audit_degraded": audit.degraded,
         "logging": await asyncio.to_thread(diagnostics.state),
         "pool": database.pool_status(),
-        "backup": {"state": "missing", "verified": False},
+        "backup": await asyncio.to_thread(backup_status),
     }
     try:
         async with asyncio.timeout(3):
@@ -60,7 +61,15 @@ async def status(database, audit, schema, diagnostics):
         )
     except (DatabaseError, TimeoutError):
         pass
-    # Missing backup remains degraded until S10 supplies verified recovery evidence.
+    result["healthy"] = (
+        result["database"] == "writable"
+        and result["schema"] == "current"
+        and not result["audit_degraded"]
+        and result["backup"]["state"] == "current"
+        and result["logging"]["configured"]
+        and not result["logging"]["degraded"]
+        and result["logging"]["sink"] == "space_available"
+    )
     return result
 
 
@@ -106,9 +115,21 @@ def main():
     parser.add_argument("--source")
     parser.add_argument("--target")
     parser.add_argument("--check-only", action="store_true")
+    parser.add_argument("--reason", choices=["scheduled", "startup", "pre-migration"])
     args = parser.parse_args()
-    if args.command == "backup":
-        code, result = 2, {"code": "BACKUP_BUNDLE_NOT_IMPLEMENTED"}
+    if args.reason is not None and args.command != "backup":
+        code, result = 2, {"code": "OPERATION_ARGUMENTS_INVALID"}
+    elif args.command == "backup":
+        import importlib.util
+
+        if args.source or args.target or args.check_only or args.reason is None:
+            code, result = 2, {"code": "BACKUP_ARGUMENTS_INVALID"}
+        elif importlib.util.find_spec("opengym_platform.bundle") is None:
+            code, result = 2, {"code": "BACKUP_TOOL_UNAVAILABLE"}
+        else:
+            from opengym_platform.bundle import publish
+
+            code, result = asyncio.run(publish(args.config, args.reason))
     elif args.command == "capture-sql":
         import importlib.util
 

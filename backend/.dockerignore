@@ -4,6 +4,8 @@
 !dependency-licenses.json
 !Dockerfile
 !pg-tool.sh
+!age-tools.py
+!age.LICENSE
 !versions.json
 !src/
 !src/**

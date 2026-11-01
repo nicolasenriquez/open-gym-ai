@@ -14,6 +14,12 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Optional verified age 1.3.2 encrypted backup publication after coordinated capture,
+  with streaming versioned manifest, destination EOF/checksum/identity verification,
+  atomic publication and private last-verification age. Wrong keys, corruption,
+  bounded disk failures and interrupted encryption preserve the previous point.
+  Bundle keys stay out of capture and API; full restore and scheduling remain separate.
+
 - Explicit owned-operation maintenance recovery after wrapper/capture/restart
   interruption, with OS process identity, persisted read-only API startup admission,
   schema verification and actual readiness before crediting service restoration.
@@ -23,8 +29,8 @@ principles. Published entries below are preserved; see the
 - Coordinated host/ops SQL and file capture with stopped application writers,
   protected staging, exact media/GC/configuration/secret inventories and measured
   pause. External shared-volume writers and changed host files block capture.
-  Operator custody of Docker/host sources is required; captured sets are not yet
-  encrypted, verified recovery points or a complete restore facility.
+  Operator custody of Docker/host sources is required; without configured encrypted
+  publication, captured sets alone are not verified recovery points or a restore facility.
 
 - A separate Python operations importer for frozen Node data and empty quarantined
   PostgreSQL targets, with per-capability equivalence, external encrypted secrets,

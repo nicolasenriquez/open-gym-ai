@@ -1,4 +1,5 @@
-# SQL/files-capture tooling only; not yet an encrypted/verified backup service.
+# Capture/recovery overlay; host config can opt into verified encrypted publication.
+# Never declare the age identity here: selected Compose secrets/configs are captured.
 # Add after docker-compose.prod.yml, with private absolute file/directory refs.
 services:
   api:

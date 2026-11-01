@@ -198,10 +198,11 @@ async function recover(config, operation, run, inspect, lock) {
   const identity = privateJson(join(config.state_root, 'owner.json'));
   if (identity.instance_id !== config.instance_id || identity.project !== config.project
     || journal.instance_id !== config.instance_id || journal.project !== config.project
-    || journal.operation !== operation || journal.version !== 1 || journal.verified !== false
+    || journal.operation !== operation || journal.version !== 1
+    || (journal.verified !== false && !(journal.verified === true && journal.phase === 'verified'))
     || !['scheduled', 'startup', 'pre-migration'].includes(journal.reason)
     || !['stopping', 'stopped', 'capturing', 'checking', 'restarting', 'recovering', 'migration_held',
-      'captured_unverified', 'recovered_unverified'].includes(journal.phase)
+      'captured_unverified', 'recovered_unverified', 'bundling', 'verified'].includes(journal.phase)
     || !Array.isArray(journal.writers) || journal.writers.length !== config.writers.length
     || !Array.isArray(journal.previously_running)
     || new Set(journal.previously_running).size !== journal.previously_running.length
@@ -240,7 +241,10 @@ async function recover(config, operation, run, inspect, lock) {
   }
   if (containers.some(item => config.writers.includes(item.Config.Labels['com.docker.compose.service'])
     && !journal.writers.some(writer => writer.id === item.Id))) throw new Error('MAINTENANCE_MULTIPLE_WRITERS');
-  const names = [journal.capture_container, ...journal.check_containers];
+  if (journal.bundle_container && !new RegExp(`^${config.project}-ops-run-[a-f0-9]{12}$`).test(journal.bundle_container)) {
+    throw new Error('MAINTENANCE_CAPTURE_OWNERSHIP');
+  }
+  const names = [journal.capture_container, ...journal.check_containers, ...(journal.bundle_container ? [journal.bundle_container] : [])];
   if (journal.phase === 'capturing' && !containers.some(item => item.Name === `/${journal.capture_container}`)) {
     throw new Error('MAINTENANCE_CAPTURE_UNCERTAIN');
   }
@@ -262,6 +266,7 @@ async function recover(config, operation, run, inspect, lock) {
     await sleep(100);
   }
   journal.phase = 'recovering';
+  journal.verified = false;
   journalWrite(config.state_root, journal);
   await run(['stop', '--timeout', '30', ...config.writers], 40_000, track);
   for (const writer of journal.writers) {
@@ -318,7 +323,7 @@ export async function operate(command, options) {
     if (!isAbsolute(options[1])) throw new Error();
     config = JSON.parse(readFileSync(options[1], 'utf8'));
     const keys = ['instance_id', 'project', 'project_directory', 'compose_files', 'env_file', 'state_root', 'writers'];
-    if (!config || Object.keys(config).length !== keys.length || keys.some(key => !Object.hasOwn(config, key))
+    if (!config || Object.keys(config).some(key => ![...keys, 'bundle'].includes(key)) || keys.some(key => !Object.hasOwn(config, key))
       || !/^[a-z][a-z0-9-]{1,63}$/.test(config.instance_id)
       || !/^[a-z][a-z0-9-]{1,63}$/.test(config.project)
       || !['project_directory', 'env_file', 'state_root'].every(key => typeof config[key] === 'string' && isAbsolute(config[key]))
@@ -331,8 +336,27 @@ export async function operate(command, options) {
     process.exitCode = 2;
     throw new Error('MAINTENANCE_CONFIG_INVALID');
   }
+  if (Object.hasOwn(config, 'bundle') && (!config.bundle || typeof config.bundle !== 'object')) {
+    process.exitCode = 2;
+    throw new Error('MAINTENANCE_BUNDLE_CONFIG_INVALID');
+  }
+  if (config.bundle) {
+    const bundle = config.bundle;
+    if (Object.keys(bundle).sort().join(',') !== 'destination,identity_file,recipient'
+      || ![bundle.destination, bundle.identity_file].every(path => typeof path === 'string' && isAbsolute(path))
+      || !/^age1[0-9a-z]{58}$/.test(bundle.recipient)) {
+      process.exitCode = 2;
+      throw new Error('MAINTENANCE_BUNDLE_CONFIG_INVALID');
+    }
+    safePath(bundle.destination, true);
+    safePath(bundle.identity_file);
+    if (overlaps(canonical(bundle.destination), canonical(config.state_root))
+      || overlaps(canonical(bundle.identity_file), canonical(config.state_root))
+      || overlaps(canonical(bundle.identity_file), canonical(bundle.destination))) throw new Error('MAINTENANCE_PATH_OVERLAP');
+  }
   for (const path of [config.project_directory, config.state_root]) safePath(path, true);
   for (const path of [options[1], config.env_file, ...config.compose_files]) safePath(path);
+  for (const privatePath of [config.state_root, ...(config.bundle ? [config.bundle.destination, config.bundle.identity_file] : [])]) {
   if (process.platform === 'win32') {
     // chmod does not restrict NTFS access. Check the inherited ACL too; never
     // silently rewrite an operator's permissions or echo their private path.
@@ -343,10 +367,11 @@ export async function operate(command, options) {
       + "if($a.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $u){exit 1}; "
       + "foreach($r in $a.Access){if($r.AccessControlType -eq 'Allow' -and "
       + "$r.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -notin $allowed){exit 1}}"],
-    { env: { ...environment, OPENGYM_PRIVATE_STATE: config.state_root }, stdio: 'ignore', timeout: 5000, windowsHide: true });
+    { env: { ...environment, OPENGYM_PRIVATE_STATE: privatePath }, stdio: 'ignore', timeout: 5000, windowsHide: true });
     if (acl.status !== 0) throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
-  } else if (lstatSync(config.state_root).mode & 0o077) {
+  } else if (lstatSync(privatePath).mode & 0o077) {
     throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
+  }
   }
   const prefix = ['compose', '--project-directory', config.project_directory, '--env-file', config.env_file,
     '-p', config.project, ...config.compose_files.flatMap(path => ['-f', path])];
@@ -360,7 +385,7 @@ export async function operate(command, options) {
   const operation = randomBytes(16).toString('hex');
   journalWrite(lock, { ...controller(), operation }, 'controller.json');
   const journal = { version: 1, instance_id: config.instance_id, project: config.project, operation,
-    reason: options[3], phase: 'preflight', previously_running: [], verified: false };
+    reason: options[3], phase: 'preflight', host_platform: process.platform, previously_running: [], verified: false };
   try {
     const owner = join(config.state_root, 'owner.json');
     const identity = JSON.stringify({ instance_id: config.instance_id, project: config.project });
@@ -373,7 +398,7 @@ export async function operate(command, options) {
       safePath(prior);
       const previous = JSON.parse(readFileSync(prior, 'utf8'));
       if (previous.instance_id !== config.instance_id || previous.project !== config.project
-        || !['captured_unverified', 'recovered_unverified'].includes(previous.phase)) throw new Error('MAINTENANCE_UNRESOLVED_JOURNAL');
+        || !['captured_unverified', 'recovered_unverified', 'verified'].includes(previous.phase)) throw new Error('MAINTENANCE_UNRESOLVED_JOURNAL');
     }
     const model = JSON.parse(await run(['--profile', 'tools', 'config', '--format', 'json']));
     if (!model.services?.db || !model.services?.ops || !model.services?.api
@@ -452,6 +477,9 @@ export async function operate(command, options) {
         .filter(item => item.type === 'bind' && /^\/run\/(secrets|operator)\//.test(item.target)).map(item => item.source))];
     if (files.some(path => typeof path !== 'string' || !isAbsolute(path))) throw new Error('MAINTENANCE_FILE_SOURCE_REQUIRED');
     const sourceFiles = [...new Set(files)];
+    if (config.bundle && [dataMount.Source, ...sourceFiles].some(source =>
+      overlaps(mountPath(source), mountPath(config.bundle.identity_file))
+      || overlaps(mountPath(source), mountPath(config.bundle.destination)))) throw new Error('MAINTENANCE_PATH_OVERLAP');
     const fingerprints = sourceFiles.map(fileProof);
     const sources = [{ source: dataMount.Type === 'volume' ? dataMount.Name : dataMount.Source,
       target: 'data' }];
@@ -553,9 +581,35 @@ export async function operate(command, options) {
     journal.phase = 'captured_unverified';
     journalWrite(config.state_root, journal);
     writeFileSync(join(config.state_root, operation, 'host-journal.json'), JSON.stringify(journal), { flag: 'wx', mode: 0o600 });
-    safeToUnlock = true;
-    console.log(JSON.stringify({ code: 'BACKUP_CAPTURED_UNVERIFIED', operation, pause_ms: journal.pause_ms, verified: false }));
-    process.exitCode = 1;
+    if (config.bundle) {
+      // Key is mounted only here, never a Compose secret or capture source.
+      const bundleConfig = `${operation}.bundle.json`;
+      journalWrite(config.state_root, { instance_id: config.instance_id, project: config.project,
+        operation, staging_root: '/run/maintenance', destination: '/run/bundles',
+        identity_file: '/run/bundle-key', recipient: config.bundle.recipient }, bundleConfig);
+      const bundleCompose = join(config.state_root, `${operation}.bundle.compose.json`);
+      writeFileSync(bundleCompose, JSON.stringify({ services: { ops: { image: journal.ops_image } } }), { flag: 'wx', mode: 0o600 });
+      journal.phase = 'bundling';
+      journal.bundle_container = `${config.project}-ops-run-${randomBytes(6).toString('hex')}`;
+      journalWrite(config.state_root, journal);
+      const packed = await run(['-f', bundleCompose, 'run', '--no-deps', '--name', journal.bundle_container,
+        '--volume', `${config.bundle.destination}:/run/bundles`,
+        '--volume', `${config.bundle.identity_file}:/run/bundle-key:ro`,
+        'ops', '-m', 'opengym_platform.operations', 'backup', '--reason', journal.reason, '--config', `/run/maintenance/${bundleConfig}`], 330_000, track);
+      const container = await inspect(journal.bundle_container);
+      const result = JSON.parse(packed.trim());
+      if (container.State.Running || container.State.ExitCode !== 0 || container.Image !== journal.ops_image || result.code !== 'BACKUP_VERIFIED'
+        || result.operation !== operation || result.verified !== true) throw new Error('MAINTENANCE_BUNDLE_INVALID');
+      journal.phase = 'verified';
+      journal.verified = true;
+      journalWrite(config.state_root, journal);
+      safeToUnlock = true;
+      console.log(JSON.stringify({ ...result, pause_ms: journal.pause_ms }));
+    } else {
+      safeToUnlock = true;
+      console.log(JSON.stringify({ code: 'BACKUP_CAPTURED_UNVERIFIED', operation, pause_ms: journal.pause_ms, verified: false }));
+      process.exitCode = 1;
+    }
   } finally {
     // Interrupted/uncertain shutdown, capture or restart remains explicitly locked.
     // Only an explicit owned recovery can take over an interrupted operation.

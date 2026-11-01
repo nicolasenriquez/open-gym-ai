@@ -351,10 +351,28 @@ sources during the pause. Observed early/late external writable mounts, changed
 source inventories/bytes/identity, unsafe links and selected/runtime secret mismatch
 block capture/restart. Read-only mounts and point-in-time inspection do not freeze
 arbitrary host writers or exclude transient containers; no such guarantee is made.
-Private staging retains an unverified checksummed set; encryption/verified recovery
-and restore remain their separate tasks; explicit journal recovery is delivered in 10.10 below. The three backup case IDs
-reuse the integration proof with a bounded ten-minute harness deadline; individual
+Private staging retains an unverified checksummed set unless 10.3 bundle publication
+is configured. Full restore remains separate; explicit journal recovery is delivered
+in 10.10 below. The three older backup case IDs reuse the integration proof with a bounded ten-minute harness deadline; individual
 capture budget remains 120 seconds. Actual pause is measured, not inferred.
+
+10.3 adds optional host bundle configuration with separate destination/X25519 identity
+and recipient, never a captured Compose secret/config. Pinned official age 1.3.2
+asset/digest/license goes only into ops/test. After compatible restart, retain host
+exclusion and acquire the PG session mutex, without a transaction over streaming IO.
+Build USTAR v1/encrypted manifest with actual images/head/tools/coverage/checksums,
+copy ciphertext to destination .partial, fsync, reread/decrypt to authenticated EOF,
+verify entries/hashes and unchanged ciphertext before rename and atomic receipt.
+Only complete publication credits a point; wrong key, truncation, unsafe entries,
+post-EOF mutation, ENOSPC, mutex or process failure preserves the old point. Protect
+partials/cleanup pending. Persist named bundle process/client for explicit recovery,
+including death between publication and unlock; uncertain publication needs review.
+Private diagnose reads snapshot age from a RO receipt, not a live disk probe.
+`verify backup --case verified_bundle` uses a separate test with existing shared proof
+setup/cleanup, avoiding replay of the encryption matrix for each old case. It checks
+real CLI/age/PG and bounded filesystem faults; no full restore/physical disk claim.
+Windows host ACL attestation handles synthetic POSIX modes in Docker Desktop.
+Pre-migration stays held until coordinated DDL; no retention/scheduler delivery.
 
 10.10 adds `operate maintenance-recover --config <host-config> --operation <hex32>`
 using the same host/ops seams. API startup checks only a separate RO gate marker
