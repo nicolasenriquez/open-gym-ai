@@ -146,6 +146,30 @@ function journalWrite(root, journal, name = 'journal.json') {
   }
 }
 
+function currentBackup(config) {
+  // Receipt age is evidence of a completed verification, not a live backup-disk probe.
+  try {
+    const gate = join(config.state_root, 'gate');
+    safePath(gate, true);
+    const admission = privateJson(join(gate, 'admission.json'));
+    if (admission.instance_id !== config.instance_id || admission.allowed !== true
+      || typeof admission.operation !== 'string' || !/^[a-f0-9]{32}$/.test(admission.operation)) return false;
+    const receipt = privateJson(join(gate, 'backup.json'));
+    const snapshot = Date.parse(receipt.snapshot_at), verified = Date.parse(receipt.verified_at), now = Date.now();
+    const utc = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)$/;
+    return receipt.version === 1 && receipt.verified === true && receipt.instance_id === config.instance_id
+      && typeof receipt.operation === 'string' && /^[a-f0-9]{32}$/.test(receipt.operation)
+      && receipt.ciphertext?.path === `${receipt.operation}.age`
+      && typeof receipt.ciphertext.sha256 === 'string' && /^[a-f0-9]{64}$/.test(receipt.ciphertext.sha256)
+      && Number.isSafeInteger(receipt.ciphertext.size) && receipt.ciphertext.size > 0
+      && typeof receipt.snapshot_at === 'string' && utc.test(receipt.snapshot_at)
+      && typeof receipt.verified_at === 'string' && utc.test(receipt.verified_at)
+      && new Date(snapshot).toISOString().slice(0, 19) === receipt.snapshot_at.slice(0, 19)
+      && new Date(verified).toISOString().slice(0, 19) === receipt.verified_at.slice(0, 19)
+      && snapshot <= verified && verified <= now && now - snapshot < 3 * 3600_000;
+  } catch { return false; }
+}
+
 function admission(config, journal, allowed) {
   const root = join(config.state_root, 'gate');
   safePath(root, true);
@@ -331,10 +355,10 @@ export function operatorPrivate(privatePath) {
 }
 
 export async function operate(command, options) {
-  const recovering = command === 'maintenance-recover';
-  if (options.length !== 4 || options[0] !== '--config' || (recovering
+  const recovering = command === 'maintenance-recover', retaining = command === 'diagnostics-retain';
+  if (options[0] !== '--config' || (retaining ? options.length !== 2 : options.length !== 4 || (recovering
     ? options[2] !== '--operation' || !/^[a-f0-9]{32}$/.test(options[3])
-    : command !== 'backup' || options[2] !== '--reason' || !['scheduled', 'startup', 'pre-migration'].includes(options[3]))) {
+    : command !== 'backup' || options[2] !== '--reason' || !['scheduled', 'startup', 'pre-migration'].includes(options[3])))) {
     process.exitCode = 2;
     throw new Error('MAINTENANCE_ARGUMENTS_INVALID');
   }
@@ -360,7 +384,7 @@ export async function operate(command, options) {
     process.exitCode = 2;
     throw new Error('MAINTENANCE_BUNDLE_CONFIG_INVALID');
   }
-  if (config.bundle) {
+  if (config.bundle && !retaining) {
     const bundle = config.bundle;
     if (Object.keys(bundle).sort().join(',') !== 'destination,identity_file,recipient'
       || ![bundle.destination, bundle.identity_file].every(path => typeof path === 'string' && isAbsolute(path))
@@ -376,13 +400,38 @@ export async function operate(command, options) {
   }
   for (const path of [config.project_directory, config.state_root]) safePath(path, true);
   for (const path of [options[1], config.env_file, ...config.compose_files]) safePath(path);
-  for (const privatePath of [config.state_root, ...(config.bundle ? [config.bundle.destination, config.bundle.identity_file] : [])]) {
+  for (const privatePath of [config.state_root, ...(!retaining && config.bundle ? [config.bundle.destination, config.bundle.identity_file] : [])]) {
     operatorPrivate(privatePath);
   }
   const prefix = ['compose', '--project-directory', config.project_directory, '--env-file', config.env_file,
     '-p', config.project, ...config.compose_files.flatMap(path => ['-f', path])];
   const run = (args, timeout, proof) => docker([...prefix, ...args], config.project_directory, timeout, proof);
   const inspect = async id => JSON.parse(await docker(['inspect', id], config.project_directory))[0];
+  if (retaining) {
+    const model = JSON.parse(await run(['config', '--format', 'json']));
+    const image = model.services?.diagnostics?.image;
+    if (!/^sha256:[a-f0-9]{64}$/.test(image ?? '')) throw new Error('MAINTENANCE_DIAGNOSTICS_IMAGE_REQUIRED');
+    const id = (await run(['ps', '--all', '--quiet', 'diagnostics'])).trim();
+    if (!/^[a-f0-9]{64}$/.test(id)) throw new Error('MAINTENANCE_DIAGNOSTICS_UNAVAILABLE');
+    const item = await inspect(id);
+    const logs = item.Mounts.find(mount => mount.Destination === '/logs');
+    if (!item.State.Running || item.Image !== image || item.Config.User !== '1000:1000'
+      || !item.HostConfig.ReadonlyRootfs || item.HostConfig.Privileged || item.HostConfig.CapAdd?.length
+      || !item.HostConfig.CapDrop?.includes('ALL')
+      || item.Config.Labels['com.docker.compose.project'] !== config.project
+      || item.Config.Labels['com.docker.compose.service'] !== 'diagnostics'
+      || logs?.Type !== 'volume' || logs.Name !== model.volumes?.['diagnostic-logs']?.name
+      || !model.services.diagnostics.volumes?.some(mount => mount.target === '/logs' && mount.source === 'diagnostic-logs')) {
+      throw new Error('MAINTENANCE_DIAGNOSTICS_UNAVAILABLE');
+    }
+    const volume = JSON.parse(await docker(['volume', 'inspect', logs.Name], config.project_directory))[0];
+    if (volume.Labels?.['com.docker.compose.project'] !== config.project
+      || volume.Labels?.['com.docker.compose.volume'] !== 'diagnostic-logs') throw new Error('MAINTENANCE_DIAGNOSTICS_OWNERSHIP');
+    // Use the live collector's existing flock and /state; never start or recreate it.
+    await docker(['exec', id, 'rotate'], config.project_directory, 60_000);
+    console.log(JSON.stringify({ code: 'DIAGNOSTICS_RETAINED' }));
+    return;
+  }
   const lock = join(config.state_root, 'exclusive');
   if (recovering) return recover(config, options[3], run, inspect, lock);
   try { mkdirSync(lock, { mode: 0o700 }); }
@@ -405,6 +454,10 @@ export async function operate(command, options) {
       const previous = JSON.parse(readFileSync(prior, 'utf8'));
       if (previous.instance_id !== config.instance_id || previous.project !== config.project
         || !['captured_unverified', 'recovered_unverified', 'verified'].includes(previous.phase)) throw new Error('MAINTENANCE_UNRESOLVED_JOURNAL');
+    }
+    if (options[3] === 'startup' && config.bundle && currentBackup(config)) {
+      console.log(JSON.stringify({ code: 'BACKUP_NOT_DUE', verified: false }));
+      return;
     }
     const model = JSON.parse(await run(['--profile', 'tools', 'config', '--format', 'json']));
     if (!model.services?.db || !model.services?.ops || !model.services?.api

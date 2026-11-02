@@ -109,8 +109,8 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
   const config = join(temporary, 'operator.json');
   writeFileSync(config, JSON.stringify({ instance_id: 'synthetic-a', project, project_directory: root,
     compose_files: [composeFile], env_file: envFile, state_root: state, writers: ['api'] }), { mode: 0o600 });
-  const invoke = () => spawnSync(process.execPath, ['scripts/platform.mjs', 'operate', 'backup',
-    '--config', config, '--reason', 'scheduled'], { encoding: 'utf8', timeout: 180_000 });
+  const invoke = (reason = 'scheduled') => spawnSync(process.execPath, ['scripts/platform.mjs', 'operate', 'backup',
+    '--config', config, '--reason', reason], { encoding: 'utf8', timeout: 180_000 });
   const sql = async statement => docker([...compose, 'exec', '-T', 'db', 'psql', '-U', 'opengym_platform_bootstrap',
     '-d', 'opengym_dev', '-v', 'ON_ERROR_STOP=1', '-Atc', statement]);
   const ready = () => docker([...compose, 'exec', '-T', 'api', 'python', '-c', `import urllib.request,time
@@ -179,6 +179,12 @@ asyncio.run(seed())`]);
       assert.equal((await diagnose()).backup.verified, true);
       assert.equal((await diagnose()).backup.operation, receipt.operation);
       assert.equal(existsSync(join(state, 'exclusive')), false);
+      const priorJournal = readFileSync(join(state, 'journal.json'));
+      const notDue = invoke('startup');
+      assert.equal(notDue.status, 0, notDue.stderr);
+      assert.equal(JSON.parse(notDue.stdout).code, 'BACKUP_NOT_DUE');
+      assert.deepEqual(readFileSync(join(state, 'journal.json')), priorJournal);
+      assert.deepEqual(JSON.parse(readFileSync(join(gate, 'backup.json'))), receipt);
       await ready();
       if (fault === 'restore') {
         await restoreProof({ root, temporary, project, image, python, environment, user, docker, sql,

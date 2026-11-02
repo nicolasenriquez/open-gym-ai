@@ -19,6 +19,12 @@
     "checkpoint": "10.4 only: no traffic/egress/bootstrap in API; no Q1 access review/signature rotation, full recovery/RPO/RTO or real instance acceptance"
   }],
   "backup": [{
+    "id": "scheduling_and_age",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-scheduling.test.mjs", "scripts/diagnostic-collector.test.mjs"],
+    "proof": "Public startup CLI under the existing mutex: current, overdue, invalid/foreign/missing evidence, unresolved journal and occupied lock; explicit Windows/Linux templates and real owned collector retention with API absent, stopped collector failure and foreign sentinel preservation",
+    "checkpoint": "10.9 templates only, no host job installation; monthly rehearsal still needs a fresh target and private review, pre-migration remains held without DDL, scheduling does not credit RPO/RTO"
+  }, {
     "id": "verified_bundle",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-bundle.test.mjs"],

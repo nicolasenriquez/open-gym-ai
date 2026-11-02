@@ -406,6 +406,24 @@ writers. Recovery of recovery is covered, as are unrelated sentinels and stopped
 startup never calls another backup. Pre-migration stays held without DDL. This is
 service recovery, not a verified backup, hardware power-loss or real host rehearsal.
 
+10.9 uses the promoter-approved public host CLI/template seams, not a second
+scheduler or backup coordinator. Windows XML and Linux cron templates call existing
+scheduled/startup backup, monthly restore-rehearse and hourly diagnostics-retain;
+pre-migration remains a manual fail-closed prerequisite without DDL. Startup checks
+valid owned receipt age once under existing local exclusion, after unresolved-journal
+rejection: <3 h skips without crediting a new point, >=3 h/missing/invalid evidence
+uses the existing capture. Real Python UTC offset/microsecond receipts are covered.
+Retention executes the pinned owned live collector's rotate under its existing lock,
+with API absent and backup disk/key unavailable; it does not restart a stopped collector
+or touch backups. Monthly config must select a new isolated target and explicit
+private review; partial/reused/missing preparation fails, never unattended success.
+`verify backup --case scheduling_and_age` checks public CLI/real Docker retention,
+foreign sentinels, lock/journal/age/failure codes and template frequencies/actions;
+Windows XML actions execute without registration. Existing verified_bundle and
+full_timing cases provide integrated backup/restore regressions. No jobs are installed;
+Linux native scheduler/Windows Task Scheduler service execution and real boot remain
+operational proof, not inferred from template parsing or synthetic commands.
+
 - Scope: host Compose wrapper, `operations/` CLI, ops image, manifest/age/staging and
   private operation journal; no business router migration at startup. Test actual
   commands with synthetic bundles. Stop/start uses host Docker CLI, never a container

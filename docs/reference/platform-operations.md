@@ -496,8 +496,8 @@ copia, clave incorrecta, corrupción, truncamiento, ENOSPC o mutex ocupado.
 
 Éxito host: `BACKUP_VERIFIED`, `verified: true`, exit **0**, journal `verified`.
 Acredita publicación íntegra del bundle, **no restore completo, acceso Q1 ni RPO/RTO**.
-Sin `bundle` continúa `BACKUP_CAPTURED_UNVERIFIED`/exit 1. `startup` explícito puede
-publicar, pero catch-up/programación siguen sin entregar; `pre-migration` conserva
+Sin `bundle` continúa `BACKUP_CAPTURED_UNVERIFIED`/exit 1. `startup` comprueba una
+vez la antigüedad bajo exclusión host y captura si hace falta; `pre-migration` conserva
 el bloqueo previo y falla sin publicar ni ejecutar DDL hasta su coordinación propia.
 
 Un fallo conserva exclusión/journal y parciales protegidos; API ya reiniciada puede
@@ -616,9 +616,10 @@ herramienta estándar fuera del runtime API, sin protocolo criptográfico propio
 SDK de nube. Asset/digest/licencia quedan fijados en la imagen ops entregada y sus pruebas;
 la consulta de release por sí sola no acredita cifrado o recuperación.
 
-Entregar plantillas de Task Scheduler Windows y cron Linux, sin instalarlas desde
-la app: backup cada 3 h y al inicio si han pasado 3 h desde snapshot verificado,
-restore-rehearse mensual y diagnostics-retain cada hora. Cada job ejecuta comando
+Las [plantillas entregadas](../../deploy/scheduling/opengym.cron) de cron Linux y
+Task Scheduler Windows no se instalan desde la app: backup cada 3 h y al inicio si
+han pasado 3 h desde snapshot verificado, restore-rehearse mensual y
+diagnostics-retain cada hora. Cada job ejecuta comando
 puntual con config/rutas explícitas y código de salida observable, sin GUI/secretos
 en argumentos. Backup/migrate/maintenance-recover entran por wrapper host; ops directo
 rechaza captura/migración sin prueba de parada de escritores y exclusión vigente. Mutex operativo de sesión PostgreSQL **728322**, compartido con
@@ -628,11 +629,74 @@ no depender solo de un lock DB que desaparece si muere el proceso ops.
 Una tarea mensual solo tiene permiso sobre proyecto/volumen de ensayo aislado, no
 sobre el volumen activo. Autorizar programación real pertenece a GO, no a este plan.
 
+### Uso de las plantillas de programación
+
+En `deploy/scheduling/`, `opengym.cron` contiene los cuatro jobs Linux;
+[windows-backup.xml](../../deploy/scheduling/windows-backup.xml),
+[windows-startup.xml](../../deploy/scheduling/windows-startup.xml),
+[windows-restore.xml](../../deploy/scheduling/windows-restore.xml) y
+[windows-retain.xml](../../deploy/scheduling/windows-retain.xml) son definiciones
+Task Scheduler, no instaladores. La plantilla manual
+[windows-pre-migration.ps1](../../deploy/scheduling/windows-pre-migration.ps1) recibe
+`-Node`, `-Repository` y `-Config` absolutos y propaga el exit code, sin DDL.
+Sustituir rutas absolutas de Node/release/config y
+`OPERATOR_ACCOUNT` por la cuenta privada del operador. No usar SYSTEM ni compartir
+credenciales de la cuenta; la instalación autorizada entrega su contraseña por la
+interfaz del sistema, nunca en XML, argumentos o repositorio. La cuenta debe poder
+usar Docker y leer las claves privadas sin exponerlas a otros usuarios.
+
+Las horas usan la zona del host. Linux no recupera ejecuciones omitidas; `@reboot`
+comprueba antigüedad una vez. Windows usa `StartWhenAvailable`, `IgnoreNew` por tarea
+y límites de ejecución; estos no sustituyen la exclusión host/PG entre tareas.
+En cron, conservar rutas entre comillas si contienen espacios y no usar `%` en las
+rutas (cron lo interpreta antes del shell). Asegurar que Docker y los recursos
+seleccionados estén disponibles antes de invocar; fallo al boot no es éxito ni
+habilita un bucle de reintentos. No ejecutar estas plantillas contra la instancia
+personal sin autorización operativa separada.
+
+`operate backup --reason startup` reutiliza la config privada de backup. Dentro de
+la exclusión existente rechaza primero journals sin resolver; solo con `bundle`
+configurado, gate admitido y recibo propio válido de snapshot **<3 h** devuelve
+`BACKUP_NOT_DUE`/exit **0**, `verified:false` (no produce ni acredita una copia nueva).
+Recibo ausente, inválido, ajeno, futuro o vencido no permite omitir captura. Es una
+lectura de evidencia previa, no prueba de disponibilidad actual del disco externo.
+A las **3 h** intenta captura; a más de **6 h** la señal diagnóstica indica RPO
+excedido. Scheduled y pre-migration nunca se omiten por antigüedad. Lock ocupado
+falla sin esperar ni liberarse por TTL. El arranque interno del wrapper no invoca
+startup: no hay recursión ni modificación del arranque API.
+
+`operate diagnostics-retain --config <backup-host.json>` reutiliza selección
+Compose explícita del operador. Exige imagen diagnóstica por ID, contenedor vivo,
+volumen de logs propio y permisos restringidos; ejecuta `rotate` dentro del colector
+con su lock existente, sin necesitar disco/clave de backup disponibles.
+Puede funcionar con API detenida; si el colector está parado,
+no lo arranca y devuelve fallo. Su supervisor ya aplica retención horaria sin API;
+esta tarea permite la invocación explícita, sin segundo motor de retención ni
+borrado de backups. Imagen/propiedad inválidas o mutex de retención ocupado fallan.
+
+El job mensual invoca `operate restore-rehearse` con su propia config privada de
+**destino nuevo**. El operador debe preparar nuevo target/config y revisión privada
+para cada ejecución; no se recicla automáticamente un destino usado ni se fabrica
+revisión o evidencia cliente. Config no preparada, revisión ausente o prueba parcial
+fallan: no prometemos ensayo mensual desatendido. El comando pre-migración figura
+como instrucción manual en cron, no como job con DDL: sigue detenido/bloqueado y
+su código no cero debe impedir que un script continúe la migración.
+
+Observar `LastTaskResult` en Windows y conservar salida/estado del proceso mediante
+el mecanismo privado de monitorización del operador en cron. El éxito del scheduler
+no sustituye el código del comando: **0** significa punto verificado, startup no
+vencido, retención ejecutada o ensayo completo según el comando; **1** indica fallo,
+parcial, hold o exclusión; **2**, uso/config inválidos. No silenciar fallos con
+`|| true`. Una terminación por límite exige revisar journal y recuperación explícita,
+no borrar locks. Las plantillas no instalan alertas ni acreditan RPO/RTO por horario.
+Verificar sin instalar jobs: `node scripts/platform.mjs verify backup --case scheduling_and_age`.
+
 ### Backup, barrera y estado recuperable
 
 La barrera operativa es la parada comprobada de escritores, no un protocolo interno
-de leases. El wrapper host futuro `node scripts/platform.mjs operate <command>
---config <absolute-operator.json>` acepta solo backup, migrate y maintenance-recover;
+de leases. El wrapper host `node scripts/platform.mjs operate <command>
+--config <absolute-operator.json>` entrega backup, maintenance-recover y
+diagnostics-retain; migrate sigue pendiente;
 backup exige además `--reason scheduled|startup|pre-migration`;
 controla Compose por argv allowlisted, sin shell ni flags arbitrarios. Es tooling
 host, nunca dependencia de la imagen API. Captura/cifrado/restore siguen en ops.
@@ -1027,8 +1091,9 @@ exit 2. stdout solo resume código/target/complete/admisión; el detalle queda p
 La muerte del host deja progreso no completado; no inferir éxito ni cierre de un
 campo ausente. Si también falla guardián/DB, inspeccionar revocación/gates/contenedores
 propios bajo custodia antes de liberar recursos. Mantener bundle/origen intactos.
-Esto entrega un comando invocable mensualmente, **no** instala las plantillas de
-10.9, acepta una instancia real, acredita disco independiente o autoriza corte/Q2.
+Esto entrega un comando invocable mensualmente; las plantillas de 10.9 se entregan
+por separado y no se instalan. No acredita aceptación de una instancia real ni
+disco independiente, y no autoriza corte/Q2.
 
 ### Restore aislado y revisión Q1
 
