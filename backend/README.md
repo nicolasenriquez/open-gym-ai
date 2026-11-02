@@ -749,7 +749,9 @@ Use the standalone `deploy/docker-compose.restore.yml`, **never the active insta
 project/volumes or combined overlays**. It has no API/web/jobs/ports and only an internal
 network. [Preparation, credentials and exact commands](../docs/reference/platform-operations.md#restore-de-datos-entregado-cuarentena)
 are prerequisites: new private target, fresh role passwords, trusted bootstrap/migrations,
-explicit DB ownership comment, runtime CONNECT revoked, no other DB peers.
+explicit DB ownership comment, exact table catalog with no foreign tables in other
+schemas either, runtime CONNECT revoked and no other DB peers. Truncation never
+cascades into foreign data.
 
 Restore takes the existing PG session mutex, authenticates before extraction, applies
 the standard tar data filter with strict USTAR/entry/path limits, checks capture
@@ -759,13 +761,18 @@ Old configuration/runtime secrets remain private quarantine inputs, not active c
 
 Success is `RESTORE_QUARANTINED`/exit 0, never traffic-ready. SQL/data/secret/config
 copies, private journal/result and a blocked startup gate remain under the new root;
-runtime still cannot connect. Q1 review, session-signing rotation, Coach decryption
-continuity, job/link cleanup and client reconciliation are separate. Never clear a
+runtime still cannot connect. The separate ops-only `restore-access-recover` command
+now provides a locally authorized **new password path**, private delivery files,
+new session signing with original Coach decryption material, and link/reset/job
+invalidation. [Review schema, exact command and limits](../docs/reference/platform-operations.md#recuperación-local-de-acceso-entregada)
+are mandatory. It does not enable historical credentials or open traffic; browser
+reconciliation is separately covered by the synthetic `training_browser` suite. Never clear a
 partial target to retry; preserve uncertainty and choose a fresh isolated instance.
 The command does not clean, schedule or prove physical encrypted storage/full RPO/RTO.
 
 ```sh
 node scripts/platform.mjs verify restore --case isolated_target
+node scripts/platform.mjs verify restore --case reviewed_access
 ```
 
 This runs the actual standalone template against a real 10.3 synthetic bundle and a

@@ -109,17 +109,28 @@ async def serve_status(database, audit, schema, diagnostics):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "command", choices=["diagnose", "import", "capture-sql", "backup", "restore"]
+        "command",
+        choices=[
+            "diagnose",
+            "import",
+            "capture-sql",
+            "backup",
+            "restore",
+            "restore-access-recover",
+        ],
     )
     parser.add_argument("--config", required=True)
     parser.add_argument("--source")
     parser.add_argument("--bundle")
     parser.add_argument("--target")
+    parser.add_argument("--review")
     parser.add_argument("--check-only", action="store_true")
     parser.add_argument("--reason", choices=["scheduled", "startup", "pre-migration"])
     args = parser.parse_args()
-    if (args.bundle is not None and args.command != "restore") or (
-        args.reason is not None and args.command != "backup"
+    if (
+        (args.review is not None and args.command != "restore-access-recover")
+        or (args.bundle is not None and args.command != "restore")
+        or (args.reason is not None and args.command != "backup")
     ):
         code, result = 2, {"code": "OPERATION_ARGUMENTS_INVALID"}
     elif args.command == "backup":
@@ -133,6 +144,17 @@ def main():
             from opengym_platform.bundle import publish
 
             code, result = asyncio.run(publish(args.config, args.reason))
+    elif args.command == "restore-access-recover":
+        import importlib.util
+
+        if args.source or args.check_only or not args.review or not args.target:
+            code, result = 2, {"code": "RESTORE_ACCESS_ARGUMENTS_INVALID"}
+        elif importlib.util.find_spec("opengym_platform.restore_access") is None:
+            code, result = 2, {"code": "RESTORE_ACCESS_TOOL_UNAVAILABLE"}
+        else:
+            from opengym_platform.restore_access import recover
+
+            code, result = asyncio.run(recover(args.config, args.target, args.review))
     elif args.command == "restore":
         import importlib.util
 

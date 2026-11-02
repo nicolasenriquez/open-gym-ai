@@ -87,6 +87,12 @@ Restore SHALL remain isolated with external effects disabled, invalidate restore
 - **AND** a new path does not reactivate other credentials, revive deleted/disabled accounts automatically or elevate roles; account identity and business data are preserved
 - **AND** authorization, private credential delivery and negative cases must pass before traffic is enabled; otherwise recovery remains blocked and RTO is not credited
 
+#### Scenario: Local recovery authorization and private delivery
+- **WHEN** the local operator supplies a private review bound to exact target, instance_id, bundle and snapshot with complete account/credential coverage
+- **THEN** only explicitly selected, identity-verified active accounts receive a fresh random password through exclusive private files (0700 directory, 0600 files); deleted, disabled or unknown accounts remain blocked and all doubtful historical credentials stay inactive
+- **AND** identity and roles remain unchanged, no public endpoint or automatic admin is created, secrets never enter argv/environment/stdout/logs, and a new signing key is kept separate from original Coach decryption material
+- **AND** wrong binding, incomplete coverage, missing identity evidence, unsafe review/output permissions, existing output or uncertain completion fail closed without opening runtime CONNECT or startup admission
+
 ### Requirement: Private bounded diagnostic operation
 Operation SHALL provide private diagnosis using standard structured logging, internal request_id correlation and point-in-time status for DB/schema, pool, audit degradation and verified-backup age. Logs SHALL be bounded to 256 MiB/seven days with standard rotation/retention tooling selected and pinned before the diagnostic slice. Credentials, notes, prompts, personal history and SQL values SHALL be excluded. No OpenTelemetry, custom exporter, span store, sampling or metric snapshot subsystem SHALL be delivered in this change. Audit remains separately governed.
 

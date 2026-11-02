@@ -1,5 +1,11 @@
 {
   "restore": [{
+    "id": "reviewed_access",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-restore-access.test.mjs"],
+    "proof": "Real isolated bundle restore then local account-bound private recovery; rejects wrong binding, incomplete review, disabled/deleted/unverified accounts, unsafe permissions and output reuse; HTTP new login, old cookie/bearer rejection, private files, Coach decrypt, link/reset/job invalidation and unchanged Training",
+    "checkpoint": "10.5 synthetic new-password path only; actual restore gate/CONNECT stay closed, test-only private HTTP container with runtime-only secret/data mounts; no historical credential continuity, traffic admission, full recovery/RPO/RTO or real identity acceptance"
+  }, {
     "id": "isolated_target",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-restore.test.mjs"],

@@ -14,6 +14,12 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Local ops-only access recovery on an isolated restored target, with account-bound
+  private review and new-password delivery. Historical doubtful credentials stay
+  blocked, session signing rotates without losing Coach decryption material, and
+  restored links/resets/jobs cannot replay. Recovery does not open traffic or claim
+  complete RPO/RTO; identity and roles are unchanged.
+
 - Ops-only isolated data restore from verified age bundles, with trusted fresh
   roles/schema, exact sequence state, strict archive and post-extraction checksums,
   separate Compose topology and persistent quarantine. Corruption, full staging or

@@ -161,9 +161,18 @@ pre-migration conserva gate/exclusión sin DDL ni apertura entre copia/migració
 Q1 invalida sesiones y bloquea credenciales dudosas. Permite continuidad con evidencia
 suficiente o nueva vía local autorizada para cuenta verificada, sin cambiar ID/rol,
 resucitar credenciales ni bootstrap admin. Backup/login/audit best effort no prueban
-vigencia. Especificar autorización y entrega privada antes de implementar 10.5;
-sin salida completa probada no se acredita recuperación. Incluir revisión/verificación
-en RTO; no crear ledger.
+vigencia. Contrato 10.5 aprobado: fichero local privado del operador ligado a target,
+instance_id, bundle y snapshot, cobertura exacta de cuentas/credenciales y confirmación
+explícita de identidad/evidencia por cuenta. Esta entrega usa solo vía nueva password:
+no habilita credenciales históricas. Cuenta eliminada, disabled o sin identidad
+verificada permanece bloqueada; no cambia UID/rol ni crea admin. CLI ops sin endpoint
+público; contraseña aleatoria y firma nueva solo en ficheros privados exclusivos
+bajo target/access (0700/0600), nunca argv/env/stdout/logs; material decrypt Coach
+original separado e intacto. Resultado incierto queda en cuarentena sin reintento
+implícito. Revisión no abre gate ni CONNECT. Seams aprobados: CLI real→PG/HTTP,
+observador independiente y cliente real dirty/linaje; negativos de autorización y
+privacidad obligatorios. Sin salida completa probada no se acredita recuperación.
+Incluir revisión/verificación en RTO; no crear ledger.
 Diagnóstico privado con logging estándar, request_id, resultados/duraciones, salud,
 pool y backup; logs 7 d/256 MiB. Seleccionar/fijar retención estándar antes de 9.2–9.4.
 Sin OpenTelemetry, spans, sampling ni snapshots métricos.

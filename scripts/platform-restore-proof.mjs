@@ -3,6 +3,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { syntheticHarness } from './synthetic-harness.mjs';
+import { reviewedAccessProof } from './platform-restore-access-proof.mjs';
 
 export async function restoreProof(ctx) {
   const { root, temporary, image, user, expectedFiles, expectedDigests, digestSQL } = ctx;
@@ -50,7 +51,7 @@ export async function restoreProof(ctx) {
   const compose = ['compose', '--project-directory', root, '--env-file', join(temporary, 'empty.env'), '-p', project, '-f', file];
   const sql = async query => (await docker([...compose, 'exec', '-T', 'db', 'psql', '-U', 'opengym_platform_bootstrap',
     '-d', 'opengym', '-v', 'ON_ERROR_STOP=1', '-Atc', query])).trim();
-  const ops = code => docker([...compose, 'run', '--rm', '--no-deps', 'ops', '-c', code]);
+  const ops = (code, live = false) => docker([...compose, 'run', '--rm', '--no-deps', 'ops', '-c', code], live);
   const invoke = async (target, options = [], probe) => JSON.parse(await docker([...compose, 'run', '--rm', '--no-deps', ...options, 'ops', '-c', `import subprocess,sys,json
 p=subprocess.run([sys.executable,${probe ? "'/app/tests/platform/restore_probe.py','"+probe+"','restore'" : "'-m','opengym_platform.operations','restore'"},
  '--config','/run/operator/restore.json','--bundle','${ctx.receipt.operation}','--target','${target}'],capture_output=True)
@@ -283,5 +284,6 @@ try:create_app()
 except RuntimeError as error:assert str(error)=='PLATFORM_MAINTENANCE_BLOCKED',str(error)
 else:raise AssertionError('RESTORED_API_ADMITTED')`], true);
     console.log('REAL_RESTORE_SQL_FILES_SOURCE_UNCHANGED_AND_QUARANTINED_OK');
+    if (ctx.reviewedAccess) await reviewedAccessProof({ ops, sql, docker, compose, image, project, user });
   } finally { await cleanup(project); }
 }

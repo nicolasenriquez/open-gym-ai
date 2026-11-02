@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { createHash, randomBytes } from 'node:crypto';
+import { createCipheriv, createHash, hkdfSync, randomBytes } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { restoreProof } from './platform-restore-proof.mjs';
 import { syntheticHarness } from './synthetic-harness.mjs';
@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 
-export async function backupProof(fault) {
+export async function backupProof(fault, reviewedAccess = false) {
   const root = fileURLToPath(new URL('../', import.meta.url));
   const temporary = mkdtempSync(join(tmpdir(), 'opengym-maintenance-'));
   const project = `opengym-platform-test-${randomBytes(8).toString('hex')}`;
@@ -38,6 +38,13 @@ export async function backupProof(fault) {
     'coach-auth-A.json': '{"data":"synthetic-encrypted-record"}',
     'vapid.json': '{"publicKey":"synthetic-public","privateKey":"synthetic-private"}',
   };
+  if (reviewedAccess) {
+    const iv = Buffer.alloc(12, 1);
+    const key = hkdfSync('sha256', 'synthetic-maintenance-session-only-0123456789', '', 'opengym-coach-v1', 32);
+    const cipher = createCipheriv('aes-256-gcm', key, iv);
+    const encrypted = Buffer.concat([cipher.update('{"token":"SYNTHETIC_COACH_DECRYPT_10_5"}'), cipher.final()]);
+    expectedFiles['coach-auth-A.json'] = JSON.stringify({ type: 'apikey', data: Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString('base64') });
+  }
   if ((fault === 'bundle' || fault === 'restore')) expectedFiles['uploads/A/pending-upload.tmp'] = 'x'.repeat(160_000);
   for (const [name, bytes] of Object.entries(expectedFiles)) writeFileSync(join(data, name), bytes, { mode: 0o600 });
   const protect = path => {
@@ -69,6 +76,7 @@ export async function backupProof(fault) {
     PLATFORM_DB_PORT: '5432', PLATFORM_DB_NAME: 'opengym_dev', PLATFORM_DB_TLS: 'disable',
     PLATFORM_DB_PASSWORD_FILE: '/run/secrets/bootstrap', PLATFORM_MIGRATOR_PASSWORD_FILE: '/run/secrets/migrator',
     PLATFORM_RUNTIME_PASSWORD_FILE: '/run/secrets/runtime', PLATFORM_SESSION_SECRET_FILE: '/run/secrets/session',
+    ...(reviewedAccess ? { PLATFORM_COACH_SECRET_FILE: '/run/secrets/session' } : {}),
     MEDIA_UPLOADS: '0', PASSWORD_LOGIN: 'true' };
   // Private bind files must belong to the test caller, including CI's UID 1001.
   const user = `${process.getuid?.() ?? 1000}:${process.getgid?.() ?? 1000}`;
@@ -136,6 +144,21 @@ print(subprocess.check_output(['age-keygen','-y','/work/identity'],text=True).st
       + "INSERT INTO identity.users(id,display_name) VALUES ('A','synthetic A'),('B','synthetic B'); "
       + `INSERT INTO training.documents(owner_id,document) VALUES ('A','{"_rev":7,"_wid":"a","_prior":{"notes":null},"workouts":[{"media":[{"hash":"${aHash}"}]}]}'),`
       + `('B','{"_rev":11,"_wid":"b","notes":"synthetic B","workouts":[{"media":[{"hash":"${bHash}"}]}]}')`);
+    if (reviewedAccess) {
+      await sql("UPDATE identity.users SET is_admin=true WHERE id='B'; INSERT INTO identity.users(id,display_name,disabled) VALUES ('C','disabled C',true),('D','later deleted D',false); "
+        + "INSERT INTO identity.passkeys(credential_id,owner_id,public_key,counter,transports) VALUES ('old-zero','A',decode('010203','hex'),0,'{}'),('old-counter','A',decode('010203','hex'),42,'{}'),('old-b','B',decode('010203','hex'),77,'{}'); "
+        + "INSERT INTO identity.device_links VALUES (decode(repeat('12',32),'hex'),'A',clock_timestamp(),clock_timestamp()+interval '10 minutes'); "
+        + "INSERT INTO identity.password_resets VALUES ('A',decode(repeat('34',32),'hex'),clock_timestamp()+interval '24 hours','operator')");
+      await docker([...compose, 'run', '--rm', '--no-deps', '--entrypoint', 'python', '-e', 'PLATFORM_DB_PASSWORD_FILE=/run/secrets/bootstrap', 'migrate', '-c', `import asyncio,asyncpg
+from opengym_platform.identity.passwords import make_hash
+from pathlib import Path
+async def seed():
+ c=await asyncpg.connect(host='db',database='opengym_dev',user='opengym_platform_bootstrap',password=Path('/run/secrets/bootstrap').read_text())
+ await c.execute("INSERT INTO identity.password_credentials VALUES ('A',$1,clock_timestamp())",make_hash('old-synthetic-password'))
+ await c.execute("INSERT INTO identity.login_aliases VALUES ('old-a','A',false,true,NULL)")
+ await c.close()
+asyncio.run(seed())`]);
+    }
     if (fault === 'restore') await sql("SELECT setval('audit.events_id_seq',987,true); SELECT setval('coach.history_events_event_id_seq',123,false); SELECT setval('coach.instance_results_event_id_seq',456,true)");
     const tables = (await sql("SELECT format('%I.%I',schemaname,tablename) FROM pg_tables WHERE schemaname IN "
       + "('public','identity','training','coach','administration','notifications','audit') ORDER BY 1")).trim().split(/\r?\n/);
@@ -158,7 +181,7 @@ print(subprocess.check_output(['age-keygen','-y','/work/identity'],text=True).st
       await ready();
       if (fault === 'restore') {
         await restoreProof({ root, temporary, project, image, python, environment, user, docker, sql,
-          config, receipt, expectedFiles, expectedDigests, digestSQL, ready });
+          config, receipt, expectedFiles, expectedDigests, digestSQL, ready, reviewedAccess });
         return;
       }
       const destination = JSON.parse(readFileSync(config)).bundle.destination;

@@ -745,7 +745,8 @@ REVOKE CONNECT ON DATABASE opengym FROM opengym_api_runtime;
 ```
 
 Bootstrap/migrador son one-offs terminados; nunca API startup. El restore requiere
-ese ownership explícito, head exacto, tablas vacías salvo defaults canónicos, runtime
+ese ownership explícito, head y catálogo de tablas exactos (ninguna tabla ajena,
+tampoco en otros esquemas), tablas vacías salvo defaults canónicos, runtime
 sin CONNECT, ningún otro cliente DB y mutex de sesión 728322 libre. No mantiene TX
 mientras descifra/transfiere. Con el mismo prefijo Compose:
 
@@ -768,6 +769,7 @@ Roles/ownership/grants/FORCE RLS y funciones proceden del bootstrap/migraciones
 confiables del destino, **no de DDL/ACL/passwords del dump**. pg_restore aplica solo
 datos/secuencias, sin owner/ACL, con triggers temporalmente deshabilitados y TX única
 (timeout 300 s), tras vaciar exclusivamente las tablas de ese destino acreditado.
+El TRUNCATE incluye solo el catálogo permitido y nunca CASCADE hacia tablas ajenas.
 Fallo/commit incierto conserva cuarentena, no rollback a datos viejos ni reintento
 automático. Antes de reconciliar/apertura se necesita comparación independiente de
 todas las tablas/owners/secuencias y RLS con rol runtime real, no SELECT superusuario.
@@ -798,6 +800,86 @@ triviales, ownership/ACL/FORCE RLS, conexión runtime A/B y password PG nuevo, b
 medios/GC/secretos/config, rechazo de corrupción posterior a extracción, ENOSPC real
 y muerte durante age. Comprueba red/puertos reales y API bloqueada sin bootstrap,
 sin atribuirlo a restore completo, Q1, hardware independiente o aceptación operativa.
+
+### Recuperación local de acceso entregada
+
+Después de `RESTORE_QUARANTINED`, la CLI ops `restore-access-recover` entrega la
+**vía nueva password**, no continuidad de credenciales históricas. Solo sobre el
+mismo target aislado: custodia exclusiva local del operador, sin tráfico/egress,
+ningún otro peer DB, `CONNECT` runtime revocado y gate cerrado. No es autorización
+para abrir servicios. El operador verifica identidad y decisiones posteriores fuera
+de la aplicación; un fichero de revisión no prueba por sí mismo esos hechos.
+
+Montar una revisión JSON propia, 0600 y del UID ops (1000), desde directorio privado;
+en Windows conservar además ACL exclusiva del operador en el origen. El fichero
+no admite symlinks/hardlinks, duplicados JSON ni campos extra. Ejemplo sintético:
+
+```json
+{
+  "target": "restore-b",
+  "instance_id": "restore-b",
+  "bundle": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "snapshot_at": "2026-01-01T00:00:00+00:00",
+  "session_secret": "session_secret",
+  "coach_secret": "coach_secret",
+  "accounts": [{
+    "uid": "selected-account",
+    "decision": "recover",
+    "status": "active",
+    "identity_verified": true,
+    "evidence": ["referencia privada a comprobación independiente"],
+    "password": true,
+    "passkeys": ["credential-id-del-snapshot"]
+  }]
+}
+```
+
+`accounts` debe cubrir exactamente **todas** las cuentas restauradas; `password`
+indica presencia histórica y `passkeys` enumera todos sus IDs, no una selección a
+reactivar. Para las demás usar `decision: "block"`, con estado `active`, `unknown`,
+`disabled` o `deleted` y evidencia disponible. Solo `recover` con estado activo,
+identidad confirmada/evidencia no vacía y cuenta no disabled en snapshot puede
+recibir vía nueva. Los nombres de secretos deben coincidir con los montajes reales
+`PLATFORM_SESSION_SECRET_FILE`/`PLATFORM_COACH_SECRET_FILE` de la selección capturada,
+no con una clave arbitraria del bundle. ID, roles y Training se conservan.
+
+Con el mismo standalone/env/proyecto de restore, añadir el mount RO de la revisión:
+
+```sh
+docker compose --env-file <restore.env> -f deploy/docker-compose.restore.yml \
+  run --rm --no-deps --volume <revision-privada>:/run/operator/review.json:ro \
+  ops -m opengym_platform.operations restore-access-recover \
+  --config /run/operator/restore.json --target restore-b --review /run/operator/review.json
+node scripts/platform.mjs verify restore --case reviewed_access
+```
+
+Éxito: `RESTORE_ACCESS_REVIEWED`, exit 0, **todavía cuarentena**. Bajo
+`<target_root>/<target>/access/` (0700), ficheros 0600 exclusivos contienen:
+`review.json`, `session-secret` nuevo, `coach-secret` original, `credential-N.json`
+(UID, identifier aleatorio y password aleatorio) y `result.json`. Entregar cada
+credencial únicamente a la persona verificada por canal privado; no copiarla a
+argv/env/logs/terminal grabado. Es una contraseña normal, no token público ni
+contraseña de un solo uso. No dar a la futura API el directorio `access` completo.
+Una apertura **separadamente autorizada** deberá seleccionar firma nueva y decrypt
+original por sus respectivos ficheros, habilitar `PASSWORD_LOGIN=1` y montar solo
+sus secretos runtime; nunca bootstrap, revisión, dumps ni credenciales de entrega.
+
+La transacción bloquea cuentas no seleccionadas, retira passwords/passkeys históricos
+activos y claims de nombre/reset, elimina resets/links y marca jobs interrumpidos
+failed/restart sin replay; deshabilita Coach. Bundle/material original siguen
+protegidos e intactos. No elimina datos de negocio de cuentas bloqueadas ni acredita
+purga de cuentas posteriormente eliminadas. No abre gate ni `CONNECT`, no entrega
+push ni prueba proveedor externo. Ceremonias y timers son efímeros: ninguna API
+restaurada corre durante este paso.
+
+Fallo: exit 1/`RESTORE_ACCESS_BLOCKED`, sin detalle sensible. Si existe `access/`,
+aunque falte `result.json`, **no borrar ni reintentar**: conservar incertidumbre y
+revisar bajo custodia; elegir un target nuevo para otro ensayo. Un fallo SQL revierte
+los cambios de acceso; un fallo después del commit no se supone rollback. Esta
+salida no acredita apertura, continuidad de credenciales históricas, RPO/RTO completo,
+autenticador físico ni identidad de personas reales. El navegador sintético de
+`verify training_browser` cubre además dirty/linaje/respuesta perdida con su propio
+restore controlado, no una instancia real ni clientes reales.
 
 ### Restore aislado y revisión Q1
 
@@ -833,8 +915,9 @@ sin atribuirlo a restore completo, Q1, hardware independiente o aceptación oper
    No rehabilita cuentas eliminadas o disabled sin decisión separada sustentada;
    ausencia de identidad verificable bloquea esa cuenta. Credenciales históricas
    dudosas permanecen inhabilitadas; no rotar su contador ni reciclar su material.
-   La implementación debe definir y probar entrega privada de la nueva vía sin
-   secretos en argv/env/logs antes de declarar readiness de 10.5.
+   El contrato y la CLI de vía nueva se describen en
+   [recuperación local entregada](#recuperación-local-de-acceso-entregada), sin
+   secretos en argv/env/logs. No se acredita continuidad de credenciales históricas.
 5. Rehabilitar solo cuentas con vías verificadas o recuperadas explícitamente,
    conservando ID, roles y datos, no mediante bootstrap admin automático. Comprobar login sintético autorizado, rechazo de cada vía
    revocada/dudosa, cookie/bearer viejos, rol/runtime RLS, medios/hash/GC seguro,

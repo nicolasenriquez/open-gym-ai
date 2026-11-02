@@ -121,7 +121,7 @@ Commands are future contracts, not permission to install Node or run operations.
 | `restore-rehearse --config /run/operator/config.json --bundle <id> --target <new-id> --review /run/review/review.json` | Full isolated monthly sequence, timed including review; reports objective pass/fail and unresolved access, no automatic production promotion. |
 | `forward-repair --config /run/operator/config.json --incident <id> --release <compatible-digest>` | Surviving destination and independently verified acknowledged writes; nonzero keeps maintenance/no-go. |
 | `maintenance-recover --config /run/operator/config.json --operation <id>` | Host wrapper verifies journal ownership, exclusion, stopped capture processes and compatible schema before restoring only previously running services. |
-| `restore-access-recover --config /run/operator/config.json --target <id> --review /run/review/review.json` | New path on isolated restored target for explicitly selected verified account; historical doubtful credentials stay blocked, no role elevation. Authorization/private delivery contract must be resolved before 10.5. |
+| `restore-access-recover --config /run/operator/config.json --target <id> --review /run/review/review.json` | New path on isolated restored target for explicitly selected verified account; historical doubtful credentials stay blocked, no role elevation. 10.5 uses the approved private per-account review/new-password delivery contract in design.md; historical credentials stay inactive. |
 | `diagnose --config /run/operator/config.json` | Private redacted live status; exit 1 degraded and 2 invalid config/usage. Request lookup uses standard rotate/grep in the private collector shell. |
 | `diagnostics-retain --config /run/operator/config.json` | Exact owned diagnostic volume only; age/space cleanup even when API is stopped, no business backups touched. |
 
@@ -465,9 +465,9 @@ critical check stops the dependent task; no checkbox is completed by drafting te
 Readiness is slice-local: delivered task has executable case+suite, prerequisites
 and decisions resolved, Q6 explicit and seams within Q3. Initial harness does not
 require future browser/diagnostic tooling. 9.2–9.4 are blocked until standard retention
-selection/configuration is fixed; 10.5 until local recovery authorization/private
-delivery is specified and tested. This documentary revision does not resolve those
-prerequisites or claim whole-change Implementation Ready. Delivery prerequisites (actual tools, built images, initial RED, measurements,
+selection/configuration is fixed; 10.5 required a local recovery authorization/private
+delivery decision. That decision is now approved in design.md; delivery evidence and
+remaining gates belong to tasks.md. This plan does not claim whole-change Implementation Ready. Delivery prerequisites (actual tools, built images, initial RED, measurements,
 operator config and real-data permission) are obligations of the tasks, not claimed
 results here. Material changes in client support, security, recovery guarantees or
 seams require renewed promoter decision; implementation still needs an explicit
