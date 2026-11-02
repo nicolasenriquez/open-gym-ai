@@ -310,6 +310,26 @@ async function recover(config, operation, run, inspect, lock) {
   console.log(JSON.stringify({ code: 'MAINTENANCE_RECOVERED', operation, verified: false }));
 }
 
+export { docker, safePath, fileProof, journalWrite };
+
+export function operatorPrivate(privatePath) {
+  if (process.platform === 'win32') {
+    // chmod does not restrict NTFS access. Check the inherited ACL too; never
+    // silently rewrite an operator's permissions or echo their private path.
+    const acl = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      "$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:OPENGYM_PRIVATE_STATE; "
+      + "$u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; "
+      + "$allowed=@($u,'S-1-5-18','S-1-5-32-544'); "
+      + "if($a.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $u){exit 1}; "
+      + "foreach($r in $a.Access){if($r.AccessControlType -eq 'Allow' -and "
+      + "$r.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -notin $allowed){exit 1}}"],
+    { env: { ...environment, OPENGYM_PRIVATE_STATE: privatePath }, stdio: 'ignore', timeout: 5000, windowsHide: true });
+    if (acl.status !== 0) throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
+  } else if (lstatSync(privatePath).mode & 0o077) {
+    throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
+  }
+}
+
 export async function operate(command, options) {
   const recovering = command === 'maintenance-recover';
   if (options.length !== 4 || options[0] !== '--config' || (recovering
@@ -357,21 +377,7 @@ export async function operate(command, options) {
   for (const path of [config.project_directory, config.state_root]) safePath(path, true);
   for (const path of [options[1], config.env_file, ...config.compose_files]) safePath(path);
   for (const privatePath of [config.state_root, ...(config.bundle ? [config.bundle.destination, config.bundle.identity_file] : [])]) {
-  if (process.platform === 'win32') {
-    // chmod does not restrict NTFS access. Check the inherited ACL too; never
-    // silently rewrite an operator's permissions or echo their private path.
-    const acl = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
-      "$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:OPENGYM_PRIVATE_STATE; "
-      + "$u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; "
-      + "$allowed=@($u,'S-1-5-18','S-1-5-32-544'); "
-      + "if($a.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $u){exit 1}; "
-      + "foreach($r in $a.Access){if($r.AccessControlType -eq 'Allow' -and "
-      + "$r.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -notin $allowed){exit 1}}"],
-    { env: { ...environment, OPENGYM_PRIVATE_STATE: privatePath }, stdio: 'ignore', timeout: 5000, windowsHide: true });
-    if (acl.status !== 0) throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
-  } else if (lstatSync(privatePath).mode & 0o077) {
-    throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
-  }
+    operatorPrivate(privatePath);
   }
   const prefix = ['compose', '--project-directory', config.project_directory, '--env-file', config.env_file,
     '-p', config.project, ...config.compose_files.flatMap(path => ['-f', path])];

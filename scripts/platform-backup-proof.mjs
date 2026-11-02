@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 
-export async function backupProof(fault, reviewedAccess = false) {
+export async function backupProof(fault, reviewedAccess = false, fullTiming = false) {
   const root = fileURLToPath(new URL('../', import.meta.url));
   const temporary = mkdtempSync(join(tmpdir(), 'opengym-maintenance-'));
   const project = `opengym-platform-test-${randomBytes(8).toString('hex')}`;
@@ -144,6 +144,7 @@ print(subprocess.check_output(['age-keygen','-y','/work/identity'],text=True).st
       + "INSERT INTO identity.users(id,display_name) VALUES ('A','synthetic A'),('B','synthetic B'); "
       + `INSERT INTO training.documents(owner_id,document) VALUES ('A','{"_rev":7,"_wid":"a","_prior":{"notes":null},"workouts":[{"media":[{"hash":"${aHash}"}]}]}'),`
       + `('B','{"_rev":11,"_wid":"b","notes":"synthetic B","workouts":[{"media":[{"hash":"${bHash}"}]}]}')`);
+    if (fullTiming) await sql("UPDATE training.documents SET document=document||'{\"lang\":\"es\",\"langAuto\":false,\"routines\":[],\"workouts\":[{\"id\":\"snapshot-workout\",\"d\":\"2026-01-01\",\"entries\":[]}]}'::jsonb WHERE owner_id='A'");
     if (reviewedAccess) {
       await sql("UPDATE identity.users SET is_admin=true WHERE id='B'; INSERT INTO identity.users(id,display_name,disabled) VALUES ('C','disabled C',true),('D','later deleted D',false); "
         + "INSERT INTO identity.passkeys(credential_id,owner_id,public_key,counter,transports) VALUES ('old-zero','A',decode('010203','hex'),0,'{}'),('old-counter','A',decode('010203','hex'),42,'{}'),('old-b','B',decode('010203','hex'),77,'{}'); "
@@ -181,7 +182,7 @@ asyncio.run(seed())`]);
       await ready();
       if (fault === 'restore') {
         await restoreProof({ root, temporary, project, image, python, environment, user, docker, sql,
-          config, receipt, expectedFiles, expectedDigests, digestSQL, ready, reviewedAccess });
+          config, receipt, expectedFiles, expectedDigests, digestSQL, ready, reviewedAccess, fullTiming });
         return;
       }
       const destination = JSON.parse(readFileSync(config)).bundle.destination;

@@ -56,6 +56,9 @@ The operator SHALL maintain exclusive control of Docker and host capture sources
 - **WHEN** a representative bundle is restored in isolation
 - **THEN** measured results verify required secrets, credentials, roles/RLS, documents, external media, lineage and client reconciliation within the stated scope
 - **AND** evidence reports whether the accepted RPO/RTO objectives were met without inventing guarantees from scheduling alone
+- **AND** host-coordinated timing starts at the declared incident and includes bundle selection/preparation, authorized account review, private verification/client reconciliation and closure; omitted or unresolved coverage never credits a full rehearsal even when the measured SQL load is short
+- **AND** temporary runtime verification uses only an internal no-egress/no-published-port container with runtime data/keys, never bootstrap/bundles/review; normal target admission stays blocked, an independent bounded guardian revokes temporary CONNECT, and interruption or unverifiable closure remains incomplete
+- **AND** private explicit operator client evidence binds the current operation/target/bundle and artifact hashes, with independent PostgreSQL revision/write-id/content readback; stale or contradictory evidence is rejected, objective failure is distinguished from incomplete coverage, and neither synthetic completion nor the monthly command installs jobs or establishes operational acceptance
 
 #### Scenario: Isolated data restore does not activate access
 - **WHEN** a protected encrypted bundle is restored into an explicitly owned fresh isolated target with separately bootstrapped roles and compatible migrated schema

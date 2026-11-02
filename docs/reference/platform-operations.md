@@ -881,6 +881,155 @@ autenticador físico ni identidad de personas reales. El navegador sintético de
 `verify training_browser` cubre además dirty/linaje/respuesta perdida con su propio
 restore controlado, no una instancia real ni clientes reales.
 
+### Ensayo mensual entregado y medición completa
+
+El comando del **host**, no un subcomando dentro de API/ops, es:
+
+```sh
+node scripts/platform.mjs operate restore-rehearse --config /srv/opengym-private/rehearsal.json
+node scripts/platform.mjs verify restore --case full_timing
+```
+
+Reutiliza el restore/vía nueva anteriores. Preparar primero el proyecto standalone,
+cluster/roles/esquema nuevos, ownership comment y `CONNECT` revocado según
+[restore de datos](#restore-de-datos-entregado-cuarentena). No crear un segundo
+runtime productivo ni reutilizar el proyecto/volúmenes de la instancia activa.
+El coordinador comprueba también la DB **en ejecución**: imagen seleccionada, salud,
+puertos ausentes, red interna única y ningún peer Docker desconocido; no basta que
+el YAML parezca aislado. Las imágenes deben existir localmente por ID inmutable;
+no construye ni instala dependencias al operar. Solo ops contiene el observador.
+
+Declarar el incidente **antes de buscar/seleccionar bundle y revisar accesos** y
+conservar su hora UTC real en la configuración privada. Preparar la revisión de
+10.5 con evidencia independiente del bundle/target elegido; su fichero no puede
+preceder al incidente. El tiempo desde esa declaración hasta invocar la CLI se
+informa como `preparation_including_review`, sin fingir que puede separar cuánto
+fue búsqueda y cuánto revisión humana. La declaración y veracidad de la revisión
+son responsabilidad del operador bajo custodia local, no una medición forense de
+identidad ni una garantía contra un host arbitrario.
+
+Configuración host mínima; sustituir rutas/IDs y hora por los reales del ensayo:
+
+```json
+{
+  "instance_id": "monthly-2026-11",
+  "project": "opengym-restore-monthly-2026-11",
+  "project_directory": "/srv/opengym",
+  "compose_files": ["/srv/opengym/deploy/docker-compose.restore.yml"],
+  "env_file": "/srv/opengym-private/monthly.env",
+  "state_root": "/srv/opengym-private/rehearsals",
+  "bundle": "0123456789abcdef0123456789abcdef",
+  "incident_at": "2026-11-02T00:00:00.000Z",
+  "review_file": "/srv/opengym-private/monthly-review.json",
+  "runtime_image": "sha256:<64hex-de-la-imagen-runtime-compatible>",
+  "verification_file": "/srv/opengym-private/monthly-client/verification.json"
+}
+```
+
+`env_file` selecciona el mismo target/JSON ops montado como
+`/run/operator/restore.json`, pins y secretos **nuevos** de la plantilla standalone.
+`state_root` existe de antemano y es privado; ficheros config/review/evidencia 0600,
+directorios 0700 y UID propio en POSIX. Windows exige ACL privada del usuario/SYSTEM/
+Administrators, no confianza en chmod sintético de Docker Desktop. No rutas relativas,
+symlinks/hardlinks de ficheros ni `.env` implícito. Mantener estables configuración,
+Compose, binds y fuentes durante todo el ensayo. Se crea exclusivamente
+`state_root/<instance_id>/report.json`; un directorio existente bloquea otro intento.
+Conservar parciales y elegir target/proyecto nuevo; no hay resume/cleanup automático.
+
+Sin revisión, termina incompleto tras copiar datos, sin habilitar acceso. Con revisión
+válida, entrega la vía nueva de 10.5 y cuenta los accesos bloqueados/desconocidos.
+`runtime_image` es opcional solo para producir un informe parcial: sin ella no verifica
+HTTP/clientes ni acredita RTO. Durante la comprobación autorizada, un guardián ops
+independiente mantiene el mutex y concede temporalmente `CONNECT`. API privada no-root,
+read-only y sin puertos/egress recibe solo datos restaurados y secretos runtime/firma/
+Coach seleccionados, **nunca** bootstrap, dump, bundle, revisión o `access/` completo.
+El gate normal del target no cambia; el marcador permitido existe solo bajo
+`<target>/rehearsal/keys/gate` para esa sonda privada.
+
+El observador verifica catálogo/owner/FORCE RLS, conexión runtime restringida,
+ausencia de contexto ajeno, login/rol y rechazo de sesiones antiguas, hashes de
+medios y descarga HTTP, decrypt Coach y retirada de passkeys/links/resets/jobs.
+La API dura como máximo **240 s**, por debajo del primer GC automático (300 s);
+no entrega push ni invoca proveedores a través de una red externa. El guardián tiene
+presupuesto de trabajo global **600 s**, incluido HTTP, y en cierre revoca CONNECT, termina
+conexiones runtime, bloquea su marcador y comprueba ausencia de peers. SIGTERM del
+guardián también cierra. No se atribuye esa garantía a SIGKILL/pérdida física del
+guardián/DB: incertidumbre exige inspección privada y conserva informe incompleto.
+
+#### Evidencia cliente y lectura independiente
+
+`verification_file` es evidencia **explícita del operador**, no un booleano generado
+por un login correcto. Si se especifica y aún no existe, el coordinador espera hasta
+180 s durante `client_verification`; omitirla produce parcial sin esa espera. El
+informe protegido identifica red, nombre de sonda, volumen y `client_subpath`.
+Un cliente de verificación dentro de esa red puede montar **solo** ese subdirectorio
+RO en `/run/client`: contiene `credential.json` (vía nueva) y `binding.json` (nonce de
+operación/target/bundle). Nunca copiar la contraseña a argv/env/stdout/logs; no montar
+el directorio `keys` en el navegador. El entorno cliente y su salida deben permanecer
+privados, sin publicación de puertos. Ningún comando instala un navegador o un job.
+
+Registrar comprobaciones reales de pendientes dirty, rama restaurada/linaje, respuesta
+perdida y persistencia después de reload. Guardar capturas/notas saneadas necesarias
+en el mismo directorio privado del JSON, con hashes SHA-256; cada artefacto se limita
+a 16 MiB. No reemplazar esas observaciones por marcar checks manualmente sin pruebas.
+Formato (valores ilustrativos; nonce/target/bundle vienen de `binding.json`):
+
+```json
+{
+  "operation": "<nonce-hex32-de-esta-ejecución>",
+  "target": "monthly-2026-11",
+  "bundle": "0123456789abcdef0123456789abcdef",
+  "completed": true,
+  "checks": {
+    "dirty_preserved": true,
+    "lineage_reconciled": true,
+    "lost_reply_reconciled": true,
+    "persisted": true
+  },
+  "observation": {
+    "uid": "<UID-recuperado>",
+    "rev": 12,
+    "wid": "<write-id-observado>",
+    "sha256": "<SHA-256-UTF8-de-JSON.stringify(state)-del-GET-data-final>"
+  },
+  "artifacts": [{"name": "client.png", "sha256": "<SHA-256-del-fichero>"}]
+}
+```
+
+La CLI comprueba binding nuevo, permisos, existencia/hashes de artefactos y lectura
+PG independiente de UID recuperado/revisión/wid/contenido **antes** de finalizar el
+reloj. Para el hash aplica la proyección pública (sin `_prior`/`_unstamped`) y el
+encoder compatible con JSON.stringify ya usado por Training. No convierte una
+atestación del operador en prueba automática de todos los clientes reales. El caso
+`full_timing` genera esa evidencia con frontend compilado/Playwright, API y PG reales;
+su control de rewind SQL pertenece solo al fixture desechable del test.
+
+La invocación de restore se acota a 300 s y recuperación de acceso a 60 s; agotar
+un presupuesto deja el ensayo incompleto, aunque todavía queden horas hasta el
+objetivo RTO. Esos límites de seguridad no prometen capacidad para cualquier dataset
+u hardware. En informe interrumpido, el elapsed persistido llega solo al último
+checkpoint; no sustituye el tiempo completo de una recuperación finalizada.
+
+El informe registra alcance efectivo, imagen/host, bytes, snapshot, preparación con
+revisión, autenticación age, extracción/verificación, carga SQL, recuperación de
+acceso, comprobaciones/cliente y cierre; `elapsed_ms` usa el máximo entre reloj civil
+y monotónico más preparación. RPO es incidente menos snapshot verificado; negativo
+no satisface objetivo. Los presupuestos son **6 h/24 h**. Sin cobertura, revisión,
+cliente, cierre o con accesos `unknown`, `complete`/`rto_credited` son false aunque
+pg_restore sea rápido. Bloqueados por decisión resuelta (p. ej. deleted/disabled)
+no son accesos recuperados ni una purga de sus datos. `operational_acceptance` siempre
+es false; `complete` se refiere al ensayo y alcance comprobado, no a abrir producción.
+
+Salidas: exit 0/`REHEARSAL_VERIFIED` solo con cobertura completa y ambos objetivos;
+exit 1/`REHEARSAL_OBJECTIVE_FAILED` si el ensayo es completo pero incumple objetivo;
+exit 1/`REHEARSAL_INCOMPLETE` en parcial/fallo/incertidumbre. Uso/config inválidos dan
+exit 2. stdout solo resume código/target/complete/admisión; el detalle queda privado.
+La muerte del host deja progreso no completado; no inferir éxito ni cierre de un
+campo ausente. Si también falla guardián/DB, inspeccionar revocación/gates/contenedores
+propios bajo custodia antes de liberar recursos. Mantener bundle/origen intactos.
+Esto entrega un comando invocable mensualmente, **no** instala las plantillas de
+10.9, acepta una instancia real, acredita disco independiente o autoriza corte/Q2.
+
 ### Restore aislado y revisión Q1
 
 1. `restore --bundle <id> --target <new-id>` solo acepta destino propio nuevo, sin

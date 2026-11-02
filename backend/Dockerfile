@@ -72,7 +72,7 @@ COPY --from=age-tools /tmp/age-tools/ /usr/local/bin/
 COPY age.LICENSE /usr/share/licenses/age/LICENSE
 COPY versions.json /app/versions.json
 COPY src/opengym_platform/backup.py src/opengym_platform/bundle.py /app/src/opengym_platform/
-COPY src/opengym_platform/importer.py src/opengym_platform/restore.py src/opengym_platform/restore_access.py /app/src/opengym_platform/
+COPY src/opengym_platform/importer.py src/opengym_platform/restore.py src/opengym_platform/restore_access.py src/opengym_platform/rehearsal.py /app/src/opengym_platform/
 COPY --from=pg-tools /tools/ /opt/pg-tools/
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_dump
 COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_restore

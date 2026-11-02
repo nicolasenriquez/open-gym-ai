@@ -299,6 +299,7 @@ jobs:
       - run: node scripts/platform.mjs verify backup
       - run: node scripts/platform.mjs verify restore --case isolated_target
       - run: node scripts/platform.mjs verify restore --case reviewed_access
+      - run: node scripts/platform.mjs verify restore --case full_timing
       - run: node scripts/platform.mjs verify images --case reproducibility
       - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node scripts/platform.mjs verify contracts --case python_routes

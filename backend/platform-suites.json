@@ -1,5 +1,11 @@
 {
   "restore": [{
+    "id": "full_timing",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-rehearsal.test.mjs"],
+    "proof": "Real host monthly rehearsal from a coherent verified bundle through private review, temporary runtime-only HTTP/RLS/media/Coach verification, actual frontend dirty/lineage/lost-reply reconciliation and independent PostgreSQL persistence before closing CONNECT; unknown peer, missing review, unresolved access, stale client proof, incident age/RTO breach and killed host stay incomplete or fail",
+    "checkpoint": "10.7 measured synthetic scope only; normal admission stays blocked, operator client evidence is explicit and operation-bound; no real identity/client, physical disk, operational acceptance, scheduling or traffic promotion"
+  }, {
     "id": "reviewed_access",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-restore-access.test.mjs"],

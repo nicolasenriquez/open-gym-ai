@@ -773,6 +773,7 @@ The command does not clean, schedule or prove physical encrypted storage/full RP
 ```sh
 node scripts/platform.mjs verify restore --case isolated_target
 node scripts/platform.mjs verify restore --case reviewed_access
+node scripts/platform.mjs verify restore --case full_timing
 ```
 
 This runs the actual standalone template against a real 10.3 synthetic bundle and a
@@ -781,7 +782,17 @@ owner/grants/FORCE RLS and real runtime A/B prove the data copy. Wrong keys, mis
 secrets, corruption including after extraction, unsafe archives, incompatible metadata,
 foreign/exposed/nonempty/busy targets, mutex, real ENOSPC and killed age remain blocked.
 The API admission probe receives only gate RO and no bootstrap; source API/data and
-bundle stay unchanged. This is not reviewed access or a complete recovery rehearsal.
+bundle stay unchanged. `isolated_target` alone is not reviewed access or a complete recovery rehearsal.
+
+`node scripts/platform.mjs operate restore-rehearse --config <absolute-private-json>`
+coordinates a monthly isolated rehearsal from the host. Use the
+[rehearsal configuration and evidence contract](../docs/reference/platform-operations.md#ensayo-mensual-entregado-y-medición-completa).
+It records the declared incident through review, private runtime checks, client
+evidence/independent PG readback and CONNECT closure. Missing review or client proof,
+unknown access and uncertain completion cannot credit full RTO. Objective failure is
+not a successful recovery. The normal target gate stays blocked; no scheduler or
+real-instance acceptance is installed or implied. `full_timing` exercises this CLI,
+real HTTP/PG and the compiled frontend on synthetic data, not real identities/clients.
 
 ## Retired transition tooling
 

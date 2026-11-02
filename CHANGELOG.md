@@ -14,6 +14,11 @@ principles. Published entries below are preserved; see the
 
 ### Added
 
+- Host-coordinated monthly isolated restore rehearsal with incident-to-verification
+  RPO/RTO measurement, private reviewed access, bounded runtime-only probes and
+  operation-bound client evidence checked against PostgreSQL. Partial, interrupted
+  or overdue results cannot pass; normal traffic stays blocked and no jobs are installed.
+
 - Local ops-only access recovery on an isolated restored target, with account-bound
   private review and new-password delivery. Historical doubtful credentials stay
   blocked, session signing rotates without losing Coach decryption material, and

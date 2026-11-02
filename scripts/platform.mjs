@@ -15,8 +15,13 @@ const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
 
 try {
   if (action === 'operate') {
-    const { operate } = await import('./platform-maintenance.mjs');
-    await operate(suite, options);
+    if (suite === 'restore-rehearse') {
+      const { rehearse } = await import('./platform-rehearsal.mjs');
+      await rehearse(options);
+    } else {
+      const { operate } = await import('./platform-maintenance.mjs');
+      await operate(suite, options);
+    }
   } else if (action === 'cleanup' && options.length === 0) {
     if (!/^opengym-platform-test-[a-f0-9]{16}$/.test(suite ?? '')) throw new Error('Refusing non-test target');
     await cleanup(suite);
@@ -34,7 +39,7 @@ try {
     for (const entry of selected) {
       if (entry.target === 'host') {
         const output = await execute(process.execPath, entry.command, false,
-          suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' ? 600_000 : 300_000);
+          suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' || (suite === 'restore' && entry.id === 'full_timing') ? 600_000 : 300_000);
         if (!/\btests [1-9]\d*/.test(output) || /\b(?:skipped|todo|cancelled) [1-9]\d*/.test(output)) {
           throw new Error('PLATFORM_REQUIRED_PROOF_MISSING');
         }
@@ -83,7 +88,7 @@ try {
     }
   }
 } catch (error) {
-  console.error(action === 'operate' && !/^MAINTENANCE_[A-Z_]+$/.test(error.message)
-    ? 'MAINTENANCE_FAILED' : error.message);
+  console.error(action === 'operate' && !/^(?:MAINTENANCE|REHEARSAL)_[A-Z_]+$/.test(error.message)
+    ? suite === 'restore-rehearse' ? 'REHEARSAL_FAILED' : 'MAINTENANCE_FAILED' : error.message);
   process.exitCode ||= 1;
 }

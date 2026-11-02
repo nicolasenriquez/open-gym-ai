@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import tarfile
+import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -25,7 +26,7 @@ from opengym_platform.core.platform_settings import PLATFORM_LOCK_KEY, load_data
 from opengym_platform.importer import TABLES, private_directory, target_guard
 
 
-def unpack(settings, bundle_id, target):
+def unpack(settings, bundle_id, target, timings):
     root = Path(settings["target_root"])
     source = Path(settings["bundle_root"]) / f"{bundle_id}.age"
     identity = Path(settings["identity_file"])
@@ -41,8 +42,10 @@ def unpack(settings, bundle_id, target):
         raise ValueError("RESTORE_PATH_OVERLAP")
     with regular(identity):
         pass
+    started = time.monotonic()
     ciphertext = record(source, source.name)
     manifest = verify(source, identity, None)
+    timings["authenticate_ms"] = (time.monotonic() - started) * 1000
     versions = json.loads(Path("/app/versions.json").read_text())
     if (
         type(manifest["version"]) is not int
@@ -97,6 +100,7 @@ def unpack(settings, bundle_id, target):
         destination / "journal.json",
         {"phase": "extracting", "bundle": bundle_id, "access": "quarantined"},
     )
+    started = time.monotonic()
     verify(source, identity, manifest, destination)
     with regular(destination / "capture.json") as stream:
         if os.fstat(stream.fileno()).st_size > 32 * 1024 * 1024:
@@ -140,6 +144,7 @@ def unpack(settings, bundle_id, target):
     ):
         sync_directory(path)
     durable_json(destination / "manifest.json", manifest)
+    timings["extract_verify_ms"] = (time.monotonic() - started) * 1000
     return destination, manifest, ciphertext
 
 
@@ -233,8 +238,9 @@ async def restore(config, bundle_id, target):
         ):
             raise ValueError("RESTORE_DATABASE_LOCKED")
         await check_target(connection, target)
+        timings = {}
         destination, manifest, ciphertext = await asyncio.to_thread(
-            unpack, settings, bundle_id, target
+            unpack, settings, bundle_id, target, timings
         )
         # Recheck after IO, with no transaction held across decryption or file transfer.
         tables = await check_target(connection, target)
@@ -244,7 +250,9 @@ async def restore(config, bundle_id, target):
             destination / "journal.json",
             {"phase": "loading", "bundle": bundle_id, "access": "quarantined"},
         )
+        started = time.monotonic()
         await asyncio.to_thread(load_dump, database, destination / "database.dump")
+        timings["load_sql_ms"] = (time.monotonic() - started) * 1000
         if (
             await connection.fetchval("SELECT version_num FROM public.alembic_version")
             != manifest["schema"]
@@ -266,6 +274,7 @@ async def restore(config, bundle_id, target):
             "access": "quarantined",
             "q1": "pending",
             "cleanup_pending": True,
+            "timings_ms": timings,
         }
         durable_json(destination / "restore.json", result)
         durable_json(

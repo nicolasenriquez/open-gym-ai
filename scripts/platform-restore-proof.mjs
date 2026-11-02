@@ -4,6 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { syntheticHarness } from './synthetic-harness.mjs';
 import { reviewedAccessProof } from './platform-restore-access-proof.mjs';
+import { rehearsalProof } from './platform-rehearsal-proof.mjs';
 
 export async function restoreProof(ctx) {
   const { root, temporary, image, user, expectedFiles, expectedDigests, digestSQL } = ctx;
@@ -69,6 +70,13 @@ print(json.dumps({'status':p.returncode,'out':p.stdout.decode(),'err':p.stderr.d
     const [uid, gid] = user.split(':').map(Number);
     await docker([...compose, 'run', '--rm', '--no-deps', '--user', '0:0', '--cap-add', 'CHOWN', 'ops', '-c',
       `import os; os.chmod('/data',0o700); os.chown('/data',${uid},${gid})`]);
+    if (ctx.fullTiming) {
+      await rehearsalProof({ ...ctx, directory, file, envFile, project, sql, config, ops, docker, compose, select });
+      assert.deepEqual(readFileSync(join(source.destination, `${ctx.receipt.operation}.age`)), original);
+      assert.equal((await ctx.sql(digestSQL)).trim(), expectedDigests);
+      await ctx.ready();
+      return;
+    }
     writeFileSync(config, JSON.stringify({ instance_id: 'wrong-key', target_root: '/data', bundle_root: '/bundles', identity_file: '/wrong-identity' }));
     await sql("COMMENT ON DATABASE opengym IS 'opengym-restore:wrong-key'");
     const wrongKey = JSON.parse(await docker([...compose, 'run', '--rm', '--no-deps', '--volume', `${join(temporary, 'wrong-identity')}:/wrong-identity:ro`, 'ops', '-c', `import subprocess,sys,json

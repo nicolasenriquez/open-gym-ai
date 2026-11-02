@@ -173,6 +173,21 @@ implícito. Revisión no abre gate ni CONNECT. Seams aprobados: CLI real→PG/HT
 observador independiente y cliente real dirty/linaje; negativos de autorización y
 privacidad obligatorios. Sin salida completa probada no se acredita recuperación.
 Incluir revisión/verificación en RTO; no crear ledger.
+
+Contrato 10.7 aprobado: coordinador host reutiliza restore y vía nueva de 10.5.
+La declaración privada del incidente precede selección/revisión; el tiempo completo
+incluye esa preparación y las comprobaciones, no solo pg_restore. El target conserva
+su gate normal bloqueado. Solo durante el ensayo se permite CONNECT temporal con
+un runtime interno sin bootstrap/bundle/revisión/puertos/egress, y revocación al cierre.
+Guardián ops independiente y runtime acotados; interrupción/incertidumbre nunca se
+reanuda ni acredita completa. Evidencia cliente privada y explícita de operador,
+ligada a nonce de ejecución/target/bundle y hashes de artefactos, con readback PG
+independiente antes de finalizar. Sin evidencia, revisión omitida o acceso desconocido,
+el informe es incompleto aunque los tiempos sean cortos. RPO 6 h/RTO 24 h se informan
+por separado; objetivos incumplidos fallan. Ensayo completo del alcance declarado no
+es aceptación operativa ni autorización de apertura. Sin jobs instalados (10.9),
+ledger, dependencias nuevas, purga de cuentas o avance a reparación Q2 (10.6).
+
 Diagnóstico privado con logging estándar, request_id, resultados/duraciones, salud,
 pool y backup; logs 7 d/256 MiB. Seleccionar/fijar retención estándar antes de 9.2–9.4.
 Sin OpenTelemetry, spans, sampling ni snapshots métricos.
