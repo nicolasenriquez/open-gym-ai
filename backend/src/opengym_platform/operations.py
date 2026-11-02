@@ -117,6 +117,7 @@ def main():
             "backup",
             "restore",
             "restore-access-recover",
+            "repair-check",
         ],
     )
     parser.add_argument("--config", required=True)
@@ -133,6 +134,17 @@ def main():
         or (args.reason is not None and args.command != "backup")
     ):
         code, result = 2, {"code": "OPERATION_ARGUMENTS_INVALID"}
+    elif args.command == "repair-check":
+        import importlib.util
+
+        if args.source or args.target or args.check_only:
+            code, result = 2, {"code": "REPAIR_ARGUMENTS_INVALID"}
+        elif importlib.util.find_spec("opengym_platform.repair") is None:
+            code, result = 2, {"code": "REPAIR_TOOL_UNAVAILABLE"}
+        else:
+            from opengym_platform.repair import run
+
+            code, result = run(args.config)
     elif args.command == "backup":
         import importlib.util
 

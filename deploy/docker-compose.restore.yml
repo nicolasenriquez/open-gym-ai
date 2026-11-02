@@ -34,7 +34,7 @@ services:
       - /var/run/postgresql:rw,noexec,nosuid,nodev,mode=1777,size=16777216
     volumes: [postgres-data:/var/lib/postgresql]
     healthcheck:
-      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, opengym]
+      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, postgres]
       interval: 1s
       timeout: 3s
       retries: 40

@@ -26,13 +26,17 @@ SCHEMAS = [
 ]
 
 
-def read_private(path):
+def read_private(path, max_bytes=65536):
     descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     try:
         info = os.fstat(descriptor)
-        if not stat.S_ISREG(info.st_mode) or info.st_size > 65536 or info.st_nlink != 1:
+        if (
+            not stat.S_ISREG(info.st_mode)
+            or info.st_size > max_bytes
+            or info.st_nlink != 1
+        ):
             raise ValueError("BACKUP_PROOF_INVALID")
-        return json.loads(os.read(descriptor, 65537))
+        return json.loads(os.read(descriptor, max_bytes + 1))
     finally:
         os.close(descriptor)
 

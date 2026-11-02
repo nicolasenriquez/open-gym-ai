@@ -43,6 +43,11 @@ waits for PostgreSQL, runs bootstrap then migrations as one-off containers, and 
 for API readiness and web health. `just dev-stop <absolute-dev.env>` preserves data.
 Dev serves the compiled frontend; backend sources are mounted read-only for reload.
 
+The PostgreSQL healthcheck probes the maintenance database `postgres`, keeping
+its transient connections outside the application database during capture/restore.
+API readiness still checks the actual application database and schema; see the
+[capture contract](../docs/reference/platform-operations.md#procedimientos-operativos-especificados).
+
 Set `PLATFORM_WEB_PORT=8081` and `PLATFORM_SECRETS_DIR=<absolute-private-directory>`
 in the private Dev env-file. The default web port is 8080 for permanent operation;
 API 3000 and PostgreSQL 5432 stay private. Dev and prod use distinct database/volume
@@ -500,6 +505,17 @@ paths or deliver capabilities that have not yet been ported.
 
 ## Current verification
 
+Forward repair of a surviving destination uses the existing private host maintenance
+configuration, plus `repair.witness_file` with independent acknowledged Training/media
+receipts. Run `node scripts/platform.mjs operate forward-repair --config <absolute-host-json>
+--incident <id> --release sha256:<tested-local-image-id>`. The wrapper captures current
+SQL/files, verifies receipts and the exact schema, replaces only the API image,
+persists its digest overlay in that host configuration and requires readiness.
+Failed preservation or incompatibility holds maintenance for operator review.
+This repairs a bad API image, rolled-back transactional migration or uncertain reply;
+it executes no corrective DDL and restores no old data. See the exact witness contract
+and limits in [Q2 operations](../docs/reference/platform-operations.md#reparación-hacia-adelante-q2).
+
 `just test <suite>` and `just test-case <suite> <case>` delegate to the same verifier
 used by CI. Unknown/unimplemented cases fail with exit 2; missing prerequisites,
 empty/skipped/failed proofs and cleanup failures never count as success.
@@ -510,6 +526,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | `contracts` | Frozen Node/client compatibility expectations. |
 | `database` | Pool, cancellation, rollback, owner isolation and commit uncertainty. |
 | `schema` | Current Alembic history, locking and restricted roles. |
+| `repair --case acknowledged_writes` | Independent W1/W2/media, surviving destination after image/DDL/lost-reply faults, W3 after repair and no-go on missing content, bytes or incompatible release. |
 | `lifecycle` | HTTP health/readiness, schema compatibility and shutdown. |
 | `identity_session` | Cookie/bearer actor selection, HMAC/version validation and expiry/revocation during waits; `restricted_pool` checks final SQL signatures/ACL/FORCE RLS and real HTTP with a one-slot runtime pool across commit, rollback, errors, timeouts and cancellation. |
 | `identity_password` | Node scrypt/NFKC vectors, login cookies, failure budgets, dummy work and concurrent credential/version revalidation. |

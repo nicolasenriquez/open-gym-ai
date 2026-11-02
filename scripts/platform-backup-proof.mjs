@@ -5,6 +5,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { createCipheriv, createHash, hkdfSync, randomBytes } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { restoreProof } from './platform-restore-proof.mjs';
+import { repairProof } from './platform-repair-proof.mjs';
 import { syntheticHarness } from './synthetic-harness.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -63,7 +64,7 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
   writeFileSync(envFile, '');
   const { docker, cleanup } = syntheticHarness({ root, namespace: 'opengym-platform-test',
     label: 'org.opengym.platform', name: 'Maintenance', services: ['db', 'api', 'ops', 'migrate'],
-    images: ['platform-test'], database: 'db' });
+    images: ['platform-test', 'platform-repair'], database: 'db' });
   const compose = ['compose', '--project-directory', root, '--env-file', envFile, '-p', project, '-f', composeFile];
   const labels = { 'org.opengym.platform': 'synthetic' };
   const secret = name => {
@@ -77,7 +78,7 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
     PLATFORM_DB_PASSWORD_FILE: '/run/secrets/bootstrap', PLATFORM_MIGRATOR_PASSWORD_FILE: '/run/secrets/migrator',
     PLATFORM_RUNTIME_PASSWORD_FILE: '/run/secrets/runtime', PLATFORM_SESSION_SECRET_FILE: '/run/secrets/session',
     ...(reviewedAccess ? { PLATFORM_COACH_SECRET_FILE: '/run/secrets/session' } : {}),
-    MEDIA_UPLOADS: '0', PASSWORD_LOGIN: 'true' };
+    MEDIA_UPLOADS: fault?.startsWith('repair') ? '1' : '0', PASSWORD_LOGIN: 'true' };
   // Private bind files must belong to the test caller, including CI's UID 1001.
   const user = `${process.getuid?.() ?? 1000}:${process.getgid?.() ?? 1000}`;
   const python = { image, entrypoint: ['python'], labels, user, read_only: true,
@@ -90,7 +91,7 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
       labels: { ...labels, 'org.opengym.maintenance.instance': 'synthetic-a', 'org.opengym.maintenance.state': state.replaceAll('\\', '/') }, user,
       environment: { POSTGRES_USER: 'opengym_platform_bootstrap', POSTGRES_DB: 'opengym_dev',
         POSTGRES_PASSWORD_FILE: '/run/secrets/bootstrap' }, volumes: [secrets[0], 'postgres-data:/var/lib/postgresql'],
-      networks: ['private'], healthcheck: { test: ['CMD', 'pg_isready', '-U', 'opengym_platform_bootstrap', '-d', 'opengym_dev'],
+      networks: ['private'], healthcheck: { test: ['CMD', 'pg_isready', '-U', 'opengym_platform_bootstrap', '-d', 'postgres'],
         interval: '1s', timeout: '3s', retries: 40 }, restart: 'no' },
     migrate: { ...python, profiles: ['tools'], environment, volumes: secrets,
       command: ['-m', 'opengym_platform.platform_migrate', '--deployment', 'bootstrap'] },
@@ -140,8 +141,23 @@ print(subprocess.check_output(['age-keygen','-y','/work/identity'],text=True).st
       'migrate', '-m', 'opengym_platform.platform_migrate', '--deployment', 'up'], true);
     await sql(readFileSync('backend/backup-role.sql', 'utf8'));
     await sql(readFileSync('backend/backup-role.sql', 'utf8'));
-    await sql("ALTER ROLE opengym_backup PASSWORD 'synthetic-maintenance-backup-only-0123456789'; "
-      + "INSERT INTO identity.users(id,display_name) VALUES ('A','synthetic A'),('B','synthetic B'); "
+    await sql("ALTER ROLE opengym_backup PASSWORD 'synthetic-maintenance-backup-only-0123456789'");
+    if (fault?.startsWith('repair')) {
+      const source = join(temporary, 'frozen-source');
+      mkdirSync(source, { mode: 0o700 });
+      writeFileSync(join(source, 'secret'), readFileSync(join(temporary, 'session')));
+      writeFileSync(join(source, 'db.json'), JSON.stringify({ users: [{ id: 'A', name: 'synthetic A' }, { id: 'B', name: 'synthetic B' }] }));
+      for (const [owner, rev] of [['A', 7], ['B', 11]]) writeFileSync(join(source, `state-${owner}.json`), JSON.stringify({
+        _rev: rev, _wid: owner.toLowerCase(), workouts: [], routines: [], notes: `frozen-${owner}` }));
+      await sql("COMMENT ON DATABASE opengym_dev IS 'opengym-import:q2'; REVOKE CONNECT ON DATABASE opengym_dev FROM opengym_api_runtime");
+      const imported = await docker([...compose, 'run', '--rm', '--no-deps', '--volume', `${source}:/run/import/source:ro`,
+        '--entrypoint', 'python', 'migrate', '-c', `import pathlib,subprocess,sys,json
+p=pathlib.Path('/tmp/q2-import');p.mkdir(mode=0o700)
+c=pathlib.Path('/tmp/import.json');c.write_text(json.dumps({'target_id':'q2','target_root':str(p),'admin_uids':[]}))
+raise SystemExit(subprocess.run([sys.executable,'-m','opengym_platform.operations','import','--config',str(c),'--source','/run/import/source','--target','q2']).returncode)`]);
+      assert.equal(JSON.parse(imported).code, 'IMPORT_OK');
+      await sql('GRANT CONNECT ON DATABASE opengym_dev TO opengym_api_runtime');
+    } else await sql("INSERT INTO identity.users(id,display_name) VALUES ('A','synthetic A'),('B','synthetic B'); "
       + `INSERT INTO training.documents(owner_id,document) VALUES ('A','{"_rev":7,"_wid":"a","_prior":{"notes":null},"workouts":[{"media":[{"hash":"${aHash}"}]}]}'),`
       + `('B','{"_rev":11,"_wid":"b","notes":"synthetic B","workouts":[{"media":[{"hash":"${bHash}"}]}]}')`);
     if (fullTiming) await sql("UPDATE training.documents SET document=document||'{\"lang\":\"es\",\"langAuto\":false,\"routines\":[],\"workouts\":[{\"id\":\"snapshot-workout\",\"d\":\"2026-01-01\",\"entries\":[]}]}'::jsonb WHERE owner_id='A'");
@@ -167,6 +183,96 @@ asyncio.run(seed())`]);
     const expectedDigests = (await sql(digestSQL)).trim();
     await docker([...compose, 'up', '-d', '--no-deps', 'api']);
     await ready();
+    if (fault === 'transient-container') {
+      writeFileSync(join(state, 'allow-capture'), '');
+      const before = (await sql(digestSQL)).trim();
+      for (const mode of ['removed', 'inspect-error']) {
+        const id = (await docker(['run', '-d', '--name', `${foreign}-ops-1`, '--network', 'none',
+          '--label', `com.docker.compose.project=${foreign}`, '--label', 'com.docker.compose.service=ops',
+          '--label', 'org.opengym.platform=synthetic', '--read-only', '--cap-drop', 'ALL',
+          '--security-opt', 'no-new-privileges:true', '--entrypoint', 'python', image, '-c', 'import time;time.sleep(300)'])).trim();
+        assert.match(id, /^[a-f0-9]{64}$/);
+        const observed = JSON.parse(await docker(['inspect', id]))[0];
+        assert.equal(observed.Config.Labels['com.docker.compose.project'], foreign);
+        const marker = join(temporary, `${mode}.observed`);
+        const hook = join(temporary, `${mode}.mjs`);
+        writeFileSync(hook, `import cp from 'node:child_process';
+import {syncBuiltinESMExports} from 'node:module';
+import {existsSync,writeFileSync} from 'node:fs';
+const original=cp.spawn;
+cp.spawn=function(program,args,...rest){
+ if(program==='docker'&&args[0]==='inspect'&&args[1]===${JSON.stringify(id)}&&!existsSync(${JSON.stringify(marker)})){
+  writeFileSync(${JSON.stringify(marker)},'observed');
+  ${mode === 'removed' ? `if(cp.spawnSync('docker',['rm','--force',${JSON.stringify(id)}],{stdio:'ignore',windowsHide:true}).status!==0)throw Error('OWNED_REMOVAL_FAILED');`
+    : `return original.call(this,program,['inspect','${'0'.repeat(64)}'],...rest);`}
+ }
+ return original.call(this,program,args,...rest);
+};syncBuiltinESMExports();`);
+        const result = spawnSync(process.execPath, ['--import', pathToFileURL(hook).href, 'scripts/platform.mjs',
+          'operate', 'backup', '--config', config, '--reason', 'scheduled'], { encoding: 'utf8', timeout: 180_000 });
+        assert.ok(existsSync(marker), 'Race must occur between the real listing and inspection');
+        assert.equal(result.status, 1, result.stderr);
+        if (mode === 'removed') {
+          assert.match(result.stdout, /BACKUP_CAPTURED_UNVERIFIED/, result.stderr);
+          assert.equal(existsSync(join(state, 'exclusive')), false);
+          await ready();
+        } else {
+          assert.doesNotMatch(result.stdout, /BACKUP_CAPTURED_UNVERIFIED/);
+          assert.match(result.stderr, /MAINTENANCE_DOCKER_FAILED/);
+          assert.equal(JSON.parse(await docker(['inspect', id]))[0].State.Running, true);
+        }
+        assert.equal((await sql(digestSQL)).trim(), before);
+      }
+      console.log('UNRELATED_CONTAINER_REMOVAL_ALLOWED_BUT_LIVE_INSPECTION_FAILURE_BLOCKS_OK');
+      return;
+    }
+    if (fault === 'health-probe') {
+      writeFileSync(join(state, 'allow-capture'), '');
+      const admin = async query => (await docker([...compose, 'exec', '-T', 'db', 'psql', '-U', 'opengym_platform_bootstrap',
+        '-d', 'postgres', '-Atc', query])).trim();
+      const probeDatabase = JSON.parse(readFileSync(composeFile)).services.db.healthcheck.test.at(-1);
+      const before = (await sql(digestSQL)).trim();
+      for (const [database, allowed] of [[probeDatabase, true], ['opengym_dev', false]]) {
+        // Extend the health connection's transient window; use its configured DB.
+        // A forged probe name on the application DB must still block capture.
+        const child = spawn('docker', [...compose, 'exec', '-T', '-e', 'PGAPPNAME=pg_isready', 'db',
+          'psql', '-U', 'opengym_platform_bootstrap', '-d', database, '-c', 'BEGIN READ ONLY; SELECT pg_sleep(300)'], { stdio: 'ignore' });
+        const ended = new Promise(accept => child.once('close', accept));
+        let pid;
+        try {
+          for (let i = 0; i < 100; i++) {
+            pid = await admin(`SELECT pid FROM pg_stat_activity WHERE datname='${database}' AND application_name='pg_isready' AND wait_event='PgSleep'`);
+            if (/^\d+$/.test(pid)) break;
+            await sleep(50);
+          }
+          assert.match(pid, /^\d+$/, 'Synthetic probe did not connect');
+          const result = invoke();
+          assert.equal(result.status, 1, result.stderr);
+          const proof = JSON.parse(readFileSync(join(state, 'journal.json')));
+          if (allowed) {
+            assert.match(result.stdout, /BACKUP_CAPTURED_UNVERIFIED/, result.stderr);
+            assert.equal(proof.phase, 'captured_unverified');
+            assert.equal(existsSync(join(state, 'exclusive')), false);
+            await ready();
+          } else {
+            assert.doesNotMatch(result.stdout, /BACKUP_CAPTURED_UNVERIFIED/);
+            assert.equal(proof.phase, 'capturing');
+            assert.equal(JSON.parse(readFileSync(join(gate, 'admission.json'))).allowed, false);
+            assert.ok(existsSync(join(state, 'exclusive')));
+          }
+          assert.equal((await sql(digestSQL)).trim(), before);
+        } finally {
+          if (/^\d+$/.test(pid ?? '')) await admin(`SELECT pg_terminate_backend(${pid}) FROM pg_stat_activity WHERE pid=${pid} AND application_name='pg_isready' AND wait_event='PgSleep'`);
+          await ended;
+        }
+      }
+      console.log('HEALTH_PROBE_OUTSIDE_TARGET_AND_FORGED_PROBE_INSIDE_TARGET_REJECTED_OK');
+      return;
+    }
+    if (fault?.startsWith('repair')) {
+      await repairProof({ root, temporary, project, image, docker, compose, sql, config, state, data, ready, fault, composeFile });
+      return;
+    }
     if ((fault === 'bundle' || fault === 'restore')) {
       writeFileSync(join(state, 'allow-capture'), '');
       const result = invoke();

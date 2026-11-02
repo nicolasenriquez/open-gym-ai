@@ -1,4 +1,12 @@
 {
+  "repair": [{
+    "id": "acknowledged_writes",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-repair.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / New writes followed by rollback request; Forward repair cannot preserve new writes",
+    "proof": "Surviving PostgreSQL, independent W1/W2 HTTP receipts and media, bad API image, transactional DDL failure and uncertain reply; compatible immutable release preserves bytes and admits W3; missing writes or incompatible release hold maintenance",
+    "checkpoint": "10.6 synthetic surviving-destination repair only; no destination-loss guarantee, zero RPO, real cutover or corrective business DDL"
+  }],
   "restore": [{
     "id": "full_timing",
     "target": "host",
@@ -19,6 +27,12 @@
     "checkpoint": "10.4 only: no traffic/egress/bootstrap in API; no Q1 access review/signature rotation, full recovery/RPO/RTO or real instance acceptance"
   }],
   "backup": [{
+    "id": "capture_quiescence",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-capture.test.mjs"],
+    "proof": "Real host capture with the configured server probe held outside the target; forged probe on target still blocks. Concurrent unrelated removal between real ps/inspect succeeds only with confirmed absence; inspection failure for a still-present container blocks without losing data",
+    "checkpoint": "Capture regression only; no SQL guard relaxation, retry, production operation or S11 acceptance"
+  }, {
     "id": "scheduling_and_age",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-scheduling.test.mjs", "scripts/diagnostic-collector.test.mjs"],

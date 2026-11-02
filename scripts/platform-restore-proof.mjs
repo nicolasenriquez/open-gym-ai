@@ -33,6 +33,7 @@ export async function restoreProof(ctx) {
   assert.deepEqual(Object.keys(model.services).sort(), ['bootstrap', 'db', 'migrate', 'ops']);
   assert.equal(model.networks.private.internal, true);
   assert.equal(model.services.db.image, JSON.parse(readFileSync('backend/versions.json')).postgresImage);
+  assert.deepEqual(model.services.db.healthcheck.test.slice(-2), ['-d', 'postgres']);
   for (const [service, definition] of Object.entries(model.services)) {
     assert.ok(!definition.ports?.length && !definition.privileged && !definition.cap_add?.length);
     assert.deepEqual(Object.keys(definition.networks), ['private']);

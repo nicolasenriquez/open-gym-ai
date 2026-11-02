@@ -405,6 +405,20 @@ que pudieran ocultar filas. La fase interna `capture-sql` requiere journal/exclu
 no equivale al comando `operations backup`, que empaqueta/verifica después de la
 captura acreditada y del reinicio compatible, sin volver a capturar SQL.
 
+Los healthchecks de PostgreSQL usan `pg_isready -d postgres`, fuera de la base de
+aplicación: sus conexiones transitorias no deben competir con la comprobación de
+ausencia de clientes en el destino. Esto solo acredita disponibilidad del servidor;
+readiness API comprueba su base y esquema reales. No excluir clientes por llamarse
+`pg_isready`: cualquier conexión ajena en el destino sigue bloqueando captura.
+Un contenedor ya creado conserva su healthcheck anterior hasta recrearlo mediante
+su procedimiento operativo autorizado. `node scripts/platform.mjs verify backup --case capture_quiescence`
+comprueba ambos casos con la ventana de conexión del probe extendida.
+
+Durante el inventario global, un contenedor ajeno puede desaparecer entre listado
+e inspección. El wrapper solo omite ese ID si un segundo listado Docker exitoso
+confirma que ya no existe. Si sigue presente o Docker no puede confirmar ausencia,
+la operación falla; no se omiten inspecciones fallidas de contenedores activos.
+
 Estado privado: `owner.json`, directorio `exclusive` con identidad del controlador
 host (hostname, PID y token de creación del sistema), `gate/`, `journal.json` atómico y un
 subdirectorio por operación con `database.dump`, `data/`, `runtime-secrets/`,
@@ -1159,13 +1173,41 @@ las escrituras posteriores al último punto si se pierde el destino; ese caso us
 restore/RPO y una decisión explícita sobre pérdida. No ampliar garantías por editar
 runbook. Mantener origen Node congelado sin tráfico ni doble escritura.
 
-`forward-repair --incident <id> --release <compatible-digest>` pausa escritores,
+`node scripts/platform.mjs operate forward-repair --config <absolute-private-host.json>
+--incident <id> --release sha256:<compatible-image-id>` pausa escritores,
 conserva copia del destino actual y resultados de inspección; compara revisión DB
 con release Python de reparación ya probada. Si compatible, restablece esa imagen/
 config Python sobre **el destino actual**, no restaura datos viejos. Si requiere
 DDL, solo revisión correctiva forward ensayada y backup pre-migración; prohibidos
 stamp/downgrade/retorno Node. Resultado de COMMIT incierto se resuelve observando
 wid/revisión almacenados, nunca reintentando ciegamente ni afirmando rollback.
+
+La entrega actual sustituye solo la imagen API por su ID local inmutable, conservando
+comando, entorno, secretos y mounts seleccionados. Exige el mismo head del destino
+y release no-root; no ejecuta DDL correctivo. Una migración transaccional fallida se
+repara tras comprobar su rollback y head intacto. Head desconocido o corrección que
+requiera DDL mantiene no-go hasta un procedimiento forward ensayado por separado.
+La copia coherente SQL/archivos del incidente queda privada y no se presenta como
+backup cifrado/verificado ni actualiza el recibo del último punto válido.
+
+El JSON host de mantenimiento añade `repair: {"witness_file": "<absolute-private-json>"}`.
+El testigo privado, preparado independientemente del backend, contiene exactamente
+`instance_id`, `incident` y `writes`; cada recibo tiene `owner`, `rev`, `wid`,
+`state` (GET Training reconocido completo) y `media` (lista de `name` y `sha256`).
+Máximo 16 MiB, entre dos y cien propietarios distintos. Se comparan contenido,
+revisión y wid actuales, y bytes de medios de la captura coherente; `_prior` y
+`_unstamped` internos no forman parte del GET. Nunca generar los recibos a partir
+del destino averiado para declarar preservación. Para un COMMIT incierto, incorporar
+la observación independiente del resultado sin reenviar la escritura a ciegas.
+
+Tras verificar preservación/compatibilidad, el wrapper recrea únicamente API sobre
+el mismo destino y persiste el overlay por digest en `compose_files` del JSON host
+antes de reiniciar. Se inicia explícitamente API aunque la imagen fallida estuviera
+detenida; otros escritores conservan su estado previo. Éxito requiere readiness,
+devuelve `FORWARD_REPAIR_VERIFIED` y libera exclusión. No abre una instancia real
+sin su autorización operativa. Fallo iniciado conserva gate cerrado/exclusión y
+evidencia para revisión; `maintenance-recover` no admite journals `repair` ni permite
+saltarse la comprobación. No borrar locks ni restaurar un snapshot viejo para continuar.
 
 Ensayo independiente: importar origen sintético, reconocer W1/W2 de A/B con payloads,
 wid y medios conocidos por cliente/fixture externa al backend, inyectar cada fallo,

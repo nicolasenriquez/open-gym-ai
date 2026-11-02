@@ -124,7 +124,7 @@ services:
         max-buffer-size: 1m
         cache-disabled: "true"
     healthcheck:
-      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, opengym]
+      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, postgres]
       interval: 1s
       timeout: 3s
       retries: 30

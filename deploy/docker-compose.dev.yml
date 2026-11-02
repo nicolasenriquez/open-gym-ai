@@ -26,7 +26,7 @@ services:
   db:
     environment: {POSTGRES_DB: opengym_dev}
     healthcheck:
-      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, opengym_dev]
+      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, postgres]
   bootstrap:
     image: opengym-platform-migrate:dev
     build: {context: ./backend, target: migrate}

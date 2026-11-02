@@ -34,6 +34,7 @@ assert not pathlib.Path('/app/tests').exists()
 assert importlib.util.find_spec('opengym_platform.importer') is None
 assert importlib.util.find_spec('opengym_platform.backup') is None
 assert importlib.util.find_spec('opengym_platform.bundle') is None
+assert importlib.util.find_spec('opengym_platform.repair') is None
 assert not pathlib.Path('/app/src/opengym_platform/runner.py').exists()
 import fastapi, asyncpg, uvicorn, httpx
 assert httpx.__version__ == '0.28.1'
@@ -65,6 +66,7 @@ assert (importlib.util.find_spec('opengym_platform.bundle') is not None) == ${ta
 assert (importlib.util.find_spec('opengym_platform.restore') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (importlib.util.find_spec('opengym_platform.restore_access') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (importlib.util.find_spec('opengym_platform.rehearsal') is not None) == ${target === 'ops' ? 'True' : 'False'}
+assert (importlib.util.find_spec('opengym_platform.repair') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (shutil.which('age') is not None) == ${target === 'ops' ? 'True' : 'False'}
 assert (shutil.which('age-keygen') is not None) == ${target === 'ops' ? 'True' : 'False'}
 import subprocess, sys, json
@@ -156,6 +158,7 @@ async function deploymentProof({ project, image, docker }) {
       assert.ok(!config.networks.app.internal);
       assert.deepEqual(Object.keys(config.services.web.networks), ['app']);
       assert.deepEqual(Object.keys(config.services.db.networks), ['database']);
+      assert.deepEqual(config.services.db.healthcheck.test.slice(-2), ['-d', 'postgres']);
       assert.deepEqual(Object.keys(config.services.api.networks).sort(), ['app', 'database']);
       assert.deepEqual(config.services.web.ports.map(port => [port.host_ip, port.published, port.target]), [['127.0.0.1', environment === 'dev' ? '8081' : '8080', 80]]);
       for (const [service, definition] of Object.entries(config.services)) {
