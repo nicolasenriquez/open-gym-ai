@@ -21,7 +21,7 @@ def fingerprints(root):
 
 
 @pytest.mark.asyncio
-async def test_captured_http_writes_media_and_secrets_import_without_opening_access(
+async def test_captured_legacy_documents_media_and_secrets_import_without_opening_access(
     deployment, tmp_path
 ):
     expected = json.loads((ROOT / "expected.json").read_text())

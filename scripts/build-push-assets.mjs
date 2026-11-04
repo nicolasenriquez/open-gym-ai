@@ -1,10 +1,16 @@
-// Python push copy from the existing canonical frontend/Node generators, no runtime Node.
-import { readFileSync, writeFileSync } from 'node:fs';
-import { buildNudgeCopy } from '../api/scripts/build-nudge-copy.mjs';
-import { dayReminderPush, restTimerPush, testPush } from '../api/push-messages.js';
+// Python notification copy from canonical UI strings; no runtime Node dependency.
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dayReminderPush, restTimerPush, testPush } from '../shared/notifications/push-messages.js';
+import { NUDGE_COPY } from '../frontend/src/lib/nudge.js';
 
-const generated = await buildNudgeCopy();
-const nudges = JSON.parse(generated.slice(generated.indexOf('export const NUDGE_COPY = ') + 26).trim().replace(/;$/, ''));
+const nudges = { en: NUDGE_COPY };
+for (const file of readdirSync(new URL('../frontend/src/locales/', import.meta.url)).filter(f => /^[a-zA-Z-]+\.js$/.test(f)).sort((a, b) => a.slice(0, -3).localeCompare(b.slice(0, -3)))) {
+  const lang = file.slice(0, -3);
+  const pack = (await import(new URL('../frontend/src/locales/' + file, import.meta.url))).default;
+  const tr = text => pack[text] || text;
+  nudges[lang] = Object.fromEntries(Object.entries(NUDGE_COPY).map(([tone, copy]) =>
+    [tone, { title: tr(copy.title), lines: copy.lines.map(tr) }]));
+}
 const reminders = Object.fromEntries(['en', 'pt-BR'].map(lang => [lang, {
   named: dayReminderPush(lang, { emoji: '{emoji}', name: '{name}' }),
   fallback: dayReminderPush(lang),

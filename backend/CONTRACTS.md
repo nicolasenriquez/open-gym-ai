@@ -1,146 +1,35 @@
-# Referencia de contratos Node — inventario y caracterización
+# Compatibilidad del runtime Python
 
-Fuente inspeccionada: `1b2daff9199611604783faabf76cd741123cec95`. Autoridad de alcance: [arquitectura §9.1](../docs/open-gym-evolution.architecture.md#91-paridad-del-port-y-alcance-de-retirada), [spec de caracterización](../openspec/specs/platform-contract-characterization/spec.md) y handlers actuales. Esta página distingue inventario histórico y [ejecución sintética 3.3](#evidencia-y-cobertura-ejecutada-33); **no acredita paridad Python, G0, GP ni G3**. No se leyeron datos/configuración de instancia.
+El backend del repositorio es Python/FastAPI/PostgreSQL; sus rutas públicas usan
+`/api/v1` y [openapi.yaml](openapi.yaml) es su autoridad HTTP.
+El backend Node/JSON, su comparador, manifiestos, generadores y dumps de transición
+se retiraron tras adaptar sus consumidores. Esto no migra ninguna instancia.
 
-Los IDs siguientes identifican el baseline de compatibilidad `v1`, sus inputs y expectativas independientes. No duplicar suites enteras ni ejecutar las heredadas con variables de instancia/proveedor. Los comandos se ejecutan desde la raíz mediante el entorno sintético aislado. Los resultados históricos pertenecen a OpenSpec; esta referencia conserva contratos, fuentes y límites para el port.
+## Cobertura vigente
 
-## Matriz de capacidades y consumidores
-
-| Área / IDs de referencia v1 | Productor → consumidor / autoridad actual | Contrato positivo y negativo que conservar / fuentes y comandos de referencia | Límite y gate futuro |
-| --- | --- | --- | --- |
-| HTTP/OpenAPI: `http.health`, `http.bad-input` | `api/server.js` → web/móvil; handlers Node, descritos por `api/openapi.yaml` | Health vacío: 200, `{ok:true,users:0,writable:true}`; JSON inválido/cuerpo excesivo rechazado, headers/origen/CSRF y rutas conservados. `node --test api/test/openapi-routes.test.js api/test/server-bad-input.test.js api/test/server-cors.test.js`. Primer literal portable: [http.health.v1.json](contracts/http-health.v1.json), derivado del contrato independiente ya usado por `contracts-run.mjs`. | OpenAPI no sustituye observación; La cobertura de headers/cookies/subpaths se limita a los casos y suites declarados. GP/G3 ejecutan casos contra Python. |
-| Identidad/acceso: `identity.passkey`, `identity.revoked` | Servidor + `api/passkeys-store.js`/`api/device-link.js` → clientes/admin; usuarios/creds en db.json y desafíos en memoria | Registro/acceso permitido; desafío/credencial inválidos, revocación, disabled/roles y link ajeno rechazados. `node --test api/test/server-passkeys.test.js api/test/server-pairing.test.js api/test/device-link.test.js api/test/server-first-user-admin.test.js`. | Suites sintéticas no prueban autenticador físico ni biblioteca WebAuthn Python. Conservar IDs/contadores; deshabilitación/eliminación concurrente y material heredado son GP/G3. |
-| Passwords/sesiones: `auth.password`, `auth.invalid-session` | `api/password.js` + servidor → cookie/bearer web/móvil; hash/db, secret y reloj | Password válido/NFKC y sesión válida admitidos; password inválido, expiración/revocación y modo deshabilitado denegados. `node --test api/test/password.test.js api/test/server-password.test.js api/test/server-config-session.test.js api/test/server-token-refresh.test.js`. | Preservar formatos scrypt/firma/encoding; continuidad o reautenticación productiva requiere decisión de port. No importar JWT/bcrypt. |
-| Training/cliente: `training.sync`, `training.conflict`, `client.offline`, `client.owner` | API Training ↔ store React; coach leen servidor; invitado/active/dirty permanecen locales | GET/PUT y reconciliación; conflicto/revisión antigua/reset/stamps/primera escritura y respuesta perdida no borran cambios. `node --test api/test/sync-stamps.test.js api/test/server-data-rev.test.js api/test/server-data-reset.test.js api/test/server-data-wid.test.js`; `pnpm --dir frontend test src/store/useStore.sync.test.jsx src/store/useStore.tabs-owner.test.jsx src/store/useStore.hold-signout.test.jsx src/lib/sync-legacy.test.js`. | Store usa API mock y DOM simulado: no es prueba integrada Node-cliente ni navegador/offline real. Añadir casos faltantes sin reimplementar sync; JSONB/restore/dos dispositivos reales pendientes para GP/G3. |
-| Administración/push: `admin.allowed`, `admin.denied`, `push.subscription`, `push.device-isolation` | Handlers/admin/temporizadores → admin, SW/dispositivo, transporte push; db/audit/memoria | Admin autorizado puede consultar; no-admin denegado. Upsert/status de suscripción; otro dispositivo no cancela temporizador ajeno. `node --test api/test/server-admin-state.test.js api/test/server-admin-delete.test.js api/test/server-push-status.test.js api/test/server-push-filter.test.js api/test/server-reminder.test.js`. | Cobertura de audit/invitaciones/retención y modos habilitado/deshabilitado a consolidar; push externo solo fixture. No entrega real ni continuidad de timers tras corte; GP/G3. |
-| Medios/import/export/catálogo: `media.roundtrip`, `media.foreign`, `import.valid`, `import.hostile`, `catalogue.continuity` | `api/media.js`, catálogo empaquetado, importadores/store → cliente/exports y GC; bytes separados de Training | Upload/download íntegros y hash/headers; recurso ajeno ausente, referencias ilegibles no habilitan GC; import válido conserva significado, hostil rechazado. `node --test api/test/server-media.test.js api/test/media-refs.test.js api/test/media-gc.test.js`; `pnpm --dir frontend test src/lib/catalogue-continuity.test.js src/lib/import-csv.test.js src/lib/import-csv.hostile.test.js src/store/useStore.import-restore.test.jsx src/lib/backup-media.test.js src/lib/fit-export.test.js`. | No medios personales; native file/backup y export visual no probados. Export Training no es backup de plataforma; ownership, referencias y restore con nueva autoridad son GP/G3. |
-| Coach: `coach.proposal`, `coach.no-consent`, `coach.provider-failure` | jobs/config/adapters + payload Training → propuesta/aprobación cliente; stores propios, proveedor sustituido solo en transporte | Propuesta válida validada; sin consentimiento no se crea job, proveedor roto no aplica cambios. `node --test api/test/jobs.test.js api/test/config-migration.test.js api/test/adapters-http.test.js api/test/payload.test.js`; `pnpm --dir frontend test src/lib/coach.test.js src/lib/coach-secrets.test.js`. | Inventariar providers/SDK/CLI/runtime opcional desde `api/coach/core/adapters/`, `api/package.json` y `api/Dockerfile`; fixtures no prueban credencial/proveedor ni sandbox real. Port debe demostrar cada runtime o resolver su tratamiento; sin exponer Recovery, GP/G3. |
-
-## Almacenes y disposición propuesta para el port
-
-Todas las disposiciones son propuestas para el cambio de port/cutover, **ninguna se aplica ahora**. «Sustituir» implica retirar los lectores/escritores, backups activos, watchers y cachés exclusivos después de verificar equivalencia; no mantener doble autoridad. «Conservar» identifica una razón y un contrato pendiente, no una excepción automática. Cada fila hereda revisión y comandos/casos de las áreas indicadas arriba.
-
-| Almacén / fuente | Productores → lectores y autoridad actual | Disposición / justificación y verificación futura |
-| --- | --- | --- |
-| `DATA_DIR/db.json`, `.bak`, temporales/asides; `api/server.js`, `api/durable.js` | Servidor y passkeys → auth/admin/push; usuarios/creds/hash/reset/link/invites/subs y snapshot `db` en memoria | **Sustituir** por PostgreSQL para estado servidor; retirar saveDb y fallback/cache JSON tras importación ensayada. Casos identity/auth/admin/push; secretos incluidos nunca en fixtures de evidencia reales. |
-| `DATA_DIR/state-<uid>.json`, temporales; `api/server.js`, `api/sync-stamps.js` | API Training → API/coach/media/admin; copia servidor con rev/stamps/linaje | **Sustituir** por Training PostgreSQL; retirar stat/mtime/cache/watchers y enumeración de archivos. Casos training/client/media/coach, errores de lectura nunca son «estado vacío». |
-| `DATA_DIR/secret`; `api/server.js`, `api/coach/config.js` | Bootstrap → firma de sesión y clave derivada de cifrado coach | **Conservar** como secreto externo protegido durante transición; continuidad/cifrado y backup/restauración explícitos antes del corte. Casos auth/coach; no rotar ni regenerar silenciosamente. |
-| `DATA_DIR/vapid.json`; `api/server.js` | Bootstrap → firma push/SW y suscripciones existentes | **Conservar** fuera de tablas como secreto de servicio con backup/rotación definidos. Casos push; cambiarlo invalida suscripciones y exige tratamiento de port. |
-| `DATA_DIR/audit.log`; secuencia/contador/compactación en servidor | Auth/admin → administrador; eventos con retención | **Sustituir** por almacenamiento audit de plataforma, conservando permisos, orden y retención; no sustituir por logs operativos sin contrato. Casos admin/auth; evidencia audit detallada pendiente. |
-| `DATA_DIR/uploads/<uid>/<hash>.<ext>`; `api/media.js` | Upload cliente → descarga/backup; bytes autoritativos separados | **Conservar** bytes fuera de PostgreSQL, con ownership/hash/cuotas y backup coordinado. Casos media/import/export; lector de referencias pasa a Training PG. |
-| Uploads `.gc.json`, `.tmp/`, caché cuotas/hashes/inflight/orphans | Media recibe/escribe/recoge → media/GC | **Conservar** marcas GC y temporales con seguridad/limpieza acotadas, **sustituir** caché de proceso por equivalente del runtime Python; no son autoridad Training. Casos media incluyendo error de referencia y concurrencia; contrato GC/restore antes de GP/G3. |
-| `catalogue/` y `catalogue/media/`; staging en imagen web | Mantenedor/build → frontend/web; catálogo versionado | **Conservar** assets/IDs y pipeline empaquetado: no son datos de usuario ni servicio descargador. Casos catalogue/import; pruebas de imagen/nombres y medios pendientes. |
-| `DATA_DIR/coach.json`; `api/coach/config.js` | Admin/config/métricas de gasto → jobs/adapters; incluye configuración y credenciales cifradas | **Sustituir** configuración/contadores por plataforma PG; **conservar** material secreto fuera de tablas mediante contrato explícito y cifrado equivalente. Casos coach/admin, migración de formato y límites. |
-| `DATA_DIR/coach-auth-<uid>.json`; `api/coach/config.js` | Cuenta de perfil → jobs/adapters | **Conservar** secretos cifrados separados con revocación/borrado/backup explícitos, adaptar lectores Python y vínculo al propietario. Casos coach/auth; no sincronizar ni exportar al cliente. |
-| `COACH_CREDENTIAL_DIR` (default `/coach-auth`); runtime SDK/CLI | Login/runtime opcional → proveedor, caches de tokens | **Conservar** aislamiento fuera del backup Training/DATA_DIR; inventario por adapter y disposición concreta del runtime pendiente de port. No exportar tokens. Casos coach; mocks HTTP no prueban SDK/CLI. |
-| `DATA_DIR/coach/<uid>.json`; `api/coach/jobs.js` | Queue/jobs → cliente/coach; daily/current/pending/history | **Sustituir** por stores PG de jobs/propuestas/gasto; conservar consentimiento/expiración/aprobación y rechazo tras forget. Casos coach; no confundir con Training. |
-| Maps de challenges/pairings, rate limit/auth throttling/device state; `api/server.js`, `api/rate-limit.js` | Handshakes/request → auth y límites | **Sustituir** por equivalentes Python; definir pérdida al reinicio y concurrencia/expiración sin inventar persistencia. Casos identity/auth/http; revisar necesidad compartida al port. |
-| Presence/restTimers, stateCache y db snapshot; `api/server.js` | Sync/presencia/rest → otros dispositivos/admin/push | **Sustituir** mecanismos de proceso por equivalentes Python; **retirar** cachés dependientes de archivos/snapshot mutable como autoridad. Casos training/push/admin; no prometer persistencia actual de timers. |
-| Queue/aborts/forgetSeq y contadores; `api/coach/jobs.js` | Enqueue/cancel/forget → jobs/adapters | **Sustituir** coordinación runtime; estados durables en PG, cancelación/late answer y caps equivalentes. Casos coach; garantía entre procesos a resolver en port. |
-| localStorage `gym_state_v1`, owner/wid/sync/dirty/legacy/stash y preferencias; `frontend/src/store/useStore.js` | Usuario/store/tabs → UI/sync/import/export; invitado/active/pendientes locales | **Conservar**: offline/invitado y sesión activa son contrato de producto, no espejo servidor obsoleto. Casos client/training/import; reconciliación tras restore/corte sin sobrescribir trabajo pendiente. |
-| Remoto/config/dispositivo y credenciales seguras; `frontend/src/lib/remote.js`, `coach-device.js`, `coach-secrets.js`, `cf-access.js`, `mobile.js` | Pairing/config/native → API/coach/proxy; token/API key/CF Access en almacenamiento de plataforma según helper | **Conservar** configuración/dispositivo y Keychain/Keystore (fallback memoria cuando no disponible); no incorporar secretos a S/export. Casos auth/client/coach; pruebas de helpers no equivalen a dispositivo/proxy real. |
-| IndexedDB/archivos native/cola media owed; `frontend/src/lib/media-store-idb.js`, `media-store-fs.js`, `media-owed.js` | Captura/import cliente → UI/upload/backup | **Conservar** medios offline/pendientes y reparación de referencias. Casos media/client/import; no borrar pendientes por fallo de servidor. Prueba native pendiente. |
-| CacheStorage app/media/device y service worker; `frontend/public/sw.js` | Build/fetch/push → PWA offline/notificaciones | **Conservar** cache/identidad de dispositivo e invalidación por versión. Casos client/push y suites SW; no son evidencia de navegador ni entrega push real. |
-| Estado efímero UI; `frontend/src/store/useUI.js` | Interacción/timers → pantallas y notificaciones locales | **Conservar** en cliente; no migrarlo a PG por convergencia. Casos cliente y `useUI` existentes; interacción real fuera de este inventario. |
-| Exports/imports/backup elegidos por usuario; `frontend/src/lib/backup-media.js`, `mobile.js`, `frontend/src/views/Settings.jsx` | Usuario/backup → restauración/import | **Conservar** formatos y archivos externos, con alcance Training explícito. Casos import/export/client; nunca usar backups reales como fixtures ni prometer recuperación completa. |
-| DB/volumen Foundation Node y Foundation Python; `api/foundation/README.md`, `compose.python-foundation.yml` | Harness sintético → pruebas propias | **Conservar** ensayos separados descartables; no importar sus fixtures/historiales como datos productivos ni combinar migradores. Gates G1 sintético distintos de G0/GP/GO operativos. |
-
-## Comparador
-
-Interfaz pública: `node backend/contracts-run.mjs compare <expected.json> <actual.json>`.
-La fixture independiente exige que una diferencia de status, tipos, ausente/null,
-propietario, headers, cookies o stamps produzca exit 1; igualdad produce exit 0.
-No regenerar expectativas para aceptar diferencias. El historial fail-first y sus
-resultados se conservan en [OpenSpec archivado](../openspec/changes/archive/2026-10-25-add-python-platform-foundation/tasks.md).
-
-```sh
-node --test backend/contracts-compare.test.mjs
-```
-
-## Ejecución y handoff
-
-El comparador ahora valida envelopes y compara exactamente ID y `response` (status, cuerpo completo y headers declarados). JSON inválido, archivo ausente/no regular o mayor de 64 KiB falla con código seguro; entrada válida equivalente sale 0, diferencia/entrada inválida sale 1. Los diagnósticos solo incluyen código, ID y revisión esperados validados, sin cuerpo, cookies, rutas de archivos ni errores crudos. No existe opción de regenerar expectativas.
-
-Normalizaciones permitidas actualmente: **ninguna**. El orden de claves de objetos JSON no cambia su significado; tipos, orden de arrays, ausente/null, ownership, stamps y atributos de cookies sí. En HTTP solo se seleccionan headers enumerados explícitamente en cada fixture; Date, Connection y el puerto temporal no forman parte de ese contrato, no se borran campos del cuerpo ni atributos de cookies. La prueba sintética del comparador cubre cookies; los seis casos HTTP nuevos no prueban emisión de cookies ni continuidad de sesiones.
-
-[http-baseline.v1.json](contracts/http-baseline.v1.json) conserva seis requests y expectativas literales independientes, con setup semántico de dos propietarios, revisión fuente y sin datos reales. Adaptador Node: crea DATA_DIR temporal, secret/usuarios/states sintéticos y sesión HMAC con expiración fija en 2100, solicita el puerto al servidor y elimina el entorno al terminar. `training.owner-a.v1` comprueba lectura y ocultación de campos internos; `training.owner-b.v1` observa null/rev 0 aunque envíe un header que nombra A. El GET no demuestra autorización de escritura: se reutilizan las suites existentes para conflictos, stamps y borrados. El setup por archivo es adaptador Node; el futuro port debe sembrar los mismos datos semánticos en su autoridad, sin copiar este mecanismo JSON.
-
-[suites.v2.json](contracts/suites.v2.json) registra comandos existentes Node/cliente para la matriz, con revisión e IDs de suite estables; sus nombres de test y fixtures mantienen las expectativas existentes. `contracts-run.mjs contracts` ejecuta los casos HTTP y esas suites, sin heredar variables de instancia/proveedor; fallos, timeout o skips detectados devuelven error. No usa shell ni descarga dependencias en ejecución. El target Docker incorpora fuentes/tests por allowlist y `pnpm install --frozen-lockfile --ignore-scripts` con los lockfiles existentes; no se añadieron dependencias ni cambió el producto.
-
-Comando integrado desde la raíz: `node scripts/python-foundation.mjs run contracts`. Usa solo el target Node, red interna y tmpfs; no arranca PostgreSQL ni Python. `baseline` es el subcomando del target para verificar los seis casos HTTP de forma enfocada; `compare` conserva la interfaz pública de 3.1.
-
-Discrepancia resuelta al preparar fixtures: health usa `Content-Type: application/json` sin charset según `api/server.js:json`; se conserva ese literal como referencia, sin adoptar el default de FastAPI. No es una regresión corregida en Node ni prueba de divergencia Python. La cobertura está acotada por las fixtures y suites declaradas; cualquier discrepancia nueva requiere evidencia. Los casos existentes se conservan; no se cambian para que el runner pase.
-
-## Handoff modular e inventarios
-
-Fuente de aplicación: `1b2daff9199611604783faabf76cd741123cec95`; revisión de archivos actuales sin cambios en `api/`, `frontend/src/`  frente a esa revisión. El manifest de pruebas es tooling del working tree, no código de aplicación de esa revisión. Los almacenes y su disposición siguen la tabla anterior, sin migrarlos. Todas las rutas de cliente de esta sección son relativas a `frontend/src/` salvo indicación.
-
-| Área de referencia | Propietario Python previsto | Recorrido cliente existente / transporte | Colaboración pública futura y autoridad actual |
-| --- | --- | --- | --- |
-| HTTP/OpenAPI | `health`, configuración de `core` y cada router propietario | `views/Settings.jsx`, `lib/api.js`; health/config vía mismo origen/subpath | Factory compone; metadatos públicos no leen recursos ajenos. Handlers/OpenAPI actuales y fixtures fijan la referencia, no defaults FastAPI. |
-| Identidad/acceso | `identity`, eventos en `audit` | `views/Login.jsx`, `views/Settings.jsx`, `components/Passkeys.jsx`, `lib/api.js`, `lib/remote.js`, `store/useStore.js` | Actor/sesión mediante interfaz identity; usuarios/credenciales/challenges actuales en db.json/memoria. No acceso desde otros repositorios a tablas identity. |
-| Passwords/sesiones | `identity`, eventos en `audit` | `components/PasswordAuth.jsx`, Login/Settings, API/remote/store existentes | Preservar scrypt/NFKC, firma/cookie/bearer y revocación; secreto externo y db actual, sin importar JWT/bcrypt ni nuevos defaults. |
-| Training/sync/cliente | `training` | `views/Workout.jsx`, `views/History.jsx`, `components/ServerSync.jsx`, `store/useStore.js`, `lib/sync-*` y `lib/api.js` | Identity autoriza; coach/media leen interfaz Training restringida. Servidor usa state-uid.json/rev/stamps; cliente conserva invitado, active y pendientes locales. |
-| Administración/push/audit | `administration`, `notifications`, `audit` | `views/Admin.jsx`, `views/Settings.jsx`, `lib/mobile.js`, `public/sw.js`, transporte actual | Administración coordina interfaces identity/training/media; notifications consulta Training. Usuarios/subs/audit/timers actuales conservan autoridad hasta corte; secretos VAPID separados. |
-| Medios/catálogo/import/export | `media`, `training`; catálogo permanece en web | `views/ProgressPhotos.jsx`, `views/Library.jsx`, Settings, `components/CustomMediaField.jsx`, `lib/media-*`, `lib/backup-media.js`, importadores y FIT | Media usa referencias públicas Training; bytes/uploads y catálogo quedan fuera de PG. Formatos y archivos pendientes del cliente se conservan, sin tomar error DB como lista vacía. |
-| Coach | `coach`, más biblioteca JS neutral de cliente | `views/CoachSetup.jsx`, `views/CoachChat.jsx`, `views/AdminCoach.jsx`, `lib/coach-api.js`, `lib/coach-local.js`, `lib/coach-secrets.js` | Solo lectura Training autorizada; consentimiento/aprobación actuales. Config/jobs propios y credenciales cifradas/externas inventariadas arriba; ningún privilegio Recovery implícito. |
-
-### Proveedores, runtime y sandbox
-
-Inventario de `api/coach/adapters/index.js`, config, adapters y `api/Dockerfile`; fuentes de código, sin abrir credenciales ni instalar runtimes reales.
-
-| Proveedor | Implementación/dependencia actual | Prueba sintética y límite del port |
-| --- | --- | --- |
-| `fixture` | `api/coach/fixture-cli.mjs`, Node estándar, proceso con stdin/JSON | jobs y adapters ejecutan fixture; no representa respuesta de un modelo ni sandbox de proveedor real. |
-| `anthropic` | `core/adapters/anthropic.js`, HTTP, sin proceso/SDK obligatorio | adapters-http usa fetch fixture y jobs usan transporte loopback; faltan cuenta/modelo/cuotas reales. |
-| `openai` | `core/adapters/openai.js`, HTTP, sin proceso | Mismo contrato de transporte y errores; sin llamadas reales ni credenciales. |
-| `gemini` | `core/adapters/gemini.js`, HTTP, sin proceso | Mismo contrato de transporte y errores; sin evaluación de modelo real. |
-| `compatible` | `core/adapters/compatible.js`, HTTP/base URL validada | Fetch fixture/servidor loopback; no acredita servidor externo concreto. |
-| `claude` | `adapters/claude.js`, import lazy de `@anthropic-ai/claude-agent-sdk` opcional; target coach lo instala | adapters prueba LOCKDOWN: sin tools/settings/skills/MCP heredado, sesión no persistida y turnos acotados; default sin SDK devuelve ausencia. No ejecuta SDK/modelo real ni acredita su viabilidad Python. |
-| `codex` | `adapters/codex.js`, CLI `@openai/codex@0.160.0` y bubblewrap en target coach | adapters verifica argv skip-git/ephemeral/ignore-user-config y separación de credential cache; no ejecuta Codex real, login ni sandbox bubblewrap. |
-
-`spawns` distingue fixture/Claude/Codex de los cuatro HTTP. `adapters/spawn.js` controla UID de coach y falla cerrado en Linux sin privilege drop; jobs prueba denegación y transportes HTTP sin requerir proceso. El contenedor de contratos corre como UID 1000, no se convierte en la imagen coach ni demuestra un privilege drop real. El port debe preservar o resolver expresamente cada SDK/CLI/sandbox y su credencial; no basta portar los cuatro proveedores HTTP ni copiar opciones de AI Tutor.
-
-### Código JS compartido, generadores y disposición
-
-| Fuente/consumidor actual | Contrato y acción prevista en el port |
+| Garantía | Propietario y verificación |
 | --- | --- |
-| `api/coach/core/`: pipeline, parse/validate/schemas, providers/adapters HTTP, payload/plan-hash, categorías/glyphs/library/prompts | Trasladar la fuente JS neutral necesaria a `shared/coach-core/`, una sola copia editable. Python implementa su contrato con vectores independientes; no ejecutar Python en navegador ni mantener API Node de negocio por esta biblioteca. |
-| `frontend/src/lib/coach-local.js`, carga dinámica desde `lib/coach-api.js` y `views/CoachSetup.jsx`; imports estáticos providers/categories de CoachSetup | Actualizar imports y chunks lazy conservando consentimiento, pipeline local y secretos de plataforma. Tests pertinentes: coach-local, coach-parity, coach, CoachSetup y sus flujos; verificar bundles en el port, no en 3.3. |
-| `api/coach/adapters/index.js`, jobs/config/handle y demás consumidores Node | Conservar rutas ahora para baseline; sustituir implementación servidor al portar. No retirar core hasta adaptar sus consumidores cliente y pruebas. |
-| `scripts/build-coach-assets.mjs`, alias `build-coach-library.mjs`, `scripts/catalogue/build.mjs` | Inputs canónicos: `frontend/src/lib/exercises-data.js` y `api/coach/prompts/*.md`. Outputs generados: core/library-data.js y core/prompts.js. El port elige ubicación neutral de prompts, actualiza generador/alias/caller y `--check`, sin editar outputs a mano ni duplicar fuentes. |
-| `web/Dockerfile`, `frontend/vite.config.js`, scripts build/mobile del package frontend | Cambiar COPY/contexto y workspace permitido a shared cuando se traslade. Probar build web y bundle móvil pertinente antes de retirar api; sin publicar shells nuevos. |
-| `.github/workflows/test.yml`, tests frontend/core, scripts de carga API y documentación activa | Actualizar filtros/checks/imports y referencias cuando corresponda; preservar pruebas conductuales en su nueva autoridad y archivos históricos identificados. El archivo antiguo no se elimina por simple extensión JS. |
+| HTTP público, métodos, rutas y respuestas anónimas | `node scripts/platform.mjs verify contracts --case python_routes`; suites de capacidad para comportamiento autenticado |
+| Cookie/bearer HMAC, scrypt/NFKC e identificadores compatibles | [respuestas independientes](tests/platform/identity_vectors.py), suites `identity_*` de pytest |
+| Passkeys ES256/RS256/Ed25519 y fallos de verificación | [transcripciones públicas firmadas](tests/platform/fixtures/webauthn.json), [expansor](tests/platform/webauthn_vectors.py) y `test_identity_passkey.py`; sin claves privadas |
+| Stamps, reset, campos obsoletos, historial y escritura legacy | [regresiones legibles](tests/platform/test_training_stamps.py); HTTP y observación PG independiente en `test_training_lineage.py` |
+| Coach neutral, validación, payload, prompts y adaptadores HTTP del cliente | Vitest en `frontend/src/lib/coach-core/`, fuente neutral `shared/coach-core/`; ejecución servidor en suites `coach_*` |
+| Importación de fuente congelada y captura de bytes | Importador Python y tooling host `scripts/platform-node-*.mjs`; fixtures de protocolo no son otro backend ni ejecutan handlers Node |
+| Catálogo, formatos, móvil, cliente offline, medios y notificaciones | Suites frontend/browser, generadores/builds y suites de capacidad Python registradas en `platform-suites.json` |
 
-El inventario es un handoff de propiedad/disposición, no una mudanza ejecutada. No sustituye revisión de imports finales ni evidencia GP/G3 después del port.
+Las expectativas son independientes del código probado; no regenerar valores para
+aceptar divergencias. El antiguo `contracts --case baseline` se rechaza.
+Los comandos operativos y límites pertenecen a [README](README.md), no a un runner
+de compatibilidad paralelo.
 
-## Evidencia y cobertura ejecutada 3.3
+## Procedencia y límites
 
-Esta cobertura describe el baseline histórico Node y sus límites; no acredita una
-nueva ejecución ni paridad Python. El comando reproducible es
-`node scripts/python-foundation.mjs run contracts`; OpenSpec conserva el estado de
-entrega y los resultados. Las fixtures y el manifest versionados identifican la
-revisión y selección exactas, sin depender de IDs de contenedores o logs de sesión.
+La caracterización original inspeccionó `1b2daff9199611604783faabf76cd741123cec95`;
+Git y el cambio archivado `add-python-platform-foundation` conservan ese historial.
+No necesitan una copia ejecutable del servidor ni volcados completos dentro del
+runtime nuevo. La decisión vigente y el cierre pertenecen a
+[port-compatible-platform](../openspec/changes/port-compatible-platform/tasks.md).
 
-| Ejecución final | Selección ejecutada | Resultado/límite |
-| --- | --- | --- |
-| HTTP baseline | Seis IDs de `http-baseline.v1.json` | PASS 6/6: health poblado, sesión inválida, Training A, Training B con header ajeno, JSON inválido y admin denegado. |
-| `comparator.reference.v1` | `node --test ../contracts-compare.test.mjs`, cwd api | PASS: diez tests existentes; igualdad admitida y diferencias de status/tipos/ausente-null/owner/headers/cookie/stamps rechazadas, envelope inválido seguro. |
-| `node.reference.v1` | 28 archivos Node enumerados en manifest | PASS: incluye nueve tests de adapters existentes, fixture subprocess/ausencia SDK/lockdown/argv y cuatro proveedores HTTP con transporte fixture. |
-| `client.reference.v1` | 12 archivos Vitest enumerados en manifest | PASS: store/sync/owner/legacy/offline/import/export/catálogo/coach/secretos con mocks de plataforma y DOM. |
-
-Los conteos de archivos provienen del manifest; el runner publica éxito por suite y oculta el TAP/Vitest completo. No se inventa un total agregado de tests internos. Los nombres siguientes se contrastaron con sus fuentes; cada archivo fue seleccionado en la suite exitosa indicada.
-
-| Área | Positivo observado por suite | Negativo/fallo observado por suite | Resultado y límite |
-| --- | --- | --- | --- |
-| HTTP/OpenAPI | Health baseline 200 y `openapi-routes.test.js`: rutas registradas coinciden con OpenAPI | `server-bad-input.test.js`: JSON malformado/no objeto 400, body >5 MiB 413 sin escritura/stack; CORS niega origen ajeno | PASS; no equivale a ejecutar toda combinación de headers/cookies de cada ruta. |
-| Identidad/acceso | `server-passkeys.test.js`: añadir passkey con prueba y nuevo sign-in | Challenge/credencial de otro perfil, revocación a mitad de ceremonia y replay rechazados; eventos audit comprobados | PASS, WebAuthn sintético; no autenticador físico ni biblioteca Python. |
-| Passwords/sesiones | `password.test.js`/`server-password.test.js`: vector/normalización y acceso válido; sesiones de fixtures aceptadas | Password incorrecto/modo deshabilitado y `auth.invalid-session.v1` rechazados; revocación en passkeys/admin-delete | PASS; continuidad productiva de firmas/credenciales pendiente de port. |
-| Training/cliente | `server-data-rev`/`server-data-wid`/sync-stamps y useStore.sync: guardar, reconciliar y editar offline | Conflicto/revisión o linaje antiguos; 401 conserva copia/marker/usuario, dos 409 dejan dirty; owner/tabs/hold-signout preservan copias | PASS; DOM/API mock en cliente, sin recorrido de navegador/dispositivos reales ni PG. |
-| Administración/push/audit | `server-admin-state`/admin-delete: admin consulta/elimina; push-status upsert/dispositivo y passkey audit | No-admin recibe 403; borrar último admin rechazado, otro dispositivo no cancela timer, endpoint privado push rechazado | PASS; transporte externo aislado, sin entrega push real. Invitaciones/retención/audit exhaustivos y concurrencia productiva quedan para GP/G3. |
-| Medios/catálogo/import/export | server-media roundtrip y ownership; backup-media zip roundtrip; FIT export/CRC; catalogue-continuity conserva IDs | Archivo ajeno 404, hash/tipo/cap rechazados, sweep con estado corrupto no borra; zip alterado/import hostil rechazado o recurso omitido según contrato | PASS; catálogo prueba unicidad y enlaces recíprocos como invariantes negativas, no requiere mutarlo. Sin medios personales, shell nativo ni imagen web construida aquí. |
-| Coach | jobs fixture review/create/reparación y adapters-http request/response; payload allowlist | Sin consentimiento no hay job, proveedor roto no se reintenta detrás del usuario, credenciales/identidad no salen en payload; flags/SDK ausente seguros | PASS; no prueba modelo real, credencial, privilege drop o sandbox SDK/CLI end-to-end. |
-
-No se observaron discrepancias nuevas de comportamiento en estas ejecuciones. Se conserva la resolución histórica de Content-Type sin charset. Se corrigió en design la ruta documental obsoleta de la matriz (`backend/characterization/README.md` → `backend/CONTRACTS.md`), sin cambiar el baseline. No hay normalizaciones activas ni regeneración de expectativas.
-
-Resultado: checkpoint de caracterización 3.3 satisfecho para las áreas/escenarios seleccionados e inventarios requeridos. Quedan fuera checkout limpio independiente, host Node 22, navegador/offline real, dispositivos, SDK/CLI/proveedores reales, paridad Python, DB/roles/RLS, CI remoto, matriz de caché, G0/G1 operativo/GP/GO/G2/G3 y Recovery. El siguiente trabajo pendiente es 4.1; no se inició. No sincronización, archivo, commit, push ni despliegue.
+La migración real está aplazada. Los ensayos sintéticos no acreditan autenticadores,
+proveedores push/coach o clientes reales, custodia/disco físicos ni G0/G2/G3
+operativos. No autorizan corte, Recovery ni retirada de datos/configuración originales.

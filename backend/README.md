@@ -1,8 +1,9 @@
 # OpenGym Python platform
 
-The current personal application remains Node/JSON. The Python port supplies its
-bootstrap HTTP lifecycle, restricted PostgreSQL access and controlled migrations;
-it is not yet a replacement for the complete application or an operational backup service.
+This repository supplies the Python/FastAPI/PostgreSQL application and its isolated
+verification tooling. The former Node/JSON backend and transition harness are retired.
+Repository delivery does not migrate a running instance; real cutover remains deferred
+and needs separate scoped authorization. Recovery remains outside this delivery.
 
 ## Start here
 
@@ -18,13 +19,13 @@ Python, uv and PostgreSQL run inside images. Bare `just` lists commands.
 | `docker-compose.prod.yml` | Permanent local operation with tested image IDs; no source mounts or startup builds. |
 | `docker-compose.test.yml` | Current disposable verifier, never an application instance or Foundation stack. |
 
-The root Compose and `just up` still run the authoritative Node application.
+There is no root Compose or legacy `just up`/`stop`/`logs` shortcut.
 The prod filename does not authorize cutover or cloud deployment. The image target
 `runtime` is also the default build; tests require explicit target `test`.
 Targets `dev`, `migrate` and `ops` keep their separate dependencies and privileges.
 
 The main `Dockerfile` owns Python application and verification targets.
-`Dockerfile.contracts` runs frozen Node/client compatibility checks;
+`Dockerfile.client` runs frozen Node/client compatibility checks;
 `Dockerfile.browser` supplies the compiled frontend and pinned browser proof;
 `Dockerfile.security` supplies CI scanners. These tools stay outside the application
 runtime. Their matching `.dockerignore` files protect each build context.
@@ -486,13 +487,12 @@ static reference with `node scripts/build-api-docs.mjs`; `--check` rejects drift
 public methods/paths and unauthenticated HTTP response status/JSON/cache headers
 against that YAML, with password sign-in and media enabled. Authenticated behavior
 is covered by the capability suites; the router comparison alone does not prove
-every response schema. Internal probes are excluded. The frozen Node YAML under
-`contracts/node-openapi.v1.yaml` is a hash-protected transition fixture, not editable
-authority. Node still uses `/api` and remains the deployed runtime until cutover.
+every response schema. Internal probes are excluded. The frozen Node YAML and
+transition comparator are retired; the independently maintained public YAML is the authority.
 
 Frontend builds select their HTTP contract with `VITE_API_PREFIX`:
-`/api/v1` for Python and the default `/api` for Node. The Python Dev
-overlay sets this build argument. For a permanent Python web image, build from
+`/api/v1` is the default for web/mobile/development; explicit `/api` remains selectable
+for clients paired with an older frozen release. The Python Dev overlay also sets this argument. For a permanent Python web image, build from
 the repository root before selecting its tested image ID:
 
 ```sh
@@ -612,48 +612,26 @@ Cold builds use isolated caches and can take several minutes. CI uses this case
 instead of repeating the cache matrix separately. Retention tooling remains a
 prerequisite of diagnostic tasks 9.2–9.4, not image verification.
 
-### Compatibility fixtures and transition baseline
+### Native compatibility coverage
 
-`contracts/` contains synthetic test inputs and independent expected results, not
-application storage or execution logs. Their lifecycle depends on the guarantee
-they protect, rather than their JSON format or the retirement of Node alone.
+The transition `contracts/` dumps, comparator, source-hash manifest and generators
+are retired. `tests/platform/identity_vectors.py` pins small independent HMAC/scrypt/
+normalization answers. `webauthn_vectors.py` expands signed public WebAuthn transcripts
+from `fixtures/webauthn.json` (no private keys). `test_training_stamps.py` expresses
+stamping/legacy-write regressions directly; HTTP/PG lineage stays in its native suite.
+Expectations must not be regenerated from the Python code under test.
 
-| Files | Purpose and retention |
-| --- | --- |
-| `port-baseline.v1.json`, `suites.v2.json` | Transition manifest and Node/client suite inventory. Retain until replacement coverage and retirement acceptance allow their consumers to be removed or migrated. |
-| `http-baseline.v1.json`, `http-health.v1.json` | Frozen HTTP expectations used by the transition harness and comparator. Preserve relevant behavior as regression tests before retiring the harness or fixtures. |
-| `identity-sessions.v1.json`, `identity-passwords.v1.json`, `training-stamps.v1.json` | Independent compatibility vectors consumed by Python tests. Retain while session, credential and synchronization compatibility remains supported, including after Node retirement. |
-| `identity-registration.v1.json` | Registration validation vectors belonging to the registration slice. Its delivery and acceptance status is tracked in the active port tasks, independently of this inventory. |
-| `password-vectors.mjs`, `generate-training-stamps.mjs` | Node-based authoring tools, not runtime dependencies. Review intentional coverage extensions; migrate or retire the generators separately from the retained vectors. |
+The pure coach/client suites live in `frontend/src/lib/coach-core/`; run them with
+Vitest. `node scripts/platform.mjs verify contracts --case python_routes` checks
+the current public API. The former `--case baseline` is deliberately rejected.
+[Compatibility reference](CONTRACTS.md) owns the current coverage map.
 
-Run `node scripts/platform.mjs verify contracts --case baseline` for the current
-integrated Node HTTP and client compatibility verification. The command
-`node scripts/python-foundation.mjs run contracts` in the frozen
-[historical inventory](CONTRACTS.md#ejecución-y-handoff) is retired; use the platform
-command above. `node scripts/platform-baseline.mjs` checks frozen file hashes only
-and does not execute the behavioral tests.
-
-`port-baseline.v1.json` protects the initial inventory and listed sources by hash;
-it does not cover every later identity or Training vector. Keep expected results
-independent of the Python implementation under test. Generator output requires
-review of changed scenarios and expectations, never automatic regeneration to
-accept implementation drift. Full Training documents in the stamp vectors make
-input/output differences reviewable; repeated structure alone is not a removal criterion.
-Before removing or merging a fixture, identify its consumers and demonstrate that
-replacement tests preserve its guarantee. Delivery status and retirement acceptance
-remain in the [active port tasks](../openspec/changes/port-compatible-platform/tasks.md).
-
-Build contexts are allowlisted: root `.dockerignore` serves the web image,
-`api/Dockerfile.dockerignore` serves Node from the repository root, and
-`backend/.dockerignore` serves Python. Build Node with
-`docker build -f api/Dockerfile .`; its shared source is outside `api/`.
-The contracts/security/browser Dockerfiles have their own ignore files, which override the
-root filter. Keep each allowlist aligned with its Dockerfile's `COPY` inputs;
-exercise media and the shared coach core remain required web inputs.
-`.gitignore` protects Git only; it does not filter Docker contexts. Local env files,
-provider credentials, host dependencies and caches are excluded separately.
-Node/web dependency installs use builder-local pnpm cache mounts with frozen locks;
-the package store is not copied into images or mixed with application data.
+Build contexts are allowlisted: root `.dockerignore` serves web and
+`backend/.dockerignore` serves Python. Client/security/browser Dockerfiles have
+matching ignore files overriding the root filter. Keep each allowlist aligned with
+its `COPY` inputs; catalogue media and shared coach source remain required web inputs.
+Git ignores do not filter Docker contexts. Host dependencies, credentials, env files
+and caches stay out; frozen pnpm installs use builder-local cache mounts.
 
 ## Isolated legacy import
 

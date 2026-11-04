@@ -54,9 +54,7 @@ async def test_passkey_options_are_discoverable_and_do_not_create_accounts(deplo
         assert await observer.fetchval("SELECT count(*) FROM identity.users") == 0
 
 
-VECTORS = json.loads(
-    (Path(__file__).parents[2] / "contracts/identity-passkeys.v1.json").read_text()
-)
+from webauthn_vectors import VECTORS
 
 
 def vector(name):

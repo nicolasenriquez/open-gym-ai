@@ -15,9 +15,8 @@ Licencia: AGPL-3.0-or-later.
 - `frontend/`: app React 19 + Vite; `src/lib/` contiene la lógica de dominio,
   `src/views/` las pantallas y `src/components/` los componentes compartidos.
   `android/` e `ios/` son shells Capacitor; ver `docs/MOBILE.md`.
-- `api/`: backend Node.js con `node:http`; `server.js` implementa la API.
-  `coach/` contiene el coach opcional y `openapi.yaml` describe las rutas.
-- `backend/`: port parcial Python/FastAPI; todas sus rutas HTTP usan `/api/v1`.
+- `backend/`: backend Python/FastAPI/PostgreSQL; rutas HTTP bajo `/api/v1`.
+  `openapi.yaml` describe la API; Node/JSON y sus contratos transitorios están retirados.
   Ver `backend/README.md` para capacidades y configuración del frontend.
 - `web/`: imagen multi-stage que construye el frontend y lo sirve con nginx;
   nginx también hace proxy de `/api`.
@@ -25,14 +24,12 @@ Licencia: AGPL-3.0-or-later.
   en la imagen web; no hay un servicio Compose separado que descargue estos medios.
 - `docs/`: guías indexadas en `docs/index.md` y notas de diseño en `docs/dev/`.
 - `website/`: sitio estático del proyecto, desplegado por separado.
-- `kubernetes/`: manifiestos de ejemplo.
 
 ## Comandos
 
 ```bash
-# Stack local (servicios api y web)
-cp .env.example .env
-docker compose up -d --build
+# Nuevo entorno Dev aislado: preparar secretos/env según backend/README.md
+just dev <ruta-absoluta-al-env-privado>
 
 # Frontend en desarrollo
 cd frontend && pnpm install --frozen-lockfile && pnpm run dev
@@ -43,8 +40,8 @@ cd frontend && pnpm run test:watch
 pnpm exec vitest run src/lib/progression.test.js
 pnpm exec vitest run -t "some test name"
 
-# Tests de API
-cd api && pnpm test
+# Tests de API en recursos sintéticos propios
+node scripts/platform.mjs verify identity_session
 
 # Build de producción
 cd frontend && pnpm run build
@@ -63,8 +60,8 @@ consulta los `package.json` para ver las dependencias actuales.
 - Añade las nuevas cadenas de UI a todos los locales aplicables y verifica con
   `node frontend/scripts/check-locales.mjs` desde la raíz.
 - Antes de tocar autenticación, sesiones o notificaciones, lee
-  `docs/SELF_HOSTING.md`; los despliegues dependen de su contrato de variables
-  de entorno.
+  `backend/README.md` y `docs/reference/platform-security.md`; allí viven los
+  contratos vigentes de configuración y seguridad.
 - No confirmes datos de usuario en `data/` ni los directorios locales heredados
   `media/img/` y `media/gif/`. `catalogue/media/` es distinto: forma parte del
   catálogo y se empaqueta en la imagen web.
@@ -76,9 +73,9 @@ consulta los `package.json` para ver las dependencias actuales.
 - `frontend/src/store/useStore.js` mantiene el estado de la app; `useUI.js`
   contiene estado efímero de interfaz. `frontend/src/lib/` alberga la lógica
   de dominio y helpers puros.
-- La API usa almacenamiento JSON bajo `DATA_DIR`, passkeys WebAuthn y cookies
-  de sesión firmadas. Las dependencias y las dependencias opcionales están
-  declaradas en `api/package.json`.
+- La API usa PostgreSQL con roles restringidos, passkeys WebAuthn y sesiones
+  firmadas; `backend/pyproject.toml` y `backend/uv.lock` fijan dependencias.
+  Los medios y secretos quedan fuera de las tablas; ver `backend/README.md`.
 - WebAuthn depende del hostname exacto y requiere HTTPS, salvo en localhost.
   El proxy de nginx mantiene frontend y API bajo el mismo origen.
 
@@ -100,9 +97,9 @@ No hay publicación, despliegue ni mirror automáticos.
 - Al explorar conceptos del dominio o registrar decisiones, lee
   `.agents/docs/domain.md`: vocabulario en `GLOSSARY.md` y decisiones en `docs/adr/`.
 - Para modernización, Recovery o integraciones futuras, empieza en `docs/index.md`
-  y sigue el PRD Evolution y su arquitectura. El runtime actual sigue siendo
-  Node/JSON; el port parcial Python/FastAPI/PostgreSQL existe en `backend/`,
-  pero su sustitución completa sigue sujeta a aceptación.
+  y sigue el PRD Evolution y su arquitectura. El runtime del repositorio es
+  Python/FastAPI/PostgreSQL; la migración real de instancias está aplazada y
+  requiere permiso separado. No confundir aceptación del repositorio con corte.
 
 - Al crear, editar o reorganizar documentación, lee
   `docs/operations/okf-authoring-guide.md` y ejecuta

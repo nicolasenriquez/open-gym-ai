@@ -3,7 +3,14 @@ import { constants, closeSync, fstatSync, fsyncSync, lstatSync, mkdirSync, openS
   readSync, readdirSync, realpathSync, renameSync, writeSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
-import { syncDir } from '../api/durable.js';
+
+// Best effort only: Windows and some filesystems refuse directory fsync.
+function syncDir(path) {
+  let fd;
+  try { fd = openSync(path, 'r'); fsyncSync(fd); }
+  catch { /* Unsupported directory fsync. */ }
+  finally { if (fd !== undefined) { try { closeSync(fd); } catch { /* Closed. */ } } }
+}
 
 const reject = () => { throw new Error('NODE_CAPTURE_REJECTED'); };
 const canonical = path => process.platform === 'win32' ? resolve(path).toLowerCase() : resolve(path);

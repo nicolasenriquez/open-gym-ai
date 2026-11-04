@@ -18,7 +18,6 @@ import { deleteRoutineWithUndo, takeOutOfLoop } from './Plan.jsx'
 import { removeRoutineExercise } from './RoutineEdit.jsx'
 import { mergeStates, stampChange } from '../lib/sync-merge.js'
 import { saveRotation } from '../lib/rotation.js'
-import { stampPut } from '../../../api/sync-stamps.js'
 
 const clone = v => JSON.parse(JSON.stringify(v))
 const S = () => useStore.getState().S
@@ -150,7 +149,8 @@ describe('Undo of a routine swiped away in Plan, with an older app (v1.3.9) on t
     const server = clone(S())
     // v1.3.9 comes back: 409, its merge, its push over that revision
     const pushed = v139Merge(old, server)
-    stampPut(server, pushed, { overRead: true, stamped: false, now: Date.now() + 1 })
+    // Known reply: the accepted legacy rename has a fresh field stamp.
+    pushed.routines.find(r => r.id === 'b')._f = { name: Date.now() + 1 }
     expect(pushed.routines.find(r => r.id === 'b').name).toBe('Pull heavy')
     for (const m of both(S(), pushed)) {
       expect(m.routines.map(r => r.id)).toEqual(['a', 'b', 'c'])
@@ -170,7 +170,8 @@ describe('Undo of a routine swiped away in Plan, with an older app (v1.3.9) on t
     expect(S().routines.find(r => r.id === 'b')._ts).toBeUndefined()
     const server = clone(S())
     const pushed = v139Merge(old, server)
-    stampPut(server, pushed, { overRead: true, stamped: false, now: Date.now() + 1 })
+    // Known reply: the accepted legacy rename has a fresh field stamp.
+    pushed.routines.find(r => r.id === 'b')._f = { name: Date.now() + 1 }
     expect(pushed.routines.find(r => r.id === 'b').name).toBe('Pull heavy')
     for (const m of both(S(), pushed)) {
       expect(m.routines.map(r => r.id)).toEqual(['a', 'b', 'c'])

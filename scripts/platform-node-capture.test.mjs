@@ -1,15 +1,12 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { createHash, createHmac } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, lstatSync, existsSync, rmSync, symlinkSync, linkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import http from 'node:http';
 import test from 'node:test';
-import { boundPort, sampleState } from '../api/test/helpers.mjs';
-import { jpeg } from '../api/test/media-samples.mjs';
 import { captureStoppedNode } from './platform-node-capture.mjs';
 import { drainAndCaptureNode } from './platform-node-drain.mjs';
 
@@ -42,22 +39,20 @@ function fixture(t) {
   }));
   const own = child => { children.push(child); return child; };
   return { root, sources, own, destination: join(root, 'capture'), sourceCutoffAt: new Date().toISOString(),
-    async api(data = join(root, 'data'), env = {}) {
-      const child = own(spawn(process.execPath, ['--input-type=module', '-e',
-        "process.on('message',()=>{process.send('drain-started');if(!process.emit('SIGTERM'))process.exit(143)});await import('./api/server.js')"], { cwd: resolve('.'),
-        env: { SystemRoot: process.env.SystemRoot ?? '', PORT: '0', DATA_DIR: data,
-          ORIGIN: 'http://localhost:8080', RP_ID: 'localhost', PASSWORD_LOGIN: '1',
-          COACH_DISABLED: '1', COACH_CREDENTIAL_DIR: join(root, 'protected-access'), AUDIT_LOG: '1', ...env },
-        windowsHide: true, stdio: ['ignore', 'pipe', 'pipe', 'ipc'] }));
-      child.stderr.resume();
+    async api() {
+      // Protocol fixture only: capture tooling verifies the proof, not retired business logic.
+      const child = own(spawn(process.execPath, ['-e', `
+        process.on('message', message => {
+          process.send('drain-started');
+          process.stdout.write('NODE_DRAINED ' + JSON.stringify({version:1,pid:process.pid,finishedAt:message.finishedAt}) + '\\n', () => process.exit(0));
+        });
+        process.send('ready');
+      `], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe', 'ipc'] }));
       let output = '';
       child.stdout.on('data', d => { output += d; });
-      const base = `http://127.0.0.1:${await boundPort(child)}`;
-      return { child, base, output: () => output, async request(method, path, body, cookie) {
-        return fetch(base + path, { method, headers: { 'Content-Type': 'application/json',
-          Origin: 'http://localhost:8080', ...(cookie ? { Cookie: cookie } : {}) },
-          body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(5000) });
-      } };
+      child.stderr.resume();
+      await once(child, 'message');
+      return { child, output: () => output };
     },
     async writer(file = join(root, 'configuration/writer.txt')) {
       const child = own(spawn(process.execPath, ['-e',
@@ -75,8 +70,11 @@ function processControl(f, api) {
   return { identity,
     async inspect() { return { ...identity, dataRoot: join(f.root, 'data'), running: !stopped(api.child),
       pid: stopped(api.child) ? 0 : api.child.pid, exitCode: api.child.exitCode }; },
-    async signal() { const started = once(api.child, 'message'); api.child.send('drain'); await started; },
-    async proof() { return JSON.parse(api.output().split(/\r?\n/).find(s => s.startsWith('NODE_DRAINED ')).slice(13)); },
+    async signal() { const started = once(api.child, 'message'); api.child.send({ finishedAt: new Date().toISOString() }); await started; },
+    async proof() {
+      if (!api.child.stdout.readableEnded) await once(api.child.stdout, 'end');
+      return JSON.parse(api.output().split(/\r?\n/).find(s => s.startsWith('NODE_DRAINED ')).slice(13));
+    },
     async noOtherContainers() { return true; },
   };
 }
@@ -100,97 +98,17 @@ test('Node drain adapter checks identities and external writers before stopping 
   assert.equal(readFileSync(join(f.destination, 'data/secret'), 'utf8'), 'c'.repeat(64));
 });
 
-test('Node drain waits for an accepted detached Coach job and captures its completed result', { timeout: 15_000 }, async t => {
-  const f = fixture(t);
-  let answer;
-  const reached = new Promise(resolveReached => { answer = resolveReached; });
-  const provider = http.createServer((req, res) => { req.resume(); req.on('end', () => answer(res)); });
-  await new Promise(r => provider.listen(0, '127.0.0.1', r));
-  t.after(() => { provider.close(); provider.closeAllConnections(); });
-  writeFileSync(join(f.root, 'data/coach.json'), JSON.stringify({ enabled: true, provider: 'compatible',
-    providerOptions: { compatible: { baseUrl: `http://127.0.0.1:${provider.address().port}` } }, models: { compatible: 'local-model' } }));
-  writeFileSync(join(f.root, 'data/db.json'), JSON.stringify({ users: [{ id: 'drain-coach', name: 'Coach User' }], creds: [], subs: [], invites: [] }));
-  writeFileSync(join(f.root, 'data/state-drain-coach.json'), JSON.stringify(sampleState()));
-  const api = await f.api(undefined, { COACH_DISABLED: '0' }), control = processControl(f, api);
-  const payload = `drain-coach:${Date.now() + 60_000}:0`;
-  const cookie = `gymsid=${payload}.${createHmac('sha256', 'c'.repeat(64)).update(payload).digest('base64url')}`;
-  const queued = await api.request('POST', '/api/coach/review', {}, cookie);
-  assert.equal(queued.status, 202); await queued.json();
-  const res = await reached;
-  const started = once(api.child, 'message');
-  const captured = drainAndCaptureNode({ ...f, api: control.identity, externalWritersStopped: () => true }, control);
-  await started;
-  assert.equal(stopped(api.child), false);
-  assert.equal(existsSync(f.destination), false);
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: '{"coach_contract":1,"nochange":true,"reading":"Steady."}' } }] }));
-  await captured;
-  const record = JSON.parse(readFileSync(join(f.destination, 'data/coach/drain-coach.json'), 'utf8'));
-  assert.equal(record.current, null);
-  assert.equal(record.history.at(-1).outcome, 'nochange');
-});
-
-test('Node drain timeout cannot publish a successful capture or restart the source', { timeout: 15_000 }, async t => {
-  const f = fixture(t), api = await f.api(undefined, { NODE_DRAIN_TIMEOUT_MS: '50' });
-  const req = http.request(`${api.base}/api/register/password`, { method: 'POST', headers: { 'Content-Length': 100 } });
-  req.on('error', () => {}); req.write('{');
-  t.after(() => req.destroy());
-  await api.request('GET', '/api/config');
-  const control = processControl(f, api);
-  await assert.rejects(drainAndCaptureNode({ ...f, api: control.identity, externalWritersStopped: () => true }, control), /NODE_DRAIN_CAPTURE_REJECTED/);
-  assert.equal(api.child.exitCode, 1);
-  assert.doesNotMatch(api.output(), /NODE_DRAINED/);
-  assert.equal(existsSync(f.destination), false);
-});
-
-test('Node drain finishes an admitted write before exiting and stops accepting new requests', { timeout: 15_000 }, async t => {
-  const f = fixture(t), api = await f.api();
-  const body = JSON.stringify({ name: 'Drained User', password: 'orchard bicycle summer 42!' });
-  const result = new Promise((resolveResponse, reject) => {
-    const req = http.request(`${api.base}/api/register/password`, { method: 'POST',
-      headers: { Origin: 'http://localhost:8080', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } }, res => {
-      res.resume(); res.on('end', () => resolveResponse(res.statusCode));
-    });
-    req.on('error', reject);
-    req.write(body.slice(0, -1));
-    api.pendingRequest = req;
-  });
-  result.catch(() => {});
-  await api.request('GET', '/api/config');
-  const started = once(api.child, 'message');
-  const closed = once(api.child, 'close');
-  api.child.send('drain'); await started;
-  assert.equal(stopped(api.child), false, 'accepted request must not be abandoned');
-  api.pendingRequest.end(body.slice(-1));
-  assert.equal(await result, 200);
-  const [code, signal] = await closed;
-  assert.equal(code, 0); assert.equal(signal, null);
-  assert.equal(JSON.parse(readFileSync(join(f.root, 'data/db.json'), 'utf8')).users[0].name, 'Drained User');
-  await assert.rejects(fetch(`${api.base}/api/config`));
-});
-
-test('Node capture preserves acknowledged HTTP state, media, secrets and configuration after all writers stop', async t => {
+test('Frozen-source capture preserves documents, media, secrets and configuration after all writers stop', async t => {
   const f = fixture(t), api = await f.api(), writer = await f.writer();
   const foreign = await f.writer(join(f.root, 'foreign.txt'));
-  const registered = await api.request('POST', '/api/register/password', { name: 'Capture User', password: 'orchard bicycle summer 42!' });
-  assert.equal(registered.status, 200);
-  await registered.json();
-  const cookie = registered.headers.getSetCookie().find(value => value.startsWith('gymsid=')).split(';')[0];
-  const bytes = jpeg(), hash = createHash('sha256').update(bytes).digest('hex');
-  const state = { unit: 'kg', routines: [], workouts: [{ id: 'acknowledged-1', d: '2026-11-03', entries: [] }],
-    customEx: [{ id: 'custom-1', n: 'Synthetic image', custom: true,
-      media: { hash, kind: 'image', mime: 'image/jpeg', size: bytes.length, width: 1, height: 1, at: 1 } }],
-    active: { id: 'active-1' } };
-  const saved = await api.request('PUT', '/api/data', { state }, cookie);
-  assert.equal(saved.status, 200);
-  await saved.json();
-  const expected = await (await api.request('GET', '/api/data', undefined, cookie)).json();
-  assert.equal(expected.state.workouts[0].id, 'acknowledged-1');
-  assert.equal(expected.state.customEx[0].media.hash, hash);
-  const user = JSON.parse(readFileSync(join(f.root, 'data/db.json'), 'utf8')).users[0].id;
-  const uploaded = await fetch(`${api.base}/api/media/${hash}`, { method: 'PUT',
-    headers: { Cookie: cookie, Origin: 'http://localhost:8080', 'Content-Type': 'image/jpeg' }, body: bytes });
-  assert.equal(uploaded.status, 201); await uploaded.json();
+  const bytes = Buffer.from([0xff, 0xd8, 0xff, 0xe0]), hash = createHash('sha256').update(bytes).digest('hex');
+  const user = 'A';
+  const state = { _rev: 7, _wid: 'frozen-write', workouts: [{ id: 'acknowledged-1' }],
+    customEx: [{ id: 'custom-1', media: { hash } }] };
+  writeFileSync(join(f.root, 'data/db.json'), JSON.stringify({ users: [{ id: user, name: 'Capture User' }] }));
+  writeFileSync(join(f.root, 'data/state-A.json'), JSON.stringify(state));
+  mkdirSync(join(f.root, 'data/uploads/A'), { recursive: true });
+  writeFileSync(join(f.root, `data/uploads/A/${hash}.jpg`), bytes);
   const writersStopped = () => stopped(api.child) && stopped(writer);
   await assert.rejects(captureStoppedNode({ ...f, writersStopped }), /NODE_CAPTURE_REJECTED/);
   assert.equal(existsSync(f.destination), false);
@@ -204,7 +122,7 @@ test('Node capture preserves acknowledged HTTP state, media, secrets and configu
   const capturedState = JSON.parse(readFileSync(join(f.destination, `data/state-${user}.json`), 'utf8'));
   assert.equal(capturedState.workouts[0].id, 'acknowledged-1');
   assert.equal(capturedState.customEx[0].media.hash, hash);
-  assert.equal(expected.state.active, undefined, 'Node state is not a backup of client-local active work');
+  assert.equal(capturedState.active, undefined, 'client-local active work is separate from the frozen source');
   const capturedClient = JSON.parse(readFileSync(join(f.destination, 'client-export/pending.json'), 'utf8'));
   assert.equal(capturedClient.active.id, 'local-active-1');
   assert.equal(capturedClient.dirty, true);
@@ -220,9 +138,7 @@ test('Node capture preserves acknowledged HTTP state, media, secrets and configu
     for (const name of ['', ...receipt.directories]) assert.equal(lstatSync(join(f.destination, name)).mode & 0o777, 0o700);
   }
   assert.equal(stopped(foreign), false, 'unrelated process is never stopped');
-  // Recover the source only; never start services on the captured copy.
-  const resumed = await f.api();
-  assert.deepEqual(await (await resumed.request('GET', '/api/data', undefined, cookie)).json(), expected);
+  assert.deepEqual(JSON.parse(readFileSync(join(f.root, 'data/state-A.json'), 'utf8')), state);
   assert.deepEqual(readFileSync(join(f.destination, 'capture.json'), 'utf8'), JSON.stringify(receipt));
   await assert.rejects(captureStoppedNode({ ...f, writersStopped: () => true }), /NODE_CAPTURE_REJECTED/);
 });
@@ -318,5 +234,5 @@ test('a killed Node capture controller leaves the source stopped and its partial
   await assert.rejects(captureStoppedNode({ ...f, writersStopped: () => true }), /NODE_CAPTURE_REJECTED/);
   // Explicit recovery uses only the source; a failed copy is never promoted or resumed.
   const recovered = await f.api();
-  assert.equal((await recovered.request('GET', '/api/config')).status, 200);
+  assert.equal(stopped(recovered.child), false);
 });

@@ -44,7 +44,7 @@ describe('the "left" beacon of the web app', () => {
     vi.stubGlobal('navigator', { ...navigator, sendBeacon })
     expect(beacon('/api/activity', { active: false })).toBe(true)
     const [url, blob] = sendBeacon.mock.calls[0]
-    expect(url).toBe('/myGym/api/activity')
+    expect(url).toBe('/myGym/api/v1/activity')
     expect(blob.type).toBe('application/json')
     expect(JSON.parse(await blob.text())).toEqual({ active: false })
   })
@@ -124,10 +124,10 @@ describe('what nginx forwards to the API', () => {
     return m ? m.groups[group] : target
   }
 
-  it('both /api blocks send the mapped target, photo and video uploads included', () => {
+  it('all /api blocks send the mapped target, photo and video uploads included', () => {
     for (const base of ['', '/gym']) {
       const conf = render(base)
-      for (const prefix of ['/api/', '/api/media/']) {
+      for (const prefix of ['/api/', '/api/media/', '/api/v1/media/']) {
         const block = conf.match(new RegExp('location \\^~ ' + base + prefix + ' \\{([^}]*)\\}'))
         expect(block).toBeTruthy()
         expect(block[1]).toMatch(new RegExp('\\bproxy_pass\\s+\\$api_upstream\\$' + conf.match(MAP)[1] + ';'))
@@ -138,7 +138,7 @@ describe('what nginx forwards to the API', () => {
   it('no block hands the API the target as it came in', () => {
     const passes = [...render('/gym').matchAll(/\bproxy_pass\s+([^;]+);/g)].map(m => m[1])
       .filter(to => to.startsWith('$api_upstream'))
-    expect(passes.length).toBe(2)
+    expect(passes.length).toBe(3)
     for (const to of passes) expect(to).toBe('$api_upstream$api_request_uri')
   })
 

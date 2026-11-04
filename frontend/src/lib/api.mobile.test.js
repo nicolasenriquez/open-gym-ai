@@ -26,7 +26,7 @@ describe('api() on the phone build', () => {
     vi.stubGlobal('fetch', fetch)
     setRemoteAuth('https://gym.example.com', 'TOKEN')
     await expect(api('/api/data/rev')).resolves.toEqual({ rev: 3 })
-    expect(fetch.mock.calls[0][0]).toBe('https://gym.example.com/api/data/rev')
+    expect(fetch.mock.calls[0][0]).toBe('https://gym.example.com/api/v1/data/rev')
     expect(fetch.mock.calls[0][1].headers.Authorization).toBe('Bearer TOKEN')
   })
 })

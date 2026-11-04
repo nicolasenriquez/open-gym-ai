@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -45,7 +45,7 @@ test('gate evidence flags reject missing, repeated and unknown arguments before 
 });
 
 test('a missing Docker prerequisite fails without crediting a contract or shared-client proof', () => {
-  for (const [suite, selected] of [['contracts', 'baseline'], ['shared_client', 'canonical_sources'], ['shared_client', 'formats_and_bundles']]) {
+  for (const [suite, selected] of [['contracts', 'python_routes'], ['shared_client', 'canonical_sources'], ['shared_client', 'formats_and_bundles']]) {
     const result = invoke('verify', suite, '--case', selected);
     assert.equal(result.status, 1);
     assert.match(result.stderr, /Docker (unavailable|container failed)/);
@@ -53,24 +53,10 @@ test('a missing Docker prerequisite fails without crediting a contract or shared
   }
 });
 
-test('frozen expectations reject changed fixtures instead of regenerating them', t => {
-  const root = mkdtempSync(join(tmpdir(), 'opengym-baseline-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
-  mkdirSync(join(root, 'scripts'));
-  cpSync('scripts/platform-baseline.mjs', join(root, 'scripts/platform-baseline.mjs'));
-  const manifest = JSON.parse(readFileSync('backend/contracts/port-baseline.v1.json', 'utf8'));
-  for (const path of Object.keys(manifest.files)) {
-    const destination = join(root, path);
-    mkdirSync(join(destination, '..'), { recursive: true });
-    cpSync(path, destination);
-  }
-  cpSync('backend/contracts/port-baseline.v1.json', join(root, 'backend/contracts/port-baseline.v1.json'));
-  const check = () => spawnSync(process.execPath, ['scripts/platform-baseline.mjs'], { cwd: root, encoding: 'utf8' });
-  assert.equal(check().status, 0);
-  const fixture = join(root, 'backend/contracts/http-baseline.v1.json');
-  writeFileSync(fixture, readFileSync(fixture, 'utf8').replace('not signed in', 'different error'));
-  assert.equal(check().status, 1);
-  assert.match(check().stderr, /PLATFORM_BASELINE_REJECTED/);
+test('retired transition baseline cannot be invoked or credited', () => {
+  const result = invoke('verify', 'contracts', '--case', 'baseline');
+  assert.equal(result.status, 2);
+  assert.doesNotMatch(result.stdout, /PLATFORM_CASE_OK/);
 });
 
 test('empty output, skipped proofs and failed commands never receive a passing case marker', t => {
@@ -78,7 +64,7 @@ test('empty output, skipped proofs and failed commands never receive a passing c
   t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, 'scripts'));
   mkdirSync(join(root, 'backend'));
-  for (const file of ['platform.mjs', 'platform-baseline.mjs', 'synthetic-harness.mjs']) {
+  for (const file of ['platform.mjs', 'synthetic-harness.mjs']) {
     cpSync(join('scripts', file), join(root, 'scripts', file));
   }
   writeFileSync(join(root, 'required.test.mjs'), "import test from 'node:test'; test('required proof', { skip: true }, () => {});\n");

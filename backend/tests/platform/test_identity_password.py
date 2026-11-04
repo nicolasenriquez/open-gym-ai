@@ -21,11 +21,7 @@ from opengym_platform.identity.passwords import (
     name_key,
 )
 
-VECTORS = json.loads(
-    (Path(__file__).parents[2] / "contracts/identity-passwords.v1.json").read_text()
-)
-HASH = VECTORS["vectors"][0]["hash"]
-PASSWORD = VECTORS["vectors"][0]["password"]
+from identity_vectors import ALIASES, HASH, IDENTIFIERS, LEGACY_HASH, PASSWORD, PASSWORD_CASES
 
 
 @pytest_asyncio.fixture
@@ -139,15 +135,12 @@ async def test_identity_routes_keep_factory_configuration_and_collaborators_loca
 async def test_node_scrypt_and_unicode_vectors():
     passwords = Passwords()
     await passwords.warm_up()
-    for vector in VECTORS["vectors"]:
-        assert (
-            await passwords.verify(vector["password"], vector["hash"])
-            is vector["matches"]
-        )
-    for vector in VECTORS["aliases"]:
-        assert name_key(vector["input"]) == vector["key"]
-    for vector in VECTORS["identifiers"]:
-        assert identifier_text(vector["input"]) == vector["text"]
+    for password, encoded, matches in PASSWORD_CASES:
+        assert await passwords.verify(password, encoded) is matches
+    for raw, expected in ALIASES:
+        assert name_key(raw) == expected
+    for raw, expected in IDENTIFIERS:
+        assert identifier_text(raw) == expected
     for malformed in (
         None,
         "",
@@ -404,7 +397,7 @@ async def test_old_parameters_rehash_without_changing_version_or_historical_date
     accounts,
 ):
     observer, environment = accounts
-    vector = VECTORS["vectors"][5]
+    vector = {"hash": LEGACY_HASH, "password": " legacy key length "}
     await observer.execute(
         "UPDATE identity.password_credentials SET scrypt_hash=$1 WHERE owner_id='A'",
         vector["hash"],

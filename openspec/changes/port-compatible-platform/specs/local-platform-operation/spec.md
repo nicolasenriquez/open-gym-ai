@@ -112,7 +112,7 @@ Age/space enforcement SHALL cover every durable copy, active/rotated files, star
 - **AND** size-only Docker rotation is not credited as age deletion; passing health alone does not prove correlated diagnosis or retention
 
 ### Requirement: Single-authority cutover and verified retirement
-This change SHALL deliver functional port and recoverable local operation on synthetic resources, including cutover/retirement rehearsals. Actual pre-cutover review, cutover, legacy retirement and platform acceptance SHALL remain tracked as S11 in port-compatible-platform and SHALL require separately granted scoped operational permissions. All five S11 obligations SHALL be completed before archive; a separate OpenSpec SHALL NOT be required. Documentary preparation and synthetic completion SHALL NOT establish actual G0/G2/G3 or authorize operational access, cutover, retirement or Recovery.
+This change SHALL deliver and accept the repository: functional Python port, recoverable local tooling and synthetic cutover/retirement rehearsals. By explicit promoter decision, S11 task 11.2 SHALL record deferral of actual migration/cutover and real-instance acceptance to a later separately authorized operational intervention. Tasks 11.3–11.5 SHALL retire replaced repository code/contracts, verify the retired tree and consolidate repository acceptance before archive. Real migration SHALL NOT block repository closeout; its deferral SHALL NOT waive operational prerequisites or establish actual G0/G2/G3, operational access or Recovery permission.
 
 Real cutover SHALL require G0 inventory/backups and prior G1/GP/GO evidence, an agreed rehearsed maintenance window, all writers paused and equivalent import before enabling PostgreSQL as the only authority. Origin/release/configuration/secrets SHALL remain frozen/protected for at least 30 days after accepted cutover without automatic deletion. Before new writes rollback SHALL use validated origin; after new writes the baseline SHALL be rehearsed forward repair of Python/PostgreSQL preserving new writes, never automatic return to the frozen Node origin or silent loss. Reverse export to Node SHALL be excluded unless separately approved by the promoter. If forward repair cannot preserve required writes in the agreed failure scenario, cutover SHALL remain blocked pending an explicit decision; periodic backups SHALL NOT be presented as zero RPO. G3/GO SHALL be demonstrated again after removing replaced dependencies before Recovery implementation begins.
 
@@ -127,14 +127,14 @@ Real cutover SHALL require G0 inventory/backups and prior G1/GP/GO evidence, an 
 - **AND** results distinguish repair of the surviving destination from recovery after destination loss within the accepted RPO scope
 
 #### Scenario: Post-retirement acceptance
-- **WHEN** platform closeout is considered after cutover and legacy removal
+- **WHEN** repository closeout is considered after legacy source removal, with actual cutover deferred
 - **THEN** capability/security parity, operation/diagnosis/restore and absence of active retired storage readers are evidenced again
-- **AND** documentation validation or Foundation fixtures alone cannot authorize platform acceptance or Recovery start
+- **AND** clean-tree evidence supports repository acceptance only; documentation validation or synthetic results cannot establish real-instance acceptance or authorize Recovery start
 
 #### Scenario: Synthetic evidence is available but real inventory is unknown
 - **WHEN** existing synthetic suites report passing results and the real clients, devices or later-access coverage have not been verified
 - **THEN** their guarantees are referenced without inventing operational results; an explicitly promoter-approved administrative closure of preparation task 11.1 MAY be recorded without establishing operational readiness
-- **AND** administrative closure SHALL NOT authorize cutover, waive existing G0/G1/GP/GO requirements, expand task 11.2 or establish platform acceptance; those existing cutover conditions remain unchanged
+- **AND** administrative closure and deferral of 11.2 SHALL NOT authorize cutover, waive existing G0/G1/GP/GO requirements or establish real-instance acceptance; those future cutover conditions remain unchanged
 
 #### Scenario: Evidence requires privileged or state-changing collection
 - **WHEN** a missing proof requires reading private configuration, using keys, pausing writers, capturing data or restoring a real snapshot into isolation

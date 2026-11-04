@@ -29,12 +29,11 @@ jobs:
           node-version: 22
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint:ci
-      - run: node --test scripts/ci/*.test.mjs
-      - name: Audit every JavaScript lock, including optional Coach dependencies
+      - run: node scripts/build-api-docs.mjs --check
+      - name: Audit every current JavaScript lock
         run: |
           pnpm audit
           pnpm --dir frontend audit
-          pnpm --dir api audit
       - run: docker build -f backend/Dockerfile.security -t opengym-security:ci .
       - name: Workflow security (offline)
         run: docker run --rm --network none --read-only --tmpfs /tmp opengym-security:ci zizmor --offline .github/workflows
@@ -113,7 +112,7 @@ jobs:
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.34.8
-      # node:22-alpine in web/Dockerfile and api/Dockerfile — CI must match production.
+      # Node 22 builds the web/client tools; the API runtime is Python.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
@@ -138,102 +137,6 @@ jobs:
       - run: pnpm run test:fatigue-probe
         working-directory: frontend
 
-
-  api:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-        with:
-          version: 10.34.8
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: api/pnpm-lock.yaml
-      # The Coach tests run on node:test and drive the in-repo fixture provider plus a local mock
-      # of the Chat Completions shape, so the job needs no AI account and no network — but it does
-      # need the api's own dependencies since the server-side fetch moved onto undici (the
-      # Agent SDK is optional and stays out).
-      - run: pnpm install --frozen-lockfile --no-optional --ignore-scripts
-        working-directory: api
-      - run: pnpm test
-        working-directory: api
-      # The api's copy of the exercise catalogue is generated and committed. A dataset change
-      # that forgets to regenerate it would otherwise only surface as "the Coach can't find
-      # that exercise" on somebody's instance.
-      - run: node scripts/build-coach-assets.mjs --check
-      - run: node scripts/build-push-assets.mjs --check
-      # website/api.html is generated from backend/openapi.yaml and committed. Same reason.
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: node scripts/build-api-docs.mjs --check
-      - run: node api/scripts/check-core-loadable.mjs
-
-  # Builds *and runs* both image targets. Building alone would not have caught the api image
-  # shipping without coach/ — that image built perfectly and exited on boot. So each target has
-  # to answer for itself: the default one starts and serves, and the coach one additionally
-  # resolves the Agent SDK's per-platform runtime (musl on this base), which is the one thing
-  # that cannot be checked from the source tree.
-  api-image:
-    needs: [quality, test, api]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      - run: node --test scripts/docker-build-context.test.mjs
-      - run: docker build -f web/Dockerfile -t opengym-web:ci .
-      - run: docker build -f api/Dockerfile --target default -t opengym-api:default .
-      - run: docker build -f api/Dockerfile --target coach   -t opengym-api:coach   .
-      # An untargeted build uses the last Dockerfile stage. Verify it remains runtime-free
-      # for consumers building without --target, independently of the explicit default build.
-      - run: docker build -f api/Dockerfile -t opengym-api:published .
-
-      - name: The untargeted image excludes AI packages and executables
-        run: docker run --rm -i opengym-api:published node --input-type=module < scripts/ci/assert-no-ai-executables.mjs
-
-      - name: Packaged web/API smoke
-        run: node scripts/ci/smoke-web-api.mjs
-      - name: the coach image carries a runnable Agent SDK
-        run: |
-          docker run --rm opengym-api:coach node --input-type=module -e '
-            const { adapterFor } = await import("./coach/adapters/index.js");
-            const r = await adapterFor("claude").check();
-            if (!r.ok) { console.error(r.error); process.exit(1); }
-            console.log(r.version);
-          '
-
-      - name: the coach image carries the Codex runtime and its sandbox
-        run: |
-          docker run --rm --network none -e DATA_DIR=/tmp opengym-api:coach node --input-type=module -e '
-            const cfg = await import("./coach/config.js");
-            const { adapterFor } = await import("./coach/adapters/index.js");
-            cfg.save({ provider: "codex" });
-            const result = await adapterFor("codex").check(cfg.load(), cfg.jobEnv("/tmp"));
-            if (!result.ok) { console.error(result.error); process.exit(1); }
-            console.log(result.version);
-          '
-          docker run --rm opengym-api:coach bwrap --version
-          # Owned by the user jobs drop to, and 0700 — a credential cache readable by anything
-          # else in the container would undo the point of dropping privileges at all.
-          test "$(docker run --rm opengym-api:coach stat -c '%U %a' /coach-auth)" = "coach 700"
-
-      - name: the default image excludes AI packages and executables
-        run: |
-          # bubblewrap is a Codex requirement, so an owner who never opted in should not be
-          # carrying it. Both commands must fail.
-          docker run --rm -i opengym-api:default node --input-type=module < scripts/ci/assert-no-ai-executables.mjs
-
-      - name: the privilege drop can actually be performed in the image
-        run: |
-          # canDropPrivileges() fails closed, so a missing `coach` user disables every job —
-          # including the fixture provider. Cheaper to assert here than to discover on an instance.
-          docker run --rm opengym-api:default id coach
 
   platform:
     runs-on: ubuntu-latest
@@ -262,11 +165,11 @@ jobs:
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
-          file: backend/Dockerfile.contracts
+          file: backend/Dockerfile.client
           push: false
-          cache-from: type=gha,scope=platform-contracts
-          cache-to: type=gha,scope=platform-contracts,mode=max
-      - run: node scripts/platform-baseline.mjs
+          cache-from: type=gha,scope=platform-client
+          cache-to: type=gha,scope=platform-client,mode=max
+      - run: node --test scripts/docker-build-context.test.mjs
       - run: node --test scripts/docker-layout.test.mjs
       - run: node scripts/platform.mjs verify harness
       - run: node scripts/platform.mjs verify database
@@ -308,7 +211,6 @@ jobs:
       - run: node scripts/platform.mjs verify restore --case reviewed_access
       - run: node scripts/platform.mjs verify restore --case full_timing
       - run: node scripts/platform.mjs verify images --case reproducibility
-      - run: node scripts/platform.mjs verify contracts --case baseline
       - run: node scripts/platform.mjs verify contracts --case python_routes
       - run: node scripts/platform.mjs verify shared_client --case canonical_sources
       - run: node scripts/platform.mjs verify shared_client --case formats_and_bundles

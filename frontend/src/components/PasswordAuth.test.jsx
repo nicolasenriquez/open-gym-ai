@@ -3,7 +3,6 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { passwordError, PasswordSignInSheet, PasswordRegisterForm, PasswordRow, PasswordSheet, EmailSheet, looksLikeEmail } from './PasswordAuth.jsx'
-import { normalizeEmail } from '../../../api/password.js'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
@@ -528,7 +527,8 @@ describe('Settings → Sign-in e-mail', () => {
       'ana@@example.com', 'a b@example.com', 'ana@.example.com', 'ana@-example.com', 'ana@example..com', 'a..b@example.com',
       '"ana"@example.com', 'ana@exa,mple.com', 'ana@example.c0m', 'x'.repeat(65) + '@example.com', 'a@' + 'b'.repeat(250) + '.com',
       'ana@exämple.de', 'ana@example.com.', '', '@example.com', 'ana@']
-    for (const c of cases) expect(looksLikeEmail(c), JSON.stringify(c)).toBe(normalizeEmail(c) !== null)
+    const accepted = new Set([0, 1, 2, 3, 14, 17])
+    cases.forEach((value, index) => expect(looksLikeEmail(value), JSON.stringify(value)).toBe(accepted.has(index)))
   })
 
   it('removing asks for the same proof, then removes', async () => {

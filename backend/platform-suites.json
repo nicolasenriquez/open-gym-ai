@@ -5,29 +5,29 @@
     "command": ["--test", "--test-reporter=tap", "--test-name-pattern=authorized_cutover", "scripts/platform-gates.test.mjs"],
     "requirement": "Single-authority cutover and verified retirement / New writes followed by rollback request",
     "proof": "Synthetic CLI evidence inspection reuses pre-cutover coverage and safe files; requires candidate-bound explicit approval, maintenance window, single authority, equivalent import, protected originals and rollback-before-writes or preservation after forward repair",
-    "checkpoint": "Inspector only, never operates on an instance or grants permission. Always requires manual review and reports cutoverAuthorized/realGateCompleted false; 11.2 remains pending real authorized execution."
+    "checkpoint": "Inspector only, never operates on an instance or grants permission. Always requires manual review and reports cutoverAuthorized/realGateCompleted false; 11.2 records deferral; real authorized execution remains a later operational intervention."
   }, {
     "id": "node_capture_recovery",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-node-recovery.test.mjs"],
     "requirement": "Single-authority cutover and verified retirement / Node origin needs a representative Python rehearsal",
-    "proof": "Actual stopped Node capture -> existing PostgreSQL importer -> real host maintenance wrapper/age verified bundle -> separate quarantined restore, SQL/files/roles observer, original Node cutoff retained, corruption/key/target/interruption negatives",
+    "proof": "Independent frozen legacy files -> stopped-source capture -> existing PostgreSQL importer -> real host maintenance wrapper/age verified bundle -> separate quarantined restore, SQL/files/roles observer, original Node cutoff retained, corruption/key/target/interruption negatives",
     "checkpoint": "11.1 synthetic chain only; scoped temporary runtime checks inside fixtures, no real instance, operational gate, access acceptance, physical disk or RPO/RTO claim"
   }, {
     "id": "node_capture_import",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-node-import.test.mjs"],
     "requirement": "Single-authority cutover and verified retirement / Node origin needs a representative Python rehearsal",
-    "proof": "Real Node HTTP writes/media -> stopped capture -> read-only owned volume -> existing importer on fresh PostgreSQL; independent SQL/files observer, denied runtime CONNECT, immutable source, occupied target and unrepresentable captured JSON blocked",
+    "proof": "Independent legacy documents/media -> frozen-source capture -> read-only owned volume -> existing importer on fresh PostgreSQL; independent SQL/files observer, denied runtime CONNECT, immutable source, occupied target and unrepresentable captured JSON blocked",
     "checkpoint": "11.1 synthetic chain only; no real topology/data/permission or operational gate, no target promotion, backup, restore or RPO/RTO acceptance"
   }, {
     "id": "node_capture",
-    "target": "platform-contracts",
+    "target": "platform-client",
     "entrypoint": "node",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-node-capture.test.mjs"],
     "requirement": "Single-authority cutover and verified retirement / Node origin needs a representative Python rehearsal",
-    "proof": "Real disposable Node drains admitted HTTP and detached Coach work before capture; identity/external-writer preflight, timeout refusal, bounded exclusive copy and source/destination hashes; active writers, changed sources, unsafe paths and killed controller cannot publish success or restart services",
-    "checkpoint": "Synthetic capture/drain adapter only; no real topology, custody, data, backup disk, permission or operational gate. Caller supplies approved external-writer custody and explicit recovery; no operate command or automatic cutover."
+    "proof": "Disposable protocol fixtures verify stopped-source capture and drain proof; preserved-release runtime behavior remains historical evidence, not a second active API; identity/external-writer preflight, timeout refusal, bounded exclusive copy and source/destination hashes; active writers, changed sources, unsafe paths and killed controller cannot publish success or restart services",
+    "checkpoint": "Synthetic frozen-source capture/drain adapter only; no real topology, custody, data, backup disk, permission or operational gate. Caller supplies approved external-writer custody and explicit recovery; no operate command or automatic cutover."
   }, {
     "id": "pre_cutover",
     "target": "host",
@@ -140,7 +140,7 @@
     "id": "canonical_sources",
     "requirement": "Faithful import and retirement parity / Parity after removing the replaced backend",
     "setup": "Pinned Node/client test image; canonical shared JS, generated assets and private provider fixtures",
-    "target": "platform-contracts",
+    "target": "platform-client",
     "entrypoint": "node",
     "command": ["--test", "scripts/shared-client.test.mjs"],
     "proof": "Single neutral source, current generated assets, plain Node loading and local coach/payload/validator parity",
@@ -149,7 +149,7 @@
     "id": "formats_and_bundles",
     "requirement": "Faithful import and retirement parity / Parity after removing the replaced backend",
     "setup": "Pinned Node/client image, synthetic format fixtures and disposable web/mobile build workspace",
-    "target": "platform-contracts",
+    "target": "platform-client",
     "entrypoint": "node",
     "command": ["--test", "scripts/formats-and-bundles.test.mjs"],
     "proof": "CSV/JSON/media backup/FIT hostile cases, catalogue continuity, web API prefixes and mobile assets copied intact to Android/iOS without Node API sources",
@@ -354,7 +354,7 @@
       "requirement": "Canonical compatible Training persistence / First write and competing revision; No document and legacy metadata",
       "setup": "Independent Node stamp vectors, real HTTP and restricted PostgreSQL with separate observer",
       "target": "platform-test",
-      "command": ["tests/platform/test_training_lineage.py"],
+      "command": ["tests/platform/test_training_stamps.py", "tests/platform/test_training_lineage.py"],
       "proof": "Stamps, legacy replacements, reset, lineage and lost response retries preserve canonical state",
       "checkpoint": "3.3 only; browser reconciliation remains 3.4"
     },
@@ -510,15 +510,6 @@
       "command": ["tests/platform/test_openapi.py"],
       "proof": "Canonical YAML covers Python methods and public HTTP responses; internal probes and framework endpoints stay private",
       "checkpoint": "8.3 synthetic contract verification"
-    },
-    {
-      "id": "baseline",
-      "requirement": "Phase-bounded compatible capability port / Training pilot follows identity; Faithful import and retirement parity / OpenAPI authority moves without contract drift",
-      "setup": "Frozen independent Node/client expectations, two synthetic owners, private network/tmpfs",
-      "target": "platform-contracts",
-      "command": ["contracts"],
-      "proof": "SHA-256 expectations unchanged; six HTTP literals and all declared Node/client suites pass without skips",
-      "checkpoint": "1.1–1.2 only; not Python parity or platform acceptance"
     }
   ],
   "database": [

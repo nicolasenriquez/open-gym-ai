@@ -41,6 +41,13 @@ week goes by with no reply, comment on the advisory thread — it's more likely 
 notification than a decision. If a report goes unfixed and you want to disclose publicly, say so
 in the thread; there's no objection, and no request to sit on it indefinitely.
 
+> **Runtime transition:** this checkout now supplies Python/FastAPI/PostgreSQL.
+> [Platform security](docs/reference/platform-security.md) and
+> [backend usage](backend/README.md) own its current controls and provider limits.
+> Source references and the detailed Node model below describe preserved older
+> releases, not a second active backend. Repository retirement does not migrate or
+> certify any instance; real migration is deferred.
+
 ## In scope
 
 - **`api/server.js`** — forging or replaying a session cookie, bypassing passkey verification,

@@ -106,10 +106,10 @@ test('ownership: project-named resources with foreign project labels block clean
 test('ownership: a shared image is never untagged or removed', t => {
   const token = randomBytes(8).toString('hex');
   const project = `opengym-platform-test-${token}`;
-  const tag = `${project}-platform-contracts:local`;
+  const tag = `${project}-platform-client:local`;
   const other = `opengym-platform-protected-${token}:local`;
   ok(invoke('docker', ['build', '--quiet', '--tag', tag, '--label', `com.docker.compose.project=${project}`,
-    '--label', 'org.opengym.platform=synthetic', '--label', 'com.docker.compose.service=platform-contracts', '-'],
+    '--label', 'org.opengym.platform=synthetic', '--label', 'com.docker.compose.service=platform-client', '-'],
   { input: `FROM scratch\nLABEL org.opengym.platform.probe=${token}\n` }));
   t.after(() => {
     for (const name of [other, tag]) {
@@ -127,7 +127,7 @@ test('ownership: a shared image is never untagged or removed', t => {
 test('ownership: resolved config ignores foreign dotenv/Compose settings and has no instance access', t => {
   const root = mkdtempSync(join(tmpdir(), 'opengym-platform-config-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  for (const path of ['scripts/platform.mjs', 'scripts/platform-baseline.mjs', 'scripts/synthetic-harness.mjs',
+  for (const path of ['scripts/platform.mjs', 'scripts/synthetic-harness.mjs',
     'deploy/docker-compose.test.yml', 'backend/empty.env']) {
     mkdirSync(join(root, path, '..'), { recursive: true });
     cpSync(path, join(root, path));
@@ -140,8 +140,8 @@ test('ownership: resolved config ignores foreign dotenv/Compose settings and has
   const config = JSON.parse(ok(result));
   assert.equal(config.name, 'opengym-platform-test');
   assert.equal(config.networks.private.internal, true);
-  assert.deepEqual(Object.keys(config.services), ['platform-browser', 'platform-contracts', 'platform-db', 'platform-test']);
-  for (const name of ['platform-browser', 'platform-contracts', 'platform-test']) {
+  assert.deepEqual(Object.keys(config.services), ['platform-browser', 'platform-client', 'platform-db', 'platform-test']);
+  for (const name of ['platform-browser', 'platform-client', 'platform-test']) {
     const service = config.services[name];
     assert.equal(service.user, '1000:1000');
     assert.equal(service.read_only, true);
@@ -159,5 +159,5 @@ test('ownership: resolved config ignores foreign dotenv/Compose settings and has
   assert.deepEqual(database.cap_drop, ['ALL']);
   assert.match(database.security_opt.join(' '), /no-new-privileges/);
   assert.doesNotMatch(JSON.stringify(config), /foreign|personal|docker\.sock/);
-  assert.match(readFileSync('backend/Dockerfile.contracts', 'utf8'), /node:22\.23\.2.*@sha256:/);
+  assert.match(readFileSync('backend/Dockerfile.client', 'utf8'), /node:22\.23\.2.*@sha256:/);
 });

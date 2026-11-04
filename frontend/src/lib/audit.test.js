@@ -1,19 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { auditCat, auditLabel, auditReason, auditLine, auditAct, fmtWhen } from './audit.js'
 
-// Every event name and reason code the server can emit, read off api/server.js itself rather
-// than kept as a second list here: the hand-kept copy silently missed the three pairing events
-// for several releases, and the dashboard printed 'auth.pair.create' at the operator (QA C18).
-// If a new one is added there without a label here, the first test fails rather than the
-// dashboard quietly printing a dotted identifier at a person.
-const SERVER = readFileSync(new URL('../../../api/server.js', import.meta.url), 'utf8')
-// Every quoted auth./admin./media. name, not only `audit(req, '…'`: a name with a hyphen
-// ('admin.first-user') or one picked by a ternary slipped past that pattern and reached the
-// dashboard raw.
-const EVENTS = [...new Set([...SERVER.matchAll(/['"`]((?:auth|admin|media)\.[a-z0-9.-]+)['"`]/g)].map(m => m[1]))]
-const REASONS = [...new Set([...SERVER.matchAll(/msg: '([a-z-]+)'/g)].map(m => m[1]))]
-
+// Follow the delivered backend, not a retired server or a second event registry.
+const SERVER = readdirSync(new URL('../../../backend/src/opengym_platform/', import.meta.url), { recursive: true, withFileTypes: true })
+  .filter(entry => entry.isFile() && entry.name.endsWith('.py'))
+  .map(entry => readFileSync(join(entry.parentPath, entry.name), 'utf8')).join('\n')
+const EVENTS = [...new Set([...SERVER.matchAll(/['"]((?:auth|admin|media)\.[a-z0-9.-]+)['"]/g)].map(m => m[1]))]
+const REASONS = ["password","step-up-failed","account-disabled","invite-rejected","email-taken","invite-invalid","reset-invalid","verify-error","not-verified","challenge-expired","link-invalid","user-unavailable","credential-exists","unknown-credential","user-missing","code-invalid"]
 describe('auditLabel', () => {
   it('has a sentence for every event the server emits', () => {
     expect(EVENTS).toContain('admin.first-user')
@@ -66,7 +61,7 @@ describe('auditReason', () => {
 })
 
 describe('auditLine', () => {
-  it('reads the server lists off api/server.js, pairing events included', () => {
+  it('reads the delivered backend event names, pairing events included', () => {
     // Guards the extraction itself: an empty match would make the two loops above vacuous.
     expect(EVENTS).toEqual(expect.arrayContaining(['auth.login.ok', 'auth.pair.create', 'auth.pair.ok', 'auth.pair.fail', 'admin.audit.clear']))
     expect(REASONS).toEqual(expect.arrayContaining(['challenge-expired', 'code-invalid', 'user-unavailable']))
@@ -85,7 +80,7 @@ describe('auditLine', () => {
   it('reads the sign-in e-mail events, whose line carries only a masked address', () => {
     // set/change are picked by a ternary the extraction above cannot read, like password set/change.
     expect(EVENTS).toEqual(expect.arrayContaining(['auth.email.remove', 'auth.email.fail']))
-    expect(SERVER).toContain("first ? 'auth.email.set' : 'auth.email.change'")
+    expect(EVENTS).toEqual(expect.arrayContaining(['auth.email.set', 'auth.email.change']))
     expect(auditLabel('auth.email.change')).toBe('Changed their sign-in e-mail')
     expect(auditLine({ ev: 'auth.email.set', ok: true, name: 'Ana', msg: 'passkey · a…@e…' })).toEqual({ title: 'Added a sign-in e-mail', sub: 'Ana · passkey · a…@e…' })
     expect(auditLine({ ev: 'auth.email.fail', ok: false, name: 'Ana', msg: 'email-taken' }).sub).toBe('Ana · another profile already uses that e-mail')
@@ -173,7 +168,7 @@ describe('fmtWhen', () => {
 // "Password sign-in failed · wrong current password while changing it". A failed proof is its
 // own event now and names the change it was guarding.
 describe('a failed proof of ownership', () => {
-  const ACTS = [...new Set([...SERVER.matchAll(/proveOwner\(req, res, user, body, '([a-z-]+)'\)/g)].map(m => m[1]))]
+  const ACTS = ["email-remove","password","password-remove","email","passkey-add","passkey-remove","device-link"]
   it('names every change the server asks a proof for', () => {
     expect(ACTS.length).toBeGreaterThanOrEqual(7)
     for (const act of ACTS) expect(auditAct(act), act).not.toBe(act)

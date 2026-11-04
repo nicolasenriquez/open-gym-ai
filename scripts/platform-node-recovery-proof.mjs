@@ -16,9 +16,9 @@ function files(root, prefix = '') {
 
 export async function prepareNodeRecoverySource(ctx) {
   const { root, temporary, project, image, docker, compose, sql, data, composeFile, evidence } = ctx;
-  const nodeImage = `${project}-platform-contracts:local`;
+  const nodeImage = `${project}-platform-client:local`;
   await docker(['build', '--label', `com.docker.compose.project=${project}`, '--label', 'org.opengym.platform=synthetic',
-    '--label', 'com.docker.compose.service=platform-contracts', '-t', nodeImage, '-f', 'backend/Dockerfile.contracts', root], true);
+    '--label', 'com.docker.compose.service=platform-client', '-t', nodeImage, '-f', 'backend/Dockerfile.client', root], true);
   const produced = await docker([...compose, 'run', '--rm', '--no-deps', 'node-source']);
   writeFileSync(join(evidence, 'node-capture.log'), produced);
   assert.match(produced, /NODE_CHAIN_EXIT_0\b/);

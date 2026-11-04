@@ -8,7 +8,7 @@
 - La documentación del producto sigue en [docs/](../docs/README.md), el vocabulario en [GLOSSARY.md](../GLOSSARY.md) y las decisiones en docs/adr/ cuando existan.
 - OpenSpec conserva la autoridad de los cambios formalizados allí. Los tickets locales enlazan sus artefactos; no mantienen otra especificación del mismo cambio.
 
-El runtime actual es Node/JSON. La dirección Python/FastAPI/PostgreSQL se consulta desde el índice de documentación y no se trata como implementación existente.
+El runtime del repositorio es Python/FastAPI/PostgreSQL (`backend/README.md`). Node/JSON está retirado de las fuentes; la migración real de instancias está aplazada y exige autorización separada.
 
 ## Carga de instrucciones
 

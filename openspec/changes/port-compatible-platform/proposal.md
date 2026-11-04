@@ -22,7 +22,7 @@ la aprobación documental como implementación.
 - Extender el harness Foundation por slice sin duplicar cleanup; no anticipar
   browser ni exporter/almacén de telemetría propios.
 - Entregar port funcional y operación local recuperable como checkpoints separados;
-  ensayar corte/retirada sintéticos y completar S11 aquí con permisos operativos separados.
+  ensayar corte/retirada sintéticos y cerrar la entrega del repositorio sin migrar la instancia real.
 - Restore: continuidad con evidencia o nueva vía local explícitamente autorizada,
   sin reactivar credenciales históricas dudosas ni elevar roles. Especificar
   autorización/entrega privada antes de ese slice; sin ledger nuevo. Conservar
@@ -38,7 +38,11 @@ la aprobación documental como implementación.
 
 **Estado vigente:** port funcional y tooling de operación implementados/verificados
 por slices; [tasks.md](tasks.md) conserva decisiones, progreso y prueba de entrega.
-S11 mantiene aquí corte, retirada y aceptación, bajo permisos operativos separados.
+Decisión vigente del promotor: S11 cierra código, pruebas y documentación del repositorio.
+La migración/corte y aceptación de la instancia real se aplazan a una intervención
+operativa posterior con autorización específica; no son prerrequisito de archive.
+11.2 registra ese aplazamiento, no un corte ejecutado. 11.3–11.5 conservan sus
+checks de retirada y aceptación del repositorio; no acreditan G0/G2/G3 operativos.
 La [guía S11](collection-plan.md) concentra procedimiento y checks reutilizados.
 La evidencia sintética no acepta una instancia ni autoriza corte o Recovery.
 El resto de la propuesta describe el alcance acordado, no una lista adicional de pendientes.

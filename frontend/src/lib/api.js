@@ -46,7 +46,7 @@ const TIMEOUT_GET_MS = 20000
 const TIMEOUT_MS = 60000
 
 // Callers use logical /api paths; each build selects its server's HTTP contract.
-const apiPath = path => path.replace(/^\/api(?=\/|$)/, import.meta.env.VITE_API_PREFIX || '/api')
+const apiPath = path => path.replace(/^\/api(?=\/|$)/, import.meta.env.VITE_API_PREFIX || '/api/v1')
 
 const failure = (message, code, status) => Object.assign(new Error(message), { code, status })
 

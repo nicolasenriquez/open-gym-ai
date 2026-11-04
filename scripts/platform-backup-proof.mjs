@@ -75,7 +75,7 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
   writeFileSync(envFile, '');
   const { docker, cleanup } = syntheticHarness({ root, namespace: 'opengym-platform-test',
     label: 'org.opengym.platform', name: 'Maintenance', services: ['db', 'api', 'ops', 'migrate', 'node-source'],
-    images: ['platform-test', 'platform-repair', 'platform-contracts'], database: 'db' });
+    images: ['platform-test', 'platform-repair', 'platform-client'], database: 'db' });
   const compose = ['compose', '--project-directory', root, '--env-file', envFile, '-p', project, '-f', composeFile];
   const labels = { 'org.opengym.platform': 'synthetic' };
   const secret = name => {
@@ -139,7 +139,7 @@ else:raise AssertionError('API_NOT_READY')`]);
     console.log(`NODE_RECOVERY_EVIDENCE ${evidence}`);
     const source = join(temporary, 'node-source'); mkdirSync(source, { mode: 0o700 });
     const model = JSON.parse(readFileSync(composeFile));
-    model.services['node-source'] = { image: `${project}-platform-contracts:local`, user,
+    model.services['node-source'] = { image: `${project}-platform-client:local`, user,
       labels, read_only: true, cap_drop: ['ALL'], security_opt: ['no-new-privileges:true'],
       tmpfs: ['/tmp'], networks: ['private'], restart: 'no', entrypoint: ['sh', '-c'],
       volumes: [{ type: 'bind', source, target: '/app/node-capture-fixtures' }],

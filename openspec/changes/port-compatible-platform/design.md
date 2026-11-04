@@ -216,7 +216,7 @@ posteriores demuestran independencia del backend sustituido antes de Recovery.
 
 ### 6. Cleanup como checkpoint de entrega
 
-Después del corte equivalente y antes de aceptación, inventariar rutas y consumidores:
+Antes de aceptar la entrega del repositorio, independientemente del corte real aplazado, inventariar rutas y consumidores:
 retirar código de negocio sustituido, lectores/escritores/config/dependencias exclusivos
 y scaffolding temporal; conservar o adaptar pruebas de comportamiento. Primero adaptar
 consumidores de shared, generadores, web/mobile, CI y operación. No conservar una segunda
@@ -233,10 +233,13 @@ sobre el árbol limpio; un sentinel ajeno y material protegido deben sobrevivir 
 ### 7. Preparación por slice y seams aprobados
 
 El [plan ejecutable](execution-plan.md) conserva trazabilidad y checkpoints de port
-funcional y operación local recuperable. S11 conserva aquí revisión, corte, retirada
-y aceptación reales, con permisos operativos separados. El plan de recolección y
-el inventario vacío apoyan tasks.md sin duplicar su seguimiento. Cumplir S11 antes
-de archive; los ensayos sintéticos no acreditan G0/G2/G3 ni autorizan Recovery. Harness incremental
+funcional y tooling local recuperable. Por decisión expresa del promotor, S11 cierra
+la entrega del repositorio: 11.2 queda resuelta por aplazamiento de la migración real;
+11.3 retira fuentes/contratos sustituidos y adapta consumidores, 11.4 verifica el árbol
+retirado y 11.5 consolida aceptación del repositorio. El corte y aceptación de la
+instancia requieren una intervención posterior autorizada y no bloquean archive.
+El plan de recolección y el inventario apoyan tasks.md sin otro seguimiento.
+Los ensayos sintéticos no acreditan G0/G2/G3 operativos ni autorizan Recovery. Harness incremental
 reutiliza ownership/ejecución Foundation sin duplicar cleanup ni anticipar browser. Los comandos futuros se entregan
 con el runner y tooling del propio slice; no existen por escribirlos aquí. La
 aprobación de planificación no es permiso de ejecución global.
@@ -652,7 +655,9 @@ acredita instalación, integración Python ni resultados de operación.
 Seguir el orden y las evidencias de [tasks.md](tasks.md). Las decisiones originales
 no vuelven pendientes los slices entregados. Para S11, usar el
 [procedimiento y checks consolidados](collection-plan.md); operación, corte y
-retirada requieren sus permisos separados. No crear otra OpenSpec ni verificadores
+retirada operativa requieren sus permisos separados. La retirada del repositorio (11.3)
+está autorizada sin tocar la instancia; conservar importador y tooling de captura de
+orígenes congelados, no una segunda implementación Node. No crear verificadores
 por cada checkbox; reutilizar cobertura existente después de migrar consumidores.
 
 ## Open Questions
@@ -680,6 +685,6 @@ anteriores permanecen como condiciones de corte ya existentes en la spec.
 
 **Readiness por slice, no aceptación global de implementación.**
 La prueba/decisión de cada slice vive en tasks.md. La validación de documentos no
-acredita operación real; el cierre requiere los checks y aceptación de S11 en este
-mismo cambio. No se reabren prerrequisitos resueltos ni se repiten ensayos por rutina.
+acredita operación real; el cierre requiere los checks y aceptación del repositorio
+11.3–11.5, no la migración real aplazada. No se reabren prerrequisitos resueltos ni se repiten ensayos por rutina.
 Corte/datos reales/jobs/retirada y sync/archive requieren autorización específica.

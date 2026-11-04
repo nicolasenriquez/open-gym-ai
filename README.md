@@ -121,62 +121,31 @@ The full list of what changed release by release is in the [changelog](CHANGELOG
 
 ## Quick start
 
-You need [Docker](https://docs.docker.com/get-docker/) with Compose.
+The runtime in this repository is **Python/FastAPI + PostgreSQL**, served with the
+React frontend by nginx. Start with [backend/README.md](backend/README.md) for
+private env/secrets, isolated development and pinned permanent images.
 
 ```bash
-git clone https://github.com/DuarteSantos8/openGym
-cd openGym
-cp .env.example .env
-docker compose pull      # prebuilt images, amd64 + arm64 (skip this to build from source)
-docker compose up -d
+git clone https://github.com/nicolasenriquez/open-gym-ai
+cd open-gym-ai
+# Prepare a NEW independent Dev env-file and secrets as documented in backend/README.md.
+just dev /absolute/private/dev.env
 ```
 
-Open <http://localhost:8080>, tap **Create profile**, and you're in. The exercise animations are
-part of the image, so there's nothing else to download.
+There is no root Compose, prebuilt-image publication, or Node backend in this fork.
+The catalogue media still ship with the web image. Frontend builds default to
+`/api/v1`; an explicit `VITE_API_PREFIX=/api` is only for pairing a client with a
+preserved older release.
 
-To reach it from your phone with passkeys you need HTTPS on a domain; that's a two-line change in
-`.env`. The [self-hosting guide](docs/SELF_HOSTING.md) walks through Cloudflare Tunnel, Caddy,
-Traefik and nginx, and there are separate guides for
-[HTTPS on a LAN](docs/SELF_HOSTING_HTTPS.md) and [Kubernetes](docs/SELF_HOSTING_KUBERNETES.md).
+**Existing instances are not migrated by updating this checkout.** Real migration
+is deferred and requires scoped permission, validated backup/import and client
+custody. Preserve their deployed release/configuration/secrets/data; do not start
+the new platform against them. Repository acceptance does not certify an operational
+cutover or authorize Recovery.
 
-> [!NOTE]
-> Compose references prebuilt images from the upstream project, not builds of this fork.
-> To run this repository's code, use `docker compose up -d --build`. This repository
-> has no automated image publication or deployment. Neither option needs Node on the host.
-
-<details>
-<summary><b>Configuration reference</b> (all through <code>.env</code>)</summary>
-
-| Variable | What it does | Default |
-|---|---|---|
-| `RP_ID` | Hostname passkeys are bound to | `localhost` |
-| `ORIGIN` | Full URL the app is served from | `http://localhost:8080` |
-| `WEB_PORT` | Host port for the web UI | `8080` |
-| `NGINX_PORT` | Port the web container listens on inside the container | `80` |
-| `BACKEND` | Name of the API service that `/api` is proxied to | `api` |
-| `PORT` | Port the API listens on; the web container proxies to the same value | `3000` |
-| `RP_NAME` | Name shown in the passkey prompt | `openGym` |
-| `SESSION_DAYS` | How long a sign-in lasts, in days | `90` |
-| `ADMIN_UIDS` | User ids that get the admin dashboard, comma-separated | *(none)* |
-| `FIRST_USER_ADMIN` | `1`: the first profile created on an empty instance becomes its admin | *(off)* |
-| `INVITE_ONLY` | Require an invite code to create a profile | *(off)* |
-| `ALLOW_GUEST` | Offer "Continue without account"; `0` requires a profile | *(on)* |
-| `PASSWORD_LOGIN` | Offer name-and-password sign-in next to passkeys | *(off)* |
-| `TRUST_PROXY` | Let the sign-in throttle read the client address from proxy headers | `1` in `docker-compose.yml` |
-| `AUDIT_LOG` | Record sign-ins and admin actions; `0` records nothing | *(on)* |
-| `AUDIT_MAX` | Events kept in the activity log; `0` for no limit | `5000` |
-| `AUDIT_DAYS` | Days kept in the activity log; `0` keeps until `AUDIT_MAX` | `90` |
-| `AUDIT_IP` | Record the caller's address: `off`, `net` (network only) or `full` | `off` |
-| `ALLOWED_PRIVATE_IPS` | Private addresses push endpoints may resolve to (FakeDNS, split-horizon DNS): comma-separated IPs, `a-b` ranges or CIDR blocks | *(none)* |
-| `VAPID_SUBJECT` | Contact URL sent with push notifications | your `ORIGIN` |
-| `API_TARGET` | API image to build: `default`, or `coach` with the Claude Agent SDK and Codex CLI | `default` |
-| `COACH_DISABLED` | `1` forces the AI coach off instance-wide | *(unset)* |
-
-Push-notification keys are generated on first run into `./data/vapid.json`. `DATA_DIR` is pinned to
-`/data` inside the container and mapped to `./data` on the host; change the volume, not the
-variable. The [self-hosting guide](docs/SELF_HOSTING.md) covers every option in detail.
-
-</details>
+Passkeys still require the exact hostname and HTTPS except on localhost.
+[Self-hosting](docs/SELF_HOSTING.md) points to current operation; historical
+Node-specific settings are not a Python deployment contract.
 
 ## Phone app
 
@@ -195,9 +164,9 @@ Details and build instructions: [docs/MOBILE.md](docs/MOBILE.md).
 
 
 - **`frontend/`** is React 19 and Vite (React Router, Zustand), built to static files inside Docker.
-- **`api/`** is plain `node:http`, with three direct runtime dependencies
-  (`@simplewebauthn/server`, `undici` and `web-push`) and an optional Claude Agent SDK dependency
-  for the Coach. Everything is stored as JSON under `./data`.
+- **`backend/`** is Python/FastAPI with restricted PostgreSQL roles and controlled
+  migrations. Media bytes and service secrets stay outside tables; there is no JSON
+  runtime or dual authority. See its README for backup/restore and provider limits.
 - **`web/`** builds the frontend and serves it with nginx, proxying `/api` so the whole app sits on
   one origin, which passkeys require.
 

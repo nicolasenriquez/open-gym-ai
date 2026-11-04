@@ -81,16 +81,16 @@ services:
     networks: [private]
     restart: "no"
 
-  platform-contracts:
-    image: ${COMPOSE_PROJECT_NAME}-platform-contracts:local
+  platform-client:
+    image: ${COMPOSE_PROJECT_NAME}-platform-client:local
     platform: linux/amd64
     build:
       context: .
-      dockerfile: backend/Dockerfile.contracts
+      dockerfile: backend/Dockerfile.client
       labels:
         org.opengym.platform: synthetic
         com.docker.compose.project: ${COMPOSE_PROJECT_NAME}
-        com.docker.compose.service: platform-contracts
+        com.docker.compose.service: platform-client
     user: "1000:1000"
     read_only: true
     tmpfs: ["/tmp:rw,noexec,nosuid,nodev,mode=1777,size=1073741824"]

@@ -157,9 +157,9 @@ def fixtures(root):
             "privateKey": "synthetic-vapid-private",
         },
     }
-    vector = json.loads(
-        (Path(__file__).parents[2] / "contracts/identity-passkeys.v1.json").read_text()
-    )["cases"][0]
+    from webauthn_vectors import VECTORS
+
+    vector = VECTORS["cases"][0]
     files["db.json"]["creds"] = [
         {
             "id": vector["credentialId"],

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -96,6 +96,8 @@ for name in ('node', 'npm', 'uv', 'pip', 'claude', 'codex', 'bwrap'):
 });
 
 async function deploymentProof({ project, image, docker }) {
+  const still = readdirSync('catalogue/media/still').find(file => /\.(webp|png|jpg)$/.test(file));
+  assert.ok(still, 'packaged catalogue still required');
   const root = fileURLToPath(new URL('../', import.meta.url));
   const temporary = mkdtempSync(join(tmpdir(), 'opengym-images-'));
   const versions = JSON.parse(readFileSync(join(root, 'backend/versions.json'), 'utf8'));
@@ -243,14 +245,24 @@ print('PLATFORM_COMPOSE_HTTP_OK')
 `], true);
         await docker([...compose, 'up', '-d', '--no-deps', 'web']);
         await docker([...compose, 'exec', '-T', 'api', '/app/.venv/bin/python', '-c', `
-import json,time,urllib.request
+import json,re,time,urllib.request
+from urllib.parse import urljoin
 for _ in range(100):
  try:
   with urllib.request.urlopen('http://web:80/api/v1/health?SENSITIVE_9_4_URL',timeout=1) as r:assert json.load(r)['ok']
   break
  except OSError:time.sleep(.1)
 else:raise AssertionError('real nginx proxy not ready')
-print('PLATFORM_REAL_NGINX_PROXY_OK')
+with urllib.request.urlopen('http://web:80/',timeout=3) as r:
+ assert r.status==200 and r.headers.get_content_type()=='text/html'
+ html=r.read().decode()
+script=re.search(r'<script[^>]*src="([^"]+[.]js)"',html)
+assert script,'compiled JavaScript missing'
+with urllib.request.urlopen(urljoin('http://web:80/',script[1]),timeout=3) as r:
+ assert r.status==200 and 'javascript' in r.headers.get_content_type()
+with urllib.request.urlopen('http://web:80/exercise-media/still/'+${JSON.stringify(still)},timeout=3) as r:
+ assert r.status==200 and r.headers.get_content_type().startswith('image/') and r.read()
+print('PLATFORM_REAL_NGINX_PROXY_AND_PACKAGED_ASSETS_OK')
 `], true);
         await docker([...compose, 'run', '--rm', '--no-deps', 'ops', '-c', `
 import json,subprocess,sys

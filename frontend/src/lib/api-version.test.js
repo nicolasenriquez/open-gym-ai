@@ -13,7 +13,7 @@ afterEach(() => {
   vi.resetModules()
 })
 
-it.each([['', '/api'], ['/api/v1', '/api/v1']])('routes every transport with prefix %s', async (prefix, expected) => {
+it.each([['', '/api/v1'], ['/api/v1', '/api/v1'], ['/api', '/api']])('routes every transport with prefix %s', async (prefix, expected) => {
   vi.stubEnv('VITE_API_PREFIX', prefix)
   const { api, apiBlob, apiUpload, beacon, pairRedeem, setRemoteAuth } = await import('./api.js')
   const fetch = vi.fn(async () => new Response('{"ok":true}'))

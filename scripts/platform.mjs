@@ -2,7 +2,6 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { syntheticHarness } from './synthetic-harness.mjs';
-import { checkBaseline } from './platform-baseline.mjs';
 
 const [action, suite, ...options] = process.argv.slice(2);
 const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
@@ -10,7 +9,7 @@ const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
   composeFile: fileURLToPath(new URL('../deploy/docker-compose.test.yml', import.meta.url)),
   emptyEnv: fileURLToPath(new URL('../backend/empty.env', import.meta.url)),
   namespace: 'opengym-platform-test', label: 'org.opengym.platform', name: 'Platform',
-  services: ['platform-contracts', 'platform-db', 'platform-test', 'platform-browser'], images: ['platform-contracts', 'platform-test', 'platform-browser'], database: 'platform-db',
+  services: ['platform-client', 'platform-db', 'platform-test', 'platform-browser'], images: ['platform-client', 'platform-test', 'platform-browser'], database: 'platform-db',
 });
 
 function requireProof(output) {
@@ -92,8 +91,7 @@ try {
           await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'platform-db']);
           await step(['run', '--rm', '--no-deps', entry.target, ...entry.command]);
         });
-      } else if (entry.target === 'platform-contracts') {
-        checkBaseline();
+      } else if (entry.target === 'platform-client') {
         await runProject(async (step, project) => {
           await step(['config', '--quiet']);
           await step(['build', entry.target]);

@@ -11,8 +11,8 @@ test('stopped Node capture imports into a new isolated PostgreSQL target without
     composeFile: fileURLToPath(new URL('../deploy/docker-compose.test.yml', import.meta.url)),
     emptyEnv: fileURLToPath(new URL('../backend/empty.env', import.meta.url)),
     namespace: 'opengym-platform-test', label: 'org.opengym.platform', name: 'Node import',
-    services: ['platform-contracts', 'platform-db', 'platform-test'], images: ['platform-contracts', 'platform-test'],
-    database: 'platform-db', extraVolumes: { 'node-capture': { name: 'node-capture', service: 'platform-contracts' } },
+    services: ['platform-client', 'platform-db', 'platform-test'], images: ['platform-client', 'platform-test'],
+    database: 'platform-db', extraVolumes: { 'node-capture': { name: 'node-capture', service: 'platform-client' } },
   });
   const proof = (output, path) => {
     writeFileSync(path, output);
@@ -26,14 +26,14 @@ test('stopped Node capture imports into a new isolated PostgreSQL target without
     mkdirSync(evidence, { recursive: true });
     console.log(`NODE_CAPTURE_IMPORT_EVIDENCE ${evidence}`);
     await step(['config', '--quiet']);
-    await step(['build', 'platform-contracts', 'platform-test']);
+    await step(['build', 'platform-client', 'platform-test']);
     const volume = `${project}_node-capture`;
     assert.equal((await docker(['volume', 'create',
       '--label', `com.docker.compose.project=${project}`, '--label', 'org.opengym.platform=synthetic',
-      '--label', 'com.docker.compose.service=platform-contracts', '--label', 'com.docker.compose.volume=node-capture', volume])).trim(), volume);
+      '--label', 'com.docker.compose.service=platform-client', '--label', 'com.docker.compose.volume=node-capture', volume])).trim(), volume);
     // Keep synthetic test diagnostics visible even on failure; the exit marker is mandatory.
     proof(await docker([...compose(project), 'run', '--rm', '--no-deps', '--entrypoint', 'sh',
-      '--volume', `${volume}:/app/node-capture-fixtures`, 'platform-contracts',
+      '--volume', `${volume}:/app/node-capture-fixtures`, 'platform-client',
       '-c', 'node --test --test-reporter=tap scripts/platform-node-import-source.mjs 2>&1; node_chain_status=$?; printf "\\nNODE_CHAIN_EXIT_%s\\n" "$node_chain_status"']), join(evidence, 'node-capture.log'));
     await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'platform-db']);
     proof(await docker([...compose(project), 'run', '--rm', '--no-deps', '--entrypoint', 'sh',

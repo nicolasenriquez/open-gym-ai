@@ -73,12 +73,12 @@ const refusing = () => json(401, { error: 'not signed in' })
 function serverWith(doc) {
   const srv = { doc: clone(doc), puts: [] }
   srv.handle = (path, method, init) => {
-    if (path === '/api/me') return json(200, { user: USER })
-    if (path === '/api/config') return json(200, { invite_only: false, allow_guest: true })
-    if (path === '/api/pair/redeem') return json(200, { token: 'TOKEN-NEW', user: USER })
-    if (path === '/api/data/rev') return json(200, { rev: srv.doc._rev })
-    if (path === '/api/data' && method === 'GET') return json(200, { state: clone(srv.doc), rev: srv.doc._rev })
-    if (path === '/api/data' && method === 'PUT') {
+    if (path === '/api/v1/me') return json(200, { user: USER })
+    if (path === '/api/v1/config') return json(200, { invite_only: false, allow_guest: true })
+    if (path === '/api/v1/pair/redeem') return json(200, { token: 'TOKEN-NEW', user: USER })
+    if (path === '/api/v1/data/rev') return json(200, { rev: srv.doc._rev })
+    if (path === '/api/v1/data' && method === 'GET') return json(200, { state: clone(srv.doc), rev: srv.doc._rev })
+    if (path === '/api/v1/data' && method === 'PUT') {
       const body = JSON.parse(init.body)
       srv.puts.push(body)
       if (body.baseRev != null && body.baseRev !== srv.doc._rev) return json(409, { error: 'conflict', rev: srv.doc._rev, state: clone(srv.doc) })
@@ -86,7 +86,7 @@ function serverWith(doc) {
       delete srv.doc.active
       return json(200, { ok: true, rev: srv.doc._rev })
     }
-    if (path === '/api/logout') return json(200, { ok: true })
+    if (path === '/api/v1/logout') return json(200, { ok: true })
     return json(404, { error: 'not found' })
   }
   h.server = srv.handle
@@ -178,7 +178,7 @@ describe('boot when the server refuses the pairing token', () => {
     await useStore.getState().pushState()
 
     expect(localCalls()).toHaveLength(0)
-    expect(serverCalls()).toEqual([expect.objectContaining({ url: BASE + '/api/data', method: 'PUT', auth: 'Bearer TOKEN-OLD' })])
+    expect(serverCalls()).toEqual([expect.objectContaining({ url: BASE + '/api/v1/data', method: 'PUT', auth: 'Bearer TOKEN-OLD' })])
     expect(localStorage.getItem('gym_dirty')).toBe('1')
     expect(useStore.getState().sync).toMatchObject({ status: 'auth', pending: true, lastSynced: 0 })
     expect(useStore.getState().unsyncedChanges()).toEqual({ owed: true, count: 1 })
@@ -357,7 +357,7 @@ describe('Disconnect anyway keeps the owed changes for the next pairing', () => 
     await useStore.getState().disconnectServer({ force: true })
 
     const srv = serverWith(SERVER_STATE)
-    h.server = (path, method, init) => (path === '/api/pair/redeem' ? json(200, { token: 'T2', user: { id: 'u2', name: 'bea' } }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/pair/redeem' ? json(200, { token: 'T2', user: { id: 'u2', name: 'bea' } }) : srv.handle(path, method, init))
     await useStore.getState().connectToServer('gym.example.com', 'ABCD2345', vi.fn(async () => false))
     expect(ids(useStore.getState().S.workouts)).toEqual(['w1'])
     expect(Object.keys(readFile('opengym-stash.json'))).toEqual([BASE + '|u1'])
@@ -376,7 +376,7 @@ describe('another account paired on a phone that still owes the first', () => {
     const srv = serverWith(SERVER_STATE)
     const OTHER = 'https://other.example.com'
     const bea = { id: 'u2', name: 'bea' }
-    h.server = (path, method, init) => (path === '/api/pair/redeem' ? json(200, { token: 'T2', user: bea }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/pair/redeem' ? json(200, { token: 'T2', user: bea }) : srv.handle(path, method, init))
     const prevFetch = globalThis.fetch
     globalThis.fetch = window.fetch = vi.fn(async (url, init = {}) => {
       h.calls.push({ url: String(url), method: (init.method || 'GET').toUpperCase(), auth: init.headers?.Authorization || null })
@@ -449,7 +449,7 @@ describe('the file mirror never brings back a copy that is not this account\'s l
   // Bea's account on the same server: her own document, and the pairing code that is hers.
   const beaServer = () => {
     const srv = serverWith({ _ts: 500, _rev: 3, unit: 'kg', workouts: [workout('b1', '2026-09-01')], routines: [], bodyweight: [] })
-    h.server = (path, method, init) => (path === '/api/me' || path === '/api/pair/redeem' ? json(200, { token: 'T2', user: BEA }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/me' || path === '/api/v1/pair/redeem' ? json(200, { token: 'T2', user: BEA }) : srv.handle(path, method, init))
     return srv
   }
   // Andi logs a workout on the paired phone; it reaches his server and the file.
@@ -557,7 +557,7 @@ describe('a token the server renews', () => {
   it('is saved to the pairing file at boot and carried by every request after it', async () => {
     pairedPhone()
     const srv = serverWith(SERVER_STATE)
-    h.server = (path, method, init) => (path === '/api/me' ? json(200, { user: USER, token: 'TOKEN-RENEWED' }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/me' ? json(200, { user: USER, token: 'TOKEN-RENEWED' }) : srv.handle(path, method, init))
     const useStore = await freshStore()
     await useStore.getState().boot()
 

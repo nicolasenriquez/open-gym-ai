@@ -492,33 +492,40 @@ No sync/archive, commit, despliegue o inicio de Recovery. Se sustituye el mapa d
   Notes (checks/revisión): `backup-suite-final.log` PASS los tres IDs públicos; checks-final 12/12, lifecycle 19/19, images/isolation PASS, runner-final 10/10, oxlint-final cero errores, browser PASS con 14 recorridos/artefactos del frontend real (regresión separada, no navegador integrado con wrapper). Importación: `import.log` tuvo 1 fallo/28 PASS con IMPORT_TARGET_IN_USE; dos ejecuciones aisladas posteriores `import-isolated.log` y `import-isolated-repeat.log` PASS 29/29, causa no determinada, sin cambiar importer ni debilitar exclusión. No se oculta ni acredita el intento fallido. OKF/OpenSpec strict/diff-check PASS, aviso OKF histórico payload.js intacto. Revisión ponytail del diff completo/callers detectó y corrigió readiness falsa y ventana de intención cliente sin prueba; sin bloqueantes en aceptación 10.10. No se reorganizó el harness: los tres IDs comparten la prueba integrada y su coste. AGENTS vigente.
   Notes (cierre/límites): Ready for closeout solo 10.10; 46/57. Evidencia y diff/revisión base en `.scratch/backup-10-10/`; recursos/temporales sintéticos propios limpiados y evidencia preservada. Sin CI remota, host Linux nativo, reboot del host/daemon ni fallo físico; custodia exclusiva de Docker/ficheros obligatoria, no barrera contra escritores host arbitrarios ni contenedores transitorios. Riesgo de flake de importación observado y no reproducido en dos ensayos aislados. No acredita backup cifrado/verificado, restore/RPO/RTO ni aceptación operativa; 10.3/10.4/10.5/10.6/10.7/10.9 y S11 pendientes. Sin instalación host, datos/secretos/instancia reales, commit/push, despliegue/corte ni sync/archive; cambios e índice previos preservados.
 
-## 11. Revisión, corte y retirada con autorización operativa — S11
+## 11. Cierre del repositorio; migración real aplazada — S11
 
-Estas cinco tareas son el único seguimiento de S11 y permanecen pendientes. El
-[plan de recolección](collection-plan.md) y el [inventario vacío](inventory.template.json)
-son apoyo, no otro cambio ni otro tracker. La consolidación sustituye la decisión
-anterior de transferir S11: no completa gates ni concede permisos. Los ensayos
-sintéticos no acreditan ejecución real; no archivar antes de cumplir 11.1–11.5.
+Decisión expresa del promotor: cerrar la entrega del repositorio y aplazar la
+migración/corte/aceptación de la instancia a una intervención operativa posterior,
+con autorización propia. No se amplía tooling ni se opera la instancia para cerrar
+este cambio. 11.2 registra el aplazamiento; 11.3–11.5 siguen obligatorias para
+aceptar el repositorio y poder proponer archive (no autorizado aquí).
+El [plan de recolección](collection-plan.md) y el [inventario](inventory.template.json)
+son apoyo. Los ensayos no acreditan G0/G2/G3 operativos ni autorizan Recovery.
 
 - [x] 11.1 Cerrar administrativamente la preparación pre-cutover: conservar evidencia sintética, inventario pasivo, plan/runbook y límites documentados, sin acreditar validación operativa ni autorizar corte.
   Notes: cierre administrativo confirmado por el promotor el 2026-11-03; progreso 53/57, 11.2–11.5 pendientes. No reabrir ni perfeccionar por rutina. Captura Node→PG→backup cifrado→restore y reparación Q2 sintéticos ya ensayados; inventario pasivo parcial y runbook conservados en workspace privado, sin aceptación operativa.
   Traceability: local-platform-operation / Single-authority cutover and verified retirement / New writes followed by rollback request; Restore preserves later security decisions / Manual review with partial evidence.
   Proof/Check: decisión expresa del promotor y consistencia documental. Referencias y límites en [fuentes existentes](collection-plan.md#5-fuentes-sintéticas-existentes-sin-duplicar-archivos); logs originales y evidencia privada conservados, sin relabelar resultados.
-- [ ] 11.2 Solo tras autorización humana explícita, ejecutar corte/autoridad única, reversión sin nuevas escrituras o reparación Q2 tras ellas; preservar origen/release/configuración.
+- [x] 11.2 Registrar el aplazamiento explícito del corte y migración real, preservando tooling, runbook y material de recuperación para una intervención operativa posterior autorizada.
+  Notes (decisión vigente): solicitud expresa del promotor en esta entrega; cierre administrativo por cambio de alcance, no corte ejecutado ni gate operativo aprobado. Las notas siguientes son preparación histórica, no pendientes que bloqueen el repositorio.
   Notes: inspectores y drenaje/adaptador Node entregados; cobertura HTTP/Coach, timeout, identidad/custodia y captura sin reinicio. Regresión previa Linux API 597/597, captura 11/11; registros drain-*.log conservados. Docker real aislado 1/1 sin skips en `.scratch/s11-node-capture/drain-real-docker-final.log`: escritura en curso capturada; escritores host/RW, imagen ajena y salida 0 sin prueba rechazados; lector RO/sentinel preservados y cleanup propio. IDs de inspección/señal/logs limitados al proyecto sintético. Candidato construido desde copia de fuentes con hashes: siete imágenes Linux/amd64 y head p004_audit; configs privadas import/stage resueltas sin puertos/egress, restore bloqueado por selecciones físicas. Paquete `runs/s11-attempt-a/P2-review.md` y `P2.request.json` del workspace privado, sin secretos generados ni servicios arrancados. Pendientes selecciones físicas/ADMIN_UIDS/clientes/custodia/ventana, revisión de aplicabilidad/CI y evidencia operativa aceptada con P2/Q1 aplicables y P3 separado; [procedimiento y permisos](collection-plan.md). Sin instancia ni corte autorizado; 11.1 cerrada, 53/57.
   Traceability: local-platform-operation / Single-authority cutover and verified retirement / New writes followed by rollback request.
-  Proof/Check: `node scripts/platform.mjs verify gates --case authorized_cutover --evidence <protected-index.json>`, más revisión humana de la ejecución real autorizada; verify nunca ejecuta el corte.
-- [ ] 11.3 Ejecutar inventario cleanup retirar/conservar/protegido, migrar consumidores/tests y retirar implementación/config/deps sustituidas; probar sentinel y material protegido.
+  Proof/Check: decisión expresa y consistencia de proposal/design/specs/tasks; el inspector `authorized_cutover --evidence` sigue disponible para la futura intervención y nunca ejecuta el corte.
+- [x] 11.3 Ejecutar inventario cleanup retirar/conservar/protegido, migrar consumidores/tests y retirar implementación/config/deps sustituidas; probar sentinel y material protegido.
+  Notes (alcance autorizado): retirar API Node, imagen/deps/stack/CI exclusivos y contratos/manifiestos/generadores de comparación; conservar Python, shared/coach-core, catálogo, cliente compatible y tooling host de captura/importación de ficheros congelados. Migrar tests neutrales a Vitest y garantías de sesión/password/registro/stamps a pytest; conservar solo respuestas criptográficas independientes mínimas (sin claves privadas). Proteger cambios previos, evidencia histórica y copia externa de fuentes con hashes; no leer datos/secretos ni operar la instancia.
+  Notes (entrega sintética): 154 archivos retirados por ruta exacta tras revisar consumidores; copia externa de 712 archivos verificada por SHA-256, sentinel ajeno sintético y material protegido intactos. Detalle y comandos en `.scratch/retirement-11-3/` (`retirement-result.json`, `negative-consumer-result.json` y logs); no otro informe permanente. El negativo usa una copia aislada de inputs del working tree: import de `api/sync-stamps.js` → build RED; retirada de la inyección → GREEN. No es reproducibilidad de HEAD ni evidencia operativa.
+  Notes (GREEN): Vitest 416 archivos/5198 tests; sesión restricted_pool/actor 31/26, password 27, registro 125, passkeys 25 y lineage_retry final 37 en PostgreSQL aislado; contrato HTTP Python 1. Tooling/contextos/layout/ownership/generadores/captura/OKF 71; drenaje Docker 1 e importación congelada 2; cache builds Python/client 2, formatos/bundles web y móvil con copia a shells 2; images/isolation acredita runtime sin Node y nginx con HTML/JS/catálogo/API. Lint, locales y referencia HTTP generada pasan. Los primeros fallos de consumidores/fixtures se corrigieron y reejecutaron; no se cambiaron handlers Python para acomodar expectativas. Guías Node históricas quedan señalizadas; consolidación y aceptación completas pertenecen a 11.5.
+  Limits: no instancia, datos/secretos reales, commit/push, sync/archive ni Recovery. 11.4 conserva su verificación global posterior (incluidos browser/seguridad/restore y candidato limpio); la evidencia sintética de 11.3 no acredita G0/G2/G3 de la instancia.
   Retirar JSON de comparación, manifiestos y generadores transitorios de `backend/contracts/` tras migrar garantías a pytest/backend y Vitest/frontend, con browser cuando corresponda. Conservar solo vectores independientes mínimos en fixtures nativas con garantía explícita; no trasladar volcados completos ni derivar expectativas de la implementación probada. Actualizar loaders, COPY/filtros Docker, runners, CI y guías. Una dependencia pendiente bloquea completar la retirada; preservar baseline durante slices en curso y evidencia histórica/material protegido.
   Traceability: compatible-platform-persistence / Bounded legacy and temporary artifact cleanup / Active dependency prevents removal; Cleanup preserves recovery and foreign artifacts.
   Proof/Check: inventario/diff, suite harness y ensayo concreto de retirada con sentinel/material protegido, negativo de consumidor retirado y cobertura migrada; [checks existentes](collection-plan.md#checks-existentes-para-retirada-y-cierre).
-- [ ] 11.4 Repetir checkout limpio/builds/paridad/seguridad/browser/restore/diagnóstico después de retirada; ausencia de imports/lectores legacy activa G3/GO, no mera búsqueda textual.
+- [ ] 11.4 Repetir checkout limpio/builds/paridad/seguridad/browser/restore/diagnóstico después de retirada; acreditar G3/GO del repositorio sin confundirlos con gates de la instancia real.
   Ejecutar pytest, Vitest y browser aplicable sobre el árbol sin contracts transitorios; verificar cobertura sustituta y builds sin artefactos retirados antes de aceptar G3/GO. Ambas tareas trazan además a compatible-platform-persistence / Transition contract retirement with native regression coverage / Transition contracts are removed after coverage migration; Missing replacement coverage blocks acceptance.
   Traceability: compatible-platform-persistence / Faithful import and retirement parity / Parity after removing the replaced backend; local-platform-operation / Single-authority cutover and verified retirement / Post-retirement acceptance.
   Proof/Check: suites pytest, Vitest, browser, formatos/builds, images/reproducibility, restore/full_timing y diagnostics sobre checkout limpio tras retirada; [checks existentes](collection-plan.md#checks-existentes-para-retirada-y-cierre).
 - [ ] 11.5 Consolidar EV/gates/resultados/límites y actualizar guías al runtime realmente entregado; registrar aceptación antes de Recovery sin borrar originales ni sync/archive.
   Traceability: local-platform-operation / Single-authority cutover and verified retirement / Post-retirement acceptance.
-  Proof/Check: revisión humana del paquete de corte y resultados finales de 11.3–11.4, EV-01–EV-09/G2/G3/GO y guías actualizadas; aceptación atribuida/fechada, sin nuevo CLI ni reejecución duplicada.
+  Proof/Check: revisión humana del aplazamiento de corte y resultados finales de 11.3–11.4, EV-01–EV-09 y gates del repositorio (sin acreditar G0/G2/G3 operativos) y guías actualizadas; aceptación atribuida/fechada, sin nuevo CLI ni reejecución duplicada.
 
 ## Execution Order
 
@@ -533,14 +540,14 @@ sintéticos no acreditan ejecución real; no archivar antes de cumplir 11.1–11
 - S8: 8.1 → 8.2 → 8.3.
 - S9: 9.1 → 9.2 → 9.3 → 9.4.
 - S10: 10.1 → 10.2 → 10.8 → 10.10 → 10.3 → 10.4 → 10.5 → 10.7 → 10.9 → 10.6.
-- S11: 11.1 cerrada administrativamente → condiciones de corte existentes y autorización separada → 11.2 → 11.3 → 11.4 → 11.5.
+- S11: 11.1 cerrada administrativamente → 11.2 aplazamiento registrado → 11.3 → 11.4 → 11.5 (aceptación del repositorio).
 
 Es el orden de ejecución por defecto, sin trabajo horizontal de todas las pruebas
 antes del código. Dependencias mínimas: S1 antes de S2; solo 2.1/2.2 preceden a S3,
 no bloquear el piloto por todo registro/reset/device-link. S4–S7 consumen S2/S3; S7 precede a S6 por hasPush del listado admin, y eliminación S6 consume
 secretos/medios S4/S5. S8 requiere sus consumidores
 existentes portados antes de mover fuentes; S9 acepta imágenes/diagnóstico con todas
-las rutas; S10 usa capacidades/digest/diagnóstico aceptados; S11 conserva aquí sus obligaciones reales, que requieren todos los ensayos y permisos operativos separados. Instrumentación y DDL se entregan incrementalmente con
+las rutas; S10 usa capacidades/digest/diagnóstico aceptados; S11 cierra el repositorio con ensayos sintéticos; la migración real aplazada conserva sus condiciones y permisos separados. Instrumentación y DDL se entregan incrementalmente con
 cada operación; S9 comprueba cobertura completa, no aplaza todo diagnóstico al final.
 Si un caso requiere una ruta todavía no portada, el fixture prepara datos por setup
 sintético independiente, no invoca el paquete futuro ni añade dependencia circular.

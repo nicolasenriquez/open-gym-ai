@@ -43,21 +43,12 @@ test('one canonical ES module tree loads without Node, Vite or backend dependenc
 test('generated JS and Python assets match the canonical catalogue and prompts', () => {
   run(['scripts/build-coach-assets.mjs', '--check']);
   run(['scripts/build-coach-library.mjs', '--check']);
-  run(['api/scripts/check-core-loadable.mjs']);
-});
-
-test('shared payload, prompts, HTTP pipeline and validators preserve existing cases', () => {
-  const output = run(['--test', '--test-reporter=tap', ...[
-    'adapters-http', 'payload', 'payload-bounds', 'payload-parity', 'parse', 'validate',
-    'prompts', 'prompt-split', 'review-repair', 'refine-change-list',
-  ].map(name => 'api/test/' + name + '.test.js')]);
-  assert.match(output, /# tests [1-9]\d*/);
-  console.log(output.match(/# tests \d+/)[0]);
+  run(['scripts/build-push-assets.mjs', '--check']);
 });
 
 test('the local phone coach and client parity use the same shared source', () => {
   const output = run(['node_modules/vitest/vitest.mjs', 'run', '--configLoader', 'runner', '--maxWorkers=1',
-    'src/lib/coach-local.test.js', 'src/lib/coach-parity.test.js', 'src/lib/coach.test.js',
+    'src/lib/coach-core', 'src/lib/coach-local.test.js', 'src/lib/coach-parity.test.js', 'src/lib/coach.test.js',
     'src/lib/coach-demo.test.js', 'src/lib/coach-secrets.test.js',
     'src/views/CoachSetup.test.jsx', 'src/views/CoachSetup.flow.test.jsx', 'src/views/CoachIntake.test.jsx',
   ], new URL('frontend/', root));

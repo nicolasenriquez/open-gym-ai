@@ -18,7 +18,7 @@ okf_version: "0.2"
 
 - [Self-hosting openGym](SELF_HOSTING.md) - Current deployment, passkeys, backups and troubleshooting.
 - [HTTPS at home without exposing your server](SELF_HOSTING_HTTPS.md) - HTTPS on a home network without exposing the instance publicly.
-- [Self-hosting openGym on Kubernetes](SELF_HOSTING_KUBERNETES.md) - Current example Kubernetes deployment and configuration.
+- [Self-hosting openGym on Kubernetes](SELF_HOSTING_KUBERNETES.md) - Retirement of the Node-only Kubernetes and Helm deployment examples.
 
 ## Desarrollo actual
 

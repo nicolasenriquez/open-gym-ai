@@ -4,7 +4,6 @@ import asyncio
 import json
 from contextlib import suppress
 from copy import deepcopy
-from pathlib import Path
 
 import pytest
 from test_identity_session import A, B
@@ -12,28 +11,6 @@ from test_identity_session import identities as identities  # noqa: PLC0414
 from test_lifecycle import deployment as deployment  # noqa: PLC0414
 from test_lifecycle import server
 from test_training_write import external_factory
-
-from opengym_platform.training.stamps import stamp_put
-
-VECTORS = json.loads(
-    (Path(__file__).parents[2] / "contracts/training-stamps.v1.json").read_text()
-)["vectors"]
-
-
-@pytest.mark.parametrize("vector", VECTORS, ids=lambda v: v["scenario"])
-def test_independent_node_stamp_vectors(vector):
-    document = deepcopy(vector["next"])
-    options = vector["options"]
-    corrected = stamp_put(
-        vector["current"],
-        document,
-        now=options["now"],
-        over_read=options.get("overRead", False),
-        stamped=options.get("stamped", False),
-    )
-    assert document == vector["expected"]
-    assert corrected == vector["corrected"]
-
 
 @pytest.mark.asyncio
 async def test_legacy_replace_without_base_preserves_reset_and_server_records(

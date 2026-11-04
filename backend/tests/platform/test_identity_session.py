@@ -18,10 +18,7 @@ from opengym_platform.core.database import Database
 from opengym_platform.identity.service import profile
 from opengym_platform.identity.sessions import authorize, verify
 
-VECTORS = json.loads(
-    (Path(__file__).parents[2] / "contracts/identity-sessions.v1.json").read_text()
-)
-SECRET, A, B, LEGACY = (VECTORS[key] for key in ("secret", "a", "b", "legacy"))
+from identity_vectors import A, B, LEGACY, SECRET
 
 
 @pytest_asyncio.fixture

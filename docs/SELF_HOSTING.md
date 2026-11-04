@@ -5,6 +5,19 @@ description: Current deployment, passkeys, backups and troubleshooting.
 ---
 # Self-hosting openGym
 
+> **Current repository:** Python/FastAPI/PostgreSQL replaces the Node backend.
+> Use [backend/README.md](../backend/README.md) for current Compose, secrets,
+> configuration, backup and restore. There is no root Compose or Node image/chart.
+> Updating the checkout does not migrate an existing instance; real migration is
+> deferred and needs separate scoped authorization. Preserve its original release,
+> configuration, secrets and data.
+>
+> The remaining Node-specific configuration below is a **historical reference for
+> preserved older releases**, not executable setup/update guidance for this tree.
+> It will be consolidated during repository closeout; it cannot authorize operation.
+
+## Historical Node release reference
+
 openGym is two small containers (a web server and an API) plus a folder of your data.
 This guide takes you from "just cloned it" to "using it from my phone over the internet".
 

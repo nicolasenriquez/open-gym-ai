@@ -24,7 +24,7 @@ describe('pairRedeem from the phone app with an http:// address', () => {
     vi.stubGlobal('fetch', fetch)
     const r = await pairRedeem('http://192.168.1.20:8080', 'ABCD2345')
     expect(r.token).toBe('T')
-    expect(fetch.mock.calls[0][0]).toBe('http://192.168.1.20:8080/api/pair/redeem')
+    expect(fetch.mock.calls[0][0]).toBe('http://192.168.1.20:8080/api/v1/pair/redeem')
   })
 
   it('a failure is probed like any other address, never blamed on http', async () => {
@@ -33,7 +33,7 @@ describe('pairRedeem from the phone app with an http:// address', () => {
     const e = await pairRedeem('http://192.168.1.20:8080', 'ABCD2345', { probeMs: 20 }).catch(x => x)
     expect(e.code).toBe('unreachable')
     expect(e.message).toBe('Could not reach 192.168.1.20:8080. Check the address and that this phone can reach it.')
-    expect(fetch.mock.calls[1][0]).toBe('http://192.168.1.20:8080/api/health')
+    expect(fetch.mock.calls[1][0]).toBe('http://192.168.1.20:8080/api/v1/health')
   })
 
   it('a server that answers over http:// is passed on as it is', async () => {

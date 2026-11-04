@@ -8,11 +8,11 @@ to keep it that way: easy to read, easy to self-host.
 ```
 frontend/  React + Vite app (src/views, src/components, src/store, src/lib). Builds to static files.
            android/ and ios/ are the Capacitor shells for the standalone app (docs/MOBILE.md).
-api/       Backend: server.js on plain node:http, with dependencies listed in api/package.json.
-           coach/ is the optional AI coach; openapi.yaml documents every route.
+backend/   Python/FastAPI/PostgreSQL backend, migrations and pytest suites; openapi.yaml owns HTTP.
+shared/    Neutral JS coach core and push copy used by frontend builds.
 web/       Multi-stage Dockerfile (builds the frontend, serves it with nginx) and the nginx template.
 website/   The static project site at opengym.ch.
-kubernetes/ Example manifests (docs/SELF_HOSTING_KUBERNETES.md).
+deploy/    Explicit Python Dev/prod/test Compose entrypoints; no root or legacy deployment.
 docs/      User and operator guides (index: docs/index.md); docs/dev/ has feature design notes.
 catalogue/ The exercise catalogue: one JSON file per exercise, translations in i18n/, and the
            licensed 180 px stills and animations in media/ (catalogue/README.md).
@@ -20,18 +20,19 @@ catalogue/ The exercise catalogue: one JSON file per exercise, translations in i
 
 ## Running for development
 
-The separate synthetic Python harness is documented in
-[backend/README.md](backend/README.md). It does not replace the normal stack below.
+The runtime, private env/secrets and synthetic verifier are documented in
+[backend/README.md](backend/README.md). Existing instances are not migrated by this
+checkout; the real cutover is deferred and requires separate authorization.
 
 Use Node 22 and the pinned pnpm 10.34.8 (`corepack enable`), or Docker for the stack.
 
 ```bash
-cp .env.example .env
-docker compose up -d --build      # api + web on :8080
+# Prepare an independent private env-file and secrets per backend/README.md first.
+just dev /absolute/private/dev.env
 
 cd frontend && pnpm install --frozen-lockfile && pnpm run dev   # hot reload, proxies /api to :3000
 cd frontend && pnpm test                     # training logic, locales, components
-cd api && pnpm test
+node scripts/platform.mjs verify identity_session  # run from repository root
 ```
 
 The frontend suite runs the actual nginx entrypoint script and requires a POSIX `sh` on PATH.
@@ -47,24 +48,14 @@ cd frontend
 pnpm.cmd test
 ```
 
-API tests keep recovery, durable writes and profile deletion covered on Windows. POSIX mode
-assertions are separate subtests; chmod-denied scenarios are explicitly skipped on Windows
-and when running as root. Run those scenarios as a non-root Linux user as well (Ubuntu CI
-does this). Windows mode bits do not validate Windows ACLs.
-
-With API dependencies installed, this PowerShell command from the repository root runs the
-POSIX cases and fixture-path regression in a disposable Node 22 container. It mounts only
-API source read-only and writes a temporary copy; it never mounts the instance's `data/`:
-
-```powershell
-$apiSource = (Resolve-Path api).Path
-docker run --rm --user 1000:1000 --mount "type=bind,source=$apiSource,target=/source,readonly" --entrypoint sh node:22-alpine -c 'set -eu; test "$(id -u)" != 0; cp -R /source /tmp/api; cd /tmp/api; node --test --test-concurrency=2 --test-name-pattern="a profile credential lives|atomicWrite: bytes|db.json unreadable after a sign-up|a data directory the server cannot write|folders are 0700|an unwritable ./data|a push that was delivered|the fixture provider runs from" test/credential.test.js test/durable.test.js test/server-db-unreadable.test.js test/server-health-writable.test.js test/server-media.test.js test/server-push-prune-save.test.js test/adapters.test.js'
-```
+Python HTTP/PG tests run inside Docker with synthetic ownership and restricted
+roles. Never point verifier/capture/import/restore tooling at instance data without
+separate scoped permission. Pure client/coach tests use Vitest, not a Node server.
 
 ## Guidelines
 
-- **Keep it dependency-light.** See `frontend/package.json` and `api/package.json` for current
-  dependencies, including mobile plugins and the optional coach SDK. Justify new dependencies.
+- **Keep it dependency-light.** See `frontend/package.json`, `backend/pyproject.toml` and
+  their locks for current client/platform dependencies. Justify new dependencies.
 - **Match the style.** Small components, clear names, comments only where the *why* isn't obvious.
   State lives in the Zustand store (`src/store`), pure helpers in `src/lib`. Oxlint checks a small set of correctness rules; there is no automatic
   formatter, so follow the surrounding code.

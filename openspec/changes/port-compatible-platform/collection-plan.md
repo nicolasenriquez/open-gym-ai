@@ -2,6 +2,10 @@
 
 [tasks.md](tasks.md) es la única fuente de estado y cierre.
 Este documento conserva permisos, cobertura y checks; no es otro tracker.
+Decisión vigente: cerrar la entrega del repositorio (11.3–11.5) sin operar la
+instancia. 11.2 registra el aplazamiento de la migración real; las condiciones
+operativas siguientes se conservan para la intervención posterior autorizada,
+no como bloqueo del cierre del repositorio.
 El procedimiento con recursos privados vive en el workspace aprobado:
 `runbook-11.1.md` §11 y `runbook-11.1.parameters.json`. Su nombre histórico
 no reabre 11.1. La [plantilla](inventory.template.json) versionada sigue vacía.
@@ -63,7 +67,7 @@ ni acceso global al agente.
 | Q1 | Revisión por cuenta/credencial; nueva vía privada cuando proceda | A6; condicional y pendiente. Accesos dudosos, cuentas eliminadas/disabled o sin identidad suficiente siguen bloqueados; sin elevar roles |
 | Revisión de evidencia | Preparar/leer paquete saneado y aceptar su suficiencia | A7; lectura privada ya autorizada, aceptación operativa pendiente |
 | P3 | Corte final, autoridad única y recuperación sobre candidato/ventana exactos | Separado y pendiente; solo después de aceptar G0/G1/GP/GO |
-| Limpieza | Solo recursos/rutas propias revisadas después de preservar evidencia | A8 para temporales; permiso de retirada distinto para 11.3. Sin borrar originales, parciales inciertos o material ajeno |
+| Limpieza | Solo recursos/rutas propias revisadas después de preservar evidencia | A8 para temporales; retirada del repositorio 11.3 autorizada expresamente, sin retirada operativa. Sin borrar originales, parciales inciertos o material ajeno |
 
 Jobs, proveedores/dispositivos reales, publicación, sync/archive y Recovery no se
 incluyen por omisión. No ejecutar automáticamente los comandos de este documento.
@@ -242,26 +246,26 @@ candidato/clientes/orígenes/config/seguridad/edad de backups antes del corte. L
 revisión no reabre 11.1. No autorizar la operación con checks fallidos/skips,
 escrituras requeridas sin preservar o recursos/ventana pendientes.
 
-## 7. Fases posteriores, todavía bloqueadas
+## 7. Checks de cierre del repositorio y operación aplazada
 
 El orden y los checkboxes viven en tasks.md. No se exige implementar nuevos casos
 cleanup/protected_sentinel, parity/post_retirement o gates/acceptance. Los checks
 existentes siguientes y la revisión del cambio aportan la prueba; siguen pendientes
-hasta ejecutarse sobre la retirada real, sin rebajar sus requisitos conductuales.
+hasta ejecutarse sobre el árbol del repositorio retirado, sin rebajar sus requisitos conductuales.
 
 ### Checks existentes para retirada y cierre
 
 | Tarea / garantía | Check reutilizado y resultado exigido |
 | --- | --- |
-| 11.2 corte | pre_cutover y authorized_cutover con índices privados, más autorización y revisión humanas de ejecución/autoridad única. Conservar origen/release/config/secretos ≥30 días desde corte aceptado, sin borrado automático. Antes de nuevas escrituras, reversión validada; después, Q2 preservándolas, sin vuelta a Node congelado ni exportador inverso |
+| Operación aplazada por 11.2 | pre_cutover y authorized_cutover con índices privados, más autorización y revisión humanas de ejecución/autoridad única. Conservar origen/release/config/secretos ≥30 días desde corte aceptado, sin borrado automático. Antes de nuevas escrituras, reversión validada; después, Q2 preservándolas, sin vuelta a Node congelado ni exportador inverso |
 | 11.3 consumidores y protección | Inventario de rutas/consumidores y diff; `rg` para localizarlos, no como prueba suficiente. `node scripts/platform.mjs verify harness` cubre ownership/sentinels de su harness; el ensayo de la retirada concreta además debe demostrar hashes intactos del sentinel ajeno y material protegido, eliminando solo rutas propias autorizadas. Si falta esa prueba, registrar el hueco, sin crear otro verificador general |
 | 11.3 negativos | En checkout desechable, introducir un consumidor de una ruta retirada, observar que su test/build dependiente falla y revertir la inyección antes del GREEN. Migrar loaders/COPY/filtros/runners/CI y cobertura pytest/Vitest antes de eliminar contratos; sin trasladar dumps completos ni derivar expectativas del código probado |
 | 11.4 backend/seguridad | Suites pytest actuales invocadas con `node scripts/platform.mjs verify <suite>`: database, schema, lifecycle, identity_*, training_*, media, media_gc, coach_*, admin_*, notifications y checks, usando los nombres exactos registrados. Reutilizar comandos de la CI adaptada en 11.3; ninguna suite puede seguir necesitando la implementación o contratos retirados |
 | 11.4 frontend/browser/builds | `pnpm --dir frontend test`, `node scripts/platform.mjs verify training_browser --case offline_sync`, `node scripts/platform.mjs verify shared_client --case formats_and_bundles` y `node scripts/platform.mjs verify images --case reproducibility`. Migrar previamente sus dependencias transitorias y conservar builds web/mobile/generadores, prefijo /api/v1 y observación PG independiente |
 | 11.4 operación | `node scripts/platform.mjs verify restore --case full_timing`, `node scripts/platform.mjs verify diagnostics` e imágenes/aislamiento. Pruebas sobre checkout limpio del contenido retirado; conservar procedencia y cero skips/fallos no resueltos |
-| 11.5 aceptación | Revisar una sola vez el paquete de 11.2 y resultados de 11.3–11.4, EV-01–EV-09 y G2/G3/GO; actualizar guías al runtime entregado y registrar aceptación atribuida/fechada. Sin nuevo CLI, otro reporte permanente ni autorización implícita de Recovery/sync/archive |
+| 11.5 aceptación | Revisar una sola vez el aplazamiento de 11.2 y resultados de 11.3–11.4, EV-01–EV-09 y gates del repositorio, sin acreditar G0/G2/G3 operativos; actualizar guías al runtime entregado y registrar aceptación atribuida/fechada. Sin nuevo CLI, otro reporte permanente ni autorización implícita de Recovery/sync/archive |
 
 Las suites indicadas deben adaptarse en la retirada si aún consumen Node/contracts;
 que hoy pasen antes de retirar no satisface 11.4. Reutilizar los mismos resultados
 finales entre tareas, sin reejecutar ni duplicar informes salvo cambios/fallos que
-invaliden la prueba. No se autoriza ejecutar esta tabla durante la simplificación.
+invaliden la prueba. Esta entrega autoriza 11.3 y sus checks sintéticos; no ejecuta el corte ni acepta la instancia.

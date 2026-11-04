@@ -18,7 +18,7 @@ const ok = result => {
   return result.stdout.trim();
 };
 
-for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeated/source/test/metadata/manifest cache probes`, t => {
+for (const target of ['python', 'client']) test(`${target}: owned cold/repeated/source/test/metadata/manifest cache probes`, t => {
   const token = randomBytes(8).toString('hex');
   const builder = `opengym-platform-build-${token}`;
   const fixture = mkdtempSync(join(tmpdir(), 'opengym-platform-build-'));
@@ -46,7 +46,7 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
   });
   // Only selected non-ignored build inputs, never dotenv, ignored files or personal data.
   const files = ok(invoke('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])).split('\0').filter(file => file && existsSync(join(root, file)));
-  const allowed = /^(?:shared\/|catalogue\/|backend\/|api\/(?:[^/]+\.(?:js|json|yaml)$|coach\/|test\/|scripts\/check-core-loadable\.mjs$)|frontend\/(?:(?:package\.json|pnpm-lock\.yaml|index\.html|capacitor\.config\.json)$|vite\.config\.js$|src\/|scripts\/|public\/|android\/|ios\/)|scripts\/(?:build-api-docs|build-coach-assets|build-coach-library|shared-client.test|formats-and-bundles.test)\.mjs$|scripts\/catalogue\/|LICENSE$|\.dockerignore$)/;
+  const allowed = /^(?:shared\/|catalogue\/|backend\/|frontend\/(?:(?:package\.json|pnpm-lock\.yaml|index\.html|capacitor\.config\.json)$|vite\.config\.js$|src\/|scripts\/|public\/|android\/|ios\/)|scripts\/(?:build-coach-assets|build-coach-library|build-push-assets|shared-client.test|formats-and-bundles.test|platform-node-capture|platform-node-drain|platform-node-capture.test|platform-node-import-source)\.mjs$|scripts\/catalogue\/|LICENSE$|\.dockerignore$)/;
   for (const file of files.filter(file => allowed.test(file))) {
     assert.ok(lstatSync(join(root, file)).isFile(), 'build inputs must not follow links');
     mkdirSync(dirname(join(fixture, file)), { recursive: true });
@@ -59,7 +59,7 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
   writeFileSync(join(evidence, 'context.json'), JSON.stringify({ revision, target, builder,
     platform: 'linux/amd64', versions, scope: 'selected working inputs plus probe-only mutations; no shared cache or production proof' }, null, 2));
   const context = target === 'python' ? join(fixture, 'backend') : fixture;
-  const dockerfile = join(fixture, 'backend', target === 'python' ? 'Dockerfile' : 'Dockerfile.contracts');
+  const dockerfile = join(fixture, 'backend', target === 'python' ? 'Dockerfile' : 'Dockerfile.client');
   function build(phase, cached, expected = 0) {
     const tag = `opengym-platform-build-${token}:${phase}`;
     const args = ['buildx', 'build', '--builder', builder, '--platform', 'linux/amd64', '--progress=plain',
@@ -79,23 +79,23 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     }
     const installs = [...new Map([...log.matchAll(/^#(\d+) .*RUN --mount=.*(?:uv lock --check|pnpm install).*$/gm)]
       .map(match => [match[1], match])).values()];
-    assert.equal(installs.length, target === 'python' ? 1 : 2, 'identify actual dependency steps, not timing guesses');
+    assert.equal(installs.length, 1, 'identify actual dependency steps, not timing guesses');
     for (const match of installs) {
-      const expectedCache = phase === 'manifest' && target === 'contracts' ? !match[0].includes('--no-optional') : cached;
+      const expectedCache = cached;
       assert.equal(new RegExp(`^#${match[1]} CACHED$`, 'm').test(log), expectedCache, `${phase}: dependency layer ${match[1]}`);
     }
     ok(invoke('docker', ['run', '--rm', '--network', 'none', '--user', '1000:1000', '--read-only',
       '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true', '--tmpfs', '/tmp:rw,noexec,nosuid,nodev,size=67108864',
       '--entrypoint', target === 'python' ? '/app/.venv/bin/python' : 'node', tag,
       ...(target === 'python' ? ['-c', "import asyncpg,fastapi; from opengym_platform.application import create_app"] :
-        ['-e', "require('node:assert/strict').equal(process.versions.node, '22.23.2'); require('/app/api/node_modules/undici')"]) ]));
+        ['-e', "require('node:assert/strict').equal(process.versions.node, '22.23.2'); require('/app/frontend/node_modules/react')"]) ]));
   }
   build('cold', false);
   build('repeat', true);
   for (const [phase, file] of [
-    ['source', target === 'python' ? 'backend/src/opengym_platform/core/database.py' : 'api/server.js'],
-    ['test', target === 'python' ? 'backend/tests/platform/test_lifecycle.py' : 'api/test/password.test.js'],
-    ['metadata', target === 'python' ? 'backend/Dockerfile' : 'backend/Dockerfile.contracts'],
+    ['source', target === 'python' ? 'backend/src/opengym_platform/core/database.py' : 'shared/coach-core/payload.js'],
+    ['test', target === 'python' ? 'backend/tests/platform/test_lifecycle.py' : 'frontend/src/lib/coach-core/payload.test.js'],
+    ['metadata', target === 'python' ? 'backend/Dockerfile' : 'backend/Dockerfile.client'],
   ]) {
     const path = join(fixture, file);
     const original = readFileSync(path, 'utf8');
@@ -103,8 +103,8 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
       target === 'python' ? '\n# cache probe\n' : '\n// cache probe\n'));
     try { build(phase, true); } finally { writeFileSync(path, original); }
   }
-  const manifest = join(fixture, target === 'python' ? 'backend/pyproject.toml' : 'api/package.json');
-  const lock = join(fixture, target === 'python' ? 'backend/uv.lock' : 'api/pnpm-lock.yaml');
+  const manifest = join(fixture, target === 'python' ? 'backend/pyproject.toml' : 'frontend/package.json');
+  const lock = join(fixture, target === 'python' ? 'backend/uv.lock' : 'frontend/pnpm-lock.yaml');
   const originalManifest = readFileSync(manifest, 'utf8');
   const originalLock = readFileSync(lock, 'utf8');
   if (target === 'python') {
@@ -113,13 +113,13 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
   } else {
     const pkg = JSON.parse(originalManifest);
     const entries = [...originalLock.matchAll(
-      /^      undici:\r?\n        specifier: ([^\r\n]+)\r?\n        version: (\d+\.\d+\.\d+)\r?$/gm
+      /^      react:\r?\n        specifier: ([^\r\n]+)\r?\n        version: (\d+\.\d+\.\d+)\r?$/gm
     )];
-    assert.equal(entries.length, 1, 'expected one supported Undici importer entry');
+    assert.equal(entries.length, 1, 'expected one supported React importer entry');
     const [entry, specifier, version] = entries[0];
-    assert.equal(specifier, pkg.dependencies.undici);
+    assert.equal(specifier, pkg.dependencies.react);
     const exact = specifier === version ? `=${version}` : version;
-    pkg.dependencies.undici = exact;
+    pkg.dependencies.react = exact;
     writeFileSync(manifest, JSON.stringify(pkg, null, 2));
     writeFileSync(lock, originalLock.replace(
       entry, entry.replace(`specifier: ${specifier}`, `specifier: ${exact}`)
@@ -136,7 +136,7 @@ for (const target of ['python', 'contracts']) test(`${target}: owned cold/repeat
     writeFileSync(manifest, originalManifest.replace('version = "0.0.0"', 'version = "0.0.1"'));
   } else {
     const pkg = JSON.parse(originalManifest);
-    delete pkg.dependencies.undici;
+    delete pkg.dependencies.react;
     writeFileSync(manifest, JSON.stringify(pkg, null, 2));
   }
   build('inconsistent', false, 1);

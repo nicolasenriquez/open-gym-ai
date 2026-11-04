@@ -1,7 +1,6 @@
 set shell := ["sh", "-cu"]
 set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command"]
 
-instance := "docker compose --project-directory . --env-file .env -f docker-compose.yml -p opengym"
 platform := "docker compose --project-directory . -f deploy/docker-compose.yml"
 dev_compose := platform + " -f deploy/docker-compose.dev.yml -p opengym-dev"
 prod_compose := platform + " -f deploy/docker-compose.prod.yml -p opengym-ops"
@@ -13,17 +12,6 @@ case_arg := if os_family() == "windows" { "$env:case" } else { "\"$case\"" }
 # Show commands without starting services.
 default:
     @just --list
-
-# Build and start the current permanent Node instance.
-up:
-    {{instance}} up -d --build api web
-
-# Preserve containers and data.
-stop:
-    {{instance}} stop
-
-logs:
-    {{instance}} logs -f api web
 
 # Dev env-file: absolute path, independent secrets, PLATFORM_WEB_PORT=8081.
 dev $env:
@@ -39,7 +27,7 @@ dev $env:
 dev-stop $env:
     {{dev_compose}} --env-file {{env_arg}} stop
 
-# Inspect future permanent Python configuration without activating it.
+# Inspect permanent Python configuration without activating or migrating an instance.
 prod-config $env:
     {{prod_compose}} --env-file {{env_arg}} config --quiet
 

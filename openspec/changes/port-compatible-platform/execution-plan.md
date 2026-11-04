@@ -25,13 +25,15 @@ Do not duplicate editable SQL schemas or operating procedures here.
    capabilities; first tracer is login → read → save → reload → PG persistence.
 2. Recoverable local operation: identified images, migrations, scheduled/startup/
    pre-migration backup and isolated restore pass on synthetic resources.
-3. Authorized migration and retirement: S11 retains real cutover, retirement and
-   actual G0/G2/G3 acceptance in this change, under separately granted operational permissions.
+3. Repository retirement and acceptance: S11 removes replaced sources/contracts,
+   verifies their native replacements and consolidates repository acceptance.
+   Real migration/cutover/instance acceptance is explicitly deferred.
 
 Checkpoints 1/2 and rehearsals of 3 use disposable resources. Task 11.1 is
-administratively closed by explicit promoter decision (2026-11-03); tasks 11.2–11.5
-remain pending in tasks.md, the sole progress ledger. Existing operational cutover
-conditions remain unchanged; no work or scope is added to 11.2. Complete S11 before archive.
+administratively closed by explicit promoter decision (2026-11-03); task 11.2 now
+records the promoter-approved deferral, not an executed cutover. Tasks 11.3–11.5
+remain required for repository closeout. Real-instance conditions/permissions are
+unchanged for a later intervention and do not block archive of repository delivery.
 The [collection plan](collection-plan.md) and [empty inventory](inventory.template.json)
 are supporting artifacts. Documentary preparation and synthetic completion neither
 establish platform acceptance nor authorize operation or Recovery.
@@ -234,9 +236,9 @@ review. No secret, operational config or original user data belongs in this inpu
 `scripts/platform-gates.test.mjs` supplies the synthetic format example and negatives.
 
 Task 11.1 is administratively closed, accepting its documented preparation only.
-S11 still needs actual scoped evidence, manual review and operational permission
-under the existing cutover conditions; closing 11.1 neither satisfies those
-conditions nor expands 11.2. S11 completion, real inventory and cutover remain pending.
+Real inventory/cutover still need scoped evidence, manual review and operational
+permission at the later intervention. Repository S11 proceeds through 11.3–11.5
+without operating the instance or treating synthetic proof as operational acceptance.
 
 #### Delivered authorized-cutover evidence validator
 
@@ -270,7 +272,7 @@ Even `synthetic: false` never changes `manualReviewRequired: true`,
 proof references are structurally checked, not authenticated or substantively
 accepted. The fixture in `scripts/platform-gates.test.mjs` supplies a complete
 synthetic example. Real evidence collection, permission and execution remain
-pending; delivering this inspector does not close 11.2 or reopen 11.1.
+deferred; 11.2 is closed administratively by the scope decision, not by this inspector.
 
 ## Slice contracts and first proofs
 
@@ -580,7 +582,7 @@ operational proof, not inferred from template parsing or synthetic commands.
   manual review. Synthetic result never claims physical independent disk, real keys,
   successful production recovery, zero RPO or universal failure preservation.
 
-### S11 — operational review, cutover and retirement (tasks 11.*)
+### S11 — repository retirement and closeout; real migration deferred (tasks 11.*)
 
 [tasks.md](tasks.md) owns progress. The [collection plan](collection-plan.md)
 owns permissions, the unchanged twenty-check coverage matrix and the
@@ -588,7 +590,7 @@ owns permissions, the unchanged twenty-check coverage matrix and the
 The private runbook instantiates resources and commands; do not copy it here.
 Rehearsals/inspectors already delivered are reused, not expanded by routine.
 
-After explicit cutover authorization, retire only reviewed obsolete paths after
+With explicit repository-retirement authorization (independent of actual cutover), retire reviewed obsolete paths after
 migrating native coverage/consumers. Reuse pytest/Vitest/browser/build/restore/
 diagnostic suites on the retired tree; preserve foreign sentinels and protected
 originals and demonstrate the retired-consumer negative in a disposable checkout.
