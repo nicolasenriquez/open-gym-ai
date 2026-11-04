@@ -17,9 +17,10 @@ const read = f => fs.readFileSync(path.join(API, f), 'utf8');
 const rootImports = src => [...src.matchAll(/(?:from\s+|import\s*\(\s*)['"]\.\/([^'"/]+\.js)['"]/g)].map(m => m[1]);
 
 test('every root-level module server.js needs is on the Dockerfile COPY line', () => {
-  const line = read('Dockerfile').split('\n').find(l => /^COPY\s+server\.js\b/.test(l));
+  const line = read('Dockerfile').split('\n').find(l => /^COPY\s+api\/\*\.js\s/.test(l));
   assert.ok(line, 'the COPY line that carries server.js');
-  const copied = new Set(line.trim().split(/\s+/).slice(1, -1));
+  assert.ok(read('Dockerfile.dockerignore').split(/\r?\n/).includes('!api/*.js'), 'root modules reach the build context');
+  const copied = new Set(fs.readdirSync(API).filter(f => f.endsWith('.js')));
 
   const needed = new Set(['server.js']);
   const queue = ['server.js'];

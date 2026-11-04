@@ -21,13 +21,13 @@ function requireProof(output) {
 
 try {
   if (action === 'verify' && suite === 'gates' && options.includes('--evidence')) {
-    if (options.length !== 4 || options[0] !== '--case' || options[1] !== 'pre_cutover' || options[2] !== '--evidence' || !options[3]) {
+    if (options.length !== 4 || options[0] !== '--case' || !['pre_cutover', 'authorized_cutover'].includes(options[1]) || options[2] !== '--evidence' || !options[3]) {
       process.exitCode = 2;
       throw new Error('PLATFORM_SUITE_OR_CASE_NOT_IMPLEMENTED');
     }
     try {
-      const { verifyPreCutover } = await import('./platform-gates.mjs');
-      console.log(JSON.stringify(verifyPreCutover(options[3])));
+      const { verifyPreCutover, verifyAuthorizedCutover } = await import('./platform-gates.mjs');
+      console.log(JSON.stringify((options[1] === 'pre_cutover' ? verifyPreCutover : verifyAuthorizedCutover)(options[3])));
     } catch {
       throw new Error('PLATFORM_GATE_EVIDENCE_REJECTED');
     }

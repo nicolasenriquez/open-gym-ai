@@ -1,3 +1,4 @@
+import { interval, later, track } from '../drain.js';
 /* Keeps a local model's prefix cache warm, so nobody pays the cold start.
  *
  * The rules ride as a byte-identical system message precisely so a llama.cpp/Ollama endpoint
@@ -61,9 +62,9 @@ export async function warmOnce({ log = console, fetch: fetchImpl } = {}) {
 
 /** Boot + every half hour. Never throws; a failed warmup is only a missed optimisation. */
 export function startWarmup(log = console) {
-  const tick = () => warmOnce({ log }).catch(() => {});
-  setTimeout(tick, 5000);                                 // let the container settle first
-  const timer = setInterval(tick, INTERVAL_MS);
+  const tick = () => track(warmOnce({ log }).catch(() => {}));
+  later(tick, 5000);                                 // let the container settle first
+  const timer = interval(tick, INTERVAL_MS);
   timer.unref?.();
   return timer;
 }

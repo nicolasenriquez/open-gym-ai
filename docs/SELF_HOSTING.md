@@ -66,6 +66,14 @@ projects; a visible project may still be active. After confirming its execution 
 ended, clean only its exact identifier with `node scripts/platform.mjs cleanup <project>`.
 These commands validate resource ownership; do not substitute global pruning.
 
+The Node API drains on SIGTERM/SIGINT: it closes HTTP admission and scheduled
+writers, waits for admitted requests and Coach/push/warmup work, then emits
+`NODE_DRAINED` and exits 0. `NODE_DRAIN_TIMEOUT_MS` sets its deadline (default
+30000 ms, clamped to 50–1800000 ms); timeout/failure exits 1 without that proof.
+The default Docker stop grace can be shorter than this deadline. A killed process
+or closed port alone does not prove a successful drain. The scoped capture adapter
+and operational permissions are described in the [S11 capture procedure](../openspec/changes/port-compatible-platform/collection-plan.md#procedimiento-ensayado-de-captura-node-detenida).
+
 ## 2. Understand the passkey requirement (important)
 
 openGym signs you in with **passkeys** (WebAuthn). Browsers enforce two rules:

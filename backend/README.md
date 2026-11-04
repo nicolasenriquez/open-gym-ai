@@ -821,12 +821,25 @@ files under its fixed sibling `artifacts/` directory. See the
 The index requires a complete release manifest, original proof provenance and
 recovery chronology including the Node data cutoff, rather than only a recent
 Python snapshot. Recorded commands are never executed. Success establishes structural validity;
-human review, actual operational permission and task 11.1 remain pending.
+human review and actual operational permission remain required. Delivery status
+is recorded only in the [active tasks](../openspec/changes/port-compatible-platform/tasks.md).
+
+`node scripts/platform.mjs verify gates --case authorized_cutover` runs synthetic
+inspector fixtures. With `--evidence <sanitized-index.json>`, it checks the recorded
+cutover authorization/window, candidate binding, single authority, protected
+originals and rollback-before-writes or forward-repair evidence, reusing all
+pre-cutover checks. See the [execution-package format](../openspec/changes/port-compatible-platform/execution-plan.md#delivered-authorized-cutover-evidence-validator).
+It never runs a cutover, authenticates permission or declares operational acceptance;
+manual review remains required and `cutoverAuthorized`/`realGateCompleted` stay false.
 
 `node scripts/platform.mjs verify gates --case node_capture` rehearses the
-stopped-Node capture procedure in the existing locked contracts image, on its
+Node drain and stopped-source capture in the existing locked contracts image, on its
 internal network and temporary synthetic files only. It checks acknowledged HTTP
-writes/media, writer shutdown, hashes and failure quarantine. See the
+writes/media, admitted HTTP and detached Coach completion, timeout refusal,
+writer shutdown, hashes and failure quarantine.
+Host verification with actual isolated Docker containers uses
+`node --test scripts/platform-node-drain-docker.test.mjs`; discovery is restricted
+to the synthetic project and no real instance is inspected or operated. See the
 [procedure and limits](../openspec/changes/port-compatible-platform/collection-plan.md#procedimiento-ensayado-de-captura-node-detenida).
 There is no operational stop/start command or implicit access to instance paths.
 

@@ -1,5 +1,8 @@
 ## Context
 
+El contexto de autoría siguiente es histórico. El estado de entrega y sus permisos
+vigentes se consultan en [tasks.md](tasks.md); no se deducen de la redacción original.
+
 Diseño confirmado mediante rondas Q1–Q20 y consolidado posterior. Se autoriza
 autoría documental y los diagnósticos sintéticos acotados de Q4/Q5, no implementación;
 el runtime actual continúa Node/JSON. Foundation Python está
@@ -646,11 +649,11 @@ acredita instalación, integración Python ni resultados de operación.
 
 ## Migration Plan
 
-Todas las tareas de implementación quedan pendientes y requieren selección/autorización
-posterior. Usar los casos, seams y checkpoints del plan y verificar
-el handoff de Foundation archivada; implementar en entorno sintético solo después
-de selección y autorización del slice preparado. Operación y corte solo después de
-evidencia previa e inventario real. Esta autoría no ejecuta los pasos.
+Seguir el orden y las evidencias de [tasks.md](tasks.md). Las decisiones originales
+no vuelven pendientes los slices entregados. Para S11, usar el
+[procedimiento y checks consolidados](collection-plan.md); operación, corte y
+retirada requieren sus permisos separados. No crear otra OpenSpec ni verificadores
+por cada checkbox; reutilizar cobertura existente después de migrar consumidores.
 
 ## Open Questions
 
@@ -661,24 +664,22 @@ acotados, Q6 aplazamiento explícito de SDK/CLI (§11) y cleanup sin borrar mate
 protegido automáticamente.
 No volver a abrirlas por defecto.
 
-**Prerrequisitos localizados pendientes:** selección/configuración del tooling estándar
-de retención antes de 9.2–9.4 y autorización/entrega privada de vía nueva antes de 10.5.
-No impiden el harness inicial ni autorizan implementar esos mecanismos sin resolverlos.
-DDL/catálogo y OpenAPI §8 se conservan; Q5 no se adopta. RED/GREEN, imágenes y ensayos
-son obligaciones de entrega, no resultados de esta revisión.
+**Prerrequisitos de slices previos:** tasks.md registra la resolución y evidencia
+de retención en 9.2–9.4 y de la vía nueva privada en 10.5; no son pendientes de S11.
+DDL/catálogo y OpenAPI §8 se conservan; Q5 no se adopta. La entrega sintética no
+autoriza aplicar esos mecanismos a una instancia real.
 
 **Prerrequisitos operativos:** fuente protegida y cobertura de reconciliación manual,
 inventario real, disco/rutas/claves, clientes/orígenes, ventana medida, ensayo de
 reparación posterior a nuevas escrituras y evidencia G0/GP/GO. Sin ellos no hay corte.
 
-**Readiness por slice, no aceptación global de implementación.**
-Antes de 9.2–9.4 resolver selección/configuración de retención estándar; antes de 10.5
-especificar autorización local y entrega privada de acceso nuevo. Esos slices están
-bloqueados por sus prerrequisitos; harness inicial no requiere tooling futuro.
-OpenSpec/OKF/diff-check comprueban artefactos, no producto. No se han ejecutado pruebas
-runtime ni acreditado G0/GP/GO/G2/G3 por esta revisión. Transferir S11 antes de archive.
+**Decisión administrativa del promotor (2026-11-03):** 11.1 cierra su preparación
+documentada, inventario parcial, evidencia existente y runbook. No se amplía 11.2,
+se acredita operación real ni se concede permiso de corte: los prerrequisitos
+anteriores permanecen como condiciones de corte ya existentes en la spec.
 
-STOP antes de implementación. Especificación preparada no autoriza código ni
-transición autónoma: entrega requiere solicitud explícita, y corte/datos reales/
-programación/retirada requieren sus permisos operativos posteriores. Los
-prerrequisitos reales de aceptación no se confunden con decisiones de planificación.
+**Readiness por slice, no aceptación global de implementación.**
+La prueba/decisión de cada slice vive en tasks.md. La validación de documentos no
+acredita operación real; el cierre requiere los checks y aceptación de S11 en este
+mismo cambio. No se reabren prerrequisitos resueltos ni se repiten ensayos por rutina.
+Corte/datos reales/jobs/retirada y sync/archive requieren autorización específica.

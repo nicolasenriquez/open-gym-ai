@@ -298,7 +298,9 @@ jobs:
       - run: node scripts/platform.mjs verify import
       - run: node scripts/platform.mjs verify backup
       - run: node scripts/platform.mjs verify gates --case pre_cutover
+      - run: node scripts/platform.mjs verify gates --case authorized_cutover
       - run: node scripts/platform.mjs verify gates --case node_capture
+      - run: node --test scripts/platform-node-drain-docker.test.mjs
       - run: node scripts/platform.mjs verify gates --case node_capture_import
       - run: node scripts/platform.mjs verify gates --case node_capture_recovery
       - run: node scripts/platform.mjs verify repair --case acknowledged_writes

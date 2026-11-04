@@ -48,21 +48,28 @@ function inventory(sources) {
   return { files, directories };
 }
 
+export function validateCapturePaths({ sources, destination }) {
+  if (!Array.isArray(sources) || sources.length < 2 || sources.length > 16) reject();
+  const names = new Set();
+  for (const source of sources) {
+    if (!/^[a-z][a-z0-9_-]{0,31}$/.test(source.name) || names.has(source.name)) reject();
+    names.add(source.name);
+    directory(source.path);
+  }
+  if (!names.has('data') || !names.has('configuration') || !isAbsolute(destination)) reject();
+  directory(dirname(destination));
+  const paths = [...sources.map(source => canonical(source.path)), canonical(destination)];
+  if (paths.some((path, i) => paths.slice(i + 1).some(other => overlaps(path, other)))) reject();
+  try { lstatSync(destination); } catch (error) { if (error.code === 'ENOENT') return; throw error; }
+  reject();
+}
+
 export async function captureStoppedNode({ sources, destination, writersStopped, sourceCutoffAt }) {
   try {
     if (!Array.isArray(sources) || sources.length < 2 || sources.length > 16 || typeof writersStopped !== 'function') reject();
     if (typeof sourceCutoffAt !== 'string' || !Number.isFinite(Date.parse(sourceCutoffAt))
       || new Date(sourceCutoffAt).toISOString() !== sourceCutoffAt || Date.parse(sourceCutoffAt) > Date.now()) reject();
-    const names = new Set();
-    for (const source of sources) {
-      if (!/^[a-z][a-z0-9_-]{0,31}$/.test(source.name) || names.has(source.name)) reject();
-      names.add(source.name);
-      directory(source.path);
-    }
-    if (!names.has('data') || !names.has('configuration') || !isAbsolute(destination)) reject();
-    directory(dirname(destination));
-    const paths = [...sources.map(source => canonical(source.path)), canonical(destination)];
-    if (paths.some((path, i) => paths.slice(i + 1).some(other => overlaps(path, other)))) reject();
+    validateCapturePaths({ sources, destination });
     if (await writersStopped() !== true) reject();
     const writersStoppedAt = new Date().toISOString();
     const before = inventory(sources);

@@ -38,7 +38,7 @@ function fixture(t) {
     index.artifacts.push({ path, sha256: createHash('sha256').update(bytes).digest('hex') });
   }, run() {
     writeFileSync(join(root, 'index.json'), JSON.stringify(index));
-    return spawnSync(process.execPath, ['scripts/platform.mjs', 'verify', 'gates', '--case', 'pre_cutover', '--evidence', join(root, 'index.json')], {
+    return spawnSync(process.execPath, ['scripts/platform.mjs', 'verify', 'gates', '--case', index.case, '--evidence', join(root, 'index.json')], {
       encoding: 'utf8', timeout: 10_000,
       env: { ...process.env, PATH: '', COMPOSE_FILE: 'foreign.yml', DOCKER_HOST: 'invalid://must-not-contact' },
     });
@@ -81,6 +81,118 @@ function recoveryFixture(f) {
   f.index.gates.find(g => g.gate === 'GO').checks.find(c => c.name === 'restore_rpo_rto').artifacts = ['proof.txt', 'rehearsal.json'];
   return report;
 }
+
+function cutoverFixture(f) {
+  f.index.case = 'authorized_cutover';
+  f.index.authorization = 'authorization.json';
+  f.index.cutover = 'cutover.json';
+  const authorization = {
+    version: 1, binding: { ...f.index.gates[0].checks[0].binding },
+    releaseManifestSha256: f.index.artifacts.find(a => a.path === f.index.releaseManifest).sha256,
+    scope: 'cutover', decision: 'approved', operator: 'synthetic operator', approvedBy: 'synthetic reviewer',
+    approvedAt: '2026-11-03T09:00:00.000Z',
+    window: { start: '2026-11-03T10:00:00.000Z', end: '2026-11-03T11:00:00.000Z' },
+  };
+  const report = {
+    version: 1, binding: { ...authorization.binding }, authorization: f.index.authorization,
+    startedAt: '2026-11-03T10:00:00.000Z', finishedAt: '2026-11-03T10:30:00.000Z',
+    outcome: 'cutover', authority: 'python_postgresql', acknowledgedNewWrites: 0,
+    protectedUntil: '2026-12-03T10:30:00.000Z',
+    evidence: { writersStopped: 'proof.txt', equivalentImport: 'proof.txt', singleAuthority: 'proof.txt',
+      protectedOriginReleaseConfigurationSecrets: 'proof.txt' },
+  };
+  f.artifact(f.index.authorization, authorization);
+  f.artifact(f.index.cutover, report);
+  return { authorization, report };
+}
+
+test('authorized_cutover inspects a bound execution package without granting permission or running commands', t => {
+  const f = fixture(t);
+  cutoverFixture(f);
+  const sentinel = join(f.root, 'must-not-exist.txt');
+  f.index.gates[0].checks[0].command = `node -e "require('fs').writeFileSync('${sentinel.replaceAll('\\', '/')}', 'bad')"`;
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), {
+    code: 'PLATFORM_GATE_STRUCTURE_OK', case: 'authorized_cutover', synthetic: true,
+    manualReviewRequired: true, cutoverAuthorized: false, realGateCompleted: false,
+  });
+  assert.equal(existsSync(sentinel), false);
+});
+
+test('authorized_cutover requires prior approval of reviewed evidence and rejects incomplete or foreign execution', t => {
+  const f = fixture(t);
+  const { authorization, report } = cutoverFixture(f);
+  const original = structuredClone(f.index);
+  const mutations = [
+    (i, a) => { a.decision = 'pending'; },
+    (i, a) => { a.scope = 'inspection'; },
+    (i, a) => { a.operator = ''; },
+    (i, a) => { delete a.approvedBy; },
+    (i, a) => { a.binding.instance = 'foreign'; },
+    (i, a) => { a.releaseManifestSha256 = '0'.repeat(64); },
+    (i, a) => { a.approvedAt = '2026-11-02T11:59:59.999Z'; },
+    (i, a) => { a.approvedAt = '2026-11-03T10:00:00.001Z'; },
+    (i, a) => { a.window.end = a.window.start; },
+    (i, a) => { a.window.start = 'yesterday'; },
+    (i, a, r) => { r.startedAt = '2026-11-03T09:59:59.999Z'; },
+    (i, a, r) => { r.finishedAt = '2026-11-03T11:00:00.001Z'; },
+    (i, a, r) => { r.finishedAt = '2026-11-03T09:59:59.999Z'; },
+    (i, a, r) => { r.binding.digest = `sha256:${'d'.repeat(64)}`; },
+    (i, a, r) => { r.authorization = 'proof.txt'; },
+    (i, a, r) => { r.protectedUntil = '2026-12-03T10:29:59.999Z'; },
+    (i, a, r) => { r.acknowledgedNewWrites = -1; },
+    (i, a, r) => { r.acknowledgedNewWrites = 0.5; },
+    (i, a, r) => { r.outcome = 'pending'; },
+    (i, a, r) => { r.authority = 'both'; },
+    (i, a, r) => { delete r.evidence.equivalentImport; },
+    (i, a, r) => { r.evidence.writersStopped = 'missing.txt'; },
+    i => { delete i.cutover; },
+    i => { i.gates[0].checks[0].skipped = 1; },
+    i => { i.gates[0].checks[0].provenance.observedAt = '2026-11-03T09:00:00.001Z'; },
+    i => { i.artifacts[0].sha256 = '0'.repeat(64); },
+  ];
+  for (const mutate of mutations) {
+    Object.assign(f.index, structuredClone(original));
+    const a = structuredClone(authorization), r = structuredClone(report);
+    mutate(f.index, a, r);
+    f.artifact('authorization.json', a);
+    f.artifact('cutover.json', r);
+    const result = f.run();
+    assert.equal(result.status, 1, mutate.toString());
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr.trim(), 'PLATFORM_GATE_EVIDENCE_REJECTED');
+  }
+});
+
+test('authorized_cutover distinguishes rollback without new writes from forward repair preserving them', t => {
+  const f = fixture(t);
+  const { report } = cutoverFixture(f);
+  report.outcome = 'rollback_before_writes';
+  report.authority = 'node_json';
+  f.artifact('cutover.json', report);
+  assert.equal(f.run().status, 1, 'rollback needs validated origin evidence');
+  report.evidence.validatedOriginRollback = 'proof.txt';
+  f.artifact('cutover.json', report);
+  assert.equal(f.run().status, 0);
+  report.acknowledgedNewWrites = 1;
+  f.artifact('cutover.json', report);
+  assert.equal(f.run().status, 1, 'returning to frozen Node after new writes is forbidden');
+  report.outcome = 'forward_repair';
+  report.authority = 'python_postgresql';
+  f.artifact('cutover.json', report);
+  assert.equal(f.run().status, 1, 'forward repair needs preservation evidence');
+  report.evidence.preservedNewWrites = 'proof.txt';
+  f.artifact('cutover.json', report);
+  assert.equal(f.run().status, 0);
+  f.index.synthetic = false;
+  const result = JSON.parse(f.run().stdout);
+  assert.equal(result.cutoverAuthorized, false);
+  assert.equal(result.realGateCompleted, false);
+  report.acknowledgedNewWrites = 0;
+  f.artifact('cutover.json', report);
+  assert.equal(f.run().status, 1);
+});
 
 test('pre_cutover requires a complete release manifest bound to the candidate', t => {
   const f = fixture(t);

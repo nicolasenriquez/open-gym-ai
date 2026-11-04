@@ -28,8 +28,10 @@ Do not duplicate editable SQL schemas or operating procedures here.
 3. Authorized migration and retirement: S11 retains real cutover, retirement and
    actual G0/G2/G3 acceptance in this change, under separately granted operational permissions.
 
-Checkpoints 1/2 and rehearsals of 3 use disposable resources. Actual S11 remains
-pending in tasks.md, the sole progress ledger; complete 11.1–11.5 before archive.
+Checkpoints 1/2 and rehearsals of 3 use disposable resources. Task 11.1 is
+administratively closed by explicit promoter decision (2026-11-03); tasks 11.2–11.5
+remain pending in tasks.md, the sole progress ledger. Existing operational cutover
+conditions remain unchanged; no work or scope is added to 11.2. Complete S11 before archive.
 The [collection plan](collection-plan.md) and [empty inventory](inventory.template.json)
 are supporting artifacts. Documentary preparation and synthetic completion neither
 establish platform acceptance nor authorize operation or Recovery.
@@ -144,7 +146,8 @@ is not proof of authenticity or human acceptance; final review remains manual.
 
 `node scripts/platform.mjs verify gates --case pre_cutover` runs only temporary
 synthetic CLI fixtures, without Docker, instance configuration or network access.
-It does not complete 11.1. Add `--evidence <index.json>` to inspect an explicitly
+It does not establish operational readiness; 11.1 is administratively closed.
+Add `--evidence <index.json>` to inspect an explicitly
 selected sanitized index; no recorded command is executed. The separate `node_capture`
 case rehearses the stopped-Node copy procedure on disposable resources, as described
 in the [collection plan](collection-plan.md#procedimiento-ensayado-de-captura-node-detenida).
@@ -230,9 +233,44 @@ real client inventory, verify a physical disk/key, or judge the substance of hum
 review. No secret, operational config or original user data belongs in this input.
 `scripts/platform-gates.test.mjs` supplies the synthetic format example and negatives.
 
-S11 still needs actual scoped evidence,
-manual review and operational permission before 11.1 can complete. S11 completion,
-real inventory and cutover remain pending.
+Task 11.1 is administratively closed, accepting its documented preparation only.
+S11 still needs actual scoped evidence, manual review and operational permission
+under the existing cutover conditions; closing 11.1 neither satisfies those
+conditions nor expands 11.2. S11 completion, real inventory and cutover remain pending.
+
+#### Delivered authorized-cutover evidence validator
+
+`node scripts/platform.mjs verify gates --case authorized_cutover` runs synthetic
+inspector tests only, without Docker. With `--evidence <sanitized-index.json>`, it
+inspects a recorded execution package; it never executes or authorizes a cutover.
+It reuses the complete pre-cutover v1 format and all coverage, digest, provenance,
+recovery and safe-file checks above, with `case: "authorized_cutover"` and:
+
+- `authorization` names a checksummed JSON artifact: `version: 1`, candidate
+  `binding`, `releaseManifestSha256` matching the indexed release file, `scope:
+  "cutover"`, `decision: "approved"`, nonempty `operator`/`approvedBy`, `approvedAt`
+  and `window: {start, end}`. Times use canonical UTC ISO strings. Approval follows
+  recovery completion and all check observations, and precedes the window start.
+- `cutover` names a checksummed JSON artifact: `version: 1`, candidate `binding`,
+  `authorization` matching the index reference, `startedAt`, `finishedAt`, `outcome`,
+  `authority`, `acknowledgedNewWrites`, `protectedUntil` and `evidence`. Execution
+  times are ordered inside the positive-length approved window. Protection lasts
+  at least 30 days after completion; this date never authorizes deletion.
+- `evidence` references indexed artifacts for `writersStopped`, `equivalentImport`,
+  `singleAuthority` and `protectedOriginReleaseConfigurationSecrets`.
+  `outcome: "cutover"` requires `authority: "python_postgresql"` and a nonnegative
+  safe-integer new-write count. `rollback_before_writes` requires zero new writes,
+  `authority: "node_json"` and `validatedOriginRollback` evidence. `forward_repair`
+  requires a positive new-write count, `authority: "python_postgresql"` and
+  `preservedNewWrites` evidence. Other outcomes or authorities are rejected.
+
+Exit codes and output are the same as pre_cutover, with the selected case name.
+Even `synthetic: false` never changes `manualReviewRequired: true`,
+`realGateCompleted: false` or `cutoverAuthorized: false`. Statements, names and
+proof references are structurally checked, not authenticated or substantively
+accepted. The fixture in `scripts/platform-gates.test.mjs` supplies a complete
+synthetic example. Real evidence collection, permission and execution remain
+pending; delivering this inspector does not close 11.2 or reopen 11.1.
 
 ## Slice contracts and first proofs
 
@@ -544,30 +582,19 @@ operational proof, not inferred from template parsing or synthetic commands.
 
 ### S11 — operational review, cutover and retirement (tasks 11.*)
 
-All five obligations remain here, pending in tasks.md. The [collection plan](collection-plan.md)
-and [empty inventory](inventory.template.json) preserve preparation and permission
-boundaries without a second OpenSpec or duplicate task ledger. This supersedes the
-previous handoff decision. Synthetic rehearsals do not complete real gates; scoped
-collection, cutover and exact-path retirement require their respective permissions.
+[tasks.md](tasks.md) owns progress. The [collection plan](collection-plan.md)
+owns permissions, the unchanged twenty-check coverage matrix and the
+[existing retirement/closeout checks](collection-plan.md#checks-existentes-para-retirada-y-cierre).
+The private runbook instantiates resources and commands; do not copy it here.
+Rehearsals/inspectors already delivered are reused, not expanded by routine.
 
-- Precondition: all synthetic cases pass; actual G0 inventory/origins/RP ID, destination
-  disk/key/config, protected later-access source and maintenance window verified under
-  separately granted access. G1 operational/GP/GO reviewed before real cutover.
-- No automatic command performs real cutover as a side effect of verification.
-  Task 11.2 has an explicit human authorization hold. Before new commits, validate
-  origin rollback; after commits only Q2 procedure, never return to stale Node.
-- Classify each path/consumer remove/retain/protected, update consumers/tests before
-  removing code; no second disabled business API. A protected frozen reference image
-  may support historical comparison but is not a live reader/writer/dependency.
-  Post-retirement acceptance uses frozen independent expected fixtures against Python,
-  not active imports/tests of removed Node handlers. Preserve useful Foundation
-  evidence/tooling or adapt its consumers explicitly; do not break it accidentally.
-- Proofs: foreign sentinel and protected originals survive cleanup; independent clean
-  checkout builds/format/HTTP/RLS/browser/restore/diagnostic suites pass after removal.
-  Negative inventory test injects a retired import in disposable checkout and must
-  fail. Original data/release/backups are not deleted at retention expiry.
-- Checkpoint: G2/G3/GO evidence and EV-01–EV-09 acceptance recorded only after actual
-  authorized delivery; no archive, sync, commit or Recovery start by this plan.
+After explicit cutover authorization, retire only reviewed obsolete paths after
+migrating native coverage/consumers. Reuse pytest/Vitest/browser/build/restore/
+diagnostic suites on the retired tree; preserve foreign sentinels and protected
+originals and demonstrate the retired-consumer negative in a disposable checkout.
+No new cleanup/parity/acceptance verifier is required. Human EV/gate acceptance
+uses those final results once; no implicit operation, deletion, Recovery, commit,
+push, sync or archive is authorized by documentation or synthetic success.
 
 ## Evidence and readiness gate
 

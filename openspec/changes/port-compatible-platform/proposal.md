@@ -36,17 +36,12 @@ la aprobación documental como implementación.
   la excepción en cliente/administración y conservar configuración e historia de los
   diferidos y originales protegidos sin activar sus credenciales.
 
-**Estado:** cambio planificado; autoría documental y diagnóstico sintético acotado
-Q4/Q5 autorizados, no implementación.
-Todas sus tareas runtime están pendientes. Usa el handoff de Foundation archivada;
-el [plan ejecutable](execution-plan.md) conserva casos y trazabilidad con readiness
-por slice. S11 conserva aquí sus cinco obligaciones pendientes antes de archive; completar
-ensayos no acepta plataforma ni autoriza Recovery. DDL/funciones conservan permisos;
-no duplicar reglas Python/SQL ni funciones por simetría. Selección/configuración de
-retención estándar y autorización/entrega privada de acceso nuevo son prerrequisitos
-pendientes antes de 9.2–9.4/10.5, no requisitos del harness inicial. Validar Markdown no
-resuelve esos contratos ni demuestra producto. Inventario real, acceso a datos, ejecución del corte o borrado requieren
-su autorización operativa posterior. No reabre ni modifica la evidencia de Foundation.
+**Estado vigente:** port funcional y tooling de operación implementados/verificados
+por slices; [tasks.md](tasks.md) conserva decisiones, progreso y prueba de entrega.
+S11 mantiene aquí corte, retirada y aceptación, bajo permisos operativos separados.
+La [guía S11](collection-plan.md) concentra procedimiento y checks reutilizados.
+La evidencia sintética no acepta una instancia ni autoriza corte o Recovery.
+El resto de la propuesta describe el alcance acordado, no una lista adicional de pendientes.
 
 ## Capabilities
 
@@ -66,12 +61,11 @@ specs vigentes se conservan.
 
 ## Impact
 
-Futura implementación en backend Python, frontend intervenido por recorrido, shared,
-Alembic, contenedores, CI y documentación operativa. Esta revisión modifica solo
-documentación/OpenSpec en el repositorio; prevé Node 22+ host para el wrapper de
-operación, no en API, sin autorizar su instalación. Los diagnósticos históricos Q4/Q5 usan scripts temporales
-e imágenes desechables fuera del producto. No añade dependencias ni código de
-producto, SQL entregable, credenciales, programaciones, migraciones o datos reales.
+Implementación en backend Python, frontend, shared, Alembic, contenedores, CI y
+documentación operativa, con estado y evidencia en tasks.md. Node 22+ host sirve
+al wrapper operativo; no se incorpora al runtime Python. Las pruebas sintéticas
+no autorizan instalar jobs, migrar datos reales, operar o retirar la instancia.
+Los diagnósticos Q4/Q5 y Foundation conservan su contexto histórico.
 
 Autoridad: [PRD](../../../docs/open-gym-evolution.prd.md),
 [arquitectura](../../../docs/open-gym-evolution.architecture.md),

@@ -22,7 +22,7 @@ const scenarios = [
   },
   {
     name: 'api', ignore: 'api/Dockerfile.dockerignore', dockerfile: 'api/Dockerfile',
-    required: ['api/package.json', 'api/pnpm-lock.yaml', 'api/server.js', 'api/durable.js',
+    required: ['api/package.json', 'api/pnpm-lock.yaml', 'api/server.js', 'api/durable.js', 'api/drain.js',
       'shared/package.json', 'shared/coach-core/payload.js'],
     excluded: ['api/node_modules/host.js', 'api/test/private.test.js', '.env', '.env.local', 'dev.env',
       'api/coach/local.env', 'api/coach/.env.production', 'api/coach/node_modules/host.js', '.git/config',
@@ -40,6 +40,7 @@ const scenarios = [
     name: 'contracts override', ignore: 'backend/Dockerfile.contracts.dockerignore', dockerfile: 'backend/Dockerfile.contracts',
     required: ['LICENSE', 'api/package.json', 'api/server.js', 'api/test/password.test.js',
       'frontend/src/lib/coach.js', 'backend/contracts-run.mjs', 'backend/contracts/identity-sessions.v1.json',
+      'api/drain.js', 'api/Dockerfile', 'api/Dockerfile.dockerignore', 'scripts/platform-node-drain.mjs',
       'shared/package.json', 'shared/coach-core/payload.js', 'shared/coach-core/prompts/common.md',
       'scripts/shared-client.test.mjs', 'scripts/formats-and-bundles.test.mjs', 'scripts/build-coach-assets.mjs',
       'scripts/catalogue/stage-media.mjs', 'frontend/index.html', 'frontend/public/sw.js',

@@ -32,6 +32,8 @@ test('undelivered suites, cases and malformed commands return usage exit 2 befor
 test('gate evidence flags reject missing, repeated and unknown arguments before reading files', () => {
   for (const options of [
     ['--case', 'pre_cutover', '--evidence'],
+    ['--case', 'authorized_cutover', '--evidence'],
+    ['--case', 'authorized_cutover', '--evidence', 'foreign.json', '--evidence', 'other.json'],
     ['--case', 'acceptance', '--evidence', 'foreign.json'],
     ['--case', 'pre_cutover', '--evidence', 'foreign.json', '--evidence', 'other.json'],
     ['--case', 'pre_cutover', '--evidence', 'foreign.json', '--config', 'foreign.json'],

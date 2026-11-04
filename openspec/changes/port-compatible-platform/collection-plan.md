@@ -1,85 +1,72 @@
 # Recolección de evidencia S11
 
-Estado: preparación documental y verificación del CLI con fixtures sintéticas
-autorizadas; ninguna inspección u operación real autorizada/ejecutada por este
-documento. El inventario está vacío y 11.1 pendiente.
-Este plan es propietario del procedimiento de recolección; [tasks.md](tasks.md) mantiene
-exclusivamente el progreso. No ejecutar automáticamente los comandos citados.
+[tasks.md](tasks.md) es la única fuente de estado y cierre.
+Este documento conserva permisos, cobertura y checks; no es otro tracker.
+El procedimiento con recursos privados vive en el workspace aprobado:
+`runbook-11.1.md` §11 y `runbook-11.1.parameters.json`. Su nombre histórico
+no reabre 11.1. La [plantilla](inventory.template.json) versionada sigue vacía.
 
 ## 1. Preparación que no toca la instancia
 
-Revisar referencias sintéticas existentes, decidir qué garantías cubren y preparar
-los campos/permisos. La revisión documental actual localizó los doce logs citados
-abajo y leyó sus marcadores/resúmenes; no reejecutó suites, no certificó toda su
-procedencia ni comprobó aplicabilidad al candidato. El verificador pre_cutover
-cuenta con regresión CLI/layout de 15/15 sin skips y runner público sintético,
-según las notas y logs de continuación de 11.1 de este cambio. Esto no vuelve
-vigentes los doce logs históricos ni acredita su aplicación a una instancia real.
+La cadena Node → PostgreSQL → backup cifrado → restore aislado, la reparación Q2
+sobre destino superviviente y los inspectores pre_cutover/authorized_cutover ya
+están entregados con evidencia sintética. Reutilizarla tras comprobar procedencia
+y aplicabilidad; ejecutar de nuevo solo lo afectado por cambios, fallos o evidencia
+insuficiente. No ampliar fixtures, auditorías del SO ni runbooks por rutina.
 
-No rellenar datos reales en Git. El operador debe seleccionar y autorizar un
-workspace privado para copiar [inventory.template.json](inventory.template.json).
-El archivo versionado permanece vacío. Antes de atribuir pruebas a una release,
-fijar contenido/revisión/digests de imágenes y plataforma; HEAD por sí solo no
-incluye los cambios sin commit actuales. Esta selección no autoriza commit/push.
+El inventario privado contiene observaciones pasivas parciales de Compose,
+cliente/origen, host/WSL/tareas/sincronización. No demuestra ausencia universal de
+escritores. El operador y revisor están identificados; no se repite esa selección.
+Quedan por resolver para operar:
 
-El manifiesto de release debe enumerar web/API/PG/migrate/ops/colector y herramientas
-usadas: servicio/target, ID inmutable, plataforma, revisión o identidad de fuentes
-y locks; registrar también head SQL. `candidate.digest` y el digest del índice son
-de la API, no de todas las imágenes. Adjuntar el manifiesto completo con hash al
-paquete como `releaseManifest`; el verificador exige los seis roles base, bindings,
-head declarado e identidad del contenido, sin inspeccionar imágenes o Git.
-`candidate.images` no puede quedar vacío al aceptar 11.1. Si las pruebas
-de checkout limpio toman HEAD y excluyen cambios locales, no acreditan esos cambios.
+- Revisar la transición a la imagen Node con drenaje ya construida y concretar la
+  comprobación de escritores externos/custodia para la topología real; no está
+  desplegada en el origen observado históricamente.
+- Revisar aplicabilidad del candidato y las configuraciones privadas ya
+  materializados; el destino final de producción sigue separado de los ensayos.
+- Cobertura/custodia concreta de clientes y escritores; copias de pendientes,
+  disco físicamente independiente, staging cifrado, clave separada y fuente
+  protegida de decisiones posteriores por acceso.
+- Ventana America/Santiago, pausa ensayada, máximo aprobado, reserva de recuperación
+  y condiciones de aborto; permisos de las acciones seleccionadas.
 
-### Secuencia de 11.1 y límites de los pasos posteriores
+HEAD excluye cambios locales. La prueba images/reproducibility toma HEAD: no
+acredita ediciones sin commit. Verificar CI aplicable al candidato exacto; si exige
+publicar cambios, continúa bloqueada bajo no commit/push. No crear otra CI ni
+atribuirle resultados locales como sustitución implícita.
 
-1. Seleccionar instancia, operador/revisor y custodia privada; obtener P1 concreto antes de inspeccionar.
-2. Fijar candidato/manifiesto y revisar procedencia/aplicabilidad sintética; redactar acciones y runbooks, sin ejecutar pruebas en esta revisión documental.
-3. Inspeccionar pasivamente bajo P1 y registrar incertidumbres; no crear copias ni activar sync.
-4. Obtener P2 y Q1 cuando corresponda; ensayar primero captura Node coherente con fixtures, después capturar/importar en PG nuevo aislado y verificar copias, G1/GP/GO, recuperación, RPO/RTO y ventana.
-5. Consolidar evidencia y revisión humana de 11.1; la validación estructural no autoriza 11.2.
-
-11.2 revalida ese mismo runbook y evidencia antes de solicitar P3 y ejecutar el corte.
-11.3 revisa rutas/consumidores y migra cobertura antes de la retirada expresamente
-autorizada. 11.4 verifica el árbol resultante; 11.5 registra aceptación y guías.
-Estas fases tienen como único seguimiento los cinco puntos de tasks.md.
+El paquete privado `runs/s11-attempt-a/P2-review.md` y `P2.request.json` concreta
+esta revisión. `candidate/release.json` identifica siete imágenes Linux/amd64
+(Node más los seis roles de plataforma), head `p004_audit` e identidad completa
+de la copia de fuentes usada para construirlas. `source-manifest.json` y hashes
+de evidencia conservan procedencia; no se capturó `.env` ni datos de aplicación.
+Importación y staging usan Compose standalone sin puertos y con redes internas,
+resueltos offline; la API de staging solo se prevé creada/detenida. Restore mantiene
+la plantilla congelada y rechaza resolver mientras falten disco/identity. ADMIN_UIDS,
+clave/disco/cifrado, clientes/custodia y ventana siguen sin seleccionar; bundle,
+incidente y prueba cliente se producirán durante la operación autorizada.
+La validación es documental: imágenes/configs preparados no conceden P2/Q1/P3,
+no acreditan CI/paridad del candidato ni reservan proyectos/volúmenes.
 
 ## 2. Permisos y decisiones antes de recolectar
 
-Cada autorización futura debe identificar responsable, instancia, recursos/rutas
-exactos, acciones, efectos permitidos, destino privado, duración y exclusiones.
-Conservar su referencia y decisión humana; la mera existencia de un fichero de
-autorización no demuestra que el permiso fue otorgado.
+Cada autorización identifica recurso/ruta, comando/método, responsable, efectos,
+destino privado, fecha/duración y aborto en collectionActions. Preparar documentos
+no concede operación. El operador puede entregar evidencia saneada sin dar claves
+ni acceso global al agente.
 
-| Fase | Autoriza, solo si se concede expresamente | Estado actual |
+| Permiso | Alcance | Referencia del runbook / estado |
 | --- | --- | --- |
-| P0 | Mantener plan, inventario vacío y referencias; implementar/verificar el CLI con fixtures sintéticas sin instancia | Concedido por las solicitudes de preparación y continuación sintética |
-| P1 | Inspeccionar los clientes/orígenes y metadatos/configuración/rutas seleccionados; exportar evidencia saneada | Pendiente; instancia, responsables y rutas sin seleccionar |
-| P2 | Crear recursos aislados, usar material privado, capturar/copiar datos, pausar/reanudar escritores y ensayar recuperación en ventana concreta | Pendiente; no se deriva de P1 |
-| Q1 | Revisar identidad/cobertura y, si procede, entregar vía nueva privada por cuenta/target de restore | Pendiente y condicional; aplicar el contrato existente de 10.5 |
-| P3 | Ejecutar 11.2 sobre instancia/release/ventana/recovery revisados | Pendiente; se solicita después de aceptar 11.1 |
-| Retirada | Modificar/eliminar únicamente las rutas obsoletas y consumidores revisados en 11.3 | Pendiente; no se infiere de P3 ni permite borrar originales protegidos |
+| P1 | Metadatos/observación pasiva concretos | A1; alcance previo parcial. Sin export, sync, refresh, lectura de secretos o elevación implícita |
+| Preparación de candidato | Selección y checks faltantes en recursos propios aislados | A2; CI remota necesita permiso específico. Sin commit/push |
+| P2 | Copias de clientes/config, pausa/captura/reanudación Node y ensayo aislado | A3–A5; pendiente. A4 bloqueado hasta resolver drenaje, custodia, almacenamiento y ventana |
+| Q1 | Revisión por cuenta/credencial; nueva vía privada cuando proceda | A6; condicional y pendiente. Accesos dudosos, cuentas eliminadas/disabled o sin identidad suficiente siguen bloqueados; sin elevar roles |
+| Revisión de evidencia | Preparar/leer paquete saneado y aceptar su suficiencia | A7; lectura privada ya autorizada, aceptación operativa pendiente |
+| P3 | Corte final, autoridad única y recuperación sobre candidato/ventana exactos | Separado y pendiente; solo después de aceptar G0/G1/GP/GO |
+| Limpieza | Solo recursos/rutas propias revisadas después de preservar evidencia | A8 para temporales; permiso de retirada distinto para 11.3. Sin borrar originales, parciales inciertos o material ajeno |
 
-La preparación documental redacta acciones/runbooks sin ejecutar pruebas; la inspección de 11.1 limita P1 a observación
-pasiva sobre recursos autorizados, con salida al workspace privado permitido.
-P1 no habilita abrir una vista o realizar una petición que pueda activar sync,
-heartbeat, refresh, VAPID u otra escritura/efecto externo. Tampoco habilita leer
-valores de secretos: registrar solo referencias/metadatos autorizados. Si no existe
-una vía pasiva fiable, dejar el check pendiente y pedir P2 sobre esa acción exacta.
-Crear/verificar un export o copia local, cambiar conectividad, pausar o arrancar
-servicios y ejecutar pruebas faltantes ocurre únicamente en los ensayos autorizados de 11.1 tras P2/Q1.
-
-Antes de conceder P1/P2, revisar `collectionActions`: acción, recurso exacto,
-método/comando, lector/escritor, efectos posibles, permiso requerido, resultado
-esperado, límite/aborto y salida privada. Incluir en P2 el cese/verificación y
-limpieza de recursos sintéticos propios; conservar evidencia y parciales inciertos.
-No basta conceder una fila de la matriz sin concretar sus recursos y efectos.
-
-Publicación, instalación de jobs, llamadas a proveedores/dispositivos reales,
-commit/push, sync/archive o borrado de originales necesitan su alcance explícito;
-no se incluyen en estos permisos por omisión. Si el operador reúne las pruebas
-personalmente, puede entregar solo sus resultados saneados y referencias privadas;
-el agente no necesita recibir claves o acceso global para revisar el paquete.
+Jobs, proveedores/dispositivos reales, publicación, sync/archive y Recovery no se
+incluyen por omisión. No ejecutar automáticamente los comandos de este documento.
 
 ## 3. Campos a rellenar en el inventario privado
 
@@ -112,18 +99,16 @@ aplicabilidad al candidato es una entrada adicional, no reescritura de esa ident
 Cada check debe identificar qué instancia/cliente/copia y momento cubre. Una prueba
 sin binding suficiente no se recupera rellenando la revisión candidata a posteriori.
 
-## 4. Matriz de recolección previa a 11.1
+## 4. Matriz operativa previa al corte
 
-Los identificadores siguientes son exactamente los del verificador entregado.
-Los comandos sintéticos se resuelven con `node scripts/platform.mjs verify <suite>`
-y, cuando corresponde, `--case <case>` según backend/platform-suites.json. La
-solicitud de continuación autoriza fixtures propias aisladas; no recolección real.
-La matriz de permisos siguiente rige el trabajo con recursos/datos operativos.
+Se conservan los veinte identificadores del inspector existente. Las suites/casos
+se resuelven en [platform-suites.json](../../../backend/platform-suites.json).
+Una fila indica evidencia y permiso mínimo; no autoriza su recolección.
 
 | Check | Recolección/observación exigida | Reutilización técnica inicial | Permiso mínimo futuro |
 | --- | --- | --- | --- |
 | G0 clients_origins | Cobertura por cliente/perfil/cuenta/invitado, hostname/RP ID y origen | Ningún fixture demuestra el inventario real | P1 |
-| G0 client_pending_active_media | Estado activo/offline/dirty y medios observables pasivamente; comprobar copias locales en los ensayos autorizados de 11.1 | training_browser/offline_sync prueba semántica, no esos clientes | P1 pasivo; P2 antes de export/copia/sync |
+| G0 client_pending_active_media | Estado activo/offline/dirty y medios observables pasivamente; comprobar copias locales en los ensayos operativos autorizados | training_browser/offline_sync prueba semántica, no esos clientes | P1 pasivo; P2 antes de export/copia/sync |
 | G0 frontend_api_mapping | Build identificable y correspondencia API/prefijo/origen/RP ID | contracts/python_routes y training_browser | P1 |
 | G0 physical_backup_keys | Identidad física distinta de disco de instancia, capacidad/permisos, copia verificable y clave separada | backup/verified_bundle y restore/isolated_target no prueban discos físicos | P1; P2 para uso de clave/copia/restore |
 | G0 protected_later_access_source | Fuente posterior por acceso, cobertura, decisión y resultado; duda mantiene credencial bloqueada | restore/reviewed_access; audit best effort no prueba vigencia | P1 y P2/Q1 si hay ensayo de acceso |
@@ -143,199 +128,76 @@ La matriz de permisos siguiente rige el trabajo con recursos/datos operativos.
 | GO diagnostics_privacy_retention | Salud/correlación/fallos DB-sink, privacidad y retención de todas las copias | diagnostics, fuentes de 9.2–9.4; falta seleccionar artefactos aplicables | P2; P1 para configuración objetivo |
 | GO forward_repair_new_writes | W1/W2 conservadas bajo fallos y W3 posterior en destino superviviente | repair/acknowledged_writes | P2 en target aislado |
 
-P1/P2 son permisos para acciones concretas, no autorización indiscriminada por
-fila. Las pruebas sintéticas pueden reutilizarse solo tras revisar su procedencia,
-alcance y compatibilidad. No pedir credenciales reales para un check que se prueba
-con fixture. Para autenticadores/dispositivos/proveedores que el inventario declare
-necesarios, resolver su evidencia específica o una excepción explícita antes del gate.
+La procedencia histórica no se reetiqueta con la identidad del candidato. Conservar
+la decisión de aplicabilidad separada. Dispositivos/proveedores necesarios según
+el inventario requieren evidencia específica o excepción explícita, sin inventar
+cobertura. No pedir credenciales reales para garantías ya probadas con fixtures.
 
 ### Cadena de origen Node a ensayo Python
 
-El origen Node/JSON exige un runbook de captura coherente propio: seleccionar
-archivos y configuración/secretos necesarios, identificar todos sus escritores,
-detenerlos bajo permiso, verificar cese, copiar/contrastar integridad y reanudar
-solo servicios antes activos. Definir de antemano fallo/interrupción, protección
-de parciales y comprobación de recuperación. La guía de backups Node orienta
-sobre archivos; no acredita por sí misma esa coherencia ni la captura de clientes.
-El procedimiento siguiente se ensaya con fixtures; su adaptación a servicios,
-escritores, permisos y ventana concretos sigue pendiente antes de usar datos reales.
+El runbook privado contiene la secuencia operativa y sus guards; aquí se conserva
+el contrato técnico del procedimiento ya ensayado.
 
-#### Procedimiento ensayado de captura Node detenida
+### Procedimiento ensayado de captura Node detenida
 
-`node scripts/platform.mjs verify gates --case node_capture` ejecuta el ensayo en
-la imagen de contratos existente, con dependencias fijadas, red interna sin puertos
-publicados y almacenamiento temporal propio. No recibe rutas ni configuración de
-instancia. El ensayo usa la API Node real, peticiones HTTP locales, medios sintéticos,
-un escritor auxiliar y un proceso ajeno propio que debe permanecer intacto. Los
-exports cliente son archivos sintéticos declarados: no se acredita exportación de
-un navegador real ni descubrimiento de su estado offline.
+`captureStoppedNode` de [platform-node-capture.mjs](../../../scripts/platform-node-capture.mjs)
+solo copia fuentes ya detenidas; el caller posee admisión, drenaje, cese/custodia,
+aborto y recuperación explícita. No existe `operate node-capture`.
+El adaptador [drainAndCaptureNode](../../../scripts/platform-node-drain.mjs) ya
+conecta ese capturador con Docker: recibe identidad exacta api (id/image/startedAt/
+project), sources, destination, externalWritersStopped y timeoutMs. Prevalida rutas
+y /data, comprueba custodia y montajes RW ajenos, envía SIGTERM y exige salida 0,
+PID 0 y prueba NODE_DRAINED fresca; revalida identidad/cese/custodia/plazo durante
+la copia. No reinicia, importa ni autoriza corte. La comprobación externa debe
+observar escritores conocidos bajo custodia, nunca devolver true sin prueba.
+El ensayo `node --test scripts/platform-node-drain-docker.test.mjs` usa esos
+controles con Docker real y el harness existente: red interna sin puertos, datos
+propios y descubrimiento filtrado por etiqueta del proyecto; antes de inspeccionar,
+señalar o leer logs exige IDs propios. Verifica escritura HTTP admitida, bloqueos
+por escritores host/RW o imagen ajena, salida 0 sin prueba y lector RO/sentinel
+intactos. Evidencia en `.scratch/s11-node-capture/drain-real-docker-final.log` y
+result.json/docker-commands.json del proyecto citado allí. No acredita instancia.
+En la versión entregada, SIGTERM/SIGINT cierran admisión y scheduling; esperan
+handlers, trabajos Coach/push/warmup y sus resultados antes de emitir prueba.
+NODE_DRAIN_TIMEOUT_MS limita el drenaje (30 s por defecto, 50 ms–30 min); fallo o
+plazo vencido sale 1 sin prueba. Evitar el SIGKILL automático de docker stop antes
+del plazo: el adaptador señala y espera sin forzar ni reiniciar. Su timeout incluye
+drenaje y copia, y debe respetar la ventana/reserva aprobadas. Nada está desplegado.
+Exige raíces data/configuration, destino nuevo sin solapamiento, corte original y
+comprobación real reiterada de escritores. Límites: 2–16 raíces, 10.000 entradas,
+profundidad 32 y 4 GiB; sin enlaces/hardlinks ni archivos especiales. Verifica
+identidad/hashes antes/después y relee destino; solo publica capture.json final.
+Error/interrupción conserva origen y parcial privado sin promoción/reuso/limpieza.
+Antes de recuperar servicios, acreditar cese de copia/controlador y fuente intacta;
+reanudar únicamente los IDs antes activos. El health HTTP puede escribir y necesita
+permiso. La función no acredita preservación de ACL/xattrs ni escritores arbitrarios.
 
-1. **Preparar antes de pausar.** Seleccionar fuentes explícitas y no solapadas:
-   `data` contiene el DATA_DIR completo, incluidos db/backup, estados, medios,
-   marcas GC, temporales, audit, Coach y secretos existentes; `configuration`
-   conserva configuración y referencias de release/imagen. Añadir separadamente
-   exports cliente comprobados y material de acceso externo solo si corresponde
-   y está autorizado. No explorar ni copiar automáticamente `coach-auth`; el
-   material Q6 diferido se conserva protegido, no se instala en el destino activo.
-   Definir custodio, mecanismo de exclusión, almacenamiento privado cifrado,
-   espacio, permisos/ACL, recuperación y todos los escritores/descendientes/jobs.
-2. **Cerrar entrada y drenar.** Impedir tráfico nuevo/reconexión de clientes y
-   esperar confirmaciones pendientes, uploads y trabajos; conservar exports locales
-   sin forzar sync. Node no implementa un manejador de apagado que garantice drenaje:
-   SIGTERM por sí solo no lo demuestra. Incertidumbre sobre peticiones/jobs o un
-   descendiente externo mantiene el corte bloqueado. El fixture espera todas sus
-   respuestas HTTP antes de parar; no acredita un drenador de producción.
-3. **Detener y comprobar.** Registrar qué servicios estaban activos. Detener solo
-   los escritores seleccionados y observar su cese mediante identidad/supervisor,
-   no solo PID, señal enviada o puerto cerrado. En el ensayo se espera `close` de
-   cada ChildProcess propio. API detenida con escritor auxiliar vivo debe rechazar
-   captura. Mantener custodia/exclusión durante inventario, copia y comprobación.
-4. **Capturar a destino nuevo.** `captureStoppedNode` de
-   [platform-node-capture.mjs](../../../scripts/platform-node-capture.mjs) recibe
-   fuentes explícitas, destino absoluto nuevo, `sourceCutoffAt` original y una
-   comprobación `writersStopped` que debe devolver exactamente true; error/duda
-   aborta. La función solo copia: no detiene/arranca procesos, instala jobs ni tiene
-   subcomando `operate`. No interpreta `.env` ni ejecuta comandos de configuración.
-   No usar una comprobación constante como prueba operativa. Límites de esta entrega:
-   2–16 fuentes, 10 000 entradas, profundidad 32 y 4 GiB totales; revisar suficiencia
-   para el inventario real antes de autorizar. Rechaza solapamientos, rutas relativas,
-   destinos existentes, enlaces/hardlinks y archivos especiales. Exige db.json,
-   secret y configuración; conserva todos los demás archivos seleccionados sin
-   normalizar ni descartar temporales. Buffers de 64 KiB, destino 0700/archivos 0600,
-   fsync de archivos y sincronización de directorios según soporte del sistema.
-5. **Verificar antes de acreditar.** Inventariar/hash antes, comparar identidad y
-   hashes del origen después, releer íntegramente el destino y comparar archivos y
-   directorios; comprobar de nuevo cese de escritores. Solo entonces publicar
-   `capture.json`, con inventario/tamaños/SHA-256 y tiempos, sin autorización de
-   importación ni aceptación. El corte de datos es el original aportado, no la hora
-   de copiar: una fuente congelada antigua no se rejuvenece. `writersStoppedAt` y
-   `capturedAt` son observaciones de este ensayo; no prueban frescura de los exports.
-   Otro observador comprueba bytes, referencias Training/medios y material protegido.
-6. **Fallo o interrupción.** Conservar origen y parcial privado sin reutilizar,
-   promover ni limpiar automáticamente. Muerte real del controlador se ensaya con
-   SIGKILL: deja servicios detenidos y destino sin recibo de éxito. Un archivo o
-   recibo aislado no resuelve una finalización incierta; verificar procedencia,
-   inventario y observaciones antes de cualquier uso. No existe auto-resume ni
-   recuperación por TTL; operación incierta requiere decisión explícita.
-7. **Recuperar únicamente el origen.** Una vez comprobado el cese del capturador,
-   que el origen está intacto y que release/configuración siguen compatibles,
-   reanudar solo servicios antes activos bajo la autorización correspondiente.
-   Verificar HTTP y estado reconocido antes de abrir entrada. No arrancar Node
-   sobre la copia congelada ni servicios inicialmente detenidos/ajenos. Un fallo
-   de recuperación mantiene entrada cerrada y escala al operador. Conservar la
-   copia protegida; una importación futura monta únicamente su `data/` como origen
-   del importador existente, sobre PG nuevo aislado y bajo permiso separado.
+### Ensayo integrado: captura Node → importación PostgreSQL
 
-La comprobación de cese es una frontera de confianza del llamador, no un detector
-universal de escritores. El ensayo detecta cambios persistentes y corrupción, pero
-no excluye procesos host arbitrarios, escritores transitorios ni una declaración
-falsa de custodia/corte de datos. No preserva ACL/xattrs/streams alternativos ni
-acredita cifrado físico, power loss, RPO/RTO reales, importación o restore. Los
-archivos/secretos de fixtures se eliminan solo dentro de sus temporales propios;
-los logs saneados quedan aparte. Adaptador operativo de parada/drenaje, selección
-real y recuperación incierta siguen sujetos al inventario y permisos concretos.
+Importar solo la copia congelada RO en un PostgreSQL nuevo aislado. El importador
+existente exige revisión/esquema compatibles, destino propio vacío, permisos POSIX,
+CONNECT runtime revocado y ausencia de peers. Límites: 64 MiB por fichero y 512 MiB
+por origen. Verificar IDs/documentos/revisiones/tipos/medios/secretos y cuarentena;
+no normalizar discrepancias ni reutilizar parciales. Los materiales cliente y de
+proveedores diferidos permanecen protegidos fuera de la autoridad activa.
 
-#### Ensayo integrado captura Node → importación PostgreSQL
+### Ensayo integrado hasta backup cifrado y restore aislado
 
-`node scripts/platform.mjs verify gates --case node_capture_import` une la fase
-anterior con el importador ya entregado, sin nuevo comando operativo ni cambios de
-esquema. El harness crea un proyecto/volumen exclusivamente sintéticos y construye
-las imágenes fijadas de contratos y tests. El productor Node registra dos cuentas,
-confirma Training y medios por HTTP, espera sus respuestas, detiene su API y captura
-origen/configuración, export cliente simulado y acceso diferido protegido. Conserva
-también el origen original para observar que la importación no lo cambie.
-
-El productor termina antes de abrir un PostgreSQL nuevo. El receptor Python monta
-el volumen de captura **solo lectura**, hace bootstrap/migración con las fixtures
-existentes y ejecuta el CLI import sobre `capture/data/`, nunca sobre el origen
-activo ni sobre la carpeta contenedora con configuración/tokens/exports. El recibo
-`import.json` y un observador SQL/archivos independiente contrastan IDs, nombres,
-hashes de contraseña, documentos completos/revisiones y bytes de medios/secretos.
-El fingerprint de origen coincide con el recibo, el corte Node original se conserva
-separado y los exports locales/material diferido permanecen protegidos fuera del
-destino activo. No se importa el estado local dirty como si fuera Training confirmado.
-
-En éxito se exige `IMPORT_OK`, destino en cuarentena y CONNECT runtime denegado,
-incluido un intento real de conexión; no se inicia API Python ni se concede acceso.
-Repetir sobre destino ocupado debe bloquear sin alterar documentos/archivos. Una
-segunda captura de JSON deliberadamente duplicado debe bloquear sin crear destino
-ni alterar tablas/secuencias. Ambos casos verifican por hashes que origen, capturas,
-configuración, export simulado y material protegido no cambian. El receptor se
-invoca explícitamente como `tests/platform/node_capture_import.py` porque necesita
-ese volumen; no añade una dependencia externa al descubrimiento pytest por defecto.
-
-No hay puertos publicados, montajes host/datos reales, credenciales reales, egress
-de runtime ni dependencia de la instancia existente. El harness exige pruebas
-ejecutadas sin omisiones y limpia solo contenedores/imágenes/red/volúmenes propios;
-los logs saneados quedan en `.scratch/s11-node-import/`. Este ensayo no demuestra
-backup/restore/RPO/RTO, todos los clientes o capacidades, autenticadores físicos,
-aceptación ni permiso de corte; 11.1 y los gates operativos permanecen pendientes.
-
-#### Ensayo integrado hasta backup cifrado y restore aislado
-
-`node scripts/platform.mjs verify gates --case node_capture_recovery` reutiliza el
-productor Node y los proofs de backup/restore S10. La captura congelada se importa
-mediante el CLI existente en PG nuevo. En Windows el destino inicial del importador
-es un directorio POSIX privado del contenedor; solo tras IMPORT_OK se exporta el
-resultado verificado al temporal privado del fixture. No se relajan las comprobaciones
-de ownership/permisos del importador para admitir un bind Windows.
-
-Solo dentro del fixture, el origen Python importado obtiene acceso temporal y una
-API privada para ensayar el wrapper host real: parada/comprobación de escritores,
-captura coherente SQL/archivos y recuperación de servicios antes activos. No se
-construye manualmente un journal para simular esa captura. El wrapper publica y
-relee/verifica el bundle age completo con clave sintética separada de sus fuentes.
-La selección de configuración incluye la procedencia Node: corte original,
-captura/importación, fingerprints e imágenes identificadas, además del recibo y
-release del origen. No usar la fecha más reciente de PG para rejuvenecer los datos.
-
-El restore existente prepara otro proyecto/cluster/volumen, roles y credenciales
-nuevos, sin puertos publicados ni egress. Un observador independiente compara todas
-las tablas/digests/secuencias, catálogo/ACL/FORCE RLS, documentos por los IDs Node
-originales, bytes de medios, secretos de sesión/Coach y configuración de procedencia.
-La clave age no se incluye en el material restaurado. El ensayo privado RLS abre
-CONNECT temporalmente solo para comprobar el rol restringido A/B y lo revoca al
-cerrar; no inicia API restaurada ni admite tráfico. El destino final conserva gate
-cerrado, acceso en cuarentena y Q1 pendiente.
-
-Se conserva la matriz S10 de claves incorrectas, truncamiento/checksums, cobertura,
-rutas/enlaces, compatibilidad, targets ajenos/expuestos/ocupados, disco lleno real
-acotado e interrupción de decrypt. Fallos no promueven parciales ni autorizan reuso.
-Origen Node, exports simulados, material protegido, origen PG y bundle deben seguir
-intactos. Se usan únicamente binds a temporales privados propios y volúmenes de
-fixtures; se limpian los recursos propios y se conservan logs saneados en
-`.scratch/s11-node-recovery/`. La preparación ACL del fixture Windows modifica solo
-la DACL y verifica propietario/protección, sin requerir cambios de propietario o
-auditoría ni desactivar controles operativos.
-
-Esto acredita el recorrido sintético declarado, no backup físico independiente,
-cifrado del disco, host Linux nativo, recuperación de identidad Q1, navegador real,
-RPO/RTO operativos, aceptación o permiso de corte. Los exports cliente y credenciales
-diferidas siguen protegidos aparte: no se convierten en datos activos por incluir
-sus referencias en la procedencia. 11.1 y todos los gates operativos siguen pendientes.
-
-No usar `operate backup` de Python para capturar Node. Con P2, importar una copia
-Node congelada/protegida en un PG **nuevo** aislado según el
-[contrato de importación](../../../docs/reference/platform-operations.md#importación-aislada-de-origen-node),
-comparar equivalencia y preservar el origen. Solo después usar ese target Python
-para captura/bundle/restore/reparación de la plataforma, en recursos distintos de
-la instancia activa, sin tráfico público y con efectos externos deshabilitados.
-La copia de ensayo no es el origen final congelado del corte: 11.2 debe capturar
-y comparar la fuente vigente durante su propia pausa autorizada.
-
-Conservar por separado fecha de captura/corte de datos Node, importación y snapshot
-Python. Crear un dump/bundle nuevo de un PG importado no rejuvenece los datos del
-origen: la medición representativa de pérdida usa la fecha de corte de datos más
-antigua que limite la recuperación, no la fecha del bundle más reciente. El recibo
-Python por sí solo no acredita frescura de la fuente Node ni de pendientes cliente.
+El wrapper de backup Python se aplica al staging Python importado, nunca al Node
+origen. Cifrar/verificar en disco independiente con clave separada; restaurar en
+otro target nuevo sin tráfico/egress, revisar Q1 y comprobar cliente/persistencia.
+El coordinador restore-rehearse ya realiza restore: no ejecutarlo dos veces sobre
+el mismo target. Conservar tiempos originales Node/captura/import/snapshot/incidente/
+cierre; RPO efectivo ≤6 h y RTO completo ≤24 h incluyen revisión y cliente.
+Un snapshot Python reciente no rejuvenece el corte Node. No extrapolar tiempos
+sintéticos a la ventana real. Recuperar Node después del ensayo permite nuevas
+escrituras: antes de P3 se requiere revalidación y captura final coherente.
 
 ## 5. Fuentes sintéticas existentes, sin duplicar archivos
 
-Rutas relativas al repositorio. Presencia y resúmenes comprobados en esta preparación;
-PASS histórico no es reejecución actual ni aceptación operativa. Los siete logs
-pequeños de runner solo contienen PLATFORM_CASE_OK; vincular detalle/observador
-desde las notas de tareas antes de usarlos como evidencia suficiente. No inventar
-binding de revisión/digest cuando el archivo no lo contiene.
+Rutas relativas al repo; PASS histórico no es reejecución actual ni aceptación.
+Los marcadores PLATFORM_CASE_OK necesitan sus detalles/observadores antes de
+considerarse evidencia suficiente. Conservar archivos, identidad y hashes originales.
 
 | Fuente conservada | Resultado leído / garantía candidata | Pendiente para reutilizar |
 | --- | --- | --- |
@@ -351,71 +213,55 @@ binding de revisión/digest cuando el archivo no lo contiene.
 | `.scratch/restore-10-5/access-detail-final.log` | Resumen sin fallos/skips de acceso sintético | Revisar cobertura y binding de revisión por cuenta/target |
 | `.scratch/platform-10-9/accepted-scheduling.log` | Marcador backup/scheduling_and_age | No acredita jobs instalados ni calendario real |
 | `.scratch/backup-10-8/import.log` | 29 pytest PASS y marcador import/faithful_or_blocked | Revisar candidate/detalle y datos representativos antes del corte |
+| `.scratch/s11-node-capture/public-final.log` | Captura sintética: 7/7 sin skips y marcador público | Detalle/negativos en el mismo directorio; no acredita drenaje operativo |
+| `.scratch/s11-node-import/public-final.log` | Cadena Node→PG; import-regression.log registra 29 pytest PASS | Vincular productor/receptor y candidato |
+| `.scratch/s11-node-recovery/public-final.log` | Cadena completa; result.json/lineage.json bajo el directorio de ejecución; restore-regression.log conserva regresión | No acredita disco, clientes o aceptación reales |
+| `.scratch/s11-authorized-cutover/verification.txt` | Inspector y regresión runner/verificador/layout: 18/18 sin skips | Estructura únicamente, no permiso ni ejecución del corte |
 
-La fuente narrativa propietaria es [tasks del port](tasks.md):
-10.2–10.10 y seguimiento capture-blocks; allí también constan intentos fallidos,
-repeticiones y límites que deben conservarse. Para S2–S9 y browser, empezar en
-sus Proof/Check/Notes y elegir sus artefactos; **no se ha inventariado ni revisado
-todo ese material en esta preparación**. No regenerar contratos para admitir drift.
-
-Estos temporales no son almacenamiento permanente. Antes del gate, preservar solo
-evidencia necesaria saneada en el root privado autorizado, con hashes y procedencia,
-sin mover ni borrar originales de otros trabajos. No copiar dumps/secretos al índice.
+Las notas S2–S10 en tasks.md conservan las pruebas de capacidades y recuperación.
+La evidencia pasiva y sus correcciones están en el inventario privado. No duplicar
+logs/dumps en documentación ni borrar intentos/originales como parte de esta
+simplificación. Si cambia el candidato, revisar únicamente la cobertura afectada.
 
 ## 6. Paquete de evidencia y decisión humana
 
-Usar el [formato pre_cutover existente](execution-plan.md#delivered-pre-cutover-evidence-validator-synthetic-preparation),
-no el inventario vacío. Crear el índice solo tras recolectar: instance/revision/
-digest/platform exactos, synthetic según el alcance real, G0/G1/GP/GO con veinte
-checks, comando/resultado/skips/alcance/límites/EV/binding y referencias a artifacts/
-con SHA-256, revisión y permiso de inspección. No convertir un paquete sintético
-en operativo cambiando únicamente synthetic a false.
+Usar los formatos entregados de [pre_cutover](execution-plan.md#delivered-pre-cutover-evidence-validator-synthetic-preparation)
+y [authorized_cutover](execution-plan.md#delivered-authorized-cutover-evidence-validator).
+El inventario vacío no es un índice válido. En custodia privada, conservar originales
+y preparar artefactos saneados con hashes, manifiesto completo, procedencia/
+aplicabilidad, cobertura EV y cronología de recuperación; nunca datos ni secretos.
 
-Límites: índice 1 MiB; archivos regulares sin links, hasta 4 MiB cada uno,
-128 archivos/32 MiB total. La ruta artifacts/ es hermana del índice, privada y
-estable bajo custodia. Reducir/sanear informes grandes sin perder garantía ni
-ocultar fallos; conservar su procedencia y originales protegidos.
+Los comandos `node scripts/platform.mjs verify gates --case pre_cutover --evidence <index.json>`
+y `node scripts/platform.mjs verify gates --case authorized_cutover --evidence <index.json>`
+solo inspeccionan el paquete seleccionado. Sin --evidence ejecutan fixtures.
+Exit 0 prueba estructura; siempre manualReviewRequired=true, realGateCompleted=false
+y cutoverAuthorized=false. No autentican permisos ni aceptan operación.
 
-En fase autorizada, `node scripts/platform.mjs verify gates --case pre_cutover
---evidence <indice-privado.json>` solo inspecciona estructura/hashes. Aunque exit 0,
-manualReviewRequired=true, realGateCompleted=false y cutoverAuthorized=false.
-La revisión humana comprueba autenticidad, cobertura completa, aplicación al
-candidato, permisos y todas las lagunas. Solo entonces puede documentarse 11.1
-cumplida en tasks.md; P3 sigue pendiente. Registrar no-go si falta prueba,
-hay skips/fallo o no puede preservarse una escritura requerida.
-
-El índice debe incluir `releaseManifest`, `provenance` por check y `recovery`
-según el formato enlazado. El reporte de restore es un subconjunto saneado del
-reporte existente, con binding explícito; conservar procedencia y originales
-privados. El CLI comprueba cronología, corte de datos original y RPO/RTO, sin
-ejecutar captura/importación/restore ni certificar sus afirmaciones.
-
-La revisión incluye manifiesto completo de imágenes y la procedencia original de
-cada resultado, no solo el digest singular o las etiquetas del índice. Las EV se
-referencian por garantía/fase: la evidencia previa no declara cerrada EV-07 ni
-G2/G3/GO posterior, reservados a la aceptación de 11.5.
-
-Antes de P3 y otra vez al iniciar el corte, revalidar clientes/orígenes, candidatos,
-configuración, decisiones de seguridad posteriores y edad/alcance de backups.
-Cambios invalidan los checks afectados y reabren la revisión humana de 11.1 antes de continuar. Medir
-edad desde snapshot, no desde copia/verificación: >6 h incumple RPO; el backup
-pre-corte y la ventana deben corresponder al runbook ensayado. No imponer un TTL
-inventado a todos los artefactos ni dar validez indefinida al inventario.
+El operador acepta la suficiencia de G0/G1/GP/GO antes de P3 y revalida cambios de
+candidato/clientes/orígenes/config/seguridad/edad de backups antes del corte. La
+revisión no reabre 11.1. No autorizar la operación con checks fallidos/skips,
+escrituras requeridas sin preservar o recursos/ventana pendientes.
 
 ## 7. Fases posteriores, todavía bloqueadas
 
-11.2 requiere P3 y finalización/revalidación del procedimiento ensayado bajo 11.1.
-Preservar origen/release/config/secretos ≥30 días desde corte aceptado; nunca
-borrado por vencimiento. Antes de nuevas escrituras, reversión validada; después,
-Q2 preservando nuevas escrituras, sin volver a Node congelado ni exportador inverso.
+El orden y los checkboxes viven en tasks.md. No se exige implementar nuevos casos
+cleanup/protected_sentinel, parity/post_retirement o gates/acceptance. Los checks
+existentes siguientes y la revisión del cambio aportan la prueba; siguen pendientes
+hasta ejecutarse sobre la retirada real, sin rebajar sus requisitos conductuales.
 
-11.3 inventaría consumidores y retirar/conservar/protegido, migra tests nativos y
-consumidores antes de eliminar backend/contracts y negocio sustituido. 11.4 repite
-checkout/builds/paridad/seguridad/browser/restore/diagnóstico en el árbol retirado,
-con sentinel ajeno y material protegido intactos. 11.5 consolida EV-01–EV-09 y
-aceptación humana antes de Recovery. Los verificadores futuros de esas fases
-deben entregarse o sustituirse por pruebas equivalentes revisadas; no se ejecutan
-comandos inexistentes ni se simula su éxito con Markdown.
-La equivalencia debe cubrir las observaciones conductuales y negativos exigidos
-con ejecución real en el seam aplicable; no se sustituye por una aprobación manual
-del texto. Antes de retirar en 11.3 hace falta permiso explícito de retirada sobre rutas exactas.
+### Checks existentes para retirada y cierre
+
+| Tarea / garantía | Check reutilizado y resultado exigido |
+| --- | --- |
+| 11.2 corte | pre_cutover y authorized_cutover con índices privados, más autorización y revisión humanas de ejecución/autoridad única. Conservar origen/release/config/secretos ≥30 días desde corte aceptado, sin borrado automático. Antes de nuevas escrituras, reversión validada; después, Q2 preservándolas, sin vuelta a Node congelado ni exportador inverso |
+| 11.3 consumidores y protección | Inventario de rutas/consumidores y diff; `rg` para localizarlos, no como prueba suficiente. `node scripts/platform.mjs verify harness` cubre ownership/sentinels de su harness; el ensayo de la retirada concreta además debe demostrar hashes intactos del sentinel ajeno y material protegido, eliminando solo rutas propias autorizadas. Si falta esa prueba, registrar el hueco, sin crear otro verificador general |
+| 11.3 negativos | En checkout desechable, introducir un consumidor de una ruta retirada, observar que su test/build dependiente falla y revertir la inyección antes del GREEN. Migrar loaders/COPY/filtros/runners/CI y cobertura pytest/Vitest antes de eliminar contratos; sin trasladar dumps completos ni derivar expectativas del código probado |
+| 11.4 backend/seguridad | Suites pytest actuales invocadas con `node scripts/platform.mjs verify <suite>`: database, schema, lifecycle, identity_*, training_*, media, media_gc, coach_*, admin_*, notifications y checks, usando los nombres exactos registrados. Reutilizar comandos de la CI adaptada en 11.3; ninguna suite puede seguir necesitando la implementación o contratos retirados |
+| 11.4 frontend/browser/builds | `pnpm --dir frontend test`, `node scripts/platform.mjs verify training_browser --case offline_sync`, `node scripts/platform.mjs verify shared_client --case formats_and_bundles` y `node scripts/platform.mjs verify images --case reproducibility`. Migrar previamente sus dependencias transitorias y conservar builds web/mobile/generadores, prefijo /api/v1 y observación PG independiente |
+| 11.4 operación | `node scripts/platform.mjs verify restore --case full_timing`, `node scripts/platform.mjs verify diagnostics` e imágenes/aislamiento. Pruebas sobre checkout limpio del contenido retirado; conservar procedencia y cero skips/fallos no resueltos |
+| 11.5 aceptación | Revisar una sola vez el paquete de 11.2 y resultados de 11.3–11.4, EV-01–EV-09 y G2/G3/GO; actualizar guías al runtime entregado y registrar aceptación atribuida/fechada. Sin nuevo CLI, otro reporte permanente ni autorización implícita de Recovery/sync/archive |
+
+Las suites indicadas deben adaptarse en la retirada si aún consumen Node/contracts;
+que hoy pasen antes de retirar no satisface 11.4. Reutilizar los mismos resultados
+finales entre tareas, sin reejecutar ni duplicar informes salvo cambios/fallos que
+invaliden la prueba. No se autoriza ejecutar esta tabla durante la simplificación.

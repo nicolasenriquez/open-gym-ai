@@ -26,6 +26,7 @@ COPY --chown=node:node shared/ /app/shared/
 COPY --chown=node:node catalogue/ /app/catalogue/
 COPY --chown=node:node backend/src/opengym_platform/coach/assets.json /app/backend/src/opengym_platform/coach/assets.json
 COPY --chown=node:node api/test/ ./test/
+COPY --chown=node:node api/Dockerfile api/Dockerfile.dockerignore ./
 COPY --chown=node:node backend/openapi.yaml /app/backend/openapi.yaml
 COPY --chown=node:node frontend/src/ /app/frontend/src/
 COPY --chown=node:node frontend/scripts/ /app/frontend/scripts/
@@ -35,7 +36,7 @@ COPY --chown=node:node frontend/android/ /app/frontend/android/
 COPY --chown=node:node frontend/ios/ /app/frontend/ios/
 COPY --chown=node:node scripts/catalogue/ /app/scripts/catalogue/
 COPY --chown=node:node scripts/build-api-docs.mjs scripts/build-coach-assets.mjs scripts/build-coach-library.mjs scripts/shared-client.test.mjs scripts/formats-and-bundles.test.mjs /app/scripts/
-COPY --chown=node:node scripts/platform-node-capture.mjs scripts/platform-node-capture.test.mjs /app/scripts/
+COPY --chown=node:node scripts/platform-node-capture.mjs scripts/platform-node-drain.mjs scripts/platform-node-capture.test.mjs /app/scripts/
 COPY --chown=node:node scripts/platform-node-import-source.mjs /app/scripts/
 RUN mkdir -m 0700 /app/node-capture-fixtures
 COPY --chown=node:node backend/contracts/ /app/contracts/

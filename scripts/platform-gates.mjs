@@ -38,6 +38,14 @@ const coverage = {
 };
 
 export function verifyPreCutover(indexPath) {
+  return verifyCutoverEvidence(indexPath, 'pre_cutover');
+}
+
+export function verifyAuthorizedCutover(indexPath) {
+  return verifyCutoverEvidence(indexPath, 'authorized_cutover');
+}
+
+function verifyCutoverEvidence(indexPath, expectedCase) {
   const require = condition => { if (!condition) throw new Error('PLATFORM_GATE_EVIDENCE_REJECTED'); };
   const text = value => typeof value === 'string' && value.trim().length > 0;
   const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
@@ -47,7 +55,7 @@ export function verifyPreCutover(indexPath) {
     && new Date(value).toISOString() === value;
   const bound = value => ['instance', 'revision', 'digest', 'platform'].every(key => value?.[key] === index[key]);
   const index = JSON.parse(readEvidence(indexPath, 1024 * 1024).toString('utf8'));
-  require(index.version === 1 && index.case === 'pre_cutover' && typeof index.synthetic === 'boolean');
+  require(index.version === 1 && index.case === expectedCase && typeof index.synthetic === 'boolean');
   require(identity(index));
   require(index.artifactRoot === 'artifacts');
   const root = resolve(dirname(indexPath), 'artifacts');
@@ -114,6 +122,38 @@ export function verifyPreCutover(indexPath) {
       if (gate === 'GO' && name === 'restore_rpo_rto') require(check.artifacts.includes(recovery.report));
     }
   }
-  return { code: 'PLATFORM_GATE_STRUCTURE_OK', case: 'pre_cutover', synthetic: index.synthetic,
+  if (expectedCase === 'authorized_cutover') {
+    require(artifacts.has(index.cutover));
+    const authorization = JSON.parse(artifacts.get(index.authorization).toString('utf8'));
+    const cutover = JSON.parse(artifacts.get(index.cutover).toString('utf8'));
+    require(authorization.version === 1 && bound(authorization.binding)
+      && authorization.scope === 'cutover' && authorization.decision === 'approved'
+      && text(authorization.operator) && text(authorization.approvedBy)
+      && authorization.releaseManifestSha256 === index.artifacts.find(a => a.path === index.releaseManifest).sha256);
+    require(cutover.version === 1 && bound(cutover.binding) && cutover.authorization === index.authorization);
+    const window = [authorization.approvedAt, authorization.window?.start, cutover.startedAt,
+      cutover.finishedAt, authorization.window?.end];
+    require(window.every(timestamp));
+    require(window.map(Date.parse).every((time, i, times) => i === 0 || time >= times[i - 1]));
+    require(Date.parse(report.finished_at) <= Date.parse(authorization.approvedAt)
+      && index.gates.every(gate => gate.checks.every(check => Date.parse(check.provenance.observedAt) <= Date.parse(authorization.approvedAt))));
+    require(Date.parse(authorization.window.end) > Date.parse(authorization.window.start));
+    require(timestamp(cutover.protectedUntil)
+      && Date.parse(cutover.protectedUntil) - Date.parse(cutover.finishedAt) >= 30 * 24 * 3600_000);
+    require(Number.isSafeInteger(cutover.acknowledgedNewWrites) && cutover.acknowledgedNewWrites >= 0);
+    require(['cutover', 'rollback_before_writes', 'forward_repair'].includes(cutover.outcome));
+    require(cutover.authority === (cutover.outcome === 'rollback_before_writes' ? 'node_json' : 'python_postgresql'));
+    const proofs = ['writersStopped', 'equivalentImport', 'singleAuthority', 'protectedOriginReleaseConfigurationSecrets'];
+    if (cutover.outcome === 'rollback_before_writes') {
+      require(cutover.acknowledgedNewWrites === 0);
+      proofs.push('validatedOriginRollback');
+    }
+    if (cutover.outcome === 'forward_repair') {
+      require(cutover.acknowledgedNewWrites > 0);
+      proofs.push('preservedNewWrites');
+    }
+    require(proofs.every(proof => artifacts.has(cutover.evidence?.[proof])));
+  }
+  return { code: 'PLATFORM_GATE_STRUCTURE_OK', case: expectedCase, synthetic: index.synthetic,
     manualReviewRequired: true, cutoverAuthorized: false, realGateCompleted: false };
 }

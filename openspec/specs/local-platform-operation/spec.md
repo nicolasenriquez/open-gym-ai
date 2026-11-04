@@ -113,7 +113,8 @@ Real cutover SHALL require G0 inventory/backups and prior G1/GP/GO evidence, an 
 
 #### Scenario: Synthetic evidence is available but real inventory is unknown
 - **WHEN** existing synthetic suites report passing results and the real clients, devices or later-access coverage have not been verified
-- **THEN** their guarantees are referenced without inventing operational results, and 11.1 remains incomplete
+- **THEN** their guarantees are referenced without inventing operational results; an explicitly promoter-approved administrative closure of preparation task 11.1 MAY be recorded without establishing operational readiness
+- **AND** administrative closure SHALL NOT authorize cutover, waive existing G0/G1/GP/GO requirements, expand task 11.2 or establish platform acceptance; those existing cutover conditions remain unchanged
 
 #### Scenario: Evidence requires privileged or state-changing collection
 - **WHEN** a missing proof requires reading private configuration, using keys, pausing writers, capturing data or restoring a real snapshot into isolation

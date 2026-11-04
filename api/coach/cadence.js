@@ -1,3 +1,4 @@
+import { interval } from '../drain.js';
 /* Scheduled reviews (Epic E).
  *
  * A separate tick from the workout reminder's, because the two want different things: the
@@ -102,7 +103,7 @@ const hhmmToMin = v => {
  * @param {object} deps  { users(): [{id}], userNow(tz): {date,hhmm,weekday} }
  */
 export function startCadence(deps) {
-  const timer = setInterval(() => {
+  const timer = interval(() => {
     if (!cfgStore.isEnabled() || !cfgStore.isConnected()) return;
     for (const user of deps.users()) {
       try {

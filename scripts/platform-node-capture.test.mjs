@@ -1,15 +1,17 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, lstatSync, existsSync, rmSync, symlinkSync, linkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import http from 'node:http';
 import test from 'node:test';
-import { boundPort } from '../api/test/helpers.mjs';
+import { boundPort, sampleState } from '../api/test/helpers.mjs';
 import { jpeg } from '../api/test/media-samples.mjs';
 import { captureStoppedNode } from './platform-node-capture.mjs';
+import { drainAndCaptureNode } from './platform-node-drain.mjs';
 
 const stopped = child => child.exitCode !== null || child.signalCode !== null;
 async function stop(child) {
@@ -40,15 +42,18 @@ function fixture(t) {
   }));
   const own = child => { children.push(child); return child; };
   return { root, sources, own, destination: join(root, 'capture'), sourceCutoffAt: new Date().toISOString(),
-    async api(data = join(root, 'data')) {
-      const child = own(spawn(process.execPath, ['api/server.js'], { cwd: resolve('.'),
+    async api(data = join(root, 'data'), env = {}) {
+      const child = own(spawn(process.execPath, ['--input-type=module', '-e',
+        "process.on('message',()=>{process.send('drain-started');if(!process.emit('SIGTERM'))process.exit(143)});await import('./api/server.js')"], { cwd: resolve('.'),
         env: { SystemRoot: process.env.SystemRoot ?? '', PORT: '0', DATA_DIR: data,
           ORIGIN: 'http://localhost:8080', RP_ID: 'localhost', PASSWORD_LOGIN: '1',
-          COACH_DISABLED: '1', COACH_CREDENTIAL_DIR: join(root, 'protected-access'), AUDIT_LOG: '1' },
-        windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }));
+          COACH_DISABLED: '1', COACH_CREDENTIAL_DIR: join(root, 'protected-access'), AUDIT_LOG: '1', ...env },
+        windowsHide: true, stdio: ['ignore', 'pipe', 'pipe', 'ipc'] }));
       child.stderr.resume();
+      let output = '';
+      child.stdout.on('data', d => { output += d; });
       const base = `http://127.0.0.1:${await boundPort(child)}`;
-      return { child, base, async request(method, path, body, cookie) {
+      return { child, base, output: () => output, async request(method, path, body, cookie) {
         return fetch(base + path, { method, headers: { 'Content-Type': 'application/json',
           Origin: 'http://localhost:8080', ...(cookie ? { Cookie: cookie } : {}) },
           body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(5000) });
@@ -63,6 +68,106 @@ function fixture(t) {
     },
   };
 }
+
+function processControl(f, api) {
+  const identity = { id: 'a'.repeat(64), image: `sha256:${'b'.repeat(64)}`,
+    project: 'synthetic', startedAt: new Date().toISOString() };
+  return { identity,
+    async inspect() { return { ...identity, dataRoot: join(f.root, 'data'), running: !stopped(api.child),
+      pid: stopped(api.child) ? 0 : api.child.pid, exitCode: api.child.exitCode }; },
+    async signal() { const started = once(api.child, 'message'); api.child.send('drain'); await started; },
+    async proof() { return JSON.parse(api.output().split(/\r?\n/).find(s => s.startsWith('NODE_DRAINED ')).slice(13)); },
+    async noOtherContainers() { return true; },
+  };
+}
+
+test('Node drain adapter checks identities and external writers before stopping and capturing', { timeout: 15_000 }, async t => {
+  const f = fixture(t), api = await f.api(), writer = await f.writer();
+  const control = processControl(f, api);
+  const options = { ...f, api: control.identity, externalWritersStopped: () => stopped(writer) };
+  await assert.rejects(drainAndCaptureNode(options, control), /NODE_DRAIN_CAPTURE_REJECTED/);
+  assert.equal(stopped(api.child), false);
+  await stop(writer);
+  await assert.rejects(drainAndCaptureNode({ ...options, api: { ...control.identity, image: `sha256:${'c'.repeat(64)}` } }, control), /NODE_DRAIN_CAPTURE_REJECTED/);
+  await assert.rejects(drainAndCaptureNode({ ...options, destination: f.root }, control), /NODE_DRAIN_CAPTURE_REJECTED/);
+  assert.equal(stopped(api.child), false, 'invalid preflight must not stop the source');
+  const result = await drainAndCaptureNode(options, control);
+  assert.equal(stopped(api.child), true);
+  assert.equal(api.child.exitCode, 0);
+  assert.equal(result.receipt.sourceCutoffAt, result.drain.finishedAt);
+  assert.equal(result.cutoverAuthorized, false);
+  assert.equal(result.realGateCompleted, false);
+  assert.equal(readFileSync(join(f.destination, 'data/secret'), 'utf8'), 'c'.repeat(64));
+});
+
+test('Node drain waits for an accepted detached Coach job and captures its completed result', { timeout: 15_000 }, async t => {
+  const f = fixture(t);
+  let answer;
+  const reached = new Promise(resolveReached => { answer = resolveReached; });
+  const provider = http.createServer((req, res) => { req.resume(); req.on('end', () => answer(res)); });
+  await new Promise(r => provider.listen(0, '127.0.0.1', r));
+  t.after(() => { provider.close(); provider.closeAllConnections(); });
+  writeFileSync(join(f.root, 'data/coach.json'), JSON.stringify({ enabled: true, provider: 'compatible',
+    providerOptions: { compatible: { baseUrl: `http://127.0.0.1:${provider.address().port}` } }, models: { compatible: 'local-model' } }));
+  writeFileSync(join(f.root, 'data/db.json'), JSON.stringify({ users: [{ id: 'drain-coach', name: 'Coach User' }], creds: [], subs: [], invites: [] }));
+  writeFileSync(join(f.root, 'data/state-drain-coach.json'), JSON.stringify(sampleState()));
+  const api = await f.api(undefined, { COACH_DISABLED: '0' }), control = processControl(f, api);
+  const payload = `drain-coach:${Date.now() + 60_000}:0`;
+  const cookie = `gymsid=${payload}.${createHmac('sha256', 'c'.repeat(64)).update(payload).digest('base64url')}`;
+  const queued = await api.request('POST', '/api/coach/review', {}, cookie);
+  assert.equal(queued.status, 202); await queued.json();
+  const res = await reached;
+  const started = once(api.child, 'message');
+  const captured = drainAndCaptureNode({ ...f, api: control.identity, externalWritersStopped: () => true }, control);
+  await started;
+  assert.equal(stopped(api.child), false);
+  assert.equal(existsSync(f.destination), false);
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: '{"coach_contract":1,"nochange":true,"reading":"Steady."}' } }] }));
+  await captured;
+  const record = JSON.parse(readFileSync(join(f.destination, 'data/coach/drain-coach.json'), 'utf8'));
+  assert.equal(record.current, null);
+  assert.equal(record.history.at(-1).outcome, 'nochange');
+});
+
+test('Node drain timeout cannot publish a successful capture or restart the source', { timeout: 15_000 }, async t => {
+  const f = fixture(t), api = await f.api(undefined, { NODE_DRAIN_TIMEOUT_MS: '50' });
+  const req = http.request(`${api.base}/api/register/password`, { method: 'POST', headers: { 'Content-Length': 100 } });
+  req.on('error', () => {}); req.write('{');
+  t.after(() => req.destroy());
+  await api.request('GET', '/api/config');
+  const control = processControl(f, api);
+  await assert.rejects(drainAndCaptureNode({ ...f, api: control.identity, externalWritersStopped: () => true }, control), /NODE_DRAIN_CAPTURE_REJECTED/);
+  assert.equal(api.child.exitCode, 1);
+  assert.doesNotMatch(api.output(), /NODE_DRAINED/);
+  assert.equal(existsSync(f.destination), false);
+});
+
+test('Node drain finishes an admitted write before exiting and stops accepting new requests', { timeout: 15_000 }, async t => {
+  const f = fixture(t), api = await f.api();
+  const body = JSON.stringify({ name: 'Drained User', password: 'orchard bicycle summer 42!' });
+  const result = new Promise((resolveResponse, reject) => {
+    const req = http.request(`${api.base}/api/register/password`, { method: 'POST',
+      headers: { Origin: 'http://localhost:8080', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } }, res => {
+      res.resume(); res.on('end', () => resolveResponse(res.statusCode));
+    });
+    req.on('error', reject);
+    req.write(body.slice(0, -1));
+    api.pendingRequest = req;
+  });
+  result.catch(() => {});
+  await api.request('GET', '/api/config');
+  const started = once(api.child, 'message');
+  const closed = once(api.child, 'close');
+  api.child.send('drain'); await started;
+  assert.equal(stopped(api.child), false, 'accepted request must not be abandoned');
+  api.pendingRequest.end(body.slice(-1));
+  assert.equal(await result, 200);
+  const [code, signal] = await closed;
+  assert.equal(code, 0); assert.equal(signal, null);
+  assert.equal(JSON.parse(readFileSync(join(f.root, 'data/db.json'), 'utf8')).users[0].name, 'Drained User');
+  await assert.rejects(fetch(`${api.base}/api/config`));
+});
 
 test('Node capture preserves acknowledged HTTP state, media, secrets and configuration after all writers stop', async t => {
   const f = fixture(t), api = await f.api(), writer = await f.writer();

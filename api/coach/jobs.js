@@ -1,3 +1,4 @@
+import { track } from '../drain.js';
 /* Running Coach jobs, and owning their results.
  *
  * Why the server owns proposals instead of the synced state blob: a client PUTs its whole
@@ -260,9 +261,9 @@ function pump() {
   while (running < MAX_CONCURRENT && queue.length) {
     const job = queue.shift();
     running++;
-    execute(job)
+    track(execute(job)
       .catch(e => { console.error('coach job crashed', job.id, e); finish(job, { outcome: 'failed', errorClass: 'internal' }); })
-      .finally(() => { running--; inflight.delete(job.uid); pump(); });
+      .finally(() => { running--; inflight.delete(job.uid); pump(); }));
   }
 }
 

@@ -1,6 +1,7 @@
 /* opengym-api — passkey (WebAuthn) auth + per-user state storage for openGym
    No framework, JSON-file storage, signed session cookies.               */
 import http from 'node:http';
+import { track, interval, later, cancelTimer, drain, isDraining } from './drain.js';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -341,7 +342,10 @@ function pushEndpointError(raw) {
 // older client) still gets everything, as before. A resting device with no subscription of its
 // own gets nothing: the phone in the bag must not ring for a rest timed on the desktop. The
 // client re-sends its subscription with its id on every boot, so an id that changed heals there.
-async function sendPush(userId, payload, deviceId) {
+function sendPush(userId, payload, deviceId) {
+  return track(deliverPush(userId, payload, deviceId));
+}
+async function deliverPush(userId, payload, deviceId) {
   let subs = db.subs.filter(s => s.userId === userId);
   if (deviceId) subs = subs.filter(s => !s.deviceId || s.deviceId === deviceId);
   if (!subs.length) return;
@@ -400,8 +404,8 @@ const restKey = (userId, deviceId) => `${userId}:${deviceId || ''}`;
 function scheduleRestTimer(userId, deviceId, sec, lang) {
   const k = restKey(userId, deviceId);
   const t = restTimers.get(k);
-  if (t) clearTimeout(t);
-  restTimers.set(k, setTimeout(() => {
+  if (t) cancelTimer(t);
+  restTimers.set(k, later(() => {
     restTimers.delete(k);
     sendPush(userId, restTimerPush(lang), deviceId);
   }, sec * 1000));
@@ -409,7 +413,7 @@ function scheduleRestTimer(userId, deviceId, sec, lang) {
 function cancelRestTimer(userId, deviceId) {
   // no device id: an older client — clear everything the account has pending, as it always did
   for (const [k, t] of restTimers) {
-    if (deviceId ? k === restKey(userId, deviceId) : k.startsWith(userId + ':')) { clearTimeout(t); restTimers.delete(k); }
+    if (deviceId ? k === restKey(userId, deviceId) : k.startsWith(userId + ':')) { cancelTimer(t); restTimers.delete(k); }
   }
 }
 // A device id is what the browser made up for itself (lib/push.js): one short token per browser
@@ -497,7 +501,7 @@ function nudgeTick(user, S, now) {
   saveDb();
   sendPush(user.id, nudgePush(S.lang, toneOf(S.reminder), routine, now.date));
 }
-setInterval(() => {
+interval(() => {
   for (const user of db.users) {
     if (!db.subs.some(s => s.userId === user.id)) continue;
     // One user's state file is one user's problem: a shape this tick cannot read is logged and
@@ -701,7 +705,7 @@ function takeChallenge(cid) {
   if (!c || c.exp < Date.now()) return null;
   return c;
 }
-setInterval(() => { for (const [k, v] of challenges) if (v.exp < Date.now()) challenges.delete(k); }, 60000).unref();
+interval(() => { for (const [k, v] of challenges) if (v.exp < Date.now()) challenges.delete(k); }, 60000).unref();
 
 // ---------- device pairing (mobile app "connect to my server", no WebAuthn ceremony) ----------
 // A passkey ceremony can't run inside the app's WebView (its origin never matches RP_ID), so the
@@ -716,7 +720,7 @@ function makePairCode() {
   } while (pairings.has(code));
   return code;
 }
-setInterval(() => { for (const [k, v] of pairings) if (v.exp < Date.now()) pairings.delete(k); }, 60000).unref();
+interval(() => { for (const [k, v] of pairings) if (v.exp < Date.now()) pairings.delete(k); }, 60000).unref();
 
 /* ---------- helpers ---------- */
 function json(res, code, obj, extraHeaders) {
@@ -800,7 +804,7 @@ function livePresence(uid) {
   const { hiddenAt: _away, ...live } = p;   // the mark is bookkeeping; the dashboard gets the row it always did
   return live;
 }
-setInterval(() => { const now = Date.now(); for (const [k, v] of presence) if (!presenceListed(v, now)) presence.delete(k); }, 30000).unref();
+interval(() => { const now = Date.now(); for (const [k, v] of presence) if (!presenceListed(v, now)) presence.delete(k); }, 30000).unref();
 
 /* ---------- audit log ---------- */
 // Who signed in, who tried and failed, and what an admin changed. One JSON object per line in
@@ -895,7 +899,7 @@ function audit(req, ev, f = {}) {
 }
 if (AUDIT_ON) {
   compactAudit();                                // prune on boot, seed auditSeq/auditCount
-  setInterval(compactAudit, 3600000).unref();    // honour AUDIT_DAYS on an idle instance too
+  interval(compactAudit, 3600000).unref();    // honour AUDIT_DAYS on an idle instance too
 }
 
 /* ---------- sign-in throttle ---------- */
@@ -943,7 +947,7 @@ const ACCOUNT_FAILS = createBackoff({
   // At most one per profile with a password, so this cannot grow without bound.
   keep: k => k.startsWith('acct:') && hasPassword(db.users.find(u => u.id === k.slice(5)))
 });
-setInterval(() => { AUTH_BURST.sweep(); ADDR_FAILS.sweep(); ACCOUNT_FAILS.sweep(); }, 60000).unref();
+interval(() => { AUTH_BURST.sweep(); ADDR_FAILS.sweep(); ACCOUNT_FAILS.sweep(); }, 60000).unref();
 
 // Route -> the kind of failure it can count. Every route listed here also spends the burst
 // budget; `null` spends only that.
@@ -1009,7 +1013,7 @@ function strikeAddress(req, kind) {
 // dropped is a row that says the same thing as the ten before it.
 const FAIL_AUDIT = createWindow({ max: 10, windowMs: 60000 });
 const FAIL_AUDIT_ALL = createWindow({ max: 120, windowMs: 60000 });
-setInterval(() => { FAIL_AUDIT.sweep(); FAIL_AUDIT_ALL.sweep(); }, 60000).unref();
+interval(() => { FAIL_AUDIT.sweep(); FAIL_AUDIT_ALL.sweep(); }, 60000).unref();
 function auditFail(req, ev, f) {
   if (FAIL_AUDIT.take(ev + '|' + limitAddress(req)) || FAIL_AUDIT_ALL.take(ev)) return;
   audit(req, ev, f);
@@ -1220,7 +1224,7 @@ async function proveOwner(req, res, user, body, act) {
   return 'password';
 }
 
-if (PASSWORD_LOGIN) warmUp();
+if (PASSWORD_LOGIN) track(warmUp());
 
 // Taking the address away: the profile then signs in by its name only. Asks the same proof as
 // setting one; a profile without an address gets 200 with none asked.
@@ -1770,7 +1774,7 @@ const MEDIA_SWEEPS = createWindow({ max: 10, windowMs: 3600000 });
 // Uid -> until when its throttle has already been recorded, so a client hammering a closed
 // window writes one audit line per window, not one per request.
 const mediaThrottleNoted = new Map();
-setInterval(() => {
+interval(() => {
   MEDIA_BURST.sweep(); MEDIA_SWEEPS.sweep();
   for (const [k, until] of mediaThrottleNoted) if (until < Date.now()) mediaThrottleNoted.delete(k);
 }, 600000).unref();
@@ -1794,8 +1798,8 @@ function mediaSweepAll() {
   } catch (e) { console.error('media: sweep failed', e); }
 }
 if (MEDIA_ON) {
-  setInterval(mediaSweepAll, 3600000).unref();
-  setTimeout(mediaSweepAll, 5 * 60000).unref();
+  interval(mediaSweepAll, 3600000).unref();
+  later(mediaSweepAll, 5 * 60000).unref();
 }
 
 // A stored file, streamed. The headers are the point: the bytes were chosen by a user, so the
@@ -2623,7 +2627,8 @@ function bodyDeadline(req) {
 // The Capacitor WebView origins of the Android and iOS app.
 const APP_ORIGINS = new Set(['https://localhost', 'capacitor://localhost', 'http://localhost']);
 
-const server = http.createServer(async (req, res) => {
+async function handleRequest(req, res) {
+  if (isDraining()) return json(res, 503, { error: 'server draining' }, { Connection: 'close' });
   bodyDeadline(req);
   // Same-origin (the deployed nginx-proxied web app) never triggers CORS, so this only matters
   // for the paired mobile app calling in from its own WebView origin. It carries no cookie
@@ -2695,7 +2700,8 @@ const server = http.createServer(async (req, res) => {
     console.error(key, e);
     if (!res.headersSent) json(res, 500, { error: 'server error' });
   }
-});
+}
+const server = http.createServer((req, res) => { track(handleRequest(req, res)); });
 // Node's default of 300 s for a whole request would answer 408 to a 40 MB video on a ~1 Mbit/s
 // uplink. Half an hour covers that; a stalled upload is cut much sooner by its own 60 s idle
 // timer in media.js, a client that never finishes its headers still meets headersTimeout, and
@@ -2707,3 +2713,7 @@ server.headersTimeout = 60000;
 // (the tests spawn the server that way, and so does anyone running two instances on one box) has
 // no other way to learn it.
 server.listen(PORT, () => console.log(`gym-api on :${server.address().port} (rpID=${RP_ID}, origin=${ORIGIN})`));
+
+// Container SIGTERM must finish admitted work before a stopped-source capture.
+const drainTimeoutMs = Math.min(30 * 60000, Math.max(50, Number(process.env.NODE_DRAIN_TIMEOUT_MS) || 30000));
+for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => { void drain(server, drainTimeoutMs); });

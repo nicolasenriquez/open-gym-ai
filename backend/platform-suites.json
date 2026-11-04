@@ -1,5 +1,12 @@
 {
   "gates": [{
+    "id": "authorized_cutover",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "--test-name-pattern=authorized_cutover", "scripts/platform-gates.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / New writes followed by rollback request",
+    "proof": "Synthetic CLI evidence inspection reuses pre-cutover coverage and safe files; requires candidate-bound explicit approval, maintenance window, single authority, equivalent import, protected originals and rollback-before-writes or preservation after forward repair",
+    "checkpoint": "Inspector only, never operates on an instance or grants permission. Always requires manual review and reports cutoverAuthorized/realGateCompleted false; 11.2 remains pending real authorized execution."
+  }, {
     "id": "node_capture_recovery",
     "target": "host",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-node-recovery.test.mjs"],
@@ -19,15 +26,15 @@
     "entrypoint": "node",
     "command": ["--test", "--test-reporter=tap", "scripts/platform-node-capture.test.mjs"],
     "requirement": "Single-authority cutover and verified retirement / Node origin needs a representative Python rehearsal",
-    "proof": "Real disposable Node HTTP writes and media, stopped API plus independent writer, bounded exclusive capture and source/destination hashes; active writers, changed sources, unsafe links, overlapping or occupied destinations and killed controller cannot publish a successful copy or restart services",
-    "checkpoint": "11.1 synthetic capture procedure only; no real topology, custody, data, backup disk, permission, importer execution or operational gate. Caller owns admission/draining, writer proof and explicit recovery; no operate command."
+    "proof": "Real disposable Node drains admitted HTTP and detached Coach work before capture; identity/external-writer preflight, timeout refusal, bounded exclusive copy and source/destination hashes; active writers, changed sources, unsafe paths and killed controller cannot publish success or restart services",
+    "checkpoint": "Synthetic capture/drain adapter only; no real topology, custody, data, backup disk, permission or operational gate. Caller supplies approved external-writer custody and explicit recovery; no operate command or automatic cutover."
   }, {
     "id": "pre_cutover",
     "target": "host",
-    "command": ["--test", "--test-reporter=tap", "scripts/platform-gates.test.mjs"],
+    "command": ["--test", "--test-reporter=tap", "--test-name-pattern=pre_cutover", "scripts/platform-gates.test.mjs"],
     "requirement": "Single-authority cutover and verified retirement / pre-cutover evidence inspection",
     "proof": "Synthetic CLI indexes: G0/G1/GP/GO coverage, complete release manifest, original provenance and applicability references, Node data-cutoff versus Python snapshot and full RPO/RTO chronology, checksums and human references; missing/failed/skipped/mismatched/escaped/linked/oversized evidence fails without Docker or command execution",
-    "checkpoint": "Validator fixtures only; no real gate completion, authenticity proof, operational permission or cutover. Explicit --evidence performs bounded structural inspection and always requires manual review. Task 11.1 remains pending."
+    "checkpoint": "Validator fixtures only; no real gate completion, authenticity proof, operational permission or cutover. Explicit --evidence performs bounded structural inspection and always requires manual review. Task 11.1 is administratively closed."
   }],
   "repair": [{
     "id": "acknowledged_writes",
