@@ -4,6 +4,7 @@
 # container exits 127 before nginx starts (`web/05-check-base-path.sh`).
 * text=auto
 *.sh            text eol=lf
+backend/diagnostics/* text eol=lf
 frontend/scripts/check-mobile-bundle.mjs text eol=lf
 api/nudge-copy.js text eol=lf
 shared/coach-core/prompts/*.md text eol=lf
