@@ -9,6 +9,14 @@ from pathlib import Path
 import httpx
 import pytest
 import pytest_asyncio
+from identity_vectors import (
+    ALIASES,
+    HASH,
+    IDENTIFIERS,
+    LEGACY_HASH,
+    PASSWORD,
+    PASSWORD_CASES,
+)
 from test_identity_session import identities as identities  # noqa: PLC0414
 from test_lifecycle import deployment as deployment  # noqa: PLC0414
 from test_lifecycle import server
@@ -20,8 +28,6 @@ from opengym_platform.identity.passwords import (
     identifier_text,
     name_key,
 )
-
-from identity_vectors import ALIASES, HASH, IDENTIFIERS, LEGACY_HASH, PASSWORD, PASSWORD_CASES
 
 
 @pytest_asyncio.fixture

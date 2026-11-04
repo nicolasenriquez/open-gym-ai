@@ -4,21 +4,19 @@ import asyncio
 import base64
 import hashlib
 import hmac
-import json
 import shutil
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
 import pytest_asyncio
+from identity_vectors import LEGACY, SECRET, A, B
 from test_lifecycle import deployment as deployment  # noqa: PLC0414 -- pytest fixture export
 from test_lifecycle import migration, server
 
 from opengym_platform.core.database import Database
 from opengym_platform.identity.service import profile
 from opengym_platform.identity.sessions import authorize, verify
-
-from identity_vectors import A, B, LEGACY, SECRET
 
 
 @pytest_asyncio.fixture

@@ -1,7 +1,6 @@
 """Registration through real HTTP and independently observed PostgreSQL."""
 
 import asyncio
-import json
 import shutil
 from pathlib import Path
 
@@ -14,56 +13,134 @@ from opengym_platform.core.database import Database, DatabaseError
 from opengym_platform.identity.registration import normalize_email, password_problem
 
 
-@pytest.mark.parametrize("password", [
-    "1234567890", "0987654321", "12345678910", "123456789012", "1234567890123",
-    "11111111111", "1111111111", "0000000000", "9999999999", "1q2w3e4r5t",
-    "1q2w3e4r5t6y", "q1w2e3r4t5", "qwertyuiop", "qwertyuiop[]", "asdfghjkl;",
-    "zxcvbnm,./", "1qaz2wsx3edc", "qazwsxedc123", "qwerty123456", "qwertz123456",
-    "azerty123456", "password12", "password123", "password1234", "password12345",
-    "passw0rd123", "iloveyou123", "abcdefghij", "abcd123456", "abc1234567",
-    "a1b2c3d4e5", "aaaaaaaaaa", "princess123", "football123", "baseball123",
-    "sunshine123", "superman123", "welcome123", "welcome1234", "letmein123",
-    "trustno1234", "changeme123", "administrator", "opengym123", "opengym1234",
-    "qwerty1234567", "123qweasdzxc", "zaq12wsxcde3", "1q2w3e4r5t6y7u",
-    "q1w2e3r4t5y6", "123123123123", "1234512345", "123456123456", "monkey12345",
-    "dragon12345", "master12345", "shadow12345", "michael123", "jennifer123",
-    "computer123", "starwars123", "whatever123", "freedom1234", "pokemon1234",
-    "liverpool123", "chelsea1234", "arsenal1234", "barcelona123", "realmadrid123",
-    "juventus123", "hallo12345", "passwort123", "passwort1234", "motdepasse123",
-    "contrasena123", "contraseña123", "senha123456", "parola12345", "haslo123456",
-    "wachtwoord123", "salasana123", "gymgymgym1", "Ａｌｉｃｅ.2024.2024",
-    "😀😀😀😀😀😀😀😀😀😀", "éééééééééé", "Password123!",
-    "abaabaabaabaabaabaabaabaabaaba",
-])def test_common_passwords_are_rejected(password):
+@pytest.mark.parametrize(
+    "password",
+    [
+        "1234567890",
+        "0987654321",
+        "12345678910",
+        "123456789012",
+        "1234567890123",
+        "11111111111",
+        "1111111111",
+        "0000000000",
+        "9999999999",
+        "1q2w3e4r5t",
+        "1q2w3e4r5t6y",
+        "q1w2e3r4t5",
+        "qwertyuiop",
+        "qwertyuiop[]",
+        "asdfghjkl;",
+        "zxcvbnm,./",
+        "1qaz2wsx3edc",
+        "qazwsxedc123",
+        "qwerty123456",
+        "qwertz123456",
+        "azerty123456",
+        "password12",
+        "password123",
+        "password1234",
+        "password12345",
+        "passw0rd123",
+        "iloveyou123",
+        "abcdefghij",
+        "abcd123456",
+        "abc1234567",
+        "a1b2c3d4e5",
+        "aaaaaaaaaa",
+        "princess123",
+        "football123",
+        "baseball123",
+        "sunshine123",
+        "superman123",
+        "welcome123",
+        "welcome1234",
+        "letmein123",
+        "trustno1234",
+        "changeme123",
+        "administrator",
+        "opengym123",
+        "opengym1234",
+        "qwerty1234567",
+        "123qweasdzxc",
+        "zaq12wsxcde3",
+        "1q2w3e4r5t6y7u",
+        "q1w2e3r4t5y6",
+        "123123123123",
+        "1234512345",
+        "123456123456",
+        "monkey12345",
+        "dragon12345",
+        "master12345",
+        "shadow12345",
+        "michael123",
+        "jennifer123",
+        "computer123",
+        "starwars123",
+        "whatever123",
+        "freedom1234",
+        "pokemon1234",
+        "liverpool123",
+        "chelsea1234",
+        "arsenal1234",
+        "barcelona123",
+        "realmadrid123",
+        "juventus123",
+        "hallo12345",
+        "passwort123",
+        "passwort1234",
+        "motdepasse123",
+        "contrasena123",
+        "contraseña123",
+        "senha123456",
+        "parola12345",
+        "haslo123456",
+        "wachtwoord123",
+        "salasana123",
+        "gymgymgym1",
+        "Ａｌｉｃｅ.2024.2024",
+        "😀😀😀😀😀😀😀😀😀😀",
+        "éééééééééé",
+        "Password123!",
+        "abaabaabaabaabaabaabaabaabaaba",
+    ],
+)
+def test_common_passwords_are_rejected(password):
     assert password_problem(password, "Alice") == "too-common"
 
 
-@pytest.mark.parametrize("password,expected", [
-    ("asdfghjkl", "too-short"),
-    ("violet river stones", None),
-    ("密碼abcdefgh123", None),
-    ("x" * 257, "too-long"),
-])
+@pytest.mark.parametrize(
+    "password,expected",
+    [
+        ("asdfghjkl", "too-short"),
+        ("violet river stones", None),
+        ("密碼abcdefgh123", None),
+        ("x" * 257, "too-long"),
+    ],
+)
 def test_password_policy_boundaries(password, expected):
     assert password_problem(password, "Alice") == expected
 
 
-@pytest.mark.parametrize("raw,expected", [
-    (" User@EXAMPLE.test ", "user@example.test"),
-    ("Ａ＠example.test", "a@example.test"),
-    ("a@b.cd", "a@b.cd"),
-    ("a@b.c", None),
-    ("bad", None),
-    ("a..b@example.test", None),
-    ("a@example..test", None),
-    ("a@.example.test", None),
-    ("a@-example.test", None),
-    ("a@_example.test", None),
-    ("a@example.test", "a@example.test"),
-    ("a﻿@example.test", None),
-    ("a\u001c@example.test", "a\u001c@example.test"),
-    ("a@😀.test", "a@😀.test"),
-])
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        (" User@EXAMPLE.test ", "user@example.test"),
+        ("Ａ＠example.test", "a@example.test"),
+        ("a@b.cd", "a@b.cd"),
+        ("a@b.c", None),
+        ("bad", None),
+        ("a..b@example.test", None),
+        ("a@example..test", None),
+        ("a@.example.test", None),
+        ("a@-example.test", None),
+        ("a@_example.test", None),
+        ("a@example.test", "a@example.test"),
+        ("a﻿@example.test", None),
+        ("a\u001c@example.test", "a\u001c@example.test"),
+        ("a@😀.test", "a@😀.test"),
+    ],
+)
 def test_email_normalization(raw, expected):
     assert normalize_email(raw) == expected
 

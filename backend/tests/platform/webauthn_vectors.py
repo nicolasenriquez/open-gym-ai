@@ -17,15 +17,26 @@ for algorithm, data in packed["algorithms"].items():
         kind = "register" if name.startswith("register") else "login"
         credential = deepcopy(data["register" if kind == "register" else "assertion"])
         credential["response"].update(data["variants"].get(name, {}))
-        accepted = name in ("register", "register-backed-up", "assertion", "uv", "zero", "backup")
-        VECTORS["cases"].append({
-            "name": algorithm + "/" + name,
-            "algorithm": algorithm,
-            "kind": kind,
-            "credential": credential,
-            "publicKey": data["publicKey"],
-            "credentialId": credential["id"],
-            "expected": accepted,
-            "observedCounter": 1 if name == "replay" else 0,
-            "newCounter": 1 if accepted and kind == "login" and name != "zero" else 0,
-        })
+        accepted = name in (
+            "register",
+            "register-backed-up",
+            "assertion",
+            "uv",
+            "zero",
+            "backup",
+        )
+        VECTORS["cases"].append(
+            {
+                "name": algorithm + "/" + name,
+                "algorithm": algorithm,
+                "kind": kind,
+                "credential": credential,
+                "publicKey": data["publicKey"],
+                "credentialId": credential["id"],
+                "expected": accepted,
+                "observedCounter": 1 if name == "replay" else 0,
+                "newCounter": 1
+                if accepted and kind == "login" and name != "zero"
+                else 0,
+            }
+        )

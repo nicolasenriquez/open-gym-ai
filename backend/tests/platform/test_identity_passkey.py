@@ -2,7 +2,6 @@
 
 import asyncio
 import base64
-import json
 import shutil
 from pathlib import Path
 from types import SimpleNamespace

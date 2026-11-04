@@ -3,7 +3,6 @@
 import asyncio
 import json
 from contextlib import suppress
-from copy import deepcopy
 
 import pytest
 from test_identity_session import A, B
@@ -11,6 +10,7 @@ from test_identity_session import identities as identities  # noqa: PLC0414
 from test_lifecycle import deployment as deployment  # noqa: PLC0414
 from test_lifecycle import server
 from test_training_write import external_factory
+
 
 @pytest.mark.asyncio
 async def test_legacy_replace_without_base_preserves_reset_and_server_records(
