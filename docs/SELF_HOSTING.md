@@ -18,8 +18,8 @@ description: Current deployment, passkeys, backups and troubleshooting.
 
 ## Historical Node release reference
 
-openGym is two small containers (a web server and an API) plus a folder of your data.
-This guide takes you from "just cloned it" to "using it from my phone over the internet".
+The preserved Node release used two containers and file-backed application data.
+The sections below describe that release, not installation of the current checkout.
 
 **On this page**
 
@@ -42,12 +42,13 @@ HTTPS on a LAN without a public domain has [its own guide](SELF_HOSTING_HTTPS.md
 
 Requirements: [Docker](https://docs.docker.com/get-docker/) with the Compose plugin.
 
-```bash
-git clone https://github.com/nicolasenriquez/open-gym-ai
-cd open-gym-ai
-cp .env.example .env
-docker compose up -d --build   # build this checkout; Compose image URLs belong to upstream
-```
+For an existing Node instance, use the deployment instructions and Compose files
+from its preserved release. Do not clone the current branch over that deployment
+or substitute its images, secrets or data paths.
+
+For a new, independent Python environment, follow
+[the current platform guide](../backend/README.md#platform-images-and-compose).
+The current checkout has no root Compose entrypoint.
 
 - The exercise stills and animations (180 px, ~80 MB) ship inside the web image; nothing is downloaded on first start. An old `media/` folder and its two volume lines from before v1.4.0 are no longer used: harmless if you keep them, safe to delete.
 - Open **http://localhost:8080** and create a profile with a passkey.
@@ -69,10 +70,11 @@ local instance, `just logs` for logs and `just stop` to stop without removing
 containers or data. These shortcuts explicitly target the local project `opengym`;
 custom project names should keep their existing Compose commands.
 
-The root `docker-compose.yml` remains the current Node application. Python Dev
-and future permanent deployment definitions are grouped under `deploy/`; see
-[backend deployment guidance](../backend/README.md#platform-images-and-compose)
-for independent data, secrets and ports. They do not replace this instance.
+The root `docker-compose.yml` mentioned by this historical guide belongs to the
+preserved Node release; it is absent from the current checkout. Current Python
+definitions live under `deploy/`; see
+[backend deployment guidance](../backend/README.md#platform-images-and-compose).
+They do not migrate or replace an existing instance.
 `just status` lists all Compose projects on the Docker host, including stopped
 projects and unrelated applications. The platform verifier creates temporary
 projects; a visible project may still be active. After confirming its execution has

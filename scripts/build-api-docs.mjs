@@ -590,8 +590,7 @@ ${railTags}
 
   <section class="api-sec" id="overview">
     <h2>Overview</h2>
-    <p class="sub">${mdCell(spec.info.summary)}. One Node file, no framework, JSON-file
-       storage, HMAC-signed session cookies.</p>
+    <p class="sub">${mdCell(spec.info.summary)}.</p>
     <div class="srv">${serversHtml}
     </div>
     <div class="ov-grid">${overviewCards}

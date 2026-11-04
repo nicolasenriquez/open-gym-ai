@@ -46,8 +46,8 @@ when the company does. openGym runs on your own box, keeps your data in a folder
 is yours to fork. It still behaves like a modern app: installable on the home screen, passkey
 sign-in, works offline, syncs between your phone and your laptop.
 
-No account on someone else's server, no subscription, no ads, no telemetry. One
-`docker compose up` and it's running.
+No account on someone else's server, no subscription, no ads, no telemetry.
+See [Quick start](#quick-start) for this repository's deployment prerequisites.
 
 The [in-browser demo](https://opengym.ch/demo/) is the real app with example data,
 if you want to try it before installing anything.
@@ -195,18 +195,18 @@ banner whenever it's working offline.
 
 ### Your data
 
-Everything lives in `./data` on your host:
+The current platform stores application records in PostgreSQL. Uploaded media,
+runtime secrets and selected deployment configuration remain outside the database.
+Neither a database dump alone nor an archive of a legacy `./data` directory is a
+complete current-platform backup.
 
-| File | Contents |
-|---|---|
-| `db.json` | Profiles and public passkey data |
-| `db.json.bak` | A copy of the last good `db.json`, used if the main file can't be read |
-| `state-<user>.json` | Each user's plan, workouts, body weight and settings |
-| `audit.log` | Admin activity log (no IP addresses unless you turn that on) |
-| `secret` | Session-cookie signing key |
+Follow the [coordinated capture and verified-bundle procedure](backend/README.md#coordinated-sql-capture)
+and the separate [isolated restore procedure](backend/README.md#isolated-data-restore).
+A successful capture or quarantined restore does not authorize traffic promotion.
 
-Back up `./data` and you've backed up everything. Passkey private keys never reach the server; they
-stay in your phone's secure hardware or your password manager.
+Existing Node instances must retain their original release, configuration, secrets
+and data until a separately authorized migration. Passkey private keys remain on
+the user's device or in their password manager.
 
 ## Documentation
 

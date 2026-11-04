@@ -10,11 +10,11 @@ info:
   summary: Passkey (WebAuthn) auth + per-user state storage for openGym
   description: |
     The backend of [openGym](https://opengym.ch), a free, open-source
-    gym & body-weight tracker. A plain Node server, no framework, JSON-file storage,
-    HMAC-signed session cookies.
+    gym & body-weight tracker. Python/FastAPI with PostgreSQL storage and
+    HMAC-signed session cookies. Media bytes and runtime secrets remain outside tables.
 
     ### Authentication
-    Sign-in is by **passkey** (WebAuthn, via `@simplewebauthn/server`). A successful
+    Sign-in is by **passkey** (WebAuthn). A successful
     `register/verify` or `login/verify` sets the session cookie; every authenticated
     route then works with that cookie. The paired mobile app has no shared cookie jar,
     so it redeems a short pairing code (`/api/v1/pair/redeem`) for the *same* signed token
@@ -74,8 +74,8 @@ info:
     - `ALLOW_GUEST=0`: hides the client-side "continue without account" mode; the
       server merely reports the flag via `GET /api/v1/config` (guest mode never talks to
       this API at all).
-    - `ADMIN_UIDS=<uid>,<uid>`: user ids treated as admins (a `"admin": true` flag on
-      the user record in `db.json` works too). Admins get the `/api/v1/admin/*` routes.
+    - `ADMIN_UIDS=<uid>,<uid>`: user ids selected as admins during registration.
+      Admin status is stored in PostgreSQL. Admins get the `/api/v1/admin/*` routes.
     - `FIRST_USER_ADMIN` (default off; `1` turns it on): the first profile registered
       on an instance with no profiles gets that `"admin": true` flag. Decided at
       registration only, never applied to an instance that already has profiles.
@@ -324,8 +324,7 @@ paths:
       operationId: registerOptions
       summary: 'Start passkey registration (WebAuthn ceremony, step 1)'
       description: |
-        Returns `PublicKeyCredentialCreationOptions` (from
-        `@simplewebauthn/server`'s `generateRegistrationOptions`) plus a challenge id
+        Returns WebAuthn `PublicKeyCredentialCreationOptions` plus a challenge id
         `cid`. The client passes `options` to
         `navigator.credentials.create()` (or `@simplewebauthn/browser`'s
         `startRegistration`) and sends the result to `/api/v1/register/verify` together
@@ -1798,8 +1797,8 @@ paths:
 
         Without this call nothing is lost either: the hourly sweep removes a file once the
         state has not referenced it for `MEDIA_GC_GRACE_DAYS` days (14), and only for profiles
-        whose state reads. A missing or unreadable state, or a profile missing from `db.json`,
-        never deletes anything.
+        whose state can be read. Missing profiles and missing or unreadable state do not
+        authorize deletion.
       requestBody:
         content:
           application/json:
@@ -2149,10 +2148,8 @@ paths:
       description: >-
         Drill-down: full workout history (newest first) and body-weight log for one
         user. Admin only. Anything in `routines`, `bodyweight` or `workouts` that is not
-        an object is left out, and a list that is not an array reads as empty: PUT
-        /api/v1/data drops those entries now, but a state file written before it did still
-        has them and this route has to answer for it. A workout's `media` (its photos and
-        videos) is left out: they are the owner's own.
+        an object is left out, and a list that is not an array reads as empty.
+        A workout's `media` (its photos and videos) is left out: they are the owner's own.
       parameters:
         - name: id
           in: query
