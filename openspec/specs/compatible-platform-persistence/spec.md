@@ -37,6 +37,12 @@ Identity SHALL preserve textual IDs, nonunique display names, normalized login a
 ### Requirement: Executable schema and privileged functions
 Delivery SHALL implement the schema reference's ordered p001–p005 Alembic chain incrementally with its owning operation, including exact constraints, generated projections, FK deletion rules, indexes and explicit function grants. The security reference's typed SQL catalog, executor policies and global lock order SHALL govern preauthentication, administration and global coach/notification operations. Functions SHALL NOT accept arbitrary SQL, roles or table names; SECURITY DEFINER SHALL NOT be treated as bypassing FORCE RLS. DDL and data import SHALL remain separate, with forward-only operational repairs and no artificial stamp or destructive downgrade. Each privileged function SHALL justify its bounded access and atomic invariant; Python SHALL own transport, cryptography and coordination while SQL owns constraints and privileged concurrent invariants. No second independent implementation of the same business rule or function added solely for module symmetry SHALL be introduced. Reducing a signature SHALL require equivalent permission/concurrency/response proof, not broader runtime grants. This revision does not change approved roles, signatures or RLS.
 
+The explicitly approved 5.2 exception SHALL add `coach.fail_interrupted_jobs() RETURNS bigint` to the typed catalog. The single worker SHALL call it before accepting work to atomically archive interrupted jobs as failed/restart and remove them without replay or quota changes. It SHALL use a restricted NOLOGIN executor, pinned search path and explicit runtime EXECUTE, return only cardinality and grant no global runtime SELECT or migration credentials.
+
+The explicitly approved 5.3 adjustment SHALL add `coach.execution_config(actor text, sv bigint, exp timestamptz)` for consented execution settings and limits only. It SHALL revalidate the actor and owner context, disclose no secret or credential reference, use a restricted NOLOGIN executor and explicit runtime EXECUTE, and grant no global runtime SELECT. HTTP execution SHALL use the approved pinned `httpx==0.28.1` runtime dependency without introducing a provider SDK or subprocess.
+
+The explicitly approved 6.4 adjustment SHALL add `administration.list_invitations(actor text, sv bigint, exp timestamptz)` for the existing administrative invitation list. It SHALL revalidate active administrator authority under the namespace/actor locks, resolve the compatible usedByName projection without impersonating the target, preserve consumed history after deletion and grant only exact runtime EXECUTE, never direct invitation SELECT. Creation, revocation and reset issuance SHALL retain their approved signatures.
+
 #### Scenario: Migration failure and function grants
 - **WHEN** migration is attempted from empty/previous head, interrupted or raced by another migrator, or runtime invokes privileged SQL
 - **THEN** the dedicated lock bounds concurrency, failed revisions do not advance history and runtime cannot assume owner/executor roles or execute ungranted functions
@@ -171,9 +177,9 @@ Schema evolution and data import SHALL be separate. Import SHALL retain IDs, cre
 - **AND** relevant web/mobile bundles and generators no longer import the retired API tree while the neutral JavaScript library remains available
 
 ### Requirement: Bounded legacy and temporary artifact cleanup
-The port SHALL include an explicit cleanup checkpoint after equivalent cutover and before platform acceptance. A reviewed path/consumer inventory SHALL classify artifacts as remove, retain with current purpose, or protected recovery material. Cleanup SHALL remove replaced business code, exclusive legacy readers/writers/configuration/dependencies and superseded temporary scaffolds rather than leave a disabled second implementation. Applicable behavioral tests SHALL be preserved or adapted before obsolete implementation-specific tests are removed. Required neutral JavaScript, catalogue assets, current operational tooling and still-useful Foundation evidence SHALL NOT be removed merely for being JavaScript, JSON or historical. Removal SHALL be based on obsolete purpose and verified consumers, not programming language.
+The port SHALL include an explicit repository cleanup checkpoint after verified synthetic parity and before repository acceptance, independently of the deferred real-instance cutover. A reviewed path/consumer inventory SHALL classify artifacts as remove, retain with current purpose, or protected recovery material. Cleanup SHALL remove replaced business code, exclusive legacy readers/writers/configuration/dependencies and superseded temporary scaffolds rather than leave a disabled second implementation. Applicable behavioral tests SHALL be preserved or adapted before obsolete implementation-specific tests are removed. Required neutral JavaScript, catalogue assets, current operational tooling and still-useful Foundation evidence SHALL NOT be removed merely for being JavaScript, JSON or historical. Removal SHALL be based on obsolete purpose and verified consumers, not programming language.
 
-Cleanup SHALL use exact owned paths/resources, preserve unrelated work and user/client data, and avoid broad prune or directory deletion without consumer review. Protected origin/release/configuration/secrets SHALL remain outside active dependencies for the agreed recovery window; its expiry SHALL NOT authorize their deletion. Temporary logs, captures and synthetic artifacts SHALL be removed only after necessary sanitized evidence is retained in the appropriate delivery/CI location; no duplicate permanent cleanup report SHALL be created. Post-cleanup builds, parity, security, restore and dependency checks SHALL pass before G3/GO acceptance.
+Cleanup SHALL use exact owned paths/resources, preserve unrelated work and user/client data, and avoid broad prune or directory deletion without consumer review. Protected origin/release/configuration/secrets SHALL remain outside active dependencies for the agreed recovery window; its expiry SHALL NOT authorize their deletion. Temporary logs, captures and synthetic artifacts SHALL be removed only after necessary sanitized evidence is retained in the appropriate delivery/CI location; no duplicate permanent cleanup report SHALL be created. Post-cleanup builds, parity, security, restore and dependency checks SHALL pass before repository G3/GO acceptance; those results SHALL NOT establish real-instance operational gates.
 
 #### Scenario: Active dependency prevents removal
 - **WHEN** a cleanup candidate is still imported by a supported client, generator, test or operational command
@@ -184,3 +190,34 @@ Cleanup SHALL use exact owned paths/resources, preserve unrelated work and user/
 - **WHEN** cleanup runs with synthetic owned artifacts, a foreign sentinel and protected recovery material present
 - **THEN** only reviewed obsolete owned artifacts are removed, the sentinel and protected material remain intact and no original user data is deleted
 - **AND** clean-checkout builds and post-retirement capability/security/restore checks still pass without active imports of the retired backend
+
+### Requirement: Exclusive Python HTTP API v1
+The Python platform SHALL expose all HTTP routes under `/api/v1`, including `/api/v1/health/live` and `/api/v1/health/ready`. It SHALL NOT expose unversioned aliases or redirects. The shared frontend SHALL select `/api/v1` at build time for Python and retain the existing `/api` contract for Node. Internal probes SHALL remain inaccessible through nginx. Swagger, ReDoc and HTTP OpenAPI endpoints SHALL remain disabled. Frozen Node fixtures SHALL remain unchanged; behavioral parity SHALL account explicitly for the Python URL prefix.
+
+#### Scenario: Versioned Python request and removed previous URL
+- **WHEN** a consumer calls an implemented Python operation under `/api/v1`
+- **THEN** the operation preserves its existing authorization, payload, error and persistence behavior
+- **AND** the former unversioned URL returns 404 without redirect, including preflight requests
+
+#### Scenario: Python frontend and internal readiness
+- **WHEN** a Python frontend is built and the platform starts
+- **THEN** all client transports target `/api/v1`, and Compose checks `/api/v1/health/ready`
+- **AND** nginx refuses public access to both internal probes
+
+### Requirement: Transition contract retirement with native regression coverage
+The Node/Python comparison artifacts under `backend/contracts/`, including frozen JSON dumps, transition manifests and Node-based vector generators, SHALL be temporary port tooling. Before final platform acceptance, their consumers and required guarantees SHALL be inventoried, migrated and verified, and those artifacts SHALL be removed from the active tree. A remaining test dependency SHALL block retirement completion rather than justify indefinite retention. Frozen expectations SHALL remain unchanged during comparison; eventual reviewed retirement SHALL NOT authorize regeneration to admit drift or immediate deletion during an unfinished slice.
+
+Backend guarantees SHALL be preserved in pytest and frontend guarantees in Vitest, supplemented by existing browser verification where required. Replacement tests SHALL use bounded readable cases and reusable setup, preserve positive and negative behavior and retain independent known-answer vectors where cryptographic or serialization compatibility requires them. Expected results SHALL NOT be derived from the implementation under test. Copying complete JSON dumps into Python/JavaScript literals or another fixture directory SHALL NOT satisfy retirement. Minimal independent vectors MAY remain as native test fixtures with an explicit tested guarantee and no dependency on the retired Node implementation or transition generators.
+
+Retirement SHALL update test loaders, Docker COPY inputs and context filters, runners, CI and current documentation so builds and tests no longer require the removed artifacts. Historical evidence and protected recovery material SHALL retain their preservation rules. Final acceptance SHALL require clean-checkout builds and passing replacement backend, frontend and applicable browser tests after removal; a textual absence check or successful pre-removal comparison alone SHALL NOT suffice.
+
+#### Scenario: Transition contracts are removed after coverage migration
+- **WHEN** final port retirement is prepared after behavioral comparison
+- **THEN** each required comparison guarantee has verified replacement coverage in pytest or Vitest and applicable browser tests
+- **AND** transition dumps, manifests and generators are removed without relocating equivalent dumps or leaving active build/test/CI dependencies
+- **AND** minimal independent known-answer fixtures preserve their guarantees without invoking the retired Node implementation
+
+#### Scenario: Missing replacement coverage blocks acceptance
+- **WHEN** a comparison artifact supplies a required case without passing independent replacement coverage
+- **THEN** retirement and final acceptance remain incomplete until that coverage is migrated and verified
+- **AND** the artifact remains intact during the unfinished slice, without weakening expectations or deleting the only regression proof
