@@ -2,39 +2,39 @@
 
 ## Why
 
-El repositorio presenta fricciones de mantenimiento: dependencias hacia la composición HTTP, coordinación Training–Coach poco explícita, sincronización frontend dispersa y documentación que puede describir estados anteriores. Este cambio mejora localidad, verificación y navegación para personas y agentes, e incorpora retirada revisada de textos, pruebas de ejecución antiguas y comentarios sin finalidad vigente.
+Los agentes trabajan principalmente sobre ejemplos del propio repositorio. Hoy encuentran dependencias hacia composición HTTP, coordinación Training–Coach implícita, sincronización frontend concentrada y referencias que todavía enseñan el runtime retirado. Necesitamos propietarios claros y reglas comprobables en CI para localizar, realizar y verificar cada intervención.
 
 ## What Changes
 
-- **P0 — baseline propio:** reexplorar revisión, runtimes, contratos y consumidores actuales. Ejecutar después del port es una preferencia no vinculante: no hay dependencia de cierre, aceptación o retirada de otra OpenSpec.
-- **P1 — backend:** separar metadata pura de compatibilidad de la composición HTTP y reconciliar la colaboración Training–Coach conservando autorización, transacción compartida y efectos posteriores al commit.
-- **P1 — navegación y controles:** actualizar fuentes propietarias, reducir instrucciones duplicadas y comprobar dependencias arquitectónicas mediante tooling proporcional ya integrado en la verificación.
-- **P2 — frontend:** profundizar coordinación de sincronización manteniendo una autoridad persistente; organizar Training, Identity, Coach, Media, Administration y Notifications en slices independientes, sin cambio de UX.
-- **P2 — higiene editorial y evidencias:** inventariar, conservar, condensar o retirar material por finalidad y consumidores; eliminar solo evidencia propia sustituida, textos obsoletos y comentarios redundantes. Conservar invariantes, regresiones relevantes, directivas de herramientas, licencias y material protegido todavía necesario.
-- Incluir históricos protegidos solo mediante retirada revisada caso por caso, tras demostrar que no quedan consumidores ni obligaciones de aceptación y preservar lo necesario. Ninguna eliminación se ejecuta al preparar esta propuesta.
-- **Cierre obligatorio — etapa 9:** reconciliar documentación con el árbol final, verificar comandos documentados en checkout limpio aislado y bloquear aceptación documental si quedan contradicciones o referencias activas a artefactos retirados.
-- Distinguir JSON de ejecución, fixtures independientes y contratos transitorios: no eliminar por extensión/tamaño; preservar consumidores activos y exigir prueba independiente solo para la eliminación concreta que se revise.
-- Dividir las seis capacidades en recorridos verificables, conservando IDs existentes y añadiendo trazabilidad y comprobaciones por tarea. La limpieza editorial no requiere un nuevo subsistema.
-- **P1 — entrega Docker, etapa 10 aditiva:** ordenar recetas de verificación transversales y diagnóstico bajo deploy, mantener Dockerfiles de producto junto a su propietario y preservar contextos/targets/aislamiento. Auditar pins, caché, secretos, overlays, rutas, volúmenes y comandos a partir de fuentes Docker oficiales; AI Tutor es referencia comparativa, no plantilla normativa. Ejecutar esta etapa antes de aceptación técnica y de la etapa 9 documental, que sigue siendo la final.
+- Rebasar el plan sobre Python/FastAPI/PostgreSQL, `/api/v1`, biblioteca JavaScript neutral y verificadores actuales. La API Node y el comparador transitorio ya están retirados; no repetir esa entrega.
+- Separar metadata pura y coordinar Training–Coach con un iniciador, una transacción compartida y efectos posteriores al commit.
+- Comprobar interfaces públicas y dependencias permitidas en CI, con errores que indiquen ruta, regla y reparación; reutilizar runners existentes.
+- Mantener una autoridad persistente frontend y organizar Training, Identity, Coach, Media, Administration y Notifications por recorridos, sin carpetas o fachadas vacías.
+- Retirar implementaciones sustituidas y referencias activas que las presentan como actuales. No guardar copias ejecutables bajo `legacy/`, `archive/` o nombres alternativos. Separar esto de la retirada de compatibilidades todavía consumidas.
+- Adoptar cero comentarios narrativos en fuente propia mantenida: expresar reglas en nombres, interfaces, validaciones y pruebas; trasladar contratos y restricciones externas a su documentación propietaria. Preservar avisos de licencia y sintaxis efectiva de herramientas hasta reemplazarla con una configuración equivalente comprobada.
+- Adoptar Oxfmt 0.76.0 con la [configuración ensayada](formatter.config.json), incluida objectWrap=collapse, e integrar formateo/check de comentarios al flujo existente durante entrega. Conservar Ruff en Python y cambios mecánicos separables.
+- Verificar onboarding con seis preguntas de navegación/verificación por cliente soportado. La portabilidad se demuestra por cliente; formato compartido no garantiza descubrimiento universal.
+- Mantener Dockerfiles de producto junto a su propietario y ordenar recetas transversales bajo `deploy/`, comprobando contexto, aislamiento e identidad operativa.
+- Conservar etapa 9 como aceptación documental final, con comandos y consumidores contrastados contra el árbol resultante.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `post-port-maintainability`: precondiciones de ejecución, colaboración modular comprobable, sincronización localizada y navegación verificable para agentes.
-- `repository-evidence-hygiene`: mantenimiento editorial y retirada acotada de evidencias y comentarios, con preservación de garantías y artefactos ajenos.
-- `container-delivery-organization`: organización por propietario de builds y Compose, reproducibilidad, higiene de contexto y preservación comprobada de los contratos operativos al mover recetas.
+- `post-port-maintainability`: propiedad modular, colaboración transaccional, sincronización con autoridad única, controles CI, formateo y onboarding comprobable.
+- `repository-evidence-hygiene`: retirada de implementaciones sustituidas, sustitución ejecutable de comentarios y limpieza de evidencia por consumidores.
+- `container-delivery-organization`: recetas por propietario, contextos mínimos y contratos operativos preservados.
 
 ### Modified Capabilities
 
-Ninguna. Se preservan los contratos funcionales y operativos vigentes. El corte operativo y la retirada del runtime Node quedan fuera de alcance y no son condiciones para ejecutar esta propuesta.
+Ninguna: se preservan contratos de producto. Decisión explícita del promotor el 2026-11-04: eliminar implementaciones sustituidas y decidir aparte las compatibilidades activas. La retirada de soporte offline antiguo o importación Node queda fuera de este cambio; requeriría deltas de requisitos y evaluación BREAKING en su fase específica.
 
 ## Impact
 
-Afecta potencialmente a composición/backend, coordinación Training–Coach, store y seis capacidades frontend, instrucciones de agentes, documentación propietaria, verificadores y artefactos de ejecución propios ya sustituidos. Las rutas actuales citadas en el diseño son evidencia de exploración, no ubicaciones obligatorias futuras.
+Composición/backend, Training–Coach, store y seis capacidades frontend, guías de agentes, verificadores, CI y entrega Docker. Una nueva dependencia dev fijada, oxfmt 0.76.0, para instalar al ejecutar 3.5. El ensayo usó herramientas aisladas; package.json/locks/CI del proyecto no se modificaron. Sin dependencia nueva de runtime.
 
-No introduce endpoints, DDL, motores de workflow, microservicios, cambio general a TypeScript, nuevas capacidades IA ni una reorganización global `apps/packages`. No opera datos, credenciales, respaldos o instancias reales, ni publica, despliega, hace commit/push o modifica históricos Git. La propuesta no autoriza implementación.
+Sin endpoints, DDL, microservicios, gestor de monorepo, conversión general a TypeScript ni runtime de agentes nuevo. Sin operaciones reales, publicación, despliegue, commit/push, sincronización de specs o archivado. Este cambio es independiente de otras OpenSpec.
 
 ## Planning readiness
 
-Implementation Ready como especificación independiente. El [plan concreto de verificación y exportaciones](verification-plan.md) forma parte del diseño y fija casos/comandos actuales e interfaces de destino. Docker/Buildx es una restricción de ejecución por slice, no un bloqueo de planificación ni una dependencia de otra OpenSpec. No se implementó código ni se acreditaron pruebas containerizadas.
+**Implementation Ready**, revisada el 2026-11-04. Alcance de compatibilidades activas resuelto y ensayo del formatter completado: versión, configuración, exclusiones y comandos fijados. La [auditoría y bibliografía](design.md#auditoría-de-la-propuesta-original) conserva la nota 68/100 de la versión anterior; no es una nota de implementación. El [plan de verificación](verification-plan.md#ensayo-del-formatter-completado-el-2026-11-04) registra prueba y límites. Las 60 tareas de entrega siguen pendientes; no se inicia refactor, instalación en el proyecto, CI, commit/push, sync ni archive.

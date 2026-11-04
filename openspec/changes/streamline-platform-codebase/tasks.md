@@ -10,6 +10,13 @@
   Traceability: Per-journey proof and task traceability; Purpose-based cleanup selection.
   Proof/Check: V0–V10; matriz exacta por recorrido con entorno/casos/observador y expectativa antes de modificar; referencias no resueltas bloquean.
 
+- [ ] 1.4 Aplicar la decisión D8 ya aprobada: retirar solo implementaciones sustituidas y preservar compatibilidades offline/importación activas, cuya retirada se decidirá aparte. Revalidar consumidores, no recrear sustituidos y corregir referencias activas falsas antes de extender patrones.
+  Traceability: No retained superseded implementations; Independent execution and current-state baseline.
+  Proof/Check: V0 + V9 + V11; decisión D8 respetada, cero contrato cambiado por inferencia y cero fuentes sustituidas copiadas bajo otro nombre.
+- [ ] 1.5 Medir baseline de onboarding D13 en sesión nueva de cada cliente propuesto: seis briefs por cliente, fuentes cargadas, respuestas, documentos abiertos, tiempo y correcciones; declarar no verificado si falta acceso.
+  Traceability: Client-specific agent onboarding proof.
+  Proof/Check: V12 antes de modificar navegación; sin dar rutas manualmente, sin datos reales ni atribuir soporte a clientes no ensayados.
+
 ## 2. P1 — Backend con dependencias explícitas
 
 - [ ] 2.1 Separar metadata pura de compatibilidad de la composición HTTP; actualizar consumidores runtime/cleanup/backup y empaquetado afectado, conservando autoridad única y rechazo de esquema incompatible. Verificar import independiente, lifecycle y CLI afectadas.
@@ -31,12 +38,19 @@
   Traceability: Explicit dependency contract and bounded static analysis.
   Proof/Check: V3; fixtures de import estático/local/dinámico literal y privado rechazadas; público declarado pasa; computado se señala para revisión.
 - [ ] 3.3 Integrar controles en CI/runner existentes, comprobar selección/error y revisar solapamientos de skills por alcance/activación; no eliminar por cantidad ni añadir otro orquestador. Ejecutar controles positivos/negativos y docs checks aplicables.
-  Traceability: Discoverable ownership and enforceable dependency rules; Explicit dependency contract and bounded static analysis.
+  Traceability: Discoverable ownership and enforceable dependency rules; Explicit dependency contract and bounded static analysis; Change-owned planning and evidence.
   Proof/Check: V3; invocación local y CI aplican mismas reglas; comando/caso desconocido falla sin crédito; cada skill modificada tiene responsabilidad explícita.
 
 - [ ] 3.4 Ratificar contra el checkout el mapa de exportaciones y fixtures ya decidido en verification-plan.md; registrar drift antes de implementar 3.2, sin allowlist global ni nuevos contratos por inferencia.
   Traceability: Explicit dependency contract and bounded static analysis; Per-journey proof and task traceability.
   Proof/Check: V0 + contrato diseñado de V3; mapa/fixtures y comando propuestos antes de 3.2, sin acreditar ejecución de la regla aún no implementada.
+
+- [ ] 3.5 Instalar oxfmt 0.76.0 exacto en devDependencies/lock raíz y trasladar formatter.config.json a .oxfmtrc.json, actualizando sus enlaces sin duplicar autoridad. Añadir fmt/fmt:check con comando D12/V11 a package.json y quality CI; aplicar diff mecánico separable, comprobar binding Linux, segunda pasada idéntica y rechazo de fixture/selección vacía. Conservar Ruff Python.
+  Traceability: Deterministic formatting and actionable CI feedback.
+  Proof/Check: V11; selección de planificación ya ensayada, integración aún pendiente; install frozen y comando idéntico local/Linux CI, sin ordenar imports ni reformatear generados/históricos.
+- [ ] 3.6 Integrar check de comentarios narrativos y diagnósticos en tooling existente, con tokens/AST y negativos/positivos de strings, regex, prompts, docstrings y directivas efectivas; declarar cobertura y límites por lenguaje.
+  Traceability: Value-based code comment maintenance; Deterministic formatting and actionable CI feedback.
+  Proof/Check: V11; regla/fixtures nuevas demostradas; activar rechazo sobre archivos aceptados tras 7.2 y comprobar todo el alcance final en 8.2, sin presentar el resto como limpio durante transición.
 
 ## 4. P2 — Sincronización y Training
 
@@ -132,9 +146,9 @@
 - [ ] 7.1 Revisar textos duplicados/obsoletos en documentación, README, instrucciones y skills; condensar conocimiento útil en su propietario y actualizar consumidores activos también fuera de docs. No reescribir históricos protegidos ni borrar decisiones archivadas por cuota.
   Traceability: Purpose-based cleanup selection; Reviewed historical document retirement; Cleanup preserves reproducible guarantees and active navigation.
   Proof/Check: V9; diff editorial y consumidores/enlaces revisados, conocimiento en propietario sin duplicación.
-- [ ] 7.2 Revisar comentarios de los módulos intervenidos; retirar narración literal y cronología sin utilidad, preservar/precisar invariantes, carreras, compatibilidad, atribución, directivas y deuda vigente. Separar el diff editorial del funcional y ejecutar checks afectados.
+- [ ] 7.2 Retirar comentarios narrativos y docstrings explicativos de toda fuente propia mantenida en el alcance D5, por lotes revisables. Codificar y probar invariantes/carreras/regresiones antes de retirar su explicación; contratos necesarios al propietario y deuda al tracker. Clasificar licencia, directivas efectivas y docstrings observables; reemplazarlas con equivalencia probada o declarar excepción exacta. Separar diff editorial del funcional.
   Traceability: Value-based code comment maintenance.
-  Proof/Check: V4 o V1–V7 según módulo + V9; sin cambios ejecutables/directivas/licencias perdidas; deuda vigente localizada.
+  Proof/Check: V4 o V1–V7 según módulo + V9 + V11; cero narración en alcance aceptado, negativos del checker, invariantes conservados y ninguna directiva/licencia/obligación perdida.
 - [ ] 7.3 Revisar cada candidato histórico protegido con finalidad/consumidores/obligaciones; conservar si sigue siendo necesario. Para retirada justificada, preservar conocimiento y actualizar enlaces/índices/config/manifiesto juntos, sin rehashear una reescritura para ocultarla.
   Traceability: Reviewed historical document retirement.
   Proof/Check: V9; decisión por candidato, conocimiento preservado y manifiesto/config/índices consistentes, sin rehash engañoso.
@@ -145,18 +159,18 @@
   Traceability: Purpose-based cleanup selection; Bounded safe artifact removal; Cleanup preserves reproducible guarantees and active navigation.
   Proof/Check: V9; solo rutas revisadas retiradas y conservados byte a byte ajeno/protegido; condición explícita para evidencia retenida.
 
-- [ ] 7.6 Revisar clasificación JSON y finalidad de fixtures/runtime según D8; conservar assets/copy/vectores y contratos con consumidores. Reconciliar retención; una eliminación sin cobertura bloquea solo esa eliminación, no el cambio completo.
-  Traceability: JSON purpose classification and active contract preservation.
-  Proof/Check: V0 + V8 + V9; runtime/fixtures y contratos activos conservados; solo una eliminación concreta exige ausencia de consumidores y cobertura sustituta.
+- [ ] 7.6 Revisar clasificación JSON y finalidad de fixtures/runtime según D8; conservar assets/copy/vectores independientes y contratos soportados. Retirar sustituidos todavía presentes tras migrar consumidores, sin copias ejecutables legacy/archive. Aplicar la decisión de soporte de 1.4; residuos locales requieren selección propia revisada.
+  Traceability: JSON purpose classification and active contract preservation; No retained superseded implementations.
+  Proof/Check: V0 + V8 + V9 + V11; runtime/fixtures conservados, inventario fuente/build sin implementación sustituida y contratos afectados trazados a decisión explícita.
 
 ## 8. Aceptación integrada y cierre revisable
 
-- [ ] 8.1 Verificar requisitos y escenarios de ambas specs contra evidencia por slice y revisión final; ejecutar suites nativas, integración PostgreSQL y browser afectados, build web y prueba de bundle móvil vigente, sin omisiones presentadas como éxito.
+- [ ] 8.1 Verificar requisitos y escenarios de las tres specs contra evidencia por slice y revisión final; ejecutar suites nativas, integración PostgreSQL y browser afectados, build web y prueba de bundle móvil vigente, sin omisiones presentadas como éxito.
   Traceability: Per-journey proof and task traceability; Incremental locality across six frontend capabilities.
   Proof/Check: V1–V8 según impacto; pruebas nativas/PG/browser y bundles actuales pasan con casos/entorno/resultado anotados.
 - [ ] 8.2 Ejecutar controles arquitectónicos y documentación: OKF check y tests de herramienta si cambió, enlaces/referencias/generadores afectados, diff-check y revisión de afirmaciones. Si se regeneran índices mediante OKF, comprobar que una segunda propuesta queda vacía.
   Traceability: Discoverable ownership and enforceable dependency rules; Cleanup preserves reproducible guarantees and active navigation.
-  Proof/Check: V3 + V9; docs/generadores coherentes; segunda propuesta OKF vacía si hubo regeneración de índices.
+  Proof/Check: V3 + V9 + V11; controles completos de formato/comentarios/grafo sin selección parcial final, docs/generadores coherentes; segunda propuesta OKF vacía si hubo regeneración de índices.
 - [ ] 8.3 Revisar diff completo, archivos nuevos/retirados y consumidores; confirmar invariantes/contratos sin cambios, cero dependencias nuevas no justificadas, ausencia de temporales staged y material retenido con finalidad/condición de retirada. Registrar límites de verificación sin afirmar pruebas reales no ejecutadas.
   Traceability: Per-journey proof and task traceability; Cleanup preserves reproducible guarantees and active navigation.
   Proof/Check: V0 + V9; diff completo y nuevo/retirado revisados, sin temporales staged ni garantías omitidas; no cierra etapa 9.
@@ -178,6 +192,10 @@
 - [ ] 9.5 Aceptar documentación contra revisión final y árbol limpio, con matriz afirmación→fuente/comando→resultado/límite en esta tarea; cerrar discrepancias o bloquear. Si cambió código tras 9.4, revalidar lo afectado. El cierre completo requiere esta etapa, no solo 8 u OKF.
   Traceability: Final project documentation acceptance.
   Proof/Check: V0 + V9; revisión final, árbol limpio y matriz contrastada; cambios posteriores invalidan evidencia afectada; discrepancias bloquean cierre.
+
+- [ ] 9.6 Repetir briefs de onboarding por cliente declarado soportado sobre el árbol final, comparar con 1.5 y corregir routing/adapters mínimos sin duplicar políticas. No acreditar clientes inaccesibles ni confundir navegación con test de producto.
+  Traceability: Client-specific agent onboarding proof.
+  Proof/Check: V12; seis de seis briefs correctos por cliente, instrucciones cargadas comprobadas, cero acceso privado/comando inventado, tiempo/contexto/correcciones registrados antes de 9.5.
 
 ## 10. P1 — Organización Docker aditiva, antes de aceptación 8 y cierre 9
 
@@ -203,9 +221,9 @@ Cada recorrido entrega un diff coherente con sus callers, tests, fixtures y conf
 
 Cada ID aparece una vez; checkpoints de capacidad siguen a sus recorridos. Cada recorrido encadena caracterización → cambio necesario → prueba, sin reunir todos los tests al principio.
 
-- Entrada: 1.1 → 1.2 → 1.3.
+- Entrada: 1.1 → 1.2 → 1.3 → 1.4 → 1.5.
 - Backend: 2.1 → 2.2 → 2.3.
-- Navegación/controles: 3.1 → 3.4 → 3.2 → 3.3.
+- Navegación/controles: 3.1 → 3.4 → 3.2 → 3.3 → 3.5 → 3.6.
 - Docker aditivo: 10.1 → 10.2 → 10.3 → 10.4 → 10.5.
 - Training/sync: 4.1 → 4.2 → 4.3.
 - Identity: 5.1 → 5.5 → 5.6 → 5.2.
@@ -215,11 +233,11 @@ Cada ID aparece una vez; checkpoints de capacidad siguen a sus recorridos. Cada 
 - Notifications: 6.5 → 6.13 → 6.14 → 6.15 → 6.6.
 - Higiene residual: 7.1 → 7.2 → 7.3 → 7.6 → 7.4 → 7.5.
 - Aceptación técnica: 8.1 → 8.2 → 8.3.
-- Documentación final: 9.1 → 9.2 → 9.3 → 9.4 → 9.5.
+- Documentación final: 9.1 → 9.2 → 9.3 → 9.4 → 9.6 → 9.5.
 
 El orden entre capacidades es conservador para compartir baseline; puede adelantarse un recorrido independiente si declara consumidores y no comparte archivos/estado en edición con otro slice. Sus prerrequisitos y checkpoint siguen siendo obligatorios. Higiene local puede acompañar su slice en diff separable; no retirar evidencia de revisión abierta.
 
-## Matriz de comprobaciones V0–V10
+## Matriz de comprobaciones V0–V12
 
 Referencias existentes al preparar esta propuesta; NO ejecutadas ni acreditadas aquí como pruebas del refactor. Antes de cada slice, 1.3 concreta comando/casos/entorno/observador actuales. Si el port retiró un comando, se enlaza su reemplazo nativo con igual garantía; no basta una búsqueda textual ni revivir el harness retirado. Un check aún no implementado se identifica como nuevo y no recibe crédito hasta demostrarlo.
 
@@ -236,6 +254,8 @@ Referencias existentes al preparar esta propuesta; NO ejecutadas ni acreditadas 
 | V8 | `pnpm --dir frontend run build`; `node scripts/build-coach-assets.mjs --check`, `node scripts/build-coach-library.mjs --check`, `node scripts/build-push-assets.mjs --check` según generador vigente | Bundle móvil: usar prueba portable vigente identificada en 1.3; no ejecutar cap sync ni afirmar APK/IPA/dispositivo por copia de assets |
 | V9 | `node scripts/docs/okf.mjs check`, `node scripts/build-api-docs.mjs --check`, `git diff --check`; tests OKF si cambia tooling; revisión de enlaces/afirmaciones/diff y fixture de retirada acotada | OKF/generadores no certifican verdad semántica; probar también untracked propios sin staging y no crear limpiador para la fixture |
 | V10 | Versiones Docker/Compose; render sintético con --project-directory canónico y --env-file sintético; `node --test scripts/docker-layout.test.mjs scripts/docker-build-context.test.mjs`; pruebas vigentes platform-images/platform-build/lifecycle/backup pertinentes | 10.1 registra comandos exactos/casos y actualiza rutas tras movimientos; no usar env real. Daemon/Buildx necesarios para imágenes/contextos; render no acredita build. Reusar runners y recursos etiquetados propios |
+| V11 | Oxfmt 0.76.0/configuración/comando exactos D12 + toolchain y checker futuro | Ensayo de selección completado; entrega de instalación/CI/checker sigue pendiente. Idempotencia/negativos, clasificación técnica y fuente/build sin sustituidos |
+| V12 | Seis briefs D13 por cliente en sesión nueva, baseline 1.5 y repetición 9.6 | Navegación, carga de instrucciones y comandos válidos; no acredita comportamiento de producto ni compatibilidad universal |
 
 Para tareas solo editoriales o de inventario no aplica RED runtime: la prueba concreta es consistencia de contenido/consumidores y preservación. Las reglas nuevas sí exigen rechazo negativo; refactors preservan caracterización antes/después, sin inventar fallo inicial de producto.
 
@@ -257,7 +277,7 @@ Para tareas solo editoriales o de inventario no aplica RED runtime: la prueba co
 | Bounded safe artifact removal | 7.4–7.5 |
 | Cleanup preserves reproducible guarantees and active navigation | 7.1–7.5, 8.1–8.3 |
 
-Estado: Implementation Ready de planificación; comandos/casos/exportaciones concretados en verification-plan.md. Ninguna tarea implementada. Preflight Docker limita solo los slices que requieren contenedores y bloquea su aceptación hasta ejecutar las pruebas. Sin dependencia de otra OpenSpec ni autorización implícita de implementación/commit.
+Estado: Implementation Ready de planificación el 2026-11-04; D8 resuelta y D12 ensayada/fijada. Ninguna de las 60 tareas de entrega implementada. Preflight Docker limita los slices que requieren contenedores; la integración formatter Linux/CI se verifica en 3.5. Sin dependencia de otra OpenSpec ni autorización de refactor/commit.
 
 Trazabilidad adicional: Single initiator and one-way participant knowledge → 2.2–2.3; Explicit dependency contract and bounded static analysis → 3.4/3.2–3.3; Per-journey proof and task traceability → 1.3/4–6/8.1; JSON purpose classification and active contract preservation → 1.1/7.6; Final project documentation acceptance → 9.1–9.5.
 
@@ -265,4 +285,6 @@ Trazabilidad Docker: cinco requisitos de container-delivery-organization → 10.
 
 ## Selección exacta y preflight
 
-[verification-plan.md](verification-plan.md) completa la matriz V0–V10 con comandos sin selectores pendientes, casos actuales, exportaciones y destinos decididos. 1.1–1.3, 3.4 y 10.1 son tareas de baseline/revalidación de ejecución, no authoring pendiente. Ningún checkbox se marca completo por terminar la planificación. Docker se comprueba antes de cualquier slice con HTTP/PG/browser o builds containerizados: si falta acceso, no iniciar ese slice; los trabajos independientes continúan.
+[verification-plan.md](verification-plan.md) registra comandos V0–V12 y el ensayo formatter concluido, sin presentar integración/checkers/onboarding como entregados. Todas las decisiones materiales están cerradas; revalidar baseline al ejecutar. Ningún checkbox se marca por esta preparación. Docker se comprueba antes de slices que lo requieren; los trabajos independientes continúan si sus pruebas están disponibles.
+
+Trazabilidad adicional de la revisión: No retained superseded implementations → 1.4/7.6/8.3; Deterministic formatting and actionable CI feedback → 3.5–3.6/8.2; Client-specific agent onboarding proof → 1.5/9.6.

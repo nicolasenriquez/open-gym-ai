@@ -2,9 +2,26 @@
 
 ## Estado y alcance
 
-Planificación completada sobre revisión 5f8f70519214744a94984e1a002e9ccbc676e34d y archivos locales inspeccionados; el árbol contiene trabajo concurrente, por lo que esa revisión no certifica todos sus bytes. Los comandos/casos siguientes existen en el checkout inspeccionado y sus rutas se comprobaron sin ejecutar Docker. No dependen del estado de otra OpenSpec. Antes de modificar, 1.1–1.3 solo registran drift, estado de baseline y entorno; no son decisiones de diseño pendientes. Si hay drift, actualizar la selección equivalente del slice, sin reabrir alcance ni resucitar tooling retirado.
+Revisión de auditoría: 2026-11-04, HEAD 13a1b6fde7a219640ddae34338bef8608def8ffb y worktree con cambios ajenos staged/unstaged. HEAD no certifica todos los bytes. Los 38 selectores backend únicos citados aquí resuelven en el manifest actual; las seis selecciones Vitest suman 29 referencias a archivos, todas existentes. Eso prueba selección/rutas, no comportamiento. Revalidar drift antes de cada slice, sin resucitar tooling retirado ni depender del estado de otra OpenSpec.
 
-Esta propuesta está Implementation Ready como especificación de ejecución por slices. No significa implementación autorizada, baseline aprobado ni aceptación de producto. Una condición de ejecución bloquea únicamente el trabajo que necesita ese recurso. La implementación no puede aceptarse sin sus pruebas obligatorias.
+Estado: Implementation Ready de planificación. D8 preserva compatibilidades activas y D12 fija Oxfmt 0.76.0 con la configuración ensayada. No hay decisiones materiales abiertas; las 60 tareas de entrega siguen pendientes. Una condición de entorno bloquea el trabajo que necesita ese recurso; no equivale a defecto del producto ni permite aceptar pruebas omitidas.
+
+## Auditoría local ejecutada el 2026-11-04
+
+| Comprobación ejecutada | Resultado | Límite |
+| --- | --- | --- |
+| openspec list/status + validate streamline-platform-codebase --strict --no-interactive | Validación original y posterior pasan; 0/55 tareas antes, 0/60 después de revisión | Esquema completo no acredita readiness semántica ni implementación |
+| node scripts/docs/okf.mjs check | Exit 0; 30 conceptos, siete índices, 449 enlaces | Aviso histórico por enlace a api/coach/core/payload.js en research/recovery-reference-benchmark.md; no bloquea ni se reescribe el histórico |
+| node scripts/build-api-docs.mjs --check | Exit 0; 68 endpoints, 30 schemas, website/api.html vigente | Generación/consistencia, no comportamiento HTTP |
+| git diff --check | Exit 0 antes de revisión | Solo whitespace del diff comprobado; no certifica cambios ajenos |
+| node node_modules/oxlint/bin/oxlint frontend/src frontend/e2e scripts backend shared | Exit 0; 737 archivos, cinco reglas, cero errores/avisos | No comprueba ownership, ciclos ni comentarios con configuración actual |
+| Desde frontend: node node_modules/vitest/vitest.mjs run src/store/useStore.legacy-upgrade.test.jsx src/store/useStore.sync.test.jsx src/lib/coach-core/parse.test.js src/lib/coach-core/payload.test.js | Cuatro archivos, 60 tests pasan | Dependencias ya instaladas; Node host 24.14.0, no imagen CI Node 22; sin prueba browser/PG |
+| docker compose version / docker buildx version / docker info --format '{{.ServerVersion}}' | Compose 5.1.1, Buildx 0.33.0-desktop.1; info falla por acceso denegado a pipe Docker | No se ejecutaron builds, renders Docker ni suites HTTP/PG/browser en esta auditoría |
+| pnpm --version | Corepack intenta obtener pnpm 10.34.8; falla DNS a registry.npmjs.org | No se acredita gestor disponible ni instalación; pruebas focalizadas ejecutadas mediante binarios locales existentes |
+
+Las lecturas/auditoría no marcan tareas de implementación completas. No se ensayaron sesiones nuevas de onboarding de clientes, no se instaló P-stack ni se ejecutaron sus workflows. No se arrancó una instancia real ni se leyeron datos/secretos de usuario.
+
+Después de editar: OKF check y diff-check del cambio pasan; los 60 IDs de tarea aparecen exactamente una vez en Execution Order, sin referencias inexistentes. Los enlaces locales de los cuatro artefactos principales resuelven y los archivos comprobados no tienen BOM. El aviso histórico OKF sigue separado de los checks requeridos. Ninguna tarea runtime se marca completa por estas validaciones.
 
 ## Comandos backend exactos, casos y observadores
 
@@ -124,7 +141,7 @@ Contrato: exit no-cero y ruta origen/destino para violación; exit cero para gra
 
 ## Docker: bloqueo de ejecución local, no de planificación
 
-La falta actual de acceso Docker/Buildx impide acreditar builds, contextos y suites HTTP/PG/browser que requieren containers. No es decisión de diseño abierta, no obliga a esperar otra OpenSpec y no bloquea la preparación documental ni un slice cuyos checks estén disponibles. Antes de modificar cada slice se ejecuta su preflight; si necesita Docker y no hay acceso, ese slice no se inicia ni se acredita. Un entorno autorizado Linux/amd64 con los pins actuales satisface el requisito; no instalar ni cambiar permisos por inferencia.
+El acceso al daemon Docker está denegado en esta auditoría; las versiones CLI/Buildx sí se pudieron consultar. No se acreditan builds, contextos ni suites containerizadas. No obliga a esperar otra OpenSpec ni bloquea preparación documental o slices independientes. Repetir preflight antes del slice; no instalar ni cambiar permisos por inferencia.
 
 Comandos exactos desde raíz:
 
@@ -142,6 +159,69 @@ Los tests layout/images generan env sintético privado y renders con directorio 
 
 ## Documentación y aceptación
 
-Comandos exactos: node scripts/docs/okf.mjs check; node scripts/build-api-docs.mjs --check; node scripts/build-coach-assets.mjs --check; node scripts/build-coach-library.mjs --check; node scripts/build-push-assets.mjs --check; git diff --check. Build web: pnpm --dir frontend run build. Bundle portable: node scripts/platform.mjs verify shared_client --case formats_and_bundles, que hoy usa comparación transitoria; no eliminarla por otra OpenSpec. Si ya cambió el árbol, registrar equivalente nativo con misma garantía. No ejecutar build:mobile como sustituto: incluye cap sync.
+Comandos exactos: node scripts/docs/okf.mjs check; node scripts/build-api-docs.mjs --check; node scripts/build-coach-assets.mjs --check; node scripts/build-coach-library.mjs --check; node scripts/build-push-assets.mjs --check; git diff --check. Build web: pnpm --dir frontend run build. Bundle portable: node scripts/platform.mjs verify shared_client --case formats_and_bundles, que ejecuta scripts/formats-and-bundles.test.mjs sobre formatos y bundles actuales sin la API Node retirada. No ejecutar build:mobile como sustituto: incluye cap sync.
 
-Stage 9 registra matriz afirmación→fuente/comando→resultado/límite de revisión final. No se exige ejecutar producción/hardware; cualquier afirmación que sí los requiera conserva su límite y no se acredita por prueba sintética. La condición Implementation Ready de planificación no marca completas tareas 1–10, no levanta el bloqueo del slice Docker ni equivale a aceptación integrada.
+Stage 9 registra matriz afirmación→fuente/comando→resultado/límite. No exige producción/hardware; cualquier afirmación que los requiera conserva su límite y no se acredita por fixture. La validación de planificación no marca completas tareas ni levanta restricciones de entorno.
+
+## V11: formato, comentarios y retirada de implementaciones
+
+Formatter seleccionado/ensayado: Oxfmt 0.76.0 y [formatter.config.json](formatter.config.json), para trasladar a .oxfmtrc.json raíz en 3.5 y fijar dependencia/lock con pnpm add --save-dev --save-exact oxfmt@0.76.0. No se ha instalado ni integrado en el proyecto; tampoco se entregó el checker de comentarios/grafo. Esas tareas siguen pendientes, usando el runner/toolchain existente.
+
+Invocación de destino exacta desde raíz, idéntica en local y CI:
+
+```sh
+pnpm exec oxfmt --config .oxfmtrc.json --disable-nested-config --check "frontend/**/*.{js,jsx,mjs,css}" "scripts/**/*.{js,mjs}" "shared/**/*.js"
+```
+
+fmt:check contendrá esa invocación; fmt cambia --check por --write. CI quality invoca pnpm run fmt:check tras install frozen. No usar latest/rangos, sorting/plugins, wrapper nuevo, oxfmt . ni --no-error-on-unmatched-pattern. La plantilla se mueve, no se duplica como otra autoridad. Selección vacía o inexistente debe fallar; un check de exclusión mezcla un positivo conocido con sentinelas ignorados para evitar confundir cero archivos con éxito.
+
+Alcance de fuente propia: frontend/src, frontend/e2e, frontend/scripts, backend/src, backend/tests, scripts, shared, web y configuraciones propias de deploy/.github. Excluir generados identificados por generador, catálogo/media, vendor/node_modules, bundles/dist y shells generados; Markdown/históricos no son fuente que reformatear. Registrar lista exacta revisada por lote, sin exclusión por mera cantidad de comentarios. Python/JS/JSX con tokens/AST; otros formatos requieren clasificación contextual explícita hasta disponer de parser. No afirmar análisis automático universal.
+
+Pruebas nuevas exigidas: formatter dos pasadas (segunda sin diff), fixture mal formateada rechazada, import privado rechazado y público permitido, narración rechazada, strings/regex/URLs/prompts no confundidos, directiva Vitest y docstring observable preservados o reemplazados con igual efecto. Postcommit distingue fallo de bookkeeping de fallo del guardado. No basta comparar AST si un pragma influye en build/test.
+
+Activación incremental: desarrollar el check con fixtures, aplicar a archivos ya aceptados de 7.2 y no anunciar limpieza global hasta recorrer todo el alcance. En 8.2 el gate completo no depende de lista parcial ni baseline permanente que excuse comentarios antiguos. Excepciones técnicas exactas y comprobadas, sin allowlist general de narración. Inventario Git/build/consumidores demuestra ausencia de implementaciones sustituidas sin prohibir Node herramienta, JS neutral o vectores independientes.
+
+## Ensayo del formatter completado el 2026-11-04
+
+Ensayo de planificación ejecutado en una copia aislada. La ubicación local anterior se retiró por decisión del promotor: resultados necesarios consolidados en esta OpenSpec y temporales propios descartados; futuros ensayos usan el temporal del sistema. Descargas npm con TLS verificado, sin scripts de instalación. CLI y Vitest se ejecutaron con Node 22.23.2 Windows x64, extraído del archivo oficial cuyo SHA-256 se contrastó con SHASUMS256.txt. No cambió la instalación Node del equipo. No se operó Docker ni una instancia real.
+
+| Prueba | Resultado observado |
+| --- | --- |
+| Oxfmt 0.76.0 / objectWrap=preserve / printWidth=100 | 716 candidatos; seis archivos cambian otra vez en segunda pasada |
+| Oxfmt 0.76.0 / preserve / ancho 120 | Mismos 716; cuatro inestables. Aumentar ancho no soluciona la causa |
+| Prettier 3.9.10 sobre los seis casos encontrados | Reproduce seis inestables a 100 y cuatro a 120; ambos formatters estabilizan esos seis con collapse |
+| Oxfmt 0.76.0 / configuración final con collapse | 716 candidatos: 451 JS/MJS, 261 JSX y cuatro CSS; sin errores; segunda pasada byte a byte idéntica; check final exit 0 |
+| Fixture deliberadamente mal formateada | --check exit 1; --write exit 0; --check posterior exit 0; archivo inexistente exit 2 |
+| Exclusiones | 38 fuentes generadas y ocho sentinelas ajenos/protegidos intactos; también ante selección explícita junto al positivo |
+| Conservación de código | Imports, directivas efectivas y contenido raw de templates contrastados. Comparación AST JS/JSX y CSS compilado, con normalización de representación equivalente; cero diferencias sin explicar |
+| Regresión sobre copia formateada | 28 archivos únicos de las seis selecciones V4, 660 tests pasan, cero fallos/skips; no prueba de UI real/PG |
+| Originales | 999 rutas fuente/config/manifiestos/locks contrastadas por SHA-256, cero cambios |
+
+Casos inestables originales a ancho 100: frontend/e2e/platform/training.mjs, components/WorkoutMedia.jsx, sheets.jsx, store/useStore.restore.test.jsx, views/Plan.jsx y views/RoutineEdit.jsx bajo frontend/src cuando corresponde. El primer caso divide una cadena locator(...).setInputFiles({...}) en la primera pasada y la vuelve a unir en la siguiente. Se descarta preserve en este proyecto, no se presenta como ventaja exclusiva de Prettier u Oxfmt.
+
+715 de 716 copias cambian con la política final; la migración tendrá un diff mecánico amplio y separable, nunca mezclado con el refactor funcional. El check final del ensayo incluyó además dos archivos de instrumentación, 718 targets; la cifra de producto auditada sigue siendo 716. No se copió el resultado formateado al proyecto.
+
+La comparación estructural inicial señaló 52 archivos por diferencias de representación. Se revisaron normalizando solo EmptyStatement sin efecto en cuerpos de bloques, grafía equivalente de keys, cadenas contiguas de children JSX y whitespace de comas fuera de strings en CSS compilado por Lightning CSS 1.33.0. Los 52 quedan explicados; no es prueba formal de equivalencia ni reemplaza las regresiones. Babel parser 7.29.11 y transformWithOxc de Vite ya instalado se usaron solo como observadores del ensayo, sin nuevas dependencias de producto. Las pruebas nativas leen Java copiado, no ejecutan Android.
+
+Resultados necesarios consolidados en este plan; logs, scripts de diagnóstico, dependencias y copias del ensayo descartados. La reproducción usa el comando documentado y formatter.config.json, sin runner permanente ni tracker paralelo. Configuración ensayada SHA-256: 6d655497435f97997a5543b9b6b6613419626ff50e4537ed8b37a81af8321bbf.
+
+Corrección de ubicación solicitada por el promotor: el ensayo propio y su directorio scratch fueron retirados tras verificar escritores detenidos y desvincular dos junctions sin borrar sus dependencias destino. Se corrigieron AGENTS, política/plantilla de tracker y skills que lo recreaban. Siete scripts de verificación dejaron de escribir en el repositorio; usan temporales del sistema o el directorio temporal ya propietario. node --test scripts/platform.test.mjs pasa siete tests, incluido el guard de directorios retirados. Ese guard comprueba referencias textuales convencionales, no todo flujo dinámico posible. Las integraciones Docker afectadas requieren ejecución posterior; no se acreditan por este check host.
+
+Límites: Windows x64 con Node de CI comprobado; Linux binding/CI remoto, build web completo, browser, HTTP/PG y hardware no ensayados aquí. Son pruebas obligatorias de las tareas afectadas durante entrega; 3.5 verifica binding Linux y fmt:check en CI antes de aceptar integración. Las tareas de comentarios/grafo no se declaran implementadas por ensayar el formatter.
+
+Gate de planificación final: propuesta/diseño/tres delta specs/tareas completos, decisiones D8/D12 cerradas, interfaces/seams/casos/comandos y límites explícitos; 60 tareas con trazabilidad y orden sin duplicaciones. openspec validate --strict --no-interactive, OKF check y diff-check del cambio pasan. Configuración anexada coincide byte a byte con la comprobada. Este gate establece Implementation Ready, no aceptación del refactor ni ejecución de las 60 tareas.
+
+## V12: onboarding por cliente
+
+Mismos seis briefs antes (1.5) y después (9.6), en sesión nueva aislada por cliente. No se invoca un comando universal de agentes inexistente. Objetivo inicial propuesto: Codex y Cursor; acceso efectivo y mecanismo de arranque deben registrarse antes del ensayo. Sin acceso, soporte del cliente queda sin verificar, no PASS.
+
+| Brief | Respuesta esperada contra el mapa actual/final |
+| --- | --- |
+| Training | Owner de escritura/sync, autoridad useStore, colaboración Coach, casos training_write y training_browser |
+| Identity | Owner de sesiones/acceso, contexto autorizado, contratos seguridad y caso identity_session/actor |
+| Coach | Jobs/proveedor/consentimiento, selección cliente neutral y coach_state/late_result |
+| Media | Owner/cola/referencias y media/roundtrip o media_gc/fail_safe según cambio |
+| Administration | Actor-target, cleanup transaccional/externo y admin_delete/external_retry |
+| Notifications | Dispositivo/opt-out/presencia efímera y notifications/device_isolation |
+
+Para cada respuesta: ruta propietaria verificada, interface permitida, estado, regla y comando vigente. Seis de seis correctas por cliente; cero acceso privado/comandos inventados. Registrar fuentes cargadas, documentos abiertos, tiempo, intervención humana y un diagnóstico de violación arquitectónica. Medición de navegación no acredita que se hayan ejecutado las suites ni que un agente arregle bugs. Evidencia en tarea/CI, no nuevo tracker; no inventar valores iniciales faltantes.

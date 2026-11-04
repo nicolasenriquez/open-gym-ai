@@ -1,5 +1,12 @@
 ## ADDED Requirements
 
+### Requirement: Change-owned planning and evidence
+Planning, tasks, decisions and necessary evidence SHALL be self-contained in the selected OpenSpec change. Agent tracker templates SHALL route to those artifacts without creating parallel tickets, maps or scratch directories. Disposable execution files SHALL use exclusive system temporary directories; necessary results SHALL be consolidated in the change and obsolete owned files removed. Historical provenance and exclusion sentinels MUST NOT be interpreted as instructions to recreate retired task directories.
+
+#### Scenario: A skill requests a local ticket or experiment report
+- **WHEN** work already belongs to an OpenSpec change
+- **THEN** the agent updates the owning artifacts and retains only necessary evidence there instead of creating a scratch tracker or permanent execution dump
+
 ### Requirement: Purpose-based cleanup selection
 Cleanup SHALL classify each candidate as retain, consolidate or remove, recording its exact scope, owner, purpose, consumers and reason in the existing task or review. Retained execution evidence SHALL state its outstanding obligation and removal condition. Age, filename, size, ignored status or a completed task checkbox alone MUST NOT authorize removal. Cleanup SHALL be a reviewed operation, not a new periodic garbage collector.
 
@@ -23,15 +30,36 @@ Protected historical material SHALL be eligible for case-by-case retirement only
 - **THEN** its explicit retirement updates the corresponding indexes, configuration and manifest in the same change and does not rewrite Git history or fabricate historical evidence
 
 ### Requirement: Value-based code comment maintenance
-Comment cleanup SHALL remove literal restatements, false references and obsolete implementation chronology while preserving or sharpening current rationale, invariants, race conditions, compatibility constraints, relevant regression explanations and unresolved obligations. Licenses, attribution and effective lint/type/build/coverage directives MUST remain intact unless their removal is separately justified and verified. Removing TODO or shortcut text MUST NOT silently discard an unresolved obligation. Runtime behavior MUST remain unchanged by editorial cleanup.
+Maintained first-party source SHALL contain no narrative comments, commented-out code or purely explanatory docstrings after its cleanup slice is accepted. Current invariants, race conditions and regressions SHALL be expressed through names, interfaces, validation and distinguishing executable tests before their explanation is removed. Necessary textual contracts and external constraints that cannot be encoded SHALL have a discoverable owning document. Cleanup MUST NOT copy all removed prose into another document or silently discard unresolved TODO/shortcut obligations.
 
-#### Scenario: Historical QA comment explains a live data-loss risk
-- **WHEN** an old QA comment still explains ownership, merge or concurrency behavior preventing data loss
-- **THEN** its current rationale is retained or condensed and is not deleted solely because its version/date is old
+Licenses and attribution SHALL remain preserved. Effective tool directives and observable docstrings SHALL be classified separately from narrative prose and retained until an equivalent configuration or explicit API is verified. Any remaining technical exception SHALL identify its exact scope, consumer and reason. Correctness suppressions SHALL require a root-cause fix or demonstrated false positive, rather than automatic exemption. Editorial removal MUST NOT change executable behavior.
+
+#### Scenario: Comment explains a live data-loss invariant
+- **WHEN** a narrative comment explains ownership, merge or concurrency behavior preventing data loss
+- **THEN** the slice identifies or adds an executable test that distinguishes the violating behavior, gives necessary textual context an owning document and removes the narrative only after the guarantee is preserved
 
 #### Scenario: Redundant narrative and postcommit invariant coexist
 - **WHEN** a slice contains a comment narrating an obvious assignment and another explaining that postcommit bookkeeping cannot change acknowledged success
-- **THEN** the redundant narrative may be removed while the postcommit invariant remains clear and executable behavior is unchanged
+- **THEN** both narrative comments are removed after the postcommit guarantee has distinguishing proof and the code and owning contract express its ordering without changing the acknowledged result
+
+#### Scenario: A comment-shaped token controls execution
+- **WHEN** a candidate is a Vitest environment directive, Docker parser directive, shebang, build pragma or a docstring consumed as an observable contract
+- **THEN** cleanup verifies an equivalent replacement before removal or records an exact technical exception and does not claim it was harmless prose
+
+### Requirement: No retained superseded implementations
+The maintained source and delivered build contexts SHALL NOT retain executable copies of superseded implementations, including copies renamed as legacy, archive or compatibility facades without active purpose. Retirement SHALL migrate active consumers and preserve independently required regression expectations without executing the retired server. Repository history MAY retain removed source. Active supported compatibility transformations and operational import tooling MUST be distinguished from dead implementations; their removal SHALL require an explicit support decision and corresponding owning specification changes when observable contracts change.
+
+#### Scenario: Retired Node code is kept under another directory
+- **WHEN** a change copies retired Node HTTP handlers into a legacy or archive source directory for future reference
+- **THEN** source retirement acceptance fails even if the directory is excluded from the runtime image
+
+#### Scenario: Old offline documents still have an active reader
+- **WHEN** the current store consumes an old-format transformation to preserve pending offline edits
+- **THEN** the transformation is not treated as dead code and any proposed removal identifies its support cutoff and migration or rejection behavior before changing the contract
+
+#### Scenario: Source is retired but ignored local residues remain
+- **WHEN** Git contains no retired implementation but the workspace contains ignored artifacts from prior work
+- **THEN** the audit reports those categories separately and filesystem removal still requires bounded ownership and path checks
 
 ### Requirement: Bounded safe artifact removal
 Artifact removal SHALL resolve exact absolute targets and real paths, confirm ownership and stopped writers, preserve foreign/concurrent work and exclude user data, credentials, backups, recovery journals and protected material still required by policy. Symlink/junction escapes SHALL block removal. Broad document retirement SHALL preserve required untracked/local work in a private external backup with a path/hash inventory. Container resources SHALL use their owning verifier; filesystem cleanup MUST NOT imply global Docker cleanup.

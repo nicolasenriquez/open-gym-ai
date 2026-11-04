@@ -8,8 +8,8 @@ This change SHALL be independent of all other OpenSpec changes. Their completion
 - **THEN** this slice can proceed when explicitly authorized without requiring completion or acceptance of the other change
 
 #### Scenario: Active consumers still require transition tooling
-- **WHEN** the baseline identifies active Node or transitional tooling consumers
-- **THEN** their contracts and required artifacts remain intact and their presence does not block unrelated refactoring or documentation
+- **WHEN** the baseline identifies active import, offline compatibility or verification tooling consumers
+- **THEN** supported contracts remain intact pending any explicit support change, while retired Node HTTP implementations are not recreated to match an obsolete inventory
 
 ### Requirement: Composition-independent compatibility metadata
 Schema compatibility metadata SHALL have one pure authority consumed by HTTP composition and operational commands. Functional modules and operational commands MUST NOT import HTTP composition to obtain metadata. Runtime, migration and ops packaging and privileges MUST remain separated.
@@ -131,3 +131,25 @@ After technical acceptance, stage 9 SHALL reconcile project documentation with t
 #### Scenario: Final documentation check finds a contradiction
 - **WHEN** active documentation contradicts the final runtime or references a retired artifact or broken command
 - **THEN** documentation acceptance and final closeout remain blocked until the contradiction is resolved and affected checks pass
+
+### Requirement: Deterministic formatting and actionable CI feedback
+The change SHALL define one pinned formatting policy for maintained first-party frontend source and retain the existing pinned Python formatting checks. Formatting SHALL be idempotent, separable from functional reorganization and checked through the same invocation locally and in CI. Generated assets, third-party content and protected historical bodies MUST NOT be rewritten by blanket formatting. New architecture and comment checks SHALL be integrated into existing verification and provide an offending path, rule and actionable repair. Token-aware classification SHALL distinguish narrative comments from strings, regular expressions, prompts, effective tool directives and observable docstrings; unsupported syntax SHALL be reported as unverified rather than silently credited.
+
+#### Scenario: A second formatting pass changes source again
+- **WHEN** the selected pinned formatter is applied twice to the scoped source
+- **THEN** the second pass produces no changes and its check-only invocation rejects a deliberately unformatted fixture
+
+#### Scenario: A forbidden dependency or narrative comment is introduced
+- **WHEN** a negative fixture introduces an agreed private import or narrative comment
+- **THEN** the current verification and CI reject it with path, rule and repair guidance while a string containing a URL and an approved effective directive are not misclassified
+
+### Requirement: Client-specific agent onboarding proof
+Each client declared supported SHALL demonstrate instruction discovery in a fresh isolated session and complete six capability navigation briefs identifying owner, public interface, state authority, applicable rule and executable targeted check without manually supplied file paths. Evidence SHALL identify loaded instruction sources and distinguish navigation from behavioral verification. Time, documents opened and human corrections SHALL be recorded before and after the affected navigation changes without inventing a prior baseline or universal productivity claim. Client adapters SHALL refer to shared authorities rather than duplicate policies. Missing client access SHALL leave that client's support claim unverified.
+
+#### Scenario: A client loads a skill format but misses repository rules
+- **WHEN** a client recognizes SKILL.md metadata but does not discover the project's owning instructions
+- **THEN** its onboarding check fails and format compatibility is not reported as repository workflow support
+
+#### Scenario: A supported client locates all six capabilities
+- **WHEN** a fresh session resolves one brief for each capability
+- **THEN** all six identify correct owners, interfaces, state, rules and commands without private access or invented tooling and the result is recorded for that client only
