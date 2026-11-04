@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { constants, closeSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readSync, readdirSync, realpathSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { hostname } from 'node:os';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
@@ -60,15 +60,39 @@ function safePath(path, directory = false) {
     || canonical(realpathSync(path)) !== canonical(path)) throw new Error('MAINTENANCE_PATH_UNSAFE');
 }
 
-function fileProof(path) {
+function readCheckedFile(path, maxBytes, sizeError) {
   safePath(path);
-  const before = lstatSync(path, { bigint: true });
-  if (before.size > 16n * 1024n * 1024n) throw new Error('MAINTENANCE_CONFIG_TOO_LARGE');
-  const sha256 = createHash('sha256').update(readFileSync(path)).digest('hex');
-  const after = lstatSync(path, { bigint: true });
+  const expected = lstatSync(path, { bigint: true });
   const identity = info => [info.dev, info.ino, info.size, info.mtimeNs, info.ctimeNs].join(':');
-  if (identity(before) !== identity(after)) throw new Error('MAINTENANCE_FILE_CHANGED');
-  return { sha256, identity: identity(after) };
+  const fd = openSync(path, constants.O_RDONLY
+    | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+  try {
+    const before = fstatSync(fd, { bigint: true });
+    if (!before.isFile() || before.nlink !== 1n
+      || identity(before) !== identity(expected)) throw new Error('MAINTENANCE_FILE_CHANGED');
+    if (before.size > BigInt(maxBytes)) throw new Error(sizeError);
+    const bytes = Buffer.alloc(Number(before.size) + 1);
+    let size = 0;
+    while (size < bytes.length) {
+      const count = readSync(fd, bytes, size, bytes.length - size, null);
+      if (!count) break;
+      size += count;
+    }
+    const after = fstatSync(fd, { bigint: true });
+    if (after.nlink !== 1n || size !== Number(before.size)
+      || identity(before) !== identity(after)
+      || identity(lstatSync(path, { bigint: true })) !== identity(after)) {
+      throw new Error('MAINTENANCE_FILE_CHANGED');
+    }
+    return { bytes: bytes.subarray(0, size), identity: identity(after) };
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function fileProof(path) {
+  const { bytes, identity } = readCheckedFile(path, 16 * 1024 * 1024, 'MAINTENANCE_CONFIG_TOO_LARGE');
+  return { sha256: createHash('sha256').update(bytes).digest('hex'), identity };
 }
 
 // Docker paths are daemon paths, not necessarily host paths on Docker Desktop.
@@ -81,9 +105,7 @@ const mountPath = path => {
 const overlaps = (a, b) => a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
 
 function privateJson(path, maxBytes = 65536) {
-  safePath(path);
-  if (lstatSync(path).size > maxBytes) throw new Error('MAINTENANCE_PROOF_INVALID');
-  return JSON.parse(readFileSync(path, 'utf8'));
+  return JSON.parse(readCheckedFile(path, maxBytes, 'MAINTENANCE_PROOF_INVALID').bytes.toString('utf8'));
 }
 
 // PID plus OS start identity: reuse/reboot never identifies an old controller.
@@ -382,7 +404,7 @@ export async function operate(command, options) {
   let config;
   try {
     if (!isAbsolute(options[1])) throw new Error();
-    config = JSON.parse(readFileSync(options[1], 'utf8'));
+    config = privateJson(options[1], 16 * 1024 * 1024);
     const keys = ['instance_id', 'project', 'project_directory', 'compose_files', 'env_file', 'state_root', 'writers'];
     if (!config || Object.keys(config).some(key => ![...keys, 'bundle', 'repair'].includes(key)) || keys.some(key => !Object.hasOwn(config, key))
       || !/^[a-z][a-z0-9-]{1,63}$/.test(config.instance_id)
@@ -472,13 +494,13 @@ export async function operate(command, options) {
     const owner = join(config.state_root, 'owner.json');
     const identity = JSON.stringify({ instance_id: config.instance_id, project: config.project });
     if (existsSync(owner)) {
-      safePath(owner);
-      if (readFileSync(owner, 'utf8') !== identity) throw new Error('MAINTENANCE_OWNER_MISMATCH');
+      if (readCheckedFile(owner, 65536, 'MAINTENANCE_PROOF_INVALID').bytes.toString('utf8') !== identity) {
+        throw new Error('MAINTENANCE_OWNER_MISMATCH');
+      }
     } else writeFileSync(owner, identity, { flag: 'wx', mode: 0o600 });
     const prior = join(config.state_root, 'journal.json');
     if (existsSync(prior)) {
-      safePath(prior);
-      const previous = JSON.parse(readFileSync(prior, 'utf8'));
+      const previous = privateJson(prior);
       if (previous.instance_id !== config.instance_id || previous.project !== config.project
         || !['captured_unverified', 'recovered_unverified', 'verified', 'repaired'].includes(previous.phase)) throw new Error('MAINTENANCE_UNRESOLVED_JOURNAL');
     }

@@ -1,10 +1,38 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+import { verifyPreCutover } from './platform-gates.mjs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, symlinkSync, linkSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+
+test('gate evidence validates descriptor link counts before and after reading', t => {
+  const root = mkdtempSync(join(tmpdir(), 'opengym-gate-descriptor-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const path = join(root, 'index.json');
+  writeFileSync(path, '{}');
+  const stat = fs.fstatSync, read = fs.readSync;
+  for (const phase of ['before', 'after']) {
+    let stats = 0, reads = 0;
+    t.mock.method(fs, 'fstatSync', (...args) => {
+      const info = stat(...args);
+      if (++stats === (phase === 'before' ? 1 : 2)) return Object.assign(Object.create(info), { nlink: 2 });
+      return info;
+    });
+    t.mock.method(fs, 'readSync', (...args) => { reads++; return read(...args); });
+    syncBuiltinESMExports();
+    try {
+      assert.throws(() => verifyPreCutover(path), /Changed evidence file/);
+      assert.equal(reads > 0, phase === 'after');
+    } finally {
+      t.mock.restoreAll();
+      syncBuiltinESMExports();
+    }
+  }
+});
 
 const coverage = {
   G0: ['clients_origins', 'client_pending_active_media', 'frontend_api_mapping', 'physical_backup_keys', 'protected_later_access_source', 'rehearsed_window'],

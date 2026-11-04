@@ -38,7 +38,8 @@ function inventory(sources) {
       if (bytes > 4 * 1024 ** 3) reject();
       const fd = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
       try {
-        if (identity(fstatSync(fd, { bigint: true })) !== identity(info)) reject();
+        const before = fstatSync(fd, { bigint: true });
+        if (!before.isFile() || before.nlink !== 1n || identity(before) !== identity(info)) reject();
         const hash = createHash('sha256'), buffer = Buffer.alloc(64 * 1024);
         let count, size = 0;
         while ((count = readSync(fd, buffer, 0, buffer.length, null))) {
@@ -46,7 +47,9 @@ function inventory(sources) {
           if (size > Number(info.size)) reject();
           hash.update(buffer.subarray(0, count));
         }
-        if (size !== Number(info.size) || identity(fstatSync(fd, { bigint: true })) !== identity(info)) reject();
+        const after = fstatSync(fd, { bigint: true });
+        if (!after.isFile() || after.nlink !== 1n
+          || size !== Number(info.size) || identity(after) !== identity(info)) reject();
         files.push({ path: name, size, sha256: hash.digest('hex'), identity: identity(info) });
       } finally { closeSync(fd); }
     }

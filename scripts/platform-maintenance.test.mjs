@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+import { createHash } from 'node:crypto';
+import { fileProof, operate } from './platform-maintenance.mjs';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -7,6 +11,76 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { backupProof } from './platform-backup-proof.mjs';
+
+test('maintenance file reads bind identity, bound bytes and close descriptors', async t => {
+  const root = mkdtempSync(join(tmpdir(), 'opengym-maintenance-read-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const path = join(root, 'proof.json');
+  for (const fault of ['none', 'replace', 'grow', 'shrink', 'hardlink', 'oversize']) {
+    await t.test(fault, () => {
+      writeFileSync(path, '{"proof":true}');
+      const originalOpen = fs.openSync, originalRead = fs.readSync;
+      let fd, reads = 0, changed = false;
+      t.mock.method(fs, 'openSync', (target, ...args) => {
+        if (target === path && fault === 'replace') {
+          fs.renameSync(path, join(root, 'original.json'));
+          writeFileSync(path, '{"proof":false}');
+        }
+        fd = originalOpen(target, ...args);
+        return fd;
+      });
+      t.mock.method(fs, 'readSync', (input, buffer, offset, length, position) => {
+        reads++;
+        if (!changed && ['grow', 'shrink', 'hardlink'].includes(fault)) {
+          changed = true;
+          if (fault === 'grow') fs.appendFileSync(path, 'changed');
+          if (fault === 'shrink') fs.truncateSync(path, 1);
+          if (fault === 'hardlink') fs.linkSync(path, join(root, 'alias.json'));
+        }
+        return originalRead(input, buffer, offset, Math.min(length, 3), position);
+      });
+      if (fault === 'oversize') fs.truncateSync(path, 16 * 1024 * 1024 + 1);
+      syncBuiltinESMExports();
+      try {
+        if (fault === 'none') {
+          const proof = fileProof(path);
+          assert.equal(proof.sha256, createHash('sha256').update('{"proof":true}').digest('hex'));
+          assert.match(proof.identity, /^\d+:\d+:\d+:\d+:\d+$/);
+          assert.ok(reads > 1, 'short reads must be retried');
+        } else {
+          assert.throws(() => fileProof(path), fault === 'oversize'
+            ? /MAINTENANCE_CONFIG_TOO_LARGE/ : /MAINTENANCE_FILE_CHANGED/);
+          if (fault === 'oversize' || fault === 'replace') assert.equal(reads, 0);
+        }
+        assert.throws(() => fs.fstatSync(fd), { code: 'EBADF' });
+      } finally {
+        t.mock.restoreAll();
+        syncBuiltinESMExports();
+        fs.rmSync(join(root, 'alias.json'), { force: true });
+      }
+    });
+  }
+});
+
+test('maintenance initial JSON configuration is bounded before reading', async t => {
+  const root = mkdtempSync(join(tmpdir(), 'opengym-maintenance-limit-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const path = join(root, 'config.json');
+  writeFileSync(path, '');
+  fs.truncateSync(path, 16 * 1024 * 1024 + 1);
+  let reads = 0;
+  t.mock.method(fs, 'readSync', () => { reads++; throw new Error('unexpected read'); });
+  syncBuiltinESMExports();
+  const exitCode = process.exitCode;
+  try {
+    await assert.rejects(operate('backup', ['--config', path, '--reason', 'scheduled']), /MAINTENANCE_CONFIG_INVALID/);
+    assert.equal(reads, 0);
+  } finally {
+    process.exitCode = exitCode;
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+  }
+});
 
 // Public host CLI: malformed configuration must not reach Docker or alter files.
 test('maintenance rejects an incomplete writer inventory before controlling services', t => {

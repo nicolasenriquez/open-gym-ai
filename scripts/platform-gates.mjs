@@ -14,7 +14,8 @@ function readEvidence(path, limit) {
   const fd = openSync(absolute, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
   try {
     const before = fstatSync(fd);
-    if (before.ino !== expected.ino || before.dev !== expected.dev) throw new Error('Changed evidence file');
+    if (!before.isFile() || before.nlink !== 1 || before.size === 0 || before.size > limit
+      || before.ino !== expected.ino || before.dev !== expected.dev) throw new Error('Changed evidence file');
     const bytes = Buffer.alloc(expected.size + 1);
     let size = 0;
     while (size < bytes.length) {
@@ -23,7 +24,8 @@ function readEvidence(path, limit) {
       size += count;
     }
     const after = fstatSync(fd);
-    if (size !== expected.size || after.size !== expected.size || after.mtimeMs !== expected.mtimeMs || after.ctimeMs !== expected.ctimeMs) throw new Error('Changed evidence file');
+    if (!after.isFile() || after.nlink !== 1
+      || size !== expected.size || after.size !== expected.size || after.mtimeMs !== expected.mtimeMs || after.ctimeMs !== expected.ctimeMs) throw new Error('Changed evidence file');
     return bytes.subarray(0, size);
   } finally {
     closeSync(fd);

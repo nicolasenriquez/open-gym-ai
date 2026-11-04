@@ -10,6 +10,7 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
   let activeChild;
 
   const docker = (args, live = false) => execute('docker', args, live);
+  const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   function execute(program, args, live = false, timeoutMs = 300_000) {
     return new Promise((resolve, reject) => {
@@ -48,7 +49,7 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
     for (const type of ['container', 'volume', 'network', 'image']) {
       const selected = new Set();
       for (const filter of [`label=com.docker.compose.project=${project}`,
-        type === 'image' ? `reference=${project}-*` : `name=^/?${project}[-_]`]) {
+        type === 'image' ? `reference=${project}-*` : `name=^/?${escapeRegExp(project)}[-_]`]) {
         const ids = await docker([type, 'ls', '--quiet', ...(type === 'container' ? ['--all'] : []), '--filter', filter]);
         for (const id of ids.trim().split(/\s+/).filter(Boolean)) selected.add(id);
       }
@@ -69,7 +70,7 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
       let id = item.Id;
       if (type === 'container') {
         valid &&= services.includes(service)
-          && new RegExp(`^/${project}-${service}-(?:[1-9][0-9]*|run-[a-f0-9]{12})$`).test(item.Name);
+          && new RegExp(`^/${escapeRegExp(project)}-${escapeRegExp(service)}-(?:[1-9][0-9]*|run-[a-f0-9]{12})$`).test(item.Name);
       } else if (type === 'volume') {
         const volume = labels?.['com.docker.compose.volume'];
         const expected = volume === 'postgres-data' ? { name: volumeName, service: database } : extraVolumes[volume];

@@ -71,7 +71,14 @@ try {
             await docker([...compose(project), 'logs', '--no-color', 'platform-browser'], true);
             const evidence = mkdtempSync(join(tmpdir(), 'opengym-platform-browser-'));
             const files = JSON.parse(await docker(['exec', `${project}-platform-browser-1`, 'node', '-e',
-              "const fs=require('node:fs');console.log(JSON.stringify(fs.readdirSync('/tmp/evidence').map(name=>({name,data:fs.readFileSync('/tmp/evidence/'+name).toString('base64')}))))"]));
+              `const fs=require('node:fs');
+               const dirs=fs.readdirSync('/tmp',{withFileTypes:true})
+                 .filter(entry=>entry.isDirectory()&&entry.name.startsWith('opengym-browser-evidence-'));
+               if(dirs.length!==1)throw new Error('PLATFORM_BROWSER_EVIDENCE_DIRECTORY_INVALID');
+               const root='/tmp/'+dirs[0].name;
+               console.log(JSON.stringify(fs.readdirSync(root).map(name=>({
+                 name,data:fs.readFileSync(root+'/'+name).toString('base64')
+               }))));`]));
             for (const { name, data } of files) {
               assert.match(name, /^(?:(?:passkeys|login|offline|auth|conflicts|lost-reply|restore|reset|links|media|media-queue|media-gc|admin-invites|admin-audit|FAIL)\.png|result\.json)$/, 'PLATFORM_BROWSER_ARTIFACT_INVALID');
               assert.ok(Buffer.from(data, 'base64').length > 0, 'PLATFORM_BROWSER_ARTIFACT_EMPTY');

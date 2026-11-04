@@ -1,7 +1,7 @@
 // Real compiled frontend → Python HTTP → restricted PostgreSQL. No store setters or fake API replies.
 import assert from 'node:assert/strict';
 import { createServer, request } from 'node:http';
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, mkdtemp, writeFile } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
@@ -10,8 +10,7 @@ import { verifyLinks } from './links.mjs';
 import { verifyAdminInvites } from './admin-invites.mjs';
 
 const root = resolve('public');
-const evidence = '/tmp/evidence';
-await mkdir(evidence, { recursive: true });
+const evidence = await mkdtemp('/tmp/opengym-browser-evidence-');
 const control = async (path, body) => {
   const response = await fetch('http://platform-test:3001' + path, { signal: AbortSignal.timeout(12000), ...(body === undefined ? {} : {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -375,12 +374,12 @@ try {
   assert.equal(process.versions.node, '22.23.2');
   await writeFile(`${evidence}/result.json`, JSON.stringify({ completed: true, cases, errors: errors.length,
     node: process.versions.node, browser: browser.version(), frontend,
-    faults: { unauthorized: statuses.filter(s => s === 401).length, conflicts: competitors, lostResponses: Number(dropped) } }));
+    faults: { unauthorized: statuses.filter(s => s === 401).length, conflicts: competitors, lostResponses: Number(dropped) } }), { mode: 0o600 });
   await control('/done', { completed: true, cases, errors: errors.length });
 } catch (error) {
   console.error(JSON.stringify({ stage, error: error.name, message: error.message.split('\n')[0] }));
   if (page) await page.screenshot({ path: `${evidence}/FAIL.png`, fullPage: true, animations: 'disabled' }).catch(() => {});
-  await writeFile(`${evidence}/result.json`, JSON.stringify({ completed: false, stage, cases, errors: errors.length }));
+  await writeFile(`${evidence}/result.json`, JSON.stringify({ completed: false, stage, cases, errors: errors.length }), { mode: 0o600 });
   await control('/done', { completed: false, stage, cases, errors: errors.length }).catch(() => {});
   process.exitCode = 1;
 } finally {

@@ -53,6 +53,32 @@ export function safePath(root, relative) {
   return full
 }
 
+function readLinkedDocument(target) {
+  const expected = fs.lstatSync(target, { bigint: true })
+  const identity = info => [info.dev, info.ino, info.size, info.mtimeNs, info.ctimeNs].join(':')
+  const fd = fs.openSync(target, fs.constants.O_RDONLY
+    | (fs.constants.O_NOFOLLOW ?? 0) | (fs.constants.O_NONBLOCK ?? 0))
+  try {
+    const before = fs.fstatSync(fd, { bigint: true })
+    if (!before.isFile() || before.nlink !== 1n
+      || identity(before) !== identity(expected)) throw Error('Unsafe/changed Markdown target')
+    if (before.size > 5n * 1024n * 1024n) throw Error('Markdown exceeds local 5 MiB safety limit')
+    const bytes = Buffer.alloc(Number(before.size) + 1)
+    let size = 0
+    while (size < bytes.length) {
+      const count = fs.readSync(fd, bytes, size, bytes.length - size, null)
+      if (!count) break
+      size += count
+    }
+    const after = fs.fstatSync(fd, { bigint: true })
+    if (after.nlink !== 1n || size !== Number(before.size)
+      || identity(after) !== identity(before)) throw Error('Changed Markdown target')
+    return parseDocument(bytes.subarray(0, size))
+  } finally {
+    fs.closeSync(fd)
+  }
+}
+
 export function parseDocument(bytes) {
   if (bytes.length > 5 * 1024 * 1024) throw Error('Markdown exceeds local 5 MiB safety limit')
   const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
@@ -248,7 +274,7 @@ export function audit(root = ownRoot) {
           if (!portableTarget(root, target)) { add('local', 'link-target', `Missing/nonportable directory document: ${href}`); continue }
         }
         if (fragment && /\.md$/i.test(target)) {
-          if (!anchorCache.has(target)) anchorCache.set(target, markdown(parseDocument(fs.readFileSync(target)).body).anchors)
+          if (!anchorCache.has(target)) anchorCache.set(target, markdown(readLinkedDocument(target).body).anchors)
           if (!anchorCache.get(target).has(fragment)) add('local', 'link-anchor', `Missing anchor: ${href}`)
         }
       } catch (e) { add('local', 'link', `${href}: ${e.message}`) }

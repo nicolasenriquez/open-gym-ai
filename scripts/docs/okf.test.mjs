@@ -301,6 +301,41 @@ test('CLI rejects options for another command and duplicate options', t => {
   assert.throws(() => main(['apply', '--plan', 'one.json', '--plan', 'two.json'], f.root), /option/i)
 })
 
+test('linked Markdown rejects replacement, growth, hardlinks and oversized targets', async t => {
+  for (const fault of ['replace', 'grow', 'hardlink', 'oversize']) {
+    await t.test(fault, t => {
+      const f = fixture(t, { 'docs/a.md': concept('# A\n[Target](../external.md#target)\n') })
+      const target = path.join(f.root, 'external.md')
+      f.write('external.md', '# Target\n')
+      const open = fs.openSync, read = fs.readSync
+      let fd, reads = 0, changed = false
+      if (fault === 'hardlink') fs.linkSync(target, path.join(f.root, 'alias.md'))
+      if (fault === 'oversize') fs.truncateSync(target, 5 * 1024 * 1024 + 1)
+      t.mock.method(fs, 'openSync', (file, ...args) => {
+        if (file === target && fault === 'replace') {
+          fs.renameSync(target, path.join(f.root, 'original.md'))
+          f.write('external.md', '# Target\nReplacement\n')
+        }
+        const input = open(file, ...args)
+        if (file === target) fd = input
+        return input
+      })
+      t.mock.method(fs, 'readSync', (input, ...args) => {
+        if (input === fd) {
+          reads++
+          if (fault === 'grow' && !changed) { changed = true; fs.appendFileSync(target, 'changed') }
+        }
+        return read(input, ...args)
+      })
+      try {
+        assert(f.check().findings.some(x => x.rule === 'link' && /Markdown/.test(x.message)))
+        if (fault !== 'grow') assert.equal(reads, 0)
+        assert.throws(() => fs.fstatSync(fd), { code: 'EBADF' })
+      } finally { t.mock.restoreAll() }
+    })
+  }
+})
+
 test('directory metadata must be complete before an index can be generated', t => {
   const f = fixture(t)
   const config = JSON.parse(f.read('scripts/docs/okf.config.json'))

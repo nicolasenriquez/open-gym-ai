@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, lstatSync, existsSync, rmSync, symlinkSync, linkSync } from 'node:fs';
+import { closeSync, mkdtempSync, mkdirSync, openSync, writeFileSync, readFileSync, readdirSync, lstatSync, existsSync, rmSync, symlinkSync, linkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -143,6 +145,26 @@ test('Frozen-source capture preserves documents, media, secrets and configuratio
   await assert.rejects(captureStoppedNode({ ...f, writersStopped: () => true }), /NODE_CAPTURE_REJECTED/);
 });
 
+test('Node capture validates descriptor link counts before and after inventory reads', async t => {
+  const f = fixture(t), stat = fs.fstatSync;
+  for (const phase of ['before', 'after']) {
+    let stats = 0;
+    t.mock.method(fs, 'fstatSync', (...args) => {
+      const info = stat(...args);
+      if (++stats === (phase === 'before' ? 1 : 2)) return Object.assign(Object.create(info), { nlink: 2n });
+      return info;
+    });
+    syncBuiltinESMExports();
+    try {
+      await assert.rejects(captureStoppedNode({ ...f, writersStopped: () => true }), /NODE_CAPTURE_REJECTED/);
+      assert.equal(existsSync(f.destination), false);
+    } finally {
+      t.mock.restoreAll();
+      syncBuiltinESMExports();
+    }
+  }
+});
+
 test('Node capture rejects a changed source and keeps its partial copy without a success receipt', async t => {
   const f = fixture(t), writer = await f.writer();
   let changed = false;
@@ -194,7 +216,18 @@ test('Node capture rejects destination corruption and missing required recovery 
   let corrupted = false;
   await assert.rejects(captureStoppedNode({ ...f, writersStopped: () => {
     const target = join(f.destination, 'data/db.json');
-    if (!corrupted && existsSync(target)) { writeFileSync(target, 'corrupt-copy'); corrupted = true; }
+    if (!corrupted) {
+      let fd;
+      try {
+        fd = openSync(target, 'r+');
+        writeFileSync(fd, 'corrupt-copy');
+        corrupted = true;
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      } finally {
+        if (fd !== undefined) closeSync(fd);
+      }
+    }
     return true;
   } }), /NODE_CAPTURE_REJECTED/);
   assert.equal(corrupted, true);
