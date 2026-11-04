@@ -277,7 +277,7 @@ Para tareas solo editoriales o de inventario no aplica RED runtime: la prueba co
 | Bounded safe artifact removal | 7.4–7.5 |
 | Cleanup preserves reproducible guarantees and active navigation | 7.1–7.5, 8.1–8.3 |
 
-Estado: Implementation Ready de planificación el 2026-11-04; D8 resuelta y D12 ensayada/fijada. Ninguna de las 60 tareas de entrega implementada. Preflight Docker limita los slices que requieren contenedores; la integración formatter Linux/CI se verifica en 3.5. Sin dependencia de otra OpenSpec ni autorización de refactor/commit.
+Estado: Implementation Ready de planificación el 2026-11-04; D8 resuelta y D12 ensayada/fijada. Ninguna de las 60 tareas de entrega implementada. Preflight Docker ejecutado el 2026-11-04; cada slice que requiera contenedores repite el suyo (ver [verification-plan.md](verification-plan.md)). La integración formatter Linux/CI se verifica en 3.5. Sin dependencia de otra OpenSpec ni autorización para iniciar el refactor.
 
 Trazabilidad adicional: Single initiator and one-way participant knowledge → 2.2–2.3; Explicit dependency contract and bounded static analysis → 3.4/3.2–3.3; Per-journey proof and task traceability → 1.3/4–6/8.1; JSON purpose classification and active contract preservation → 1.1/7.6; Final project documentation acceptance → 9.1–9.5.
 

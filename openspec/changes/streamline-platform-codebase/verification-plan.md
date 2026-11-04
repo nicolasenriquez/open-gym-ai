@@ -4,7 +4,7 @@
 
 Revisión de auditoría: 2026-11-04, HEAD 13a1b6fde7a219640ddae34338bef8608def8ffb y worktree con cambios ajenos staged/unstaged. HEAD no certifica todos los bytes. Los 38 selectores backend únicos citados aquí resuelven en el manifest actual; las seis selecciones Vitest suman 29 referencias a archivos, todas existentes. Eso prueba selección/rutas, no comportamiento. Revalidar drift antes de cada slice, sin resucitar tooling retirado ni depender del estado de otra OpenSpec.
 
-Estado: Implementation Ready de planificación. D8 preserva compatibilidades activas y D12 fija Oxfmt 0.76.0 con la configuración ensayada. No hay decisiones materiales abiertas; las 60 tareas de entrega siguen pendientes. Una condición de entorno bloquea el trabajo que necesita ese recurso; no equivale a defecto del producto ni permite aceptar pruebas omitidas.
+Estado: Implementation Ready de planificación. D8 preserva compatibilidades activas y D12 fija Oxfmt 0.76.0 con la configuración ensayada. No hay decisiones materiales abiertas; las 60 tareas de entrega siguen pendientes. El acceso a Docker, una condición de entorno registrada, quedó disponible y su preflight está ejecutado; cada slice repite el suyo y ninguna prueba omitida se acepta como éxito.
 
 ## Auditoría local ejecutada el 2026-11-04
 
@@ -16,7 +16,7 @@ Estado: Implementation Ready de planificación. D8 preserva compatibilidades act
 | git diff --check | Exit 0 antes de revisión | Solo whitespace del diff comprobado; no certifica cambios ajenos |
 | node node_modules/oxlint/bin/oxlint frontend/src frontend/e2e scripts backend shared | Exit 0; 737 archivos, cinco reglas, cero errores/avisos | No comprueba ownership, ciclos ni comentarios con configuración actual |
 | Desde frontend: node node_modules/vitest/vitest.mjs run src/store/useStore.legacy-upgrade.test.jsx src/store/useStore.sync.test.jsx src/lib/coach-core/parse.test.js src/lib/coach-core/payload.test.js | Cuatro archivos, 60 tests pasan | Dependencias ya instaladas; Node host 24.14.0, no imagen CI Node 22; sin prueba browser/PG |
-| docker compose version / docker buildx version / docker info --format '{{.ServerVersion}}' | Compose 5.1.1, Buildx 0.33.0-desktop.1; info falla por acceso denegado a pipe Docker | No se ejecutaron builds, renders Docker ni suites HTTP/PG/browser en esta auditoría |
+| docker compose version / docker buildx version / docker info --format '{{.ServerVersion}}' | Compose 5.1.1, Buildx 0.33.0-desktop.1; en esa auditoría info falla por acceso denegado a pipe Docker | Esa auditoría no ejecutó builds, renders ni suites; el preflight posterior sí (ver «Docker: preflight ejecutado el 2026-11-04») |
 | pnpm --version | Corepack intenta obtener pnpm 10.34.8; falla DNS a registry.npmjs.org | No se acredita gestor disponible ni instalación; pruebas focalizadas ejecutadas mediante binarios locales existentes |
 
 Las lecturas/auditoría no marcan tareas de implementación completas. No se ensayaron sesiones nuevas de onboarding de clientes, no se instaló P-stack ni se ejecutaron sus workflows. No se arrancó una instancia real ni se leyeron datos/secretos de usuario.
@@ -139,9 +139,27 @@ Casos obligatorios: core importa Training → falla; cleanup importa application
 
 Contrato: exit no-cero y ruta origen/destino para violación; exit cero para grafo permitido; computado no resuelto no recibe crédito sin revisión registrada. No parser general de flujo; usar AST Python y lectura de imports JS acotada al estilo existente, declarando límites. Actualizar la lista junto con cualquier nueva interface, no mantener allowlist global de paquetes.
 
-## Docker: bloqueo de ejecución local, no de planificación
+## Docker: preflight ejecutado el 2026-11-04
 
-El acceso al daemon Docker está denegado en esta auditoría; las versiones CLI/Buildx sí se pudieron consultar. No se acreditan builds, contextos ni suites containerizadas. No obliga a esperar otra OpenSpec ni bloquea preparación documental o slices independientes. Repetir preflight antes del slice; no instalar ni cambiar permisos por inferencia.
+El daemon sí es accesible en esta sesión (Compose 5.1.1, Buildx 0.33.0-desktop.1). Tras retirar el directorio scratch se ejecutaron las integraciones containerizadas afectadas con recursos sintéticos propios, comprobando además que ningún recorrido recreara `.scratch/` ni `docs/scratch/`: ninguno lo hizo.
+
+| Comprobación ejecutada | Resultado | Límite |
+| --- | --- | --- |
+| node --test scripts/platform-node-drain-docker.test.mjs | Exit 0; 36 s; no creó ni encontró rutas scratch | Recursos sintéticos; no mide drenaje de una instancia real |
+| node --test scripts/platform-node-import.test.mjs | Exit 0; 28 s; sin rutas scratch | Importación sintética; sin datos de usuario |
+| node --test scripts/platform-node-recovery.test.mjs | Exit 0; 263 s; sin rutas scratch | Incluye casos negativos de restauración; no toca originales |
+| node --test scripts/platform-repair.test.mjs | Exit 0; 442 s; sin rutas scratch | Reparación hacia adelante sobre destino sintético |
+| node --test scripts/platform-rehearsal.test.mjs | Exit 0; 361 s; sin rutas scratch | Ensayo mensual; no acredita RPO/RTO de una instancia |
+| node scripts/platform.mjs verify training_browser --case offline_sync | Exit 0; 65 s; 14 recorridos de navegador, 0 errores; inyectó 1 unauthorized, 2 conflicts y 1 lostResponse | Evidencia en temporal del sistema, no versionada; no acredita hardware |
+| node --test scripts/platform-reproducibility.test.mjs sobre HEAD 3d6e8fa98 | 2/2 pruebas superadas; 824 s; targets, matriz de caché en frío y lifecycle readiness; git status vacío antes y después del checkout limpio | Windows x64; arm64 y CI remota no acreditadas |
+
+El primer intento, sobre 13a1b6fde, falló en un checkout limpio por un defecto de entrada, no del runner. Con `core.autocrlf=true`, Git for Windows entrega CRLF a los archivos de texto que no fijan `eol=lf`; ninguna regla de `.gitattributes` cubría `backend/diagnostics/*` (el patrón `*.sh` tampoco alcanzaba `rotate`).
+
+`logrotate` rechaza esa configuración (`lines must begin with a keyword`). Como `run.py` ejecuta `logrotate` con `check=True` antes de arrancar rsyslogd, el colector terminaba con código 1 y Compose abortaba por `depends_on: service_healthy`. También quedaba afectado `backend/diagnostics/rotate`, entrypoint sh sin extensión: al alcanzar 352 KB, rsyslog lo ejecuta mediante `rotation.sizeLimitCommand`; con CRLF, el kernel devuelve `exec ... no such file or directory`.
+
+El árbol de trabajo conservaba LF; el checkout limpio hizo visible la diferencia. La corrección ya está en 692afb557: `.gitattributes` fija `backend/diagnostics/* text eol=lf`. d52b00f29 conserva stdout/stderr del proceso hijo cuando falla un proof, haciendo visible este diagnóstico. En una imagen construida desde 13a1b6fde, el diferencial mínimo confirma la causa: con `logrotate.conf` LF, `logrotate` sale con código 0; con CRLF reproduce el error. `rotate` CRLF no afecta el arranque, pero rompe la rotación por tamaño.
+
+La prueba de contexto con fixtures no observa los bytes que Git entrega en un checkout; el checkout limpio sí detectó esta interacción. CI Linux no reproduce la configuración `autocrlf` de Git for Windows. La corrección se limita al directorio de diagnósticos que se ejecuta dentro de Linux; no cambia la política de finales de línea de los scripts del host.
 
 Comandos exactos desde raíz:
 
@@ -205,7 +223,7 @@ La comparación estructural inicial señaló 52 archivos por diferencias de repr
 
 Resultados necesarios consolidados en este plan; logs, scripts de diagnóstico, dependencias y copias del ensayo descartados. La reproducción usa el comando documentado y formatter.config.json, sin runner permanente ni tracker paralelo. Configuración ensayada SHA-256: 6d655497435f97997a5543b9b6b6613419626ff50e4537ed8b37a81af8321bbf.
 
-Corrección de ubicación solicitada por el promotor: el ensayo propio y su directorio scratch fueron retirados tras verificar escritores detenidos y desvincular dos junctions sin borrar sus dependencias destino. Se corrigieron AGENTS, política/plantilla de tracker y skills que lo recreaban. Siete scripts de verificación dejaron de escribir en el repositorio; usan temporales del sistema o el directorio temporal ya propietario. node --test scripts/platform.test.mjs pasa siete tests, incluido el guard de directorios retirados. Ese guard comprueba referencias textuales convencionales, no todo flujo dinámico posible. Las integraciones Docker afectadas requieren ejecución posterior; no se acreditan por este check host.
+Corrección de ubicación solicitada por el promotor: el ensayo propio y su directorio scratch fueron retirados tras verificar escritores detenidos y desvincular dos junctions sin borrar sus dependencias destino. Se corrigieron AGENTS, política/plantilla de tracker y skills que lo recreaban. Siete scripts de verificación dejaron de escribir en el repositorio; usan temporales del sistema o el directorio temporal ya propietario. node --test scripts/platform.test.mjs pasa siete tests, incluido el guard de directorios retirados. Ese guard comprueba referencias textuales convencionales, no todo flujo dinámico posible. Las integraciones Docker afectadas se ejecutaron después; resultados y causa raíz del fallo de reproducibilidad en «Docker: preflight ejecutado el 2026-11-04».
 
 Límites: Windows x64 con Node de CI comprobado; Linux binding/CI remoto, build web completo, browser, HTTP/PG y hardware no ensayados aquí. Son pruebas obligatorias de las tareas afectadas durante entrega; 3.5 verifica binding Linux y fmt:check en CI antes de aceptar integración. Las tareas de comentarios/grafo no se declaran implementadas por ensayar el formatter.
 
