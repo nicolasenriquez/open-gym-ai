@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -9,6 +9,20 @@ const invoke = (...args) => spawnSync(process.execPath, ['scripts/platform.mjs',
   encoding: 'utf8', timeout: 10_000, env: { ...process.env, PATH: '', COMPOSE_FILE: 'foreign.yml',
     DOCKER_HOST: process.platform === 'win32' ? 'npipe:////./pipe/opengym-platform-missing' : 'unix:///opengym-platform-missing.sock',
     DOCKER_CONTEXT: '', DOCKER_TLS_VERIFY: '', DOCKER_CERT_PATH: '' },
+});
+
+test('verification scripts do not recreate the retired task directory', () => {
+  function check(directory) {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const file = join(directory, entry.name);
+      if (entry.isDirectory()) check(file);
+      else if (entry.name.endsWith('.mjs') && file !== join('scripts', 'platform.test.mjs')) {
+        const source = readFileSync(file, 'utf8').replaceAll("'.scratch/proof.json'", "''");
+        assert.doesNotMatch(source, /['"`][^'"`\r\n]*\.scratch/, file);
+      }
+    }
+  }
+  check('scripts');
 });
 
 test('ownership: foreign and Foundation cleanup targets are rejected before Docker', () => {

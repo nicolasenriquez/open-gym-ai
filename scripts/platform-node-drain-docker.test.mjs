@@ -68,7 +68,7 @@ test('real Docker capture enforces the frozen-source drain protocol and refuses 
     while (!await check()) { if (Date.now() > deadline) throw new Error('Synthetic readiness timeout'); await new Promise(r => setTimeout(r, 50)); }
   };
   await runProject(async (step, project) => {
-    const evidence = join(root, '.scratch/s11-node-capture', project); mkdirSync(evidence, { recursive: true });
+    const evidence = join(temporary, 'capture-evidence'); mkdirSync(evidence, { recursive: true });
     await step(['config', '--quiet']); await step(['build', 'platform-client']);
     await step(['up', '--detach', '--no-deps', 'drain-api', 'drain-writer', 'drain-reader', 'drain-unproved']);
     const owned = new Set((await docker([...compose(project), 'ps', '--all', '--quiet'])).trim().split(/\s+/));

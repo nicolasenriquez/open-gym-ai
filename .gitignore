@@ -59,8 +59,6 @@ docs/superpowers/plans/
 # Local Windows junction to the shared verification skill (keep one tracked source).
 .codex/skills/verify-opengym/
 
-# Scratch artifacts stay local; only local issue tickets are versioned.
-/.scratch/**
-!/.scratch/*/
-!/.scratch/*/issues/
-!/.scratch/*/issues/*.md
+# Retired workspace convention; planning belongs to OpenSpec.
+/.scratch/
+/docs/scratch/

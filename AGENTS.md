@@ -90,10 +90,11 @@ No hay publicación, despliegue ni mirror automáticos.
 - Mantén las reglas comunes en `AGENTS.md`, las referencias de agentes en
   `.agents/docs/` y las skills en `.agents/skills/`. Conserva esta estructura al
   generar reglas o incorporar skills.
-- Para especificar o implementar un cambio formalizado, consulta `openspec/` y sus
-  artefactos; los tickets locales de `.scratch/` enlazan esa especificación. Para
-  flujos locales de issues, cierre/limpieza de `.scratch` y triage, lee `.agents/docs/issue-tracker.md` y
-  `.agents/docs/triage-labels.md`.
+- Planificación, tareas, decisiones y evidencia necesaria de un cambio viven en
+  `openspec/changes/<cambio>/`; actualizar sus artefactos, sin trackers paralelos.
+  No crear `.scratch/`, `docs/scratch` ni equivalentes. Los ensayos usan temporales
+  del sistema; integrar el resultado útil en OpenSpec y descartar el resto.
+  Para adaptar skills de tickets/triage, leer `.agents/docs/issue-tracker.md`.
 - Al explorar conceptos del dominio o registrar decisiones, lee
   `.agents/docs/domain.md`: vocabulario en `GLOSSARY.md` y decisiones en `docs/adr/`.
 - Para modernización, Recovery o integraciones futuras, empieza en `docs/index.md`

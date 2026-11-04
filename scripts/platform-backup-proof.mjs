@@ -133,7 +133,7 @@ for _ in range(100):
  except Exception:time.sleep(.1)
 else:raise AssertionError('API_NOT_READY')`]);
   let nodeProof = {};
-  const evidence = join(root, '.scratch', 's11-node-recovery', project);
+  const evidence = join(temporary, 'node-recovery-evidence');
   if (nodeChain) {
     mkdirSync(evidence, { recursive: true });
     console.log(`NODE_RECOVERY_EVIDENCE ${evidence}`);

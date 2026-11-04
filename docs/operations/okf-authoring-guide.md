@@ -32,7 +32,7 @@ sesiones, contadores de tareas o la cronología RED/GREEN. Los checks estructura
 sustituyen comprobar que sus comandos y afirmaciones siguen siendo válidos.
 
 - Git, PR y releases conservan qué cambió; OpenSpec conserva el cambio seleccionado y sus tareas.
-- Los pendientes van al tracker indicado en `.agents/docs/issue-tracker.md`, no a un informe perpetuo.
+- Los pendientes del cambio van a su `openspec/changes/<cambio>/tasks.md`; las skills de tracker siguen `.agents/docs/issue-tracker.md`. No crear tickets paralelos ni carpetas scratch.
 - Logs, capturas, exports sintéticos y resultados de ejecuciones quedan en temporales ignorados
   o artefactos de CI. `.playwright-cli/` es el destino del verificador web; eliminar sus
   artefactos al terminar su uso, sin tocar perfiles ni datos del usuario.

@@ -117,7 +117,7 @@ c.close()
       assert.ok(existsSync(join(state, 'exclusive')));
       assert.equal(JSON.parse(await docker(['inspect', `${project}-api-1`]))[0].State.Running, false);
       console.log(`Q2_${scenario.toUpperCase()}_NO_GO_SURVIVING_WRITES_INTACT_OK`);
-      const evidence = join(root, '.scratch', 'repair-10-6');
+      const evidence = join(temporary, 'repair-evidence');
       mkdirSync(evidence, { recursive: true });
       writeFileSync(join(evidence, `${scenario}.json`), JSON.stringify({ incident, no_go: true, surviving_writes: true, gate_closed: true, synthetic: true }, null, 2));
       continue;
@@ -146,7 +146,7 @@ c.close()
     writes[0] = { ...writes[0], rev: saved.rev, wid: w3.body.wid, state: saved.state };
     assert.equal((await request('A', 'GET', '/api/v1/data?owner_id=B')).body.state._wid, w3.body.wid);
     assert.equal((await request('unauthenticated', 'GET', '/api/v1/data')).status, 401);
-    const evidence = join(root, '.scratch', 'repair-10-6');
+    const evidence = join(temporary, 'repair-evidence');
     mkdirSync(evidence, { recursive: true });
     writeFileSync(join(evidence, `${scenario}.json`), JSON.stringify({ incident, release, operation: journal.operation,
       preservation_verified: true, w3_verified: true, surviving_database: true, synthetic: true }, null, 2));

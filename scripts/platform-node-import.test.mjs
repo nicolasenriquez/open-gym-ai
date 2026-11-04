@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { syntheticHarness } from './synthetic-harness.mjs';
@@ -22,7 +23,7 @@ test('stopped Node capture imports into a new isolated PostgreSQL target without
     assert.doesNotMatch(output, /\b(?:skipped|todo|cancelled) [1-9]\d*|[1-9]\d* (?:skipped|xfailed|deselected)/);
   };
   await runProject(async (step, project) => {
-    const evidence = join(root, '.scratch', 's11-node-import', project);
+    const evidence = mkdtempSync(join(tmpdir(), 'opengym-node-import-'));
     mkdirSync(evidence, { recursive: true });
     console.log(`NODE_CAPTURE_IMPORT_EVIDENCE ${evidence}`);
     await step(['config', '--quiet']);

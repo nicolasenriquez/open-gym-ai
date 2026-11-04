@@ -1,6 +1,8 @@
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { syntheticHarness } from './synthetic-harness.mjs';
 
 const [action, suite, ...options] = process.argv.slice(2);
@@ -67,16 +69,15 @@ try {
             await step(['run', '--rm', '--no-deps', '--use-aliases', 'platform-test', ...entry.command]);
           } finally {
             await docker([...compose(project), 'logs', '--no-color', 'platform-browser'], true);
-            const evidence = fileURLToPath(new URL(`../.scratch/platform-browser/${project}`, import.meta.url));
-            mkdirSync(evidence, { recursive: true });
+            const evidence = mkdtempSync(join(tmpdir(), 'opengym-platform-browser-'));
             const files = JSON.parse(await docker(['exec', `${project}-platform-browser-1`, 'node', '-e',
               "const fs=require('node:fs');console.log(JSON.stringify(fs.readdirSync('/tmp/evidence').map(name=>({name,data:fs.readFileSync('/tmp/evidence/'+name).toString('base64')}))))"]));
             for (const { name, data } of files) {
               assert.match(name, /^(?:(?:passkeys|login|offline|auth|conflicts|lost-reply|restore|reset|links|media|media-queue|media-gc|admin-invites|admin-audit|FAIL)\.png|result\.json)$/, 'PLATFORM_BROWSER_ARTIFACT_INVALID');
               assert.ok(Buffer.from(data, 'base64').length > 0, 'PLATFORM_BROWSER_ARTIFACT_EMPTY');
-              writeFileSync(new URL(name, new URL(`../.scratch/platform-browser/${project}/`, import.meta.url)), Buffer.from(data, 'base64'));
+              writeFileSync(join(evidence, name), Buffer.from(data, 'base64'));
             }
-            const result = JSON.parse(readFileSync(new URL(`../.scratch/platform-browser/${project}/result.json`, import.meta.url)));
+            const result = JSON.parse(readFileSync(join(evidence, 'result.json')));
             if (result.completed) {
               assert.deepEqual(result.cases, ['passkeys', 'login', 'offline', 'auth', 'conflicts', 'lost-reply', 'restore', 'reset', 'links', 'media', 'media-queue', 'media-gc', 'admin-invites', 'admin-audit']);
               for (const id of result.cases) assert.ok(files.some(file => file.name === `${id}.png`), 'PLATFORM_BROWSER_SCREENSHOT_MISSING');

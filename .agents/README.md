@@ -6,7 +6,7 @@
 - [docs/](docs/) contiene convenciones de agentes: [tickets](docs/issue-tracker.md), [triage](docs/triage-labels.md) y [dominio](docs/domain.md).
 - [skills/](skills/) contiene una copia mantenida de cada skill. El [inventario](docs/skills-inventory.md) registra alcance, procedencia, problemas encontrados y evidencia de verificación.
 - La documentación del producto sigue en [docs/](../docs/README.md), el vocabulario en [GLOSSARY.md](../GLOSSARY.md) y las decisiones en docs/adr/ cuando existan.
-- OpenSpec conserva la autoridad de los cambios formalizados allí. Los tickets locales enlazan sus artefactos; no mantienen otra especificación del mismo cambio.
+- OpenSpec conserva planificación, tareas y evidencia necesaria del cambio. La adaptación de skills de tickets pertenece a [issue-tracker.md](docs/issue-tracker.md).
 
 El runtime del repositorio es Python/FastAPI/PostgreSQL (`backend/README.md`). Node/JSON está retirado de las fuentes; la migración real de instancias está aplazada y exige autorización separada.
 

@@ -1,25 +1,46 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { join, sep } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { syntheticHarness } from './synthetic-harness.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 // Child test runners must report their own results instead of inheriting this runner.
 delete process.env.NODE_TEST_CONTEXT;
 
+function runLogged(command, args, cwd, log) {
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8', timeout: 1_200_000, maxBuffer: 8 * 1024 * 1024,
+    env: { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toUpperCase().startsWith('COMPOSE_'))),
+      COMPOSE_DISABLE_ENV_FILE: 'true' } });
+  writeFileSync(log, (result.stdout ?? '') + (result.stderr ?? ''));
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, `Proof failed; inspect ${log}`);
+  return result.stdout;
+}
+
+test('failed child proof retains stdout and stderr in its owned temporary log', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'opengym-proof-log-'));
+  try {
+    const log = join(directory, 'failed.log');
+    assert.throws(() => runLogged(process.execPath,
+      ['-e', 'console.log("proof-stdout"); console.error("proof-stderr"); process.exit(7)'], root, log), /Proof failed/);
+    const output = readFileSync(log, 'utf8');
+    assert.match(output, /proof-stdout/);
+    assert.match(output, /proof-stderr/);
+  } finally {
+    assert.ok(realpathSync(directory).startsWith(realpathSync(tmpdir()) + sep));
+    rmSync(directory, { recursive: true });
+  }
+});
+
 test('clean checkout: delivered targets, cold cache matrix and HTTP database recovery', async () => {
-  const parent = join(root, '.scratch', 'platform-reproducibility');
-  mkdirSync(parent, { recursive: true });
-  const evidence = mkdtempSync(join(parent, 'run-'));
+  const evidence = mkdtempSync(join(tmpdir(), 'opengym-reproducibility-'));
   const checkout = join(evidence, 'checkout');
   console.log(`PLATFORM_REPRODUCIBILITY_EVIDENCE ${evidence}`);
   async function run(command, args, cwd, name) {
-    const { execute } = syntheticHarness({ root: cwd, name: 'Reproducibility' });
-    const output = await execute(command, args, false, 1_200_000);
-    writeFileSync(join(evidence, name + '.log'), output);
-    return output;
+    return runLogged(command, args, cwd, join(evidence, name + '.log'));
   }
   const revision = (await run('git', ['rev-parse', 'HEAD'], root, 'revision')).trim();
   await run('git', ['worktree', 'add', '--detach', checkout, revision], root, 'checkout');

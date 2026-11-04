@@ -133,7 +133,7 @@ export async function rehearsalProof(ctx) {
     assert.equal(await sql("SELECT document->>'theme' FROM training.documents WHERE owner_id='A'"),'dark');
     assert.equal(await sql("SELECT document->>'notes' FROM training.documents WHERE owner_id='B'"),'synthetic B');
     assert.equal(await sql("SELECT has_database_privilege('opengym_api_runtime',current_database(),'CONNECT')"),'f');
-    const saved=fileURLToPath(new URL(`../.scratch/restore-10-7/${target}/`,import.meta.url));
+    const saved=join(directory, target + '-evidence');
     mkdirSync(saved,{recursive:true,mode:0o700});writeFileSync(join(saved,'report.json'),JSON.stringify(full,null,2));
     for(const name of ['client.png','observed.json','verification.json'])writeFileSync(join(saved,name),readFileSync(join(evidence,name)),{mode:0o600});
     console.log(offset?'RTO_INCLUDES_FULL_REVIEW_PREPARATION_AND_VERIFICATION_EXCEEDED_IS_FAILURE_OK':'COMPLETE_REAL_HOST_RESTORE_REVIEW_HTTP_PG_MEDIA_COACH_CLIENT_FULL_TIMING_OK');
