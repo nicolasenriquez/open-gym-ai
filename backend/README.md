@@ -811,6 +811,39 @@ not a successful recovery. The normal target gate stays blocked; no scheduler or
 real-instance acceptance is installed or implied. `full_timing` exercises this CLI,
 real HTTP/PG and the compiled frontend on synthetic data, not real identities/clients.
 
+## Pre-cutover evidence inspection
+
+`node scripts/platform.mjs verify gates --case pre_cutover` exercises synthetic
+validator fixtures only, without Docker or instance access. With
+`--evidence <sanitized-index.json>`, it checks the selected index and checksummed
+files under its fixed sibling `artifacts/` directory. See the
+[v1 format, coverage, limits and exit codes](../openspec/changes/port-compatible-platform/execution-plan.md#delivered-pre-cutover-evidence-validator-synthetic-preparation).
+The index requires a complete release manifest, original proof provenance and
+recovery chronology including the Node data cutoff, rather than only a recent
+Python snapshot. Recorded commands are never executed. Success establishes structural validity;
+human review, actual operational permission and task 11.1 remain pending.
+
+`node scripts/platform.mjs verify gates --case node_capture` rehearses the
+stopped-Node capture procedure in the existing locked contracts image, on its
+internal network and temporary synthetic files only. It checks acknowledged HTTP
+writes/media, writer shutdown, hashes and failure quarantine. See the
+[procedure and limits](../openspec/changes/port-compatible-platform/collection-plan.md#procedimiento-ensayado-de-captura-node-detenida).
+There is no operational stop/start command or implicit access to instance paths.
+
+`node scripts/platform.mjs verify gates --case node_capture_import` adds a fresh
+PostgreSQL target and the existing importer to that rehearsal. The receiver mounts
+the owned capture volume read-only and verifies SQL/files independently, rejected
+unrepresentable input and occupied targets, and runtime CONNECT still denied. No
+Python API is started or target promoted. See the
+[integrated procedure](../openspec/changes/port-compatible-platform/collection-plan.md#ensayo-integrado-captura-node--importación-postgresql).
+
+`node scripts/platform.mjs verify gates --case node_capture_recovery` extends the
+fixture chain through the existing host backup wrapper, verified age encryption
+and a restore in a separate private cluster. It retains the Node data cutoff and
+checks SQL/files/roles plus the existing corruption/interruption negatives. Runtime
+access exists only temporarily for fixture checks; the restored target ends closed
+and quarantined. See the [scope and limits](../openspec/changes/port-compatible-platform/collection-plan.md#ensayo-integrado-hasta-backup-cifrado-y-restore-aislado).
+
 ## Retired transition tooling
 
 Standalone Node/Python Foundation stacks, runners and their exclusive prototype

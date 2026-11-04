@@ -48,6 +48,9 @@
 !scripts/build-coach-library.mjs
 !scripts/shared-client.test.mjs
 !scripts/formats-and-bundles.test.mjs
+!scripts/platform-node-capture.mjs
+!scripts/platform-node-capture.test.mjs
+!scripts/platform-node-import-source.mjs
 !scripts/catalogue/
 !scripts/catalogue/**
 frontend/android/**/build

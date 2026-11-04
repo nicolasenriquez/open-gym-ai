@@ -6,12 +6,17 @@ import { createCipheriv, createHash, hkdfSync, randomBytes } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { restoreProof } from './platform-restore-proof.mjs';
 import { repairProof } from './platform-repair-proof.mjs';
+import { prepareNodeRecoverySource } from './platform-node-recovery-proof.mjs';
 import { syntheticHarness } from './synthetic-harness.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 
 export async function backupProof(fault, reviewedAccess = false, fullTiming = false) {
+  // Fixed Windows PowerShell children must not resolve modules from an inherited PowerShell 7 path.
+  if (process.platform === 'win32') delete process.env.PSModulePath;
+  const nodeChain = fault === 'node-chain';
+  if (nodeChain) fault = 'restore';
   const root = fileURLToPath(new URL('../', import.meta.url));
   const temporary = mkdtempSync(join(tmpdir(), 'opengym-maintenance-'));
   const project = `opengym-platform-test-${randomBytes(8).toString('hex')}`;
@@ -27,11 +32,13 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
   if ((fault === 'bundle' || fault === 'restore')) writeFileSync(join(gate, 'diagnose.json'), JSON.stringify({ diagnostic_socket: '/tmp/diagnose.sock' }));
   writeFileSync(join(gate, 'admission.json'), JSON.stringify({ instance_id: 'synthetic-a', operation: '0'.repeat(32), allowed: true }), { mode: 0o600 });
   mkdirSync(data, { mode: 0o700 });
-  mkdirSync(join(data, 'uploads'), { mode: 0o700 });
-  for (const owner of ['A', 'B']) mkdirSync(join(data, 'uploads', owner), { mode: 0o700 });
+  if (!nodeChain) {
+    mkdirSync(join(data, 'uploads'), { mode: 0o700 });
+    for (const owner of ['A', 'B']) mkdirSync(join(data, 'uploads', owner), { mode: 0o700 });
+  }
   const aHash = createHash('sha256').update('synthetic-owner-A-bytes').digest('hex');
   const bHash = createHash('sha256').update('synthetic-owner-B-bytes').digest('hex');
-  const expectedFiles = {
+  let expectedFiles = nodeChain ? {} : {
     [`uploads/A/${aHash}.jpg`]: 'synthetic-owner-A-bytes',
     [`uploads/B/${bHash}.jpg`]: 'synthetic-owner-B-bytes',
     'uploads/A/.gc.json': JSON.stringify({ [aHash]: 123 }),
@@ -46,16 +53,20 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
     const encrypted = Buffer.concat([cipher.update('{"token":"SYNTHETIC_COACH_DECRYPT_10_5"}'), cipher.final()]);
     expectedFiles['coach-auth-A.json'] = JSON.stringify({ type: 'apikey', data: Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString('base64') });
   }
-  if ((fault === 'bundle' || fault === 'restore')) expectedFiles['uploads/A/pending-upload.tmp'] = 'x'.repeat(160_000);
+  if (!nodeChain && (fault === 'bundle' || fault === 'restore')) expectedFiles['uploads/A/pending-upload.tmp'] = 'x'.repeat(160_000);
   for (const [name, bytes] of Object.entries(expectedFiles)) writeFileSync(join(data, name), bytes, { mode: 0o600 });
   const protect = path => {
     if (process.platform !== 'win32') return;
     const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
       "$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; "
-      + "$a=New-Object System.Security.AccessControl.DirectorySecurity; $a.SetOwner($u); "
+      + "$a=[System.IO.Directory]::GetAccessControl($env:OPENGYM_TEST_DIRECTORY,[System.Security.AccessControl.AccessControlSections]::Access); "
       + "$a.SetAccessRuleProtection($true,$false); "
+      + "foreach($r in @($a.Access)){$a.RemoveAccessRuleSpecific($r)}; "
       + "$a.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($u,'FullControl','ContainerInherit,ObjectInherit','None','Allow')); "
-      + "Set-Acl -LiteralPath $env:OPENGYM_TEST_DIRECTORY -AclObject $a"],
+      + "[System.IO.Directory]::SetAccessControl($env:OPENGYM_TEST_DIRECTORY,$a); "
+      + "$v=[System.IO.Directory]::GetAccessControl($env:OPENGYM_TEST_DIRECTORY); "
+      + "if(!$v.AreAccessRulesProtected -or $v.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $u.Value){exit 1}; "
+      + "foreach($r in $v.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])){if($r.IdentityReference.Value -ne $u.Value){exit 1}}"],
     { env: { ...process.env, OPENGYM_TEST_DIRECTORY: path }, stdio: 'ignore', timeout: 5000 });
     assert.equal(result.status, 0, 'Cannot protect owned synthetic directory');
   };
@@ -63,8 +74,8 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
   protect(state);
   writeFileSync(envFile, '');
   const { docker, cleanup } = syntheticHarness({ root, namespace: 'opengym-platform-test',
-    label: 'org.opengym.platform', name: 'Maintenance', services: ['db', 'api', 'ops', 'migrate'],
-    images: ['platform-test', 'platform-repair'], database: 'db' });
+    label: 'org.opengym.platform', name: 'Maintenance', services: ['db', 'api', 'ops', 'migrate', 'node-source'],
+    images: ['platform-test', 'platform-repair', 'platform-contracts'], database: 'db' });
   const compose = ['compose', '--project-directory', root, '--env-file', envFile, '-p', project, '-f', composeFile];
   const labels = { 'org.opengym.platform': 'synthetic' };
   const secret = name => {
@@ -72,12 +83,13 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
     writeFileSync(path, `synthetic-maintenance-${name}-only-0123456789`, { mode: 0o600 });
     return { type: 'bind', source: path, target: `/run/secrets/${name}`, read_only: true };
   };
-  const secrets = ['bootstrap', 'migrator', 'runtime', 'session', 'backup'].map(secret);
+  const secrets = ['bootstrap', 'migrator', 'runtime', 'session', 'backup', ...(nodeChain ? ['coach'] : [])].map(secret);
   const environment = { PLATFORM_ENV: 'dev', PLATFORM_DB_MODE: 'local_compose', PLATFORM_DB_HOST: 'db',
     PLATFORM_DB_PORT: '5432', PLATFORM_DB_NAME: 'opengym_dev', PLATFORM_DB_TLS: 'disable',
     PLATFORM_DB_PASSWORD_FILE: '/run/secrets/bootstrap', PLATFORM_MIGRATOR_PASSWORD_FILE: '/run/secrets/migrator',
     PLATFORM_RUNTIME_PASSWORD_FILE: '/run/secrets/runtime', PLATFORM_SESSION_SECRET_FILE: '/run/secrets/session',
-    ...(reviewedAccess ? { PLATFORM_COACH_SECRET_FILE: '/run/secrets/session' } : {}),
+    ...(nodeChain ? { PLATFORM_COACH_SECRET_FILE: '/run/secrets/coach' }
+      : reviewedAccess ? { PLATFORM_COACH_SECRET_FILE: '/run/secrets/session' } : {}),
     MEDIA_UPLOADS: fault?.startsWith('repair') ? '1' : '0', PASSWORD_LOGIN: 'true' };
   // Private bind files must belong to the test caller, including CI's UID 1001.
   const user = `${process.getuid?.() ?? 1000}:${process.getgid?.() ?? 1000}`;
@@ -98,7 +110,7 @@ export async function backupProof(fault, reviewedAccess = false, fullTiming = fa
     api: { ...python, environment: { ...environment, PLATFORM_DB_PASSWORD_FILE: '/run/secrets/runtime',
       PLATFORM_INSTANCE_ID: 'synthetic-a', PLATFORM_MAINTENANCE_GATE_DIR: '/run/maintenance-gate',
       ...((fault === 'bundle' || fault === 'restore') ? { PLATFORM_DIAGNOSTIC_SOCKET: '/tmp/diagnose.sock' } : {}) },
-      volumes: [...secrets.filter(item => /runtime|session/.test(item.target)), { type: 'bind', source: data, target: '/data' },
+      volumes: [...secrets.filter(item => /runtime|session|coach/.test(item.target)), { type: 'bind', source: data, target: '/data' },
         { type: 'bind', source: gate, target: '/run/maintenance-gate', read_only: true }],
       command: [...(fault === 'recover' ? ['/app/tests/platform/api_start_probe.py'] : ['-m', 'uvicorn']), 'opengym_platform.application:create_app', '--factory', '--host', '0.0.0.0',
         '--port', '3000', '--no-access-log', '--no-proxy-headers'], stop_grace_period: '30s' },
@@ -120,6 +132,20 @@ for _ in range(100):
   assert urllib.request.urlopen('http://127.0.0.1:3000/api/v1/health/ready',timeout=1).status==200;break
  except Exception:time.sleep(.1)
 else:raise AssertionError('API_NOT_READY')`]);
+  let nodeProof = {};
+  const evidence = join(root, '.scratch', 's11-node-recovery', project);
+  if (nodeChain) {
+    mkdirSync(evidence, { recursive: true });
+    console.log(`NODE_RECOVERY_EVIDENCE ${evidence}`);
+    const source = join(temporary, 'node-source'); mkdirSync(source, { mode: 0o700 });
+    const model = JSON.parse(readFileSync(composeFile));
+    model.services['node-source'] = { image: `${project}-platform-contracts:local`, user,
+      labels, read_only: true, cap_drop: ['ALL'], security_opt: ['no-new-privileges:true'],
+      tmpfs: ['/tmp'], networks: ['private'], restart: 'no', entrypoint: ['sh', '-c'],
+      volumes: [{ type: 'bind', source, target: '/app/node-capture-fixtures' }],
+      command: ['node --test --test-reporter=tap scripts/platform-node-import-source.mjs 2>&1; node_chain_status=$$?; printf "\\nNODE_CHAIN_EXIT_%s\\n" "$$node_chain_status"'] };
+    writeFileSync(composeFile, JSON.stringify(model));
+  }
   try {
     await docker(['build', '--target', 'test', '--label', `com.docker.compose.project=${project}`,
       '--label', 'com.docker.compose.service=platform-test', '--label', 'org.opengym.platform=synthetic',
@@ -142,7 +168,11 @@ print(subprocess.check_output(['age-keygen','-y','/work/identity'],text=True).st
     await sql(readFileSync('backend/backup-role.sql', 'utf8'));
     await sql(readFileSync('backend/backup-role.sql', 'utf8'));
     await sql("ALTER ROLE opengym_backup PASSWORD 'synthetic-maintenance-backup-only-0123456789'");
-    if (fault?.startsWith('repair')) {
+    if (nodeChain) {
+      nodeProof = await prepareNodeRecoverySource({ root, temporary, project, image, docker, compose,
+        sql, data, composeFile, evidence });
+      expectedFiles = nodeProof.expectedFiles;
+    } else if (fault?.startsWith('repair')) {
       const source = join(temporary, 'frozen-source');
       mkdirSync(source, { mode: 0o700 });
       writeFileSync(join(source, 'secret'), readFileSync(join(temporary, 'session')));
@@ -294,7 +324,13 @@ cp.spawn=function(program,args,...rest){
       await ready();
       if (fault === 'restore') {
         await restoreProof({ root, temporary, project, image, python, environment, user, docker, sql,
-          config, receipt, expectedFiles, expectedDigests, digestSQL, ready, reviewedAccess, fullTiming });
+          config, receipt, expectedFiles, expectedDigests, digestSQL, ready, reviewedAccess, fullTiming, ...nodeProof });
+        if (nodeChain) {
+          nodeProof.verifyNodeSource();
+          writeFileSync(join(evidence, 'result.json'), JSON.stringify({ synthetic: true, capturedNodeImported: true,
+            encryptedBackupVerified: true, isolatedRestoreVerified: true, nodeSourceUnchanged: true,
+            realGateCompleted: false, cutoverAuthorized: false }));
+        }
         return;
       }
       const destination = JSON.parse(readFileSync(config)).bundle.destination;

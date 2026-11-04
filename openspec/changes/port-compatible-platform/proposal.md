@@ -22,7 +22,7 @@ la aprobación documental como implementación.
 - Extender el harness Foundation por slice sin duplicar cleanup; no anticipar
   browser ni exporter/almacén de telemetría propios.
 - Entregar port funcional y operación local recuperable como checkpoints separados;
-  ensayar corte/retirada sintéticos y transferir S11 a cambio operativo autorizado.
+  ensayar corte/retirada sintéticos y completar S11 aquí con permisos operativos separados.
 - Restore: continuidad con evidencia o nueva vía local explícitamente autorizada,
   sin reactivar credenciales históricas dudosas ni elevar roles. Especificar
   autorización/entrega privada antes de ese slice; sin ledger nuevo. Conservar
@@ -40,7 +40,7 @@ la aprobación documental como implementación.
 Q4/Q5 autorizados, no implementación.
 Todas sus tareas runtime están pendientes. Usa el handoff de Foundation archivada;
 el [plan ejecutable](execution-plan.md) conserva casos y trazabilidad con readiness
-por slice. S11 queda pendiente de transferencia explícita antes de archive; completar
+por slice. S11 conserva aquí sus cinco obligaciones pendientes antes de archive; completar
 ensayos no acepta plataforma ni autoriza Recovery. DDL/funciones conservan permisos;
 no duplicar reglas Python/SQL ni funciones por simetría. Selección/configuración de
 retención estándar y autorización/entrega privada de acceso nuevo son prerrequisitos

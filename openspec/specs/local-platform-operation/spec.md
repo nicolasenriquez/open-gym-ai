@@ -92,7 +92,7 @@ Age/space enforcement SHALL cover every durable copy, active/rotated files, star
 - **AND** size-only Docker rotation is not credited as age deletion; passing health alone does not prove correlated diagnosis or retention
 
 ### Requirement: Single-authority cutover and verified retirement
-This change SHALL deliver functional port and recoverable local operation on synthetic resources, including cutover/retirement rehearsals. Actual cutover, legacy retirement and platform acceptance SHALL belong to a separately authorized operational change. S11 obligations SHALL remain traceable and SHALL be transferred explicitly before archive; synthetic completion SHALL NOT establish actual G0/G2/G3 or authorize Recovery.
+This change SHALL deliver functional port and recoverable local operation on synthetic resources, including cutover/retirement rehearsals. Actual pre-cutover review, cutover, legacy retirement and platform acceptance SHALL remain tracked as S11 in port-compatible-platform and SHALL require separately granted scoped operational permissions. All five S11 obligations SHALL be completed before archive; a separate OpenSpec SHALL NOT be required. Documentary preparation and synthetic completion SHALL NOT establish actual G0/G2/G3 or authorize operational access, cutover, retirement or Recovery.
 
 Real cutover SHALL require G0 inventory/backups and prior G1/GP/GO evidence, an agreed rehearsed maintenance window, all writers paused and equivalent import before enabling PostgreSQL as the only authority. Origin/release/configuration/secrets SHALL remain frozen/protected for at least 30 days after accepted cutover without automatic deletion. Before new writes rollback SHALL use validated origin; after new writes the baseline SHALL be rehearsed forward repair of Python/PostgreSQL preserving new writes, never automatic return to the frozen Node origin or silent loss. Reverse export to Node SHALL be excluded unless separately approved by the promoter. If forward repair cannot preserve required writes in the agreed failure scenario, cutover SHALL remain blocked pending an explicit decision; periodic backups SHALL NOT be presented as zero RPO. G3/GO SHALL be demonstrated again after removing replaced dependencies before Recovery implementation begins.
 
@@ -110,3 +110,33 @@ Real cutover SHALL require G0 inventory/backups and prior G1/GP/GO evidence, an 
 - **WHEN** platform closeout is considered after cutover and legacy removal
 - **THEN** capability/security parity, operation/diagnosis/restore and absence of active retired storage readers are evidenced again
 - **AND** documentation validation or Foundation fixtures alone cannot authorize platform acceptance or Recovery start
+
+#### Scenario: Synthetic evidence is available but real inventory is unknown
+- **WHEN** existing synthetic suites report passing results and the real clients, devices or later-access coverage have not been verified
+- **THEN** their guarantees are referenced without inventing operational results, and 11.1 remains incomplete
+
+#### Scenario: Evidence requires privileged or state-changing collection
+- **WHEN** a missing proof requires reading private configuration, using keys, pausing writers, capturing data or restoring a real snapshot into isolation
+- **THEN** the exact resources, operator, destination, effects and window require explicit applicable permission before collection
+- **AND** real data and secrets remain in protected private storage outside tracked artifacts
+
+#### Scenario: Inspection can trigger synchronization
+- **WHEN** an inspection method can start synchronization, refresh credentials, write presence, create an export or otherwise change application state
+- **THEN** read-only inspection permission does not authorize that method, and the exact action requires prior applicable state-changing permission or remains pending
+- **AND** source-copy checks and missing runtime suites are executed only after that permission, not during documentary candidate review
+
+#### Scenario: Node origin needs a representative Python rehearsal
+- **WHEN** the current source is Node/JSON and representative recovery evidence is required
+- **THEN** a reviewed and rehearsed coherent Node capture procedure precedes real capture under explicit permission, followed by equivalent import of the frozen protected copy into a new isolated PostgreSQL target
+- **AND** Python backup/restore tools are used only on the resulting Python target, never as an assumed Node source backup or an import into the active instance
+- **AND** source capture/data-cutoff, import and Python snapshot times remain distinct; a newly generated bundle does not reset the effective data age of the imported source or establish freshness of client-local pending work
+
+#### Scenario: Candidate or inventory changes after review
+- **WHEN** the candidate, image manifest, clients, origins, configuration, security decisions or backup validity changes before cutover
+- **THEN** affected evidence and pre-cutover review are reopened before proceeding
+- **AND** the release manifest identifies all used images and SQL head, while historical evidence retains original identity plus a separate applicability decision rather than being relabeled with the candidate identity
+
+#### Scenario: Cutover permission exists without retirement permission
+- **WHEN** cutover is authorized but exact obsolete paths and consumers have not received explicit retirement authorization
+- **THEN** removal remains blocked and protected recovery material is not deleted
+- **AND** any replacement for an undelivered verification command must supply the required executable behavioral and negative proofs, not documentation-only acceptance

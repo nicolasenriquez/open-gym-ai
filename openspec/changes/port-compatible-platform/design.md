@@ -230,9 +230,10 @@ sobre el árbol limpio; un sentinel ajeno y material protegido deben sobrevivir 
 ### 7. Preparación por slice y seams aprobados
 
 El [plan ejecutable](execution-plan.md) conserva trazabilidad y checkpoints de port
-funcional y operación local recuperable. S11 es handoff de corte/retirada reales a
-cambio operativo separado; aquí solo ensayos sintéticos. Transferir obligaciones
-antes de archive, sin acreditar G0/G2/G3 ni autorizar Recovery. Harness incremental
+funcional y operación local recuperable. S11 conserva aquí revisión, corte, retirada
+y aceptación reales, con permisos operativos separados. El plan de recolección y
+el inventario vacío apoyan tasks.md sin duplicar su seguimiento. Cumplir S11 antes
+de archive; los ensayos sintéticos no acreditan G0/G2/G3 ni autorizan Recovery. Harness incremental
 reutiliza ownership/ejecución Foundation sin duplicar cleanup ni anticipar browser. Los comandos futuros se entregan
 con el runner y tooling del propio slice; no existen por escribirlos aquí. La
 aprobación de planificación no es permiso de ejecución global.

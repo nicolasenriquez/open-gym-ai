@@ -25,13 +25,14 @@ Do not duplicate editable SQL schemas or operating procedures here.
    capabilities; first tracer is login → read → save → reload → PG persistence.
 2. Recoverable local operation: identified images, migrations, scheduled/startup/
    pre-migration backup and isolated restore pass on synthetic resources.
-3. Authorized migration and retirement: real cutover and actual G0/G2/G3 acceptance
-   belong to a separately authorized operational change, not this synthetic delivery.
+3. Authorized migration and retirement: S11 retains real cutover, retirement and
+   actual G0/G2/G3 acceptance in this change, under separately granted operational permissions.
 
-This change delivers 1/2 and rehearses 3 on disposable resources. S11 remains the
-pending operational handoff; explicitly transfer its requirements/tests/permissions
-before archive. Neither handoff nor archive establishes platform acceptance or
-permission to begin Recovery. No runtime task is completed by this revision.
+Checkpoints 1/2 and rehearsals of 3 use disposable resources. Actual S11 remains
+pending in tasks.md, the sole progress ledger; complete 11.1–11.5 before archive.
+The [collection plan](collection-plan.md) and [empty inventory](inventory.template.json)
+are supporting artifacts. Documentary preparation and synthetic completion neither
+establish platform acceptance nor authorize operation or Recovery.
 
 ## Commands and safety contract
 
@@ -138,6 +139,100 @@ Only read the selected sanitized index and its allowlisted owned artifact root;
 never follow config/data paths or contact an instance. Missing artifacts, skips,
 digest mismatch or absent actual authorization are no-go. Structural completeness
 is not proof of authenticity or human acceptance; final review remains manual.
+
+#### Delivered pre-cutover evidence validator (synthetic preparation)
+
+`node scripts/platform.mjs verify gates --case pre_cutover` runs only temporary
+synthetic CLI fixtures, without Docker, instance configuration or network access.
+It does not complete 11.1. Add `--evidence <index.json>` to inspect an explicitly
+selected sanitized index; no recorded command is executed. The separate `node_capture`
+case rehearses the stopped-Node copy procedure on disposable resources, as described
+in the [collection plan](collection-plan.md#procedimiento-ensayado-de-captura-node-detenida).
+`node_capture_import` continues that capture through the existing importer into new
+isolated PostgreSQL, with an independent observer and runtime CONNECT still denied.
+`node_capture_recovery` adds the existing real host backup wrapper, verified age
+bundle and a separate isolated restore; fixture-only runtime checks end with the
+restored gate/CONNECT closed. It preserves the original Node cutoff in configuration
+and does not establish Q1, real RPO/RTO, operational permission or acceptance.
+Other gate cases remain undelivered. Exit 0 means structurally valid evidence, exit 1 rejected evidence,
+and exit 2 unsupported arguments. Both modes report `realGateCompleted: false`
+and `cutoverAuthorized: false`; evidence inspection also reports
+`manualReviewRequired: true`. No index can authorize traffic or complete a real gate.
+
+The v1 index is a JSON object with these required fields:
+
+- `version: 1`, `case: "pre_cutover"`, `synthetic` (boolean), `instance` (nonempty ID),
+  `revision` (40 lowercase hex characters), `digest` (`sha256:` plus 64 lowercase
+  hex characters), and `platform` (nonempty platform name).
+- `artifactRoot: "artifacts"`: the fixed allowlisted directory beside the index.
+  `artifacts` contains unique `{ "path": "proof.txt", "sha256": "<64 lowercase hex>" }`
+  entries. Paths use relative forward-slash components made of letters, digits,
+  `_`, `-`, and interior dots; traversal, absolute paths and links are rejected.
+- `review` and `authorization` name checksummed artifact paths recording the human
+  review and permission to inspect operational evidence. These are references,
+  not trusted assertions of actual permission or authorization to cut over.
+- `releaseManifest` names a checksummed JSON artifact with `version: 1`, a `binding`
+  identical to the index, `contentIdentity` (`sha256:` plus 64 lowercase hex),
+  nonempty `schemaHead`, and `images` (6–128 unique roles). Required roles are
+  `api`, `web`, `postgres`, `migrate`, `ops`, `collector`; include other images used
+  with distinct roles. Each entry has `role`, immutable `digest`, the candidate
+  `platform` and nonempty `sourceIdentity` identifying its pinned source/locks.
+  The API digest equals the index digest. Content identity identifies the complete
+  candidate, including uncommitted content; HEAD alone does not do that. The
+  validator checks declarations, not Docker images, source contents or SQL head.
+- `gates` has exactly one `{ "gate": "G0", "checks": [...] }` entry for each gate
+  below. Each named check occurs exactly once and contains `result: "passed"`,
+  `skipped: 0`, nonempty `command`, `scope`, `limitations`, a nonempty `ev` array
+  of `EV-01` through `EV-09` references, and a nonempty `artifacts` array naming
+  checksummed paths. Its `binding` object repeats `instance`, `revision`, `digest`,
+  and `platform` exactly from the index, so mixed targets/releases are rejected.
+  Each check also has `provenance` with the original `instance`, `revision`,
+  `digest`, `platform` and `observedAt` (canonical UTC ISO with milliseconds).
+  When that identity differs from the candidate binding, `applicability` must name
+  a checksummed review artifact. Preserve original evidence identity; this reference
+  does not certify that historical or synthetic evidence suffices for a real gate.
+- `recovery` contains `sourceType` (`node_json` or `python_postgresql`),
+  `sourceCutoffAt`, `capturedAt`, `importedAt` (required timestamp for Node, `null`
+  for native Python), and `report` naming a checksummed sanitized rehearsal JSON.
+  Its `version: 1` and added `binding` identify the candidate. Retain the existing
+  rehearsal fields `snapshot_at`, `incident_at`, `started_at`, `finished_at`,
+  `elapsed_ms`, `rpo_ms`, `objectives_ms`, `complete`, `closed`, `reviewed`,
+  `unresolved_accesses`, `rpo_met`, `rto_met`, `rto_credited`,
+  `operational_acceptance`. Export only this sanitized subset plus binding; never
+  submit the raw private report, config or bundle paths. Keep original provenance
+  and the binding/applicability justification with the check's evidence.
+  All timestamps use canonical UTC ISO with milliseconds and must be ordered:
+  source cutoff ≤ capture ≤ Node import (when applicable) ≤ snapshot ≤ incident
+  ≤ start ≤ finish. Effective RPO is incident minus **source cutoff**, at most
+  6 hours; RTO includes incident through finish, at most 24 hours. The original
+  `rpo_ms` must match incident minus Python snapshot; it cannot hide an older Node
+  cutoff. `elapsed_ms` must cover wall time and remain within 24 hours (the existing
+  rehearsal uses the greater wall/monotonic elapsed time). Objectives must be
+  exactly 6/24 hours, completion/review/closure and RPO/RTO credit true, unresolved
+  accesses zero, operational acceptance false. The `GO/restore_rpo_rto` check must
+  reference this report. These are consistency checks on supplied claims, not an
+  independently timed restore or proof of physical backup, capture or client state.
+
+| Gate | Required check names |
+| --- | --- |
+| G0 | `clients_origins`, `client_pending_active_media`, `frontend_api_mapping`, `physical_backup_keys`, `protected_later_access_source`, `rehearsed_window` |
+| G1 | `target_environment`, `pool_lifecycle`, `roles_rls_transactions`, `migrations_lock_interrupt`, `backup_restore` |
+| GP | `capability_parity_q6`, `frontend_offline_sync`, `security_audit`, `module_contracts` |
+| GO | `clean_checkout_images_ci`, `runtime_environments`, `restore_rpo_rto`, `diagnostics_privacy_retention`, `forward_repair_new_writes` |
+
+The index is limited to 1 MiB, each regular single-link artifact to 4 MiB, and the
+inventory to 128 files/32 MiB total. Symlinks/junctions in all path components and
+hardlinked input files are rejected. Output contains fixed result codes/flags only;
+file contents, paths, commands and parser errors are not printed. The operator must
+own and keep the sanitized index/root stable during inspection: this read-only
+validator does not enforce ACLs, authenticate authorship, certify completeness of
+real client inventory, verify a physical disk/key, or judge the substance of human
+review. No secret, operational config or original user data belongs in this input.
+`scripts/platform-gates.test.mjs` supplies the synthetic format example and negatives.
+
+S11 still needs actual scoped evidence,
+manual review and operational permission before 11.1 can complete. S11 completion,
+real inventory and cutover remain pending.
 
 ## Slice contracts and first proofs
 
@@ -447,11 +542,13 @@ operational proof, not inferred from template parsing or synthetic commands.
   manual review. Synthetic result never claims physical independent disk, real keys,
   successful production recovery, zero RPO or universal failure preservation.
 
-### S11 — pending operational handoff (tasks 11.*)
+### S11 — operational review, cutover and retirement (tasks 11.*)
 
-The actual obligations below belong to the separately authorized operational change.
-Only their synthetic cutover/cleanup rehearsals run here. Transfer explicitly with
-traceability before archive; do not check off real gates using synthetic evidence.
+All five obligations remain here, pending in tasks.md. The [collection plan](collection-plan.md)
+and [empty inventory](inventory.template.json) preserve preparation and permission
+boundaries without a second OpenSpec or duplicate task ledger. This supersedes the
+previous handoff decision. Synthetic rehearsals do not complete real gates; scoped
+collection, cutover and exact-path retirement require their respective permissions.
 
 - Precondition: all synthetic cases pass; actual G0 inventory/origins/RP ID, destination
   disk/key/config, protected later-access source and maintenance window verified under

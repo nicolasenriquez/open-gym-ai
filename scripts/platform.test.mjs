@@ -29,6 +29,19 @@ test('undelivered suites, cases and malformed commands return usage exit 2 befor
   }
 });
 
+test('gate evidence flags reject missing, repeated and unknown arguments before reading files', () => {
+  for (const options of [
+    ['--case', 'pre_cutover', '--evidence'],
+    ['--case', 'acceptance', '--evidence', 'foreign.json'],
+    ['--case', 'pre_cutover', '--evidence', 'foreign.json', '--evidence', 'other.json'],
+    ['--case', 'pre_cutover', '--evidence', 'foreign.json', '--config', 'foreign.json'],
+  ]) {
+    const result = invoke('verify', 'gates', ...options);
+    assert.equal(result.status, 2);
+    assert.doesNotMatch(result.stderr, /Docker|ENOENT|PLATFORM_GATE_EVIDENCE_REJECTED/);
+  }
+});
+
 test('a missing Docker prerequisite fails without crediting a contract or shared-client proof', () => {
   for (const [suite, selected] of [['contracts', 'baseline'], ['shared_client', 'canonical_sources'], ['shared_client', 'formats_and_bundles']]) {
     const result = invoke('verify', suite, '--case', selected);

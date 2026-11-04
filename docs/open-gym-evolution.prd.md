@@ -21,7 +21,7 @@ OpenGym Evolution busca una base mantenible y operable sobre la que ampliar la h
 
 Por decisión del promotor, la plataforma objetivo utiliza Python/FastAPI y PostgreSQL, con desarrollo y despliegue basados en contenedores. Es una restricción estratégica del proyecto, no una prueba de que ese stack sea por sí solo más seguro o de que Node sea inadecuado. La arquitectura desarrolla la transición y sus comprobaciones.
 
-**Checkpoints de entrega:** port funcional → operación local recuperable → corte/retirada y aceptación en cambio operativo separado. El OpenSpec activo entrega los dos primeros y ensaya el tercero con fixtures; sus obligaciones reales se transfieren explícitamente antes de archive. Cerrar ese cambio no acepta la plataforma.
+**Checkpoints de entrega:** port funcional → operación local recuperable → corte/retirada y aceptación en S11 del mismo cambio, bajo permisos operativos separados. Los dos primeros y el ensayo del tercero usan fixtures; las cinco obligaciones reales de S11 deben cumplirse antes de archive. La preparación documental o sintética no acepta la plataforma.
 
 **Orden obligatorio:** plataforma completada y aceptada → Recovery → Garmin Connect → ampliaciones de IA. No se comienza la implementación funcional de las etapas posteriores mientras la plataforma siga incompleta. Sus alcances específicos se definirán cuando corresponda; no hay fechas comprometidas.
 

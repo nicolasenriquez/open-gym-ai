@@ -13,8 +13,25 @@ const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
   services: ['platform-contracts', 'platform-db', 'platform-test', 'platform-browser'], images: ['platform-contracts', 'platform-test', 'platform-browser'], database: 'platform-db',
 });
 
+function requireProof(output) {
+  if (!/\btests [1-9]\d*/.test(output) || /\b(?:skipped|todo|cancelled) [1-9]\d*/.test(output)) {
+    throw new Error('PLATFORM_REQUIRED_PROOF_MISSING');
+  }
+}
+
 try {
-  if (action === 'operate') {
+  if (action === 'verify' && suite === 'gates' && options.includes('--evidence')) {
+    if (options.length !== 4 || options[0] !== '--case' || options[1] !== 'pre_cutover' || options[2] !== '--evidence' || !options[3]) {
+      process.exitCode = 2;
+      throw new Error('PLATFORM_SUITE_OR_CASE_NOT_IMPLEMENTED');
+    }
+    try {
+      const { verifyPreCutover } = await import('./platform-gates.mjs');
+      console.log(JSON.stringify(verifyPreCutover(options[3])));
+    } catch {
+      throw new Error('PLATFORM_GATE_EVIDENCE_REJECTED');
+    }
+  } else if (action === 'operate') {
     if (suite === 'restore-rehearse') {
       const { rehearse } = await import('./platform-rehearsal.mjs');
       await rehearse(options);
@@ -39,10 +56,9 @@ try {
     for (const entry of selected) {
       if (entry.target === 'host') {
         const output = await execute(process.execPath, entry.command, false,
-          suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' || suite === 'repair' || (suite === 'restore' && entry.id === 'full_timing') ? 600_000 : 300_000);
-        if (!/\btests [1-9]\d*/.test(output) || /\b(?:skipped|todo|cancelled) [1-9]\d*/.test(output)) {
-          throw new Error('PLATFORM_REQUIRED_PROOF_MISSING');
-        }
+          suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' || suite === 'repair'
+            || (suite === 'restore' && entry.id === 'full_timing') || (suite === 'gates' && entry.id === 'node_capture_recovery') ? 600_000 : 300_000);
+        requireProof(output);
       } else if (entry.target === 'platform-browser') {
         await runProject(async (step, project) => {
           await step(['config', '--quiet']);
@@ -78,13 +94,19 @@ try {
         });
       } else if (entry.target === 'platform-contracts') {
         checkBaseline();
-        await runProject(async step => {
+        await runProject(async (step, project) => {
           await step(['config', '--quiet']);
           await step(['build', entry.target]);
-          await step(['run', '--rm', '--no-deps', ...(entry.entrypoint ? ['--entrypoint', entry.entrypoint] : []), entry.target, ...entry.command]);
+          const args = ['run', '--rm', '--no-deps', ...(entry.entrypoint ? ['--entrypoint', entry.entrypoint] : []), entry.target, ...entry.command];
+          if (suite === 'gates') {
+            const output = await docker([...compose(project), ...args]);
+            process.stdout.write(output);
+            requireProof(output);
+          } else await step(args);
         });
       } else throw new Error('PLATFORM_MAPPING_INVALID');
-      console.log(JSON.stringify({ code: 'PLATFORM_CASE_OK', suite, case: entry.id }));
+      console.log(JSON.stringify({ code: 'PLATFORM_CASE_OK', suite, case: entry.id,
+        ...(suite === 'gates' ? { synthetic: true, realGateCompleted: false, cutoverAuthorized: false } : {}) }));
     }
   }
 } catch (error) {

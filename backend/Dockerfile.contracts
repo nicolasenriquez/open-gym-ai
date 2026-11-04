@@ -35,6 +35,9 @@ COPY --chown=node:node frontend/android/ /app/frontend/android/
 COPY --chown=node:node frontend/ios/ /app/frontend/ios/
 COPY --chown=node:node scripts/catalogue/ /app/scripts/catalogue/
 COPY --chown=node:node scripts/build-api-docs.mjs scripts/build-coach-assets.mjs scripts/build-coach-library.mjs scripts/shared-client.test.mjs scripts/formats-and-bundles.test.mjs /app/scripts/
+COPY --chown=node:node scripts/platform-node-capture.mjs scripts/platform-node-capture.test.mjs /app/scripts/
+COPY --chown=node:node scripts/platform-node-import-source.mjs /app/scripts/
+RUN mkdir -m 0700 /app/node-capture-fixtures
 COPY --chown=node:node backend/contracts/ /app/contracts/
 COPY --chown=node:node backend/contracts-run.mjs backend/contracts-compare.test.mjs backend/versions.json LICENSE /app/
 WORKDIR /app

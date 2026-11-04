@@ -8,6 +8,8 @@ import { rehearsalProof } from './platform-rehearsal-proof.mjs';
 
 export async function restoreProof(ctx) {
   const { root, temporary, image, user, expectedFiles, expectedDigests, digestSQL } = ctx;
+  const owners = ctx.owners ?? [{ id: 'A', rev: 7 }, { id: 'B', rev: 11 }];
+  const sessionHash = ctx.sessionHash ?? createHash('sha256').update('synthetic-maintenance-session-only-0123456789').digest('hex');
   const project = `opengym-platform-test-${randomBytes(8).toString('hex')}`;
   const { docker, cleanup } = syntheticHarness({ root, namespace: 'opengym-platform-test',
     label: 'org.opengym.platform', name: 'Restore', services: ['db', 'api', 'ops', 'migrate', 'bootstrap'],
@@ -107,7 +109,7 @@ with tarfile.open(fileobj=io.BytesIO(plain)) as source:
   for member in source:
    if fault=='missing-secret' and member.name=='runtime-secrets/session':continue
    content=json.dumps(manifest).encode() if member.name=='manifest.json' else source.extractfile(member).read() if member.isfile() else None
-   if fault=='checksum' and member.name.startswith('data/uploads/A/') and member.isfile():content=b'z'*member.size
+   if fault=='checksum' and member.name.startswith('data/uploads/${owners[0].id}/') and member.isfile():content=b'z'*member.size
    if content is not None:member.size=len(content)
    archive.addfile(member,io.BytesIO(content) if content is not None else None)
   if fault in ('duplicate','traversal','link'):
@@ -230,7 +232,7 @@ async def check():
  assert await c.fetchval('SELECT current_user')=='opengym_api_runtime'
  assert not await c.fetchval("SELECT rolsuper OR rolbypassrls OR rolcreaterole OR rolcreatedb FROM pg_roles WHERE rolname=current_user")
  assert await c.fetchval('SELECT count(*) FROM training.documents')==0
- for owner,other,rev in [('A','B',7),('B','A',11)]:
+ for owner,other,rev in ${JSON.stringify([[owners[0].id, owners[1].id, owners[0].rev], [owners[1].id, owners[0].id, owners[1].rev]])}:
   async with c.transaction():
    assert await c.fetchval('SELECT id FROM identity.lock_actor($1,0,$2)',owner,datetime.now(UTC)+timedelta(minutes=1))==owner
    await c.execute("SELECT set_config('app.owner_id',$1,true)",owner)
@@ -255,7 +257,9 @@ from pathlib import Path
 root=Path('/data/restored-b')
 assert json.loads((root/'gate/admission.json').read_text())['allowed'] is False
 assert json.loads((root/'restore.json').read_text())['access']=='quarantined'
-assert (root/'runtime-secrets/session').read_bytes()==b'synthetic-maintenance-session-only-0123456789'
+assert hashlib.sha256((root/'runtime-secrets/session').read_bytes()).hexdigest()=='${sessionHash}'
+${ctx.coachHash ? `assert hashlib.sha256((root/'runtime-secrets/coach').read_bytes()).hexdigest()=='${ctx.coachHash}'` : ''}
+${ctx.lineageHash ? `assert any(p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest()=='${ctx.lineageHash}' for p in (root/'configuration').iterdir())` : ''}
 assert hashlib.sha256((root/'configuration/0').read_bytes()).hexdigest()=='${createHash('sha256').update(readFileSync(ctx.config)).digest('hex')}'
 assert not any(b'AGE-SECRET-KEY-' in p.read_bytes() for p in root.rglob('*') if p.is_file())
 print(json.dumps({p.relative_to(root/'data').as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in (root/'data').rglob('*') if p.is_file()}))`));
