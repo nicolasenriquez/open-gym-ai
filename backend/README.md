@@ -34,7 +34,7 @@ checks run through `just test checks`. Archived Foundation commands are historic
 
 This README owns current platform usage. Operational requirements live in
 [platform operations](../docs/reference/platform-operations.md); delivery status
-and acceptance evidence live in the [active port tasks](../openspec/changes/port-compatible-platform/tasks.md).
+and acceptance evidence live in the [active port tasks](../openspec/changes/archive/2026-11-04-port-compatible-platform/tasks.md).
 
 ## Platform images and Compose
 
@@ -300,8 +300,8 @@ the Node contract. Server-owned write IDs retain at most 50 ancestors; a lost re
 retried with its old base conflicts against the committed document. Revisions retain
 room for a two-step correction within JavaScript's safe integer range. Prior-value
 matching accepts both legacy JSON key order and PostgreSQL JSONB key order.
-The synthetic browser proof covers reconciliation against Python; this is not a
-cutover-ready backend.
+The synthetic browser proof covers reconciliation against Python; it does not
+establish readiness to cut over an existing instance.
 
 `PUT /api/v1/media/{sha256}` streams an owner's raw upload to a private temporary
 file, checks its hash, declared/sniffed category, actual format cap and bounded
@@ -340,7 +340,7 @@ links and links at the temporary marks path cannot redirect reads or collection.
 The internal identity interface confirms only an existing account ID under lock;
 it is not exposed through HTTP and grants no global SELECT. Apply the new forward-only
 `p002_media_gc` migration before serving traffic; older schema heads fail readiness.
-These routes do not make the partial Python platform ready for cutover.
+These route checks do not establish real-instance cutover readiness.
 
 Coach configuration starts at the forward-only `p003_coach` migration. Run bootstrap
 before upgrading an existing schema so the restricted, non-login Coach executor
@@ -374,7 +374,7 @@ one repair round; transports retain bounded transient retries, compatible endpoi
 and JSON-mode fallbacks, routed headers and classified safe failures. `httpx==0.28.1`
 is a runtime dependency. Prompts, schemas, catalogue and icon data are generated
 by `node scripts/build-coach-assets.mjs`. Runtime-neutral JavaScript and editable
-prompts live in `shared/coach-core/`; Node and the local phone Coach import that
+prompts live in `shared/coach-core/`; host tests and the local phone Coach import that
 same tree. Generated Python assets are data, not a second editable source.
 `node scripts/build-coach-library.mjs --check` remains a supported alias.
 
@@ -523,7 +523,7 @@ empty/skipped/failed proofs and cleanup failures never count as success.
 | Suite | Proof |
 | --- | --- |
 | `harness` | Ownership, contamination rejection and protected sentinels. |
-| `contracts` | Frozen Node/client compatibility expectations. |
+| `contracts` | Public Python routes checked against the canonical `backend/openapi.yaml`. |
 | `database` | Pool, cancellation, rollback, owner isolation and commit uncertainty. |
 | `schema` | Current Alembic history, locking and restricted roles. |
 | `repair --case acknowledged_writes` | Independent W1/W2/media, surviving destination after image/DDL/lost-reply faults, W3 after repair and no-go on missing content, bytes or incompatible release. |
@@ -597,7 +597,7 @@ then reloads on reconnection. HTTPS service-worker cold launch and native device
 outside this proof. A test-only same-origin static/proxy transport serves the compiled
 bundle; this does not verify nginx deployment. Screenshots for fourteen cases (including Admin invitation create/revoke, reset
 issuance and audit filtering/clear with independent SQL observation and reload) and a sanitized
-result are copied to `.scratch/platform-browser/<printed-project>/` before owned
+result are copied to an exclusive system temporary directory printed by the runner before owned
 containers are removed. Browser state, passwords and SQL documents are not exported.
 
 Cold/warm/source/manifest cache and lockfile regressions live in
@@ -606,8 +606,9 @@ Cold/warm/source/manifest cache and lockfile regressions live in
 `node scripts/platform.mjs verify images --case reproducibility` runs the existing
 target, cache and HTTP lifecycle proofs from a clean detached HEAD worktree.
 It verifies the committed runtime, excluding uncommitted changes; commit nothing
-just to run it. Evidence and the tested revision remain under
-`.scratch/platform-reproducibility/`; the owned worktree/builders/images are removed.
+just to run it. Evidence and the tested revision remain in an exclusive system
+temporary directory printed by the runner; the owned worktree/builders/images are removed.
+Consolidate necessary results in the owning OpenSpec and discard obsolete temporary evidence.
 Cold builds use isolated caches and can take several minutes. CI uses this case
 instead of repeating the cache matrix separately. Retention tooling remains a
 prerequisite of diagnostic tasks 9.2–9.4, not image verification.
@@ -795,30 +796,31 @@ real HTTP/PG and the compiled frontend on synthetic data, not real identities/cl
 validator fixtures only, without Docker or instance access. With
 `--evidence <sanitized-index.json>`, it checks the selected index and checksummed
 files under its fixed sibling `artifacts/` directory. See the
-[v1 format, coverage, limits and exit codes](../openspec/changes/port-compatible-platform/execution-plan.md#delivered-pre-cutover-evidence-validator-synthetic-preparation).
+[v1 format, coverage, limits and exit codes](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#delivered-pre-cutover-evidence-validator-synthetic-preparation).
 The index requires a complete release manifest, original proof provenance and
 recovery chronology including the Node data cutoff, rather than only a recent
 Python snapshot. Recorded commands are never executed. Success establishes structural validity;
 human review and actual operational permission remain required. Delivery status
-is recorded only in the [active tasks](../openspec/changes/port-compatible-platform/tasks.md).
+is recorded only in the [active tasks](../openspec/changes/archive/2026-11-04-port-compatible-platform/tasks.md).
 
 `node scripts/platform.mjs verify gates --case authorized_cutover` runs synthetic
 inspector fixtures. With `--evidence <sanitized-index.json>`, it checks the recorded
 cutover authorization/window, candidate binding, single authority, protected
 originals and rollback-before-writes or forward-repair evidence, reusing all
-pre-cutover checks. See the [execution-package format](../openspec/changes/port-compatible-platform/execution-plan.md#delivered-authorized-cutover-evidence-validator).
+pre-cutover checks. See the [execution-package format](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#delivered-authorized-cutover-evidence-validator).
 It never runs a cutover, authenticates permission or declares operational acceptance;
 manual review remains required and `cutoverAuthorized`/`realGateCompleted` stay false.
 
 `node scripts/platform.mjs verify gates --case node_capture` rehearses the
-Node drain and stopped-source capture in the existing locked contracts image, on its
+Node drain and stopped-source capture in the existing locked client test image, on its
 internal network and temporary synthetic files only. It checks acknowledged HTTP
-writes/media, admitted HTTP and detached Coach completion, timeout refusal,
-writer shutdown, hashes and failure quarantine.
+writes/media through disposable protocol fixtures, drain proof, timeout refusal,
+writer shutdown, hashes and failure quarantine. Original Node HTTP/Coach runtime
+results remain historical evidence; this command does not run the retired API.
 Host verification with actual isolated Docker containers uses
 `node --test scripts/platform-node-drain-docker.test.mjs`; discovery is restricted
 to the synthetic project and no real instance is inspected or operated. See the
-[procedure and limits](../openspec/changes/port-compatible-platform/collection-plan.md#procedimiento-ensayado-de-captura-node-detenida).
+[procedure and limits](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#procedimiento-ensayado-de-captura-node-detenida).
 There is no operational stop/start command or implicit access to instance paths.
 
 `node scripts/platform.mjs verify gates --case node_capture_import` adds a fresh
@@ -826,26 +828,30 @@ PostgreSQL target and the existing importer to that rehearsal. The receiver moun
 the owned capture volume read-only and verifies SQL/files independently, rejected
 unrepresentable input and occupied targets, and runtime CONNECT still denied. No
 Python API is started or target promoted. See the
-[integrated procedure](../openspec/changes/port-compatible-platform/collection-plan.md#ensayo-integrado-captura-node--importación-postgresql).
+[integrated procedure](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#ensayo-integrado-captura-node--importación-postgresql).
 
 `node scripts/platform.mjs verify gates --case node_capture_recovery` extends the
 fixture chain through the existing host backup wrapper, verified age encryption
 and a restore in a separate private cluster. It retains the Node data cutoff and
 checks SQL/files/roles plus the existing corruption/interruption negatives. Runtime
 access exists only temporarily for fixture checks; the restored target ends closed
-and quarantined. See the [scope and limits](../openspec/changes/port-compatible-platform/collection-plan.md#ensayo-integrado-hasta-backup-cifrado-y-restore-aislado).
+and quarantined. See the [scope and limits](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#ensayo-integrado-hasta-backup-cifrado-y-restore-aislado).
 
 ## Retired transition tooling
 
 Standalone Node/Python Foundation stacks, runners and their exclusive prototype
 implementations are retired. Pool coverage is retained under the current verifier;
-Node/client contracts, current platform tests and image/cache checks remain active.
+Current platform tests, native independent vectors, client tests and image/cache
+checks remain active. The Node API and `backend/contracts/` transition artifacts
+are retired; no current verifier requires that source tree.
 [Node Foundation evidence](../openspec/changes/archive/2026-10-22-add-postgres-foundation/design.md)
 and [Python Foundation evidence](../openspec/changes/archive/2026-10-25-add-python-platform-foundation/design.md)
 remain historical records, not commands that still exist or proof of current recovery.
 
 The old synthetic migration/recovery prototypes are not the current platform schema
-or an operational restore. Their retirement does not complete pending backup/restore,
-security, cutover or Recovery gates. Follow the [active port tasks](../openspec/changes/port-compatible-platform/tasks.md)
-and [operation contract](../docs/reference/platform-operations.md) before those slices.
+or an operational restore. Current backup/restore and security tooling has its own
+synthetic evidence in the [active port tasks](../openspec/changes/archive/2026-11-04-port-compatible-platform/tasks.md).
+The [consolidated repository review](../docs/reference/platform-operations.md#evidencia-de-aceptación-y-límites-de-esta-revisión)
+records evidence and limits; real cutover remains deferred and Recovery requires
+separate authorization after repository acceptance.
 The cleanup does not change application authority, user data or deployment acceptance.

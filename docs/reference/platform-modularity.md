@@ -10,9 +10,12 @@ description: Organización objetivo de contratos, lógica, persistencia y compon
 Propuesta incorporada por solicitud del promotor: construir el backend Python como
 un monolito modular por funcionalidad y orientar las intervenciones del frontend con
 la misma propiedad funcional. Complementa la [arquitectura](../open-gym-evolution.architecture.md)
-y concreta EV-09 del [PRD Evolution](../open-gym-evolution.prd.md). Es diseño objetivo,
-no estructura implementada ni autorización de ejecución. El runtime sigue siendo
-Node/JSON; Foundation, port y corte conservan sus límites y gates.
+y concreta EV-09 del [PRD Evolution](../open-gym-evolution.prd.md). El repositorio
+entrega módulos Python/FastAPI/PostgreSQL bajo `backend/src/opengym_platform/`;
+el frontend conserva React/Vite/Zustand. Los ejemplos siguientes expresan propiedad,
+no una obligación de crear cada archivo ilustrado. La migración real sigue aplazada;
+el [cierre del repositorio](platform-operations.md#evidencia-de-aceptación-y-límites-de-esta-revisión)
+no acredita gates de una instancia.
 
 Un módulo concentra una capacidad y expone una interfaz pequeña. Un vertical slice
 es un caso de uso verificable que atraviesa las piezas necesarias de ese módulo,
@@ -71,9 +74,10 @@ backend/
 
 El patrón ilustrado con Training aplica a los otros módulos, sin imponer archivos
 vacíos, clases de servicio, repositorios genéricos ni interfaces de paso. Los tests
-de un módulo viven bajo `backend/tests/<module>/`; los casos Node de referencia se
-conservan en el harness de caracterización. Foundation crea solo `core/`, `health/`
-y las piezas operativas necesarias; no crea módulos de negocio como scaffolding.
+del port viven actualmente bajo `backend/tests/platform/`, agrupados por capacidad;
+la cobertura neutral cliente vive junto a sus módulos en frontend. Los contratos
+Node transitorios están retirados; permanecen vectores independientes mínimos en
+fixtures nativas, sin exigir una segunda implementación de referencia activa.
 
 | Módulo | Propiedad | Colaboraciones permitidas |
 | --- | --- | --- |
@@ -142,17 +146,18 @@ operación; constraints, transacciones y RLS respaldan integridad en PostgreSQL.
 Ninguno sustituye al otro. Los modelos HTTP no se convierten automáticamente en
 modelos de persistencia ni en nuevas reglas de entrenamiento.
 
-Durante la transición, el fixture congelado `backend/contracts/node-openapi.v1.yaml` y los casos independientes de la matriz
-son la referencia contrastada con Node. Cada ruta portada declara modelos y sus
+El fixture transitorio `backend/contracts/node-openapi.v1.yaml` fue retirado tras
+migrar la cobertura a pytest/Vitest. Cada ruta portada declara modelos y sus
 respuestas/errores, incluidos cookies, headers y coerciones relevantes. La salida
-OpenAPI de FastAPI se contrasta con esa referencia; no se mantienen dos contratos
+OpenAPI de FastAPI se contrasta con la autoridad vigente; no se mantienen dos contratos
 editables discordantes. La autoridad final seleccionada es `backend/openapi.yaml`,
 trasladada desde `api/openapi.yaml` durante el port, sin dos copias editables.
 Pydantic implementa sus contratos; la generación FastAPI se contrasta, no introduce
 por defecto nuevas respuestas 422, coerciones o endpoints públicos de documentación.
 Actualizar el generador `scripts/build-api-docs.mjs`, website, checks CI y cobertura
 de rutas Python antes de retirar el YAML legacy; `--check` sigue siendo la interfaz
-de verificación del generador. El traslado todavía no está implementado.
+de verificación del generador. El traslado está implementado; las pruebas de rutas
+Python y `node scripts/build-api-docs.mjs --check` comprueban la autoridad vigente.
 
 No activar `strict` o rechazo de campos extra globalmente si cambia compatibilidad.
 Registrar y probar ausente/null, números, fechas, aliases y campos Training antes
@@ -205,7 +210,7 @@ los consumidores y pruebas exactos, sin presentar esta tabla como cobertura ejec
 | Medios | `views/ProgressPhotos.jsx`, `components/CustomMediaField.jsx`, helpers `lib/media-*` y `lib/backup-media.js` | `media` con lectura pública Training: bytes/ownership y referencias seguros, también ante fallo de DB. |
 | Administración | `views/Admin.jsx`, store y transporte existentes | `administration` coordina interfaces propietarias; demostrar acciones autorizadas/denegadas sin acceso directo a tablas ajenas. |
 | Notificaciones | `views/Settings.jsx`, `lib/mobile.js`, `public/sw.js` | `notifications`: suscripción y recordatorios compatibles, aislamiento por dispositivo; diferenciar fixture de entrega push real. |
-| Coach actual | `views/CoachChat.jsx`, `views/CoachSetup.jsx`, `views/AdminCoach.jsx`, `lib/coach-api.js`, `lib/coach.js` | `coach`: local/HTTP, consentimiento, propuesta, cancelación/fallo; SDK/CLI no disponibles visiblemente, sin fallback/remapeo ni nuevas capacidades IA. Véase [Q6 del port](../../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica). |
+| Coach actual | `views/CoachChat.jsx`, `views/CoachSetup.jsx`, `views/AdminCoach.jsx`, `lib/coach-api.js`, `lib/coach.js` | `coach`: local/HTTP, consentimiento, propuesta, cancelación/fallo; SDK/CLI no disponibles visiblemente, sin fallback/remapeo ni nuevas capacidades IA. Véase [Q6 del port](../../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica). |
 | Catálogo e import/export | `views/Library.jsx`, `views/Settings.jsx`, helpers de catálogo/importación/backup | Assets siguen en web y formatos en cliente; `training`/`media` reciben lo que corresponda con semántica preservada. |
 | Auditoría y diagnóstico | Superficie administrativa autorizada cuando corresponda; sin nuevo panel obligatorio | `audit` posee eventos duraderos; `core` diagnóstico. Probar acceso/retención y privacidad según sus contratos, sin confundir logs con audit. |
 

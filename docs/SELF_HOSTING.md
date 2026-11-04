@@ -85,7 +85,7 @@ writers, waits for admitted requests and Coach/push/warmup work, then emits
 30000 ms, clamped to 50–1800000 ms); timeout/failure exits 1 without that proof.
 The default Docker stop grace can be shorter than this deadline. A killed process
 or closed port alone does not prove a successful drain. The scoped capture adapter
-and operational permissions are described in the [S11 capture procedure](../openspec/changes/port-compatible-platform/collection-plan.md#procedimiento-ensayado-de-captura-node-detenida).
+and operational permissions are described in the [S11 capture procedure](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#procedimiento-ensayado-de-captura-node-detenida).
 
 ## 2. Understand the passkey requirement (important)
 

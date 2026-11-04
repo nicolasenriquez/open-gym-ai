@@ -20,7 +20,7 @@ Cambio de runtime/tooling especificado el 2026-10-22. Delivery: 1.1 completado c
 
 Handoff consolidado aprobado: [esquema SQL](../../../../docs/reference/platform-schema.md)
 y [operación local](../../../../docs/reference/platform-operations.md) se implementarán
-en [port-compatible-platform](../../port-compatible-platform/proposal.md), dependiente
+en [port-compatible-platform](../2026-11-04-port-compatible-platform/proposal.md), dependiente
 de esta Foundation. Aquí solo se enlazan y distingue su evidencia: tablas/roles
 de negocio, MCP HTTP, backup programado, retención y corte no pertenecen a las
 pruebas sintéticas actuales. Esta edición no modifica estado ni resultados previos.

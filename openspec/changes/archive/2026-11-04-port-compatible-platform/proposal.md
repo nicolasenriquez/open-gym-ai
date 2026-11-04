@@ -43,7 +43,7 @@ La migración/corte y aceptación de la instancia real se aplazan a una interven
 operativa posterior con autorización específica; no son prerrequisito de archive.
 11.2 registra ese aplazamiento, no un corte ejecutado. 11.3–11.5 conservan sus
 checks de retirada y aceptación del repositorio; no acreditan G0/G2/G3 operativos.
-La [guía S11](collection-plan.md) concentra procedimiento y checks reutilizados.
+La [guía S11](design.md#contratos-de-ejecución-consolidados) concentra procedimiento y checks reutilizados.
 La evidencia sintética no acepta una instancia ni autoriza corte o Recovery.
 El resto de la propuesta describe el alcance acordado, no una lista adicional de pendientes.
 
@@ -59,9 +59,10 @@ El resto de la propuesta describe el alcance acordado, no una lista adicional de
 
 ### Modified Capabilities
 
-Sincronizadas en `openspec/specs/` sin acreditar entrega; 2.1 no cambia el
-runtime actual de la aplicación Node. La Foundation PostgreSQL histórica y sus
-specs vigentes se conservan.
+La sincronización previa en `openspec/specs/` no acreditaba entrega. El repositorio
+entrega ahora Python/FastAPI/PostgreSQL; las tareas registran su evidencia sintética
+y la migración real aplazada. La Foundation PostgreSQL histórica y sus specs se
+conservan. Esta consolidación no sincroniza ni archiva el cambio.
 
 ## Impact
 
@@ -71,12 +72,12 @@ al wrapper operativo; no se incorpora al runtime Python. Las pruebas sintéticas
 no autorizan instalar jobs, migrar datos reales, operar o retirar la instancia.
 Los diagnósticos Q4/Q5 y Foundation conservan su contexto histórico.
 
-Autoridad: [PRD](../../../docs/open-gym-evolution.prd.md),
-[arquitectura](../../../docs/open-gym-evolution.architecture.md),
-[esquema](../../../docs/reference/platform-schema.md),
-[seguridad](../../../docs/reference/platform-security.md),
-[operación](../../../docs/reference/platform-operations.md) y
-[modularidad](../../../docs/reference/platform-modularity.md).
-Foundation está completada en [su cambio archivado](../archive/2026-10-25-add-python-platform-foundation/proposal.md).
+Autoridad: [PRD](../../../../docs/open-gym-evolution.prd.md),
+[arquitectura](../../../../docs/open-gym-evolution.architecture.md),
+[esquema](../../../../docs/reference/platform-schema.md),
+[seguridad](../../../../docs/reference/platform-security.md),
+[operación](../../../../docs/reference/platform-operations.md) y
+[modularidad](../../../../docs/reference/platform-modularity.md).
+Foundation está completada en [su cambio archivado](../2026-10-25-add-python-platform-foundation/proposal.md).
 Contribución esperada EV-01–EV-09 y G0/G1 operativo/GP/GO/G2/G3, todos sin acreditar
 por esta especificación. Recovery solo comienza después del cierre de plataforma.

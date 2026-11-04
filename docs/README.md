@@ -31,19 +31,22 @@ For documentation changes, follow the [authoring guide](operations/okf-authoring
 | Where to find a document | [Documentation index](index.md) |
 | Current runtime and hosting | [Root README](../README.md), [self-hosting](SELF_HOSTING.md) and current source |
 | HTTP API documentation | [OpenAPI](../backend/openapi.yaml); [API guide](API.md) explains it; current handlers and behavioral tests establish implemented behavior |
-| Synthetic Python development and verification | [Foundation guide](../backend/README.md); delivery state and evidence remain in OpenSpec |
+| Python development and synthetic verification | [Backend guide](../backend/README.md); delivery state and evidence remain in OpenSpec |
 | Platform outcomes and priority | [Evolution PRD](open-gym-evolution.prd.md) |
 | Transition, mechanisms and technical gates | [Architecture](open-gym-evolution.architecture.md) and its linked references |
-| Approved platform tables, relationships, constraints and indexes | [Compatible SQL schema](reference/platform-schema.md); target contract, not executed DDL |
+| Approved platform tables, relationships, constraints and indexes | [Compatible SQL schema](reference/platform-schema.md); current Alembic migrations and PostgreSQL tests establish implementation |
 | Target personal local operation, backup and recovery | [Local platform operation](reference/platform-operations.md); current hosting remains in SELF_HOSTING |
-| Module ownership, vertical slices and frontend placement | [Platform modularity](reference/platform-modularity.md), as a target design preserving the existing frontend |
+| Module ownership, vertical slices and frontend placement | [Platform modularity](reference/platform-modularity.md); current modules implement the port while preserving the frontend |
 | Recovery functional requirements | [Recovery PRD](open-gym-recovery.prd.md) |
 | Product evidence and decision sources | [Discovery](dev/personal-recovery-discovery.md) and [research](research/index.md), only within their stated scope |
 | A selected change and its tasks | [OpenSpec artifacts](../openspec/changes/); archives preserve their original scope |
 | Documentation rules and maintenance | [Local OKF profile](standards/okf-profile.md) and [authoring guide](operations/okf-authoring-guide.md) |
 
-Current runtime remains Node/JSON. The Evolution PRD governs the order of future
-delivery; reformatting these documents does not satisfy platform acceptance.
+The repository runtime is Python/FastAPI/PostgreSQL with React/Vite/Zustand.
+The Node API and transition contracts are retired; Node remains a host/build tool.
+Existing instances have not been migrated by that retirement. The Evolution PRD
+governs later delivery; [repository acceptance and operational deferral](reference/platform-operations.md#evidencia-de-aceptación-y-límites-de-esta-revisión)
+distinguish verified synthetic results from real-instance acceptance.
 The [roadmap](../ROADMAP.md) summarizes direction and preserves upstream context;
 it does not override the PRDs or architecture. Research supports decisions; it is not current implementation guidance or proof of acceptance.
 

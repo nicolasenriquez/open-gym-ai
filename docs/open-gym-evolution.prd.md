@@ -17,11 +17,11 @@ description: Resultados y aceptación de plataforma antes de Recovery, Garmin e 
 
 OpenGym Evolution busca una base mantenible y operable sobre la que ampliar la herramienta sin perder el acceso, los datos ni las capacidades actuales. La primera entrega sustituye la aplicación servidor heredada, preservando Training, autenticación, catálogo, medios, administración, notificaciones y coach dentro del alcance compatible expresamente acordado.
 
-**Excepción aprobada Q6:** conservar coach local y proveedores HTTP actuales; Claude Agent SDK y Codex CLI quedan temporalmente no disponibles en la primera entrega Python, sin fallback Node ni cambio automático a otro proveedor. Conservar selección/configuración no secreta e historial, proteger originales y comunicar la limitación al cliente/administración; no anunciar paridad completa con esos proveedores. La evolución agéntica (incluido un eventual LangChain/LangGraph) se decide después, sin introducir dependencias anticipadas. El [diseño del port](../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica) concreta esta excepción.
+**Excepción aprobada Q6:** conservar coach local y proveedores HTTP actuales; Claude Agent SDK y Codex CLI quedan temporalmente no disponibles en la primera entrega Python, sin fallback Node ni cambio automático a otro proveedor. Conservar selección/configuración no secreta e historial, proteger originales y comunicar la limitación al cliente/administración; no anunciar paridad completa con esos proveedores. La evolución agéntica (incluido un eventual LangChain/LangGraph) se decide después, sin introducir dependencias anticipadas. El [diseño del port](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica) concreta esta excepción.
 
 Por decisión del promotor, la plataforma objetivo utiliza Python/FastAPI y PostgreSQL, con desarrollo y despliegue basados en contenedores. Es una restricción estratégica del proyecto, no una prueba de que ese stack sea por sí solo más seguro o de que Node sea inadecuado. La arquitectura desarrolla la transición y sus comprobaciones.
 
-**Checkpoints de entrega:** port funcional → operación local recuperable → corte/retirada y aceptación en S11 del mismo cambio, bajo permisos operativos separados. Los dos primeros y el ensayo del tercero usan fixtures; las cinco obligaciones reales de S11 deben cumplirse antes de archive. La preparación documental o sintética no acepta la plataforma.
+**Checkpoints de entrega vigentes:** port funcional → tooling local recuperable → retirada y aceptación del repositorio en S11. Por decisión del promotor, la migración/corte y aceptación de la instancia real se aplazan a una intervención posterior con autorización propia; no bloquean el cierre del repositorio. Sustituye el requisito anterior de completar un corte real antes de archive. Los ensayos sintéticos no aceptan una instancia. La [consolidación de evidencia y gates](reference/platform-operations.md#evidencia-de-aceptación-y-límites-de-esta-revisión) distingue ambos alcances; Recovery requiere aceptación registrada y autorización propia.
 
 **Orden obligatorio:** plataforma completada y aceptada → Recovery → Garmin Connect → ampliaciones de IA. No se comienza la implementación funcional de las etapas posteriores mientras la plataforma siga incompleta. Sus alcances específicos se definirán cuando corresponda; no hay fechas comprometidas.
 
@@ -100,7 +100,7 @@ La migración es costosa de revertir después de recibir datos nuevos. Concretar
 - EV-04: objetivos RPO 6 h/RTO 24 h pendientes de prueba. Backup con pausa controlada de API/escritores, cada 3 h, al arranque si vencido y antes de migrar; cifrado, retención 30 días, disco independiente/clave separada y restore aislado mensual. Wrapper host requiere Docker/Compose y Node 22+, no Node en API. Medir pausa y preservar pendientes. Acceso restaurado por continuidad con evidencia o nueva vía local autorizada, sin rehabilitar credenciales dudosas ni elevar roles; definir autorización/entrega privada antes de implementarla. Conservar origen/release/configuración protegidos al menos 30 días tras corte, sin borrado automático.
 - EV-08: diagnóstico privado, logs hasta 7 días/256 MiB con tooling estándar de rotación/retención seleccionado antes del slice. Correlación mínima, salud y estado backup; no exporter propio ni perfil de trazas/métricas. Audit conserva fallo observable sin invalidar éxito y no se confunde con logs.
 
-Los detalles técnicos tienen un único propietario en las referencias enlazadas; este PRD no incorpora DDL ni acredita objetivos medidos. El [OpenSpec planificado de port y operación](../openspec/changes/port-compatible-platform/proposal.md) aporta requisitos, escenarios y tareas pendientes después de Foundation, manteniendo Recovery fuera.
+Los detalles técnicos tienen un único propietario en las referencias enlazadas; este PRD no incorpora DDL ni acredita objetivos medidos. El [OpenSpec planificado de port y operación](../openspec/changes/archive/2026-11-04-port-compatible-platform/proposal.md) aporta requisitos, escenarios y tareas pendientes después de Foundation, manteniendo Recovery fuera.
 
 ## 7. Criterios de éxito y fracaso
 
@@ -130,18 +130,19 @@ El cierre requiere **todos** estos resultados. No exige ausencia de toda deuda h
 
 **Secuencia posterior:** Recovery conforme a su PRD y validación de utilidad; después Garmin con alcance/acceso a datos verificados; posteriormente ampliaciones de IA con casos de uso, consentimiento y evaluación. Voz, análisis avanzado y offline de Recovery se evaluarán cuando exista necesidad. No se activan por preparar la plataforma.
 
-## 9. Pendientes y handoff
+## 9. Handoff de entrega y pendientes operativos
+
+Versiones, módulos, esquema, biblioteca neutral, coach local/HTTP y diagnóstico tienen implementación
+y evidencia sintética en [las tareas del port](../openspec/changes/archive/2026-11-04-port-compatible-platform/tasks.md).
+Su suficiencia para el repositorio fue aceptada por el promotor el 2026-11-04 en la [consolidación EV/gates](reference/platform-operations.md#evidencia-de-aceptación-y-límites-de-esta-revisión);
+no son una segunda lista de implementación pendiente. Inventario real, discos,
+clientes, custodia, ventana y aceptación operativa continúan aplazados.
 
 | Pendiente | Dónde se resuelve | Condiciona |
 | --- | --- | --- |
-| Versiones/entorno objetivo y herramientas auxiliares | Arquitectura y especificación de Foundation Python | Evidencia técnica reproducible y operación objetivo. |
-| Matriz exacta de capacidades y clientes compatibles | Caracterización del sistema y handoff de migración | Aceptación de paridad y alcance de EV-01. |
-| Correspondencia de módulos, contratos y componentes por recorrido | Propuesta modular y OpenSpecs de Foundation/port; evidencia del slice piloto | EV-09; Foundation aporta estructura parcial, no aceptación de módulos funcionales. |
-| Biblioteca JS neutral, transacciones colaborativas y entrega operativa | Responsabilidad por fase de la propuesta modular; escenarios Foundation y posteriores OpenSpecs de port/operación | EV-01/02/03/05/06/09; no retirar fuentes compartidas ni aceptar operación sin verificar sus imágenes, ambientes y soporte. |
-| Validar el esquema y continuidad de acceso ya diseñados | Esquema SQL aprobado, seguridad y OpenSpec de port; DDL y pruebas pendientes | Alias/credenciales compatibles, proyecciones Training, RLS demostrados; no solo tablas dibujadas. |
-| Compatibilidad del coach local/HTTP y excepción SDK/CLI Q6 | Arquitectura, port y ensayos acotados | Retirada completa con contratos admitidos verificados y proveedores diferidos explícitamente no disponibles. |
+| Entorno y clientes de la instancia objetivo | Inventario real y revisión del candidato/host/configuración | Aplicabilidad de builds Linux/amd64, hostname/RP ID, pendientes y medios; no inferirla de fixtures. |
 | Inventario real y demostrar operación/recuperación aceptadas | Operación local y OpenSpec de port/operación; destino físico y ensayo previos al corte | Migración real y EV-02/04: objetivos acordados no equivalen a garantías; bloqueos de reconciliación y clientes resueltos. |
-| Implementar/verificar diagnóstico privado y su retención | Contrato de observabilidad y operación | EV-08/GO: instrumentación, cotas y eliminación real pendientes; sin elegir herramientas en este PRD. |
+| Aceptar diagnóstico y retención en el destino real | Contrato de observabilidad y operación | EV-08/GO operativos; las pruebas sintéticas existentes no acreditan el disco ni la configuración desplegada. |
 
 **Handoff:** la [arquitectura](open-gym-evolution.architecture.md) desarrolla esta dirección y conserva los requisitos funcionales del [PRD Recovery](open-gym-recovery.prd.md) para la entrega posterior. [Foundation archivada](../openspec/changes/archive/2026-10-22-add-postgres-foundation/proposal.md) es evidencia sintética histórica de Node; no acredita el stack Python ni cierra esta entrega.
 

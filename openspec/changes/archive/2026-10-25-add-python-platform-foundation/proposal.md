@@ -40,7 +40,7 @@ La [responsabilidad por fase](../../../../docs/reference/platform-modularity.md#
 El diseño confirmado de [esquema SQL](../../../../docs/reference/platform-schema.md),
 [seguridad](../../../../docs/reference/platform-security.md) y
 [operación local](../../../../docs/reference/platform-operations.md) tiene ahora
-[OpenSpec de port/operación propio](../../port-compatible-platform/proposal.md).
+[OpenSpec de port/operación propio](../2026-11-04-port-compatible-platform/proposal.md).
 Foundation solo entrega su handoff documental: sin tablas/roles de negocio, tokens
 MCP, scheduler de backups, migración real ni aceptación operativa. Se conservan
 checkboxes y evidencias de delivery ya existentes, sin aplicarle retroactivamente

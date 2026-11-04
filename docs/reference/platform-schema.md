@@ -17,7 +17,7 @@ El [PRD](../open-gym-evolution.prd.md) gobierna resultados;
 [modularidad](platform-modularity.md) asigna operaciones y dependencias;
 [seguridad](platform-security.md) posee roles, autorización y auditoría;
 [operación local](platform-operations.md) posee redes, respaldo y corte.
-El [OpenSpec de port y operación](../../openspec/changes/port-compatible-platform/proposal.md)
+El [OpenSpec de port y operación](../../openspec/changes/archive/2026-11-04-port-compatible-platform/proposal.md)
 formaliza los escenarios futuros. Foundation mantiene solo infraestructura y fixtures.
 
 ## Mapa y convenciones
@@ -152,7 +152,7 @@ atribuye durabilidad adicional ni se crean tablas por anticipación.
 | `coach.instance_daily_usage` | `day date PK`, `count bigint` | Agregado UTC sin propietario; no derivarlo del historial podado. |
 | `coach.instance_results` | `event_id bigint IDENTITY PK`, `occurred_at timestamptz`, `kind text`, `trigger text`, `outcome text`, `error_class text NULL`, `duration_ms bigint`, `summary jsonb` | Últimos 100 resultados sin contenido personal, prompts ni reading. |
 
-La [excepción Q6 del port](../../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica)
+La [excepción Q6 del port](../../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica)
 conserva selecciones/configuración no secreta `claude`/`codex` sin convertirlas a
 HTTP, pero no habilita ejecución ni lectura/refresh de sus credenciales. Sus IDs
 siguen representables en settings; no crear tablas o adaptadores futuros para ello.
@@ -297,7 +297,7 @@ y nunca altera migraciones para admitir datos incompatibles.
 Funciones privilegiadas y matriz de grants tienen una sola autoridad:
 [seguridad — catálogo SQL](platform-security.md#catálogo-sql-y-contexto-transaccional).
 Las suites futuras de DDL/funciones y slices se fijan en el
-[plan ejecutable del port](../../openspec/changes/port-compatible-platform/execution-plan.md).
+[plan ejecutable del port](../../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#contratos-de-ejecución-consolidados).
 
 ## Evidencia requerida
 

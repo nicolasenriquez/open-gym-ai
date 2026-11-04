@@ -28,7 +28,7 @@ La caracterización original inspeccionó `1b2daff9199611604783faabf76cd741123ce
 Git y el cambio archivado `add-python-platform-foundation` conservan ese historial.
 No necesitan una copia ejecutable del servidor ni volcados completos dentro del
 runtime nuevo. La decisión vigente y el cierre pertenecen a
-[port-compatible-platform](../openspec/changes/port-compatible-platform/tasks.md).
+[port-compatible-platform](../openspec/changes/archive/2026-11-04-port-compatible-platform/tasks.md).
 
 La migración real está aplazada. Los ensayos sintéticos no acreditan autenticadores,
 proveedores push/coach o clientes reales, custodia/disco físicos ni G0/G2/G3

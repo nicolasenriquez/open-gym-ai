@@ -136,7 +136,7 @@ coordina esos comandos y sus locks.
 - Archivos privados y acceso solo de API/tooling operador; sin puertos diagnósticos públicos.
 
 Comando `ops diagnose --config /run/operator/config.json`, con el prefijo
-Compose del [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md#commands-and-safety-contract),
+Compose del [plan ejecutable](../../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#commands-and-safety-contract),
 reporta salud diferenciada, pool y audit_degraded; backup missing hasta S10.
 Sale 0 saludable, 1 degradado, 2 configuración/uso inválido. Las advertencias de
 edad de backup a 3 h y objetivo RPO a 6 h quedan sujetas a la evidencia de S10.

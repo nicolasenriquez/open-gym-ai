@@ -14,7 +14,7 @@ en [SELF_HOSTING](../SELF_HOSTING.md). La [arquitectura](../open-gym-evolution.a
 gobierna gates; [esquema](platform-schema.md), [seguridad](platform-security.md),
 [observabilidad](platform-observability.md) y [modularidad](platform-modularity.md)
 poseen sus contratos. Los escenarios futuros están en
-[port-compatible-platform](../../openspec/changes/port-compatible-platform/proposal.md).
+[port-compatible-platform](../../openspec/changes/archive/2026-11-04-port-compatible-platform/proposal.md).
 
 ## Servicios y redes
 
@@ -62,7 +62,7 @@ test/runtime/migrate y herramientas operativas. Mantener una API/un worker inici
 | Volumen PostgreSQL | Privado y duradero, distinto entre dev/operación y verificación sintética. No copiar PGDATA caliente como backup. |
 | Medios y marcas GC | Volumen duradero con ownership, cuotas, temporales y limpieza segura; captura coordinada con DB. |
 | Secretos | Material de firma de sesión, VAPID y cifrado/credenciales coach protegido y fuera de imagen/Git/frontend/logs. |
-| Cache SDK/CLI coach heredada | No montar ni renovar en el runtime Python inicial: ambos proveedores están diferidos por [Q6 del port](../../openspec/changes/port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica). Conservar originales protegidos según su política, sin prometer reutilización futura ni añadir estas caches al backup Training. |
+| Cache SDK/CLI coach heredada | No montar ni renovar en el runtime Python inicial: ambos proveedores están diferidos por [Q6 del port](../../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#11-q6-migración-segura-antes-de-evolución-agéntica). Conservar originales protegidos según su política, sin prometer reutilización futura ni añadir estas caches al backup Training. |
 | Respaldo cifrado | Destino en disco independiente del disco de instancia, con acceso restringido; clave del bundle en lugar separado. Ruta/dispositivo se configura y verifica antes del corte. |
 
 Toolchain parte de los pins/lock de Foundation, revalidando compatibilidad operativa;
@@ -252,6 +252,11 @@ reintentar sobre ese destino ni limpiar automáticamente. La creación de backup
 parada/journal de escritores y restauración quedan en sus procedimientos separados.
 
 ## Corte, retirada y conservación
+
+El repositorio entrega el runtime Python/FastAPI/PostgreSQL y ha retirado la API
+Node y sus contratos transitorios. La decisión del promotor aplaza el corte real;
+las condiciones siguientes rigen esa futura intervención, con autorización propia.
+El cierre del repositorio se revisa [por separado](#evidencia-de-aceptación-y-límites-de-esta-revisión).
 
 G0 e inventario de orígenes/usuarios/clientes comprobados; G1/GP/GO previos al corte.
 Pausar escritores HTTP e internos, respaldar y congelar origen, importar todos los
@@ -607,7 +612,7 @@ recuperación completa, RPO/RTO o aceptación operativa.
 Los procedimientos completos siguientes son contratos **futuros**, salvo la fase
 SQL/archivos, bundle cifrado opcional, recuperación y restore de datos en cuarentena
 entregados en esta página; no acreditan herramientas completas ni ejecuciones
-reales. El [plan ejecutable](../../openspec/changes/port-compatible-platform/execution-plan.md)
+reales. El [plan ejecutable](../../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#contratos-de-ejecución-consolidados)
 fija prefijos Compose, suites, flags, salidas y checkpoints. Operador necesita
 Docker/Compose y Node 22+ para el wrapper host de parada/recuperación; Python,
 PostgreSQL y cifrado corren en target `ops`. Node no entra al runtime API.
@@ -1220,13 +1225,56 @@ de ausencia de nuevos commits; no se infiere de un contador HTTP ni de un timeou
 
 ## Evidencia de aceptación y límites de esta revisión
 
-Inspección de Compose resuelto, aislamiento entre ambientes, rol/runtime/image
-inventory, probes y caída/reconexión DB; backup con escrituras concurrentes y fallo
-de transferencia; restore mensual aislado con cuenta/passkey revocada después del
-snapshot; reconciliación offline; ensayo de corte y fallo después de nuevas
-escrituras; confirmación de limpieza externa pendiente y completada.
+**Aceptación humana del promotor registrada el 2026-11-04 (America/Santiago).**
+Tras la revisión técnica preparada por Codex, el promotor aceptó explícitamente en
+este chat «los resultados y límites documentados» y solicitó cerrar 11.5.
+La decisión y sus límites constan en [tasks.md](../../openspec/changes/archive/2026-11-04-port-compatible-platform/tasks.md#11-cierre-del-repositorio-migración-real-aplazada--s11):
+entrega del repositorio aceptada, 57/57 tareas cerradas; migración real aplazada,
+sin autorizar Recovery ni commit/push. Posteriormente, el mismo día, el promotor
+autorizó expresamente consolidación, limpieza de .scratch, sincronización y archive;
+ese cierre documental está ejecutado y no amplía permisos operativos.
 
-Registrar revisión, plataforma, comandos, resultados y límites; las cotas/destino
-de diagnóstico se verifican según observabilidad. Ninguna prueba, programación,
-credencial, directorio operativo, migración o corte se ha ejecutado por aprobar
-este documento.
+Alcance revisado: entrega del repositorio, con migración/corte y aceptación real
+aplazados por decisión expresa ya registrada en 11.2. Base de evidencia:
+`13a1b6fde7a219640ddae34338bef8608def8ffb` más el diff de pruebas/LF de 11.4.
+No es una revisión publicada ni un commit nuevo. Los resultados y hashes necesarios se consolidaron en los artefactos nativos del
+OpenSpec archivado. Por solicitud posterior del promotor se eliminaron los logs y
+exports de .scratch tras conservar su trazabilidad; sus rutas en las notas son
+procedencia histórica, no archivos aún disponibles.
+
+| Resultado | Requisito/escenario del port y evidencia aplicable | Conclusión y límite |
+| --- | --- | --- |
+| EV-01 capacidades y seguridad | `compatible-platform-persistence`: paridad, actor/RLS, Training, medios, Coach, administración y notificaciones; 11.4 `identity_*`, `training_*`, `media*`, `coach_*`, `admin_*`, `notifications`, `contracts`, Vitest y browser | PASS sintético tras retirada; Q6 conserva local/HTTP y deja SDK/CLI indisponibles. Sin proveedor real ni autenticador físico |
+| EV-02 identidad/historial/pendientes | Misma spec: importación fiel, revisiones/linaje y sync; 10.1, 11.3 y 11.4 `training_write`, browser con readback PG y `restore/full_timing` | PASS sintético; no inventario ni migración de clientes reales |
+| EV-03 checkout/build/ambientes | `local-platform-operation`: runtime aislado y reproducibilidad; 11.4 `images/reproducibility`, `images/isolation`, `checks`, `lifecycle`, prueba de checkout Windows/LF | PASS Linux/amd64; checkout limpio de HEAD con configuración LF solo de proceso, correcciones no confirmadas verificadas aparte. CI remota y arm64 no acreditados |
+| EV-04 respaldo/restore/fallos | Misma spec: puntos cifrados, captura interrumpida, revisión de accesos y ensayo completo; S10, 11.4 `restore/full_timing` y regresiones de diagnóstico | Tooling y ensayos sintéticos PASS; RPO 6 h/RTO 24 h siguen siendo objetivos para la instancia, sin discos físicos, jobs ni reboot reales |
+| EV-05 sustitución/autoridad | `compatible-platform-persistence`: retirada acotada y cobertura nativa; 11.3 inventario, hashes/sentinel, consumidor negativo y GREEN; 11.4 builds sin Node API/contracts | Retirada del repositorio verificada; no corte ni autoridad PostgreSQL acreditada en una instancia existente |
+| EV-06 guías/soporte | Ambas specs: aceptación tras retirada; revisión de README/backend, entrada documental, PRD, arquitectura y modularidad en 11.5; OKF y OpenAPI generado | Guías del runtime Python actualizadas; los documentos históricos conservan su contexto. La skill verify-opengym sigue desfasada; usar `training_browser` para el recorrido Python registrado |
+| EV-07 secuencia de aceptación | `local-platform-operation / Single-authority cutover and verified retirement / Post-retirement acceptance`; aceptación explícita del promotor registrada en 11.5 el 2026-11-04 | Secuencia preservada: repositorio aceptado antes de Recovery; su implementación requiere autorización propia |
+| EV-08 diagnóstico/privacidad | Misma spec: diagnóstico privado acotado; S9 y 11.4 `diagnostics`, `images/isolation`, retención/fallo/correlación/estado | PASS sintético; no certifica disponibilidad física ni aceptación operativa |
+| EV-09 módulos y transacciones | `compatible-platform-persistence`: propiedad y colaboración pública; piloto S3, S8 y 11.4 suites por capacidad, `shared_client`, tests de linaje/RLS y browser | Monolito modular y JS neutral conservados; no exige ejecutar el OpenSpec independiente streamline-platform-codebase ni reorganizar todo el frontend |
+
+**Gates del repositorio:** G1 (DB/pool/lifecycle/migración/roles), GP
+(capacidades/seguridad/cliente), GO (build/aislamiento/restore/diagnóstico) y G3
+(regresión tras retirada) tienen evidencia técnica sintética revisada. 11.4 reúne
+29 suites/42 casos, 860 pruebas pytest sin skips, 416 archivos/5198 Vitest y
+14 recorridos browser sin errores. El antiguo `summary.json` de `.scratch/11-4/`
+registró comandos, hashes, entorno, procedencia y adaptaciones. Su contenido y los resultados
+`retirement-result.json`/`negative-consumer-result.json` de 11.3 se integraron en
+`tasks.md` del OpenSpec archivado antes de eliminar .scratch. Las fuentes runtime no cambiaron durante 11.4–11.5.
+El promotor aceptó la suficiencia de estos resultados y límites para el repositorio;
+los checks documentales acompañan esa decisión, sin sustituirla.
+
+**Gates operativos:** G0 (clientes/orígenes/copias/custodia), binding real de
+G1/GP/GO, G2 (corte/autoridad única) y G3/GO posteriores al corte no están
+acreditados. El cierre administrativo de 11.1 y aplazamiento de 11.2 no los
+dispensan. La futura intervención debe revalidar candidato, entorno, accesos y
+ventana; conservar originales al menos 30 días tras corte aceptado sin borrado
+automático. Antes de nuevas escrituras, reversión validada; después, reparación
+hacia adelante Q2 que preserve las nuevas escrituras, sin retorno automático a Node.
+
+No se repiten suites de runtime por una consolidación documental. No se han
+ejecutado CI remota, dispositivos físicos, proveedores reales, migración/corte,
+instalación de jobs ni operación de datos/secretos reales en 11.5. No se borran
+originales operativos ni se autoriza Recovery o commit/push. La sincronización y
+el archivo posteriores cuentan con la solicitud expresa de cierre documental.
