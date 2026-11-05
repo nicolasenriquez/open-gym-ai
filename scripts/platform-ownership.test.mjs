@@ -108,7 +108,7 @@ test('ownership: a shared image is never untagged or removed', t => {
   const project = `opengym-platform-test-${token}`;
   const tag = `${project}-platform-client:local`;
   const other = `opengym-platform-protected-${token}:local`;
-  ok(invoke('docker', ['build', '--quiet', '--tag', tag, '--label', `com.docker.compose.project=${project}`,
+  ok(invoke('docker', ['build', '--load', '--quiet', '--tag', tag, '--label', `com.docker.compose.project=${project}`,
     '--label', 'org.opengym.platform=synthetic', '--label', 'com.docker.compose.service=platform-client', '-'],
   { input: `FROM scratch\nLABEL org.opengym.platform.probe=${token}\n` }));
   t.after(() => {
