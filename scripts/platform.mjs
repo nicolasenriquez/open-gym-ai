@@ -6,6 +6,11 @@ import { join } from 'node:path';
 import { syntheticHarness } from './synthetic-harness.mjs';
 
 const [action, suite, ...options] = process.argv.slice(2);
+const build = (...services) => [
+  'build',
+  ...(process.env.BUILDX_BUILDER ? ['--builder', process.env.BUILDX_BUILDER] : []),
+  ...services,
+];
 const { docker, compose, execute, cleanup, runProject } = syntheticHarness({
   root: fileURLToPath(new URL('../', import.meta.url)),
   composeFile: fileURLToPath(new URL('../deploy/docker-compose.test.yml', import.meta.url)),
@@ -54,7 +59,11 @@ try {
       process.exitCode = 2;
       throw new Error('PLATFORM_SUITE_OR_CASE_NOT_IMPLEMENTED');
     }
-    for (const entry of selected) {
+    const batches = selected.every(entry => entry.target === 'platform-test')
+      ? [selected]
+      : selected.map(entry => [entry]);
+    for (const batch of batches) {
+      const entry = batch[0];
       if (entry.target === 'host') {
         const output = await execute(process.execPath, entry.command, false,
           suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' || suite === 'repair'
@@ -63,7 +72,7 @@ try {
       } else if (entry.target === 'platform-browser') {
         await runProject(async (step, project) => {
           await step(['config', '--quiet']);
-          await step(['build', 'platform-test', 'platform-browser']);
+          await step(build('platform-test', 'platform-browser'));
           await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'platform-db', 'platform-browser']);
           try {
             await step(['run', '--rm', '--no-deps', '--use-aliases', 'platform-test', ...entry.command]);
@@ -95,14 +104,16 @@ try {
       } else if (entry.target === 'platform-test') {
         await runProject(async step => {
           await step(['config', '--quiet']);
-          await step(['build', entry.target]);
+          await step(build(entry.target));
           await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'platform-db']);
-          await step(['run', '--rm', '--no-deps', entry.target, ...entry.command]);
+          for (const current of batch) {
+            await step(['run', '--rm', '--no-deps', current.target, ...current.command]);
+          }
         });
       } else if (entry.target === 'platform-client') {
         await runProject(async (step, project) => {
           await step(['config', '--quiet']);
-          await step(['build', entry.target]);
+          await step(build(entry.target));
           const args = ['run', '--rm', '--no-deps', ...(entry.entrypoint ? ['--entrypoint', entry.entrypoint] : []), entry.target, ...entry.command];
           if (suite === 'gates') {
             const output = await docker([...compose(project), ...args]);
@@ -111,8 +122,10 @@ try {
           } else await step(args);
         });
       } else throw new Error('PLATFORM_MAPPING_INVALID');
-      console.log(JSON.stringify({ code: 'PLATFORM_CASE_OK', suite, case: entry.id,
-        ...(suite === 'gates' ? { synthetic: true, realGateCompleted: false, cutoverAuthorized: false } : {}) }));
+      for (const current of batch) {
+        console.log(JSON.stringify({ code: 'PLATFORM_CASE_OK', suite, case: current.id,
+          ...(suite === 'gates' ? { synthetic: true, realGateCompleted: false, cutoverAuthorized: false } : {}) }));
+      }
     }
   }
 } catch (error) {

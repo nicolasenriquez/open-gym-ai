@@ -30,7 +30,9 @@ The main `Dockerfile` owns Python application and verification targets.
 `Dockerfile.security` supplies CI scanners. These tools stay outside the application
 runtime. Their matching `.dockerignore` files protect each build context.
 The former Foundation-only `Dockerfile.toolchain` is retired; current toolchain
-checks run through `just test checks`. Archived Foundation commands are historical.
+checks run through `just test checks`. CI runs the same tests directly in its
+`python-checks` job with uv; application runtime and integration tests remain in
+images. Archived Foundation commands are historical.
 
 This README owns current platform usage. Operational requirements live in
 [platform operations](../docs/reference/platform-operations.md); delivery status

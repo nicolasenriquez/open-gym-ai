@@ -14,6 +14,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      platform: ${{ steps.classify.outputs.platform }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then
+            echo "platform=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --no-renames --name-only -z "$BASE" "$HEAD" |
+            node --input-type=module -e '
+              import { readFileSync } from "node:fs";
+              const files = readFileSync(0, "utf8").split("\0").filter(Boolean);
+              const docs = /^(?:docs\/.*\.md|README\.md|CONTRIBUTING\.md|CHANGELOG\.md)$/;
+              console.log(`platform=${files.length === 0 || files.some(file => !docs.test(file))}`);
+            ' >> "$GITHUB_OUTPUT"
+
   quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -30,23 +58,53 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm run lint:ci
       - run: node scripts/build-api-docs.mjs --check
-      - name: Audit every current JavaScript lock
-        run: |
-          pnpm audit
-          pnpm --dir frontend audit
-      - run: docker build -f backend/Dockerfile.security -t opengym-security:ci .
+      - run: node --test scripts/ci.test.mjs
+      - name: Audit root JavaScript lock
+        if: ${{ !cancelled() }}
+        run: pnpm audit
+      - name: Audit frontend JavaScript lock
+        if: ${{ !cancelled() }}
+        run: pnpm --dir frontend audit
+      - name: Build security tools
+        id: security-image
+        if: ${{ !cancelled() }}
+        run: docker build -f backend/Dockerfile.security -t opengym-security:ci .
       - name: Workflow security (offline)
+        if: ${{ !cancelled() && steps.security-image.outcome == 'success' }}
         run: docker run --rm --network none --read-only --tmpfs /tmp opengym-security:ci zizmor --offline .github/workflows
       - name: Python source security
+        if: ${{ !cancelled() && steps.security-image.outcome == 'success' }}
         run: docker run --rm --network none --read-only --tmpfs /tmp opengym-security:ci bandit -r src -ll -ii
       - name: Audit locked Python application, development and security dependencies
+        if: ${{ !cancelled() && steps.security-image.outcome == 'success' }}
         run: |
           docker run --rm --read-only --tmpfs /tmp opengym-security:ci sh -ec '
             uv export --locked --all-groups --no-emit-project --output-file /tmp/application.txt >/dev/null
             uv export --project /tools --locked --no-emit-project --output-file /tmp/security.txt >/dev/null
-            pip-audit --require-hashes --disable-pip -r /tmp/application.txt
-            pip-audit --require-hashes --disable-pip -r /tmp/security.txt
+            status=0
+            pip-audit --require-hashes --disable-pip -r /tmp/application.txt || status=1
+            pip-audit --require-hashes --disable-pip -r /tmp/security.txt || status=1
+            exit "$status"
           '
+
+  python-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: 0.13.5
+          python-version: 3.14.9
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked --all-groups
+      - run: uv run --locked pytest -q tests/platform/test_toolchain.py tests/platform/test_proof_policy.py
 
   codeql:
     runs-on: ubuntu-latest
@@ -139,8 +197,12 @@ jobs:
 
 
   platform-suites:
+    needs: [changes, python-checks, quality]
+    if: needs.changes.outputs.platform == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.minutes }}
+    env:
+      TMPDIR: ${{ runner.temp }}
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -148,6 +210,7 @@ jobs:
         include:
           - { group: foundation, minutes: 40 }
           - { group: identity, minutes: 40 }
+          - { group: identity-account, minutes: 40 }
           - { group: training, minutes: 40 }
           - { group: services, minutes: 40 }
           - { group: backup, minutes: 40 }
@@ -165,6 +228,10 @@ jobs:
         id: platform-builder
         with:
           driver-opts: image=moby/buildkit:v0.29.0@sha256:0039c1d47e8748b5afea56f4e85f14febaf34452bd99d9552d2daa82262b5cc5
+      - name: Select the warmed builder for subsequent commands
+        env:
+          BUILDER: ${{ steps.platform-builder.outputs.name }}
+        run: echo "BUILDX_BUILDER=$BUILDER" >> "$GITHUB_ENV"
       # Layer caches are image-scoped; download cache mounts stay builder-local.
       # No image is pushed. A cache failure never bypasses the proofs.
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
@@ -176,6 +243,7 @@ jobs:
           cache-from: type=gha,scope=platform-test
           cache-to: type=gha,scope=platform-test,mode=max
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        if: matrix.group == 'foundation' || matrix.group == 'cutover'
         with:
           context: .
           file: backend/Dockerfile.client
@@ -190,8 +258,6 @@ jobs:
         if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify database
         if: matrix.group == 'foundation'
-      - run: node scripts/platform.mjs verify checks
-        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify schema
         if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify lifecycle
@@ -205,7 +271,7 @@ jobs:
       - run: node scripts/platform.mjs verify identity_passkey
         if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_account
-        if: matrix.group == 'identity'
+        if: matrix.group == 'identity-account'
       - run: node scripts/platform.mjs verify identity_reset
         if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_links
@@ -223,6 +289,8 @@ jobs:
       - run: node scripts/platform.mjs verify media_gc --case fail_safe
         if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify coach_state
+        if: matrix.group == 'services'
+      - run: node scripts/platform.mjs verify coach_client
         if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify coach_http --case validated_proposal
         if: matrix.group == 'services'
@@ -273,8 +341,21 @@ jobs:
       - run: node scripts/platform.mjs verify shared_client --case formats_and_bundles
         if: matrix.group == 'foundation'
 
+      - name: Preserve synthetic verification evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: platform-${{ matrix.group }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/opengym-platform-browser-*/*.png
+            ${{ runner.temp }}/opengym-platform-browser-*/result.json
+            ${{ runner.temp }}/opengym-reproducibility-*/*.log
+            ${{ runner.temp }}/opengym-reproducibility-*/context.json
+
   platform:
-    if: always()
+    if: ${{ always() && needs.platform-suites.result != 'skipped' }}
     needs: platform-suites
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -283,3 +364,26 @@ jobs:
         env:
           RESULT: ${{ needs.platform-suites.result }}
         run: test "$RESULT" = success
+
+  ci:
+    if: always()
+    needs: [changes, quality, python-checks, codeql, documentation, catalogue, test, platform]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every applicable check
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const needs = JSON.parse(process.env.NEEDS);
+          for (const [job, value] of Object.entries(needs)) {
+            const allowedSkip = job === 'platform'
+              && value.result === 'skipped'
+              && needs.changes.result === 'success'
+              && needs.changes.outputs.platform === 'false';
+            assert.ok(value.result === 'success' || allowedSkip,
+              `${job}: ${value.result}`);
+          }
+          JS
