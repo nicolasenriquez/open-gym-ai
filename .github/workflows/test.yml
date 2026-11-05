@@ -138,9 +138,22 @@ jobs:
         working-directory: frontend
 
 
-  platform:
+  platform-suites:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: ${{ matrix.minutes }}
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        include:
+          - { group: foundation, minutes: 40 }
+          - { group: identity, minutes: 40 }
+          - { group: training, minutes: 40 }
+          - { group: services, minutes: 40 }
+          - { group: backup, minutes: 40 }
+          - { group: cutover, minutes: 40 }
+          - { group: restore, minutes: 40 }
+          - { group: images, minutes: 75 }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -170,47 +183,103 @@ jobs:
           cache-from: type=gha,scope=platform-client
           cache-to: type=gha,scope=platform-client,mode=max
       - run: node --test scripts/docker-build-context.test.mjs
+        if: matrix.group == 'foundation'
       - run: node --test scripts/docker-layout.test.mjs
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify harness
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify database
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify checks
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify schema
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify lifecycle
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify identity_session
+        if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_password
+        if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_register
+        if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_passkey
+        if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_account
+        if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_reset
+        if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify identity_links
+        if: matrix.group == 'identity'
       - run: node scripts/platform.mjs verify training_read
+        if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify training_write
+        if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify training_browser
+        if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify media --case roundtrip
+        if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify media --case quota_and_missing
+        if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify media_gc --case fail_safe
+        if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify coach_state
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify coach_http --case validated_proposal
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify coach_admin --case credentials
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify admin_audit --case failure_and_retention
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify admin_invites --case consumed_history
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify admin_users --case actor_target
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify admin_delete
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify notifications
+        if: matrix.group == 'services'
       - run: node scripts/platform.mjs verify diagnostics
+        if: matrix.group == 'backup'
       - run: node scripts/platform.mjs verify import
+        if: matrix.group == 'backup'
       - run: node scripts/platform.mjs verify backup
+        if: matrix.group == 'backup'
       - run: node scripts/platform.mjs verify gates --case pre_cutover
+        if: matrix.group == 'cutover'
       - run: node scripts/platform.mjs verify gates --case authorized_cutover
+        if: matrix.group == 'cutover'
       - run: node scripts/platform.mjs verify gates --case node_capture
+        if: matrix.group == 'cutover'
       - run: node --test scripts/platform-node-drain-docker.test.mjs
+        if: matrix.group == 'cutover'
       - run: node scripts/platform.mjs verify gates --case node_capture_import
+        if: matrix.group == 'cutover'
       - run: node scripts/platform.mjs verify gates --case node_capture_recovery
+        if: matrix.group == 'cutover'
       - run: node scripts/platform.mjs verify repair --case acknowledged_writes
+        if: matrix.group == 'restore'
       - run: node scripts/platform.mjs verify restore --case isolated_target
+        if: matrix.group == 'restore'
       - run: node scripts/platform.mjs verify restore --case reviewed_access
+        if: matrix.group == 'restore'
       - run: node scripts/platform.mjs verify restore --case full_timing
+        if: matrix.group == 'restore'
       - run: node scripts/platform.mjs verify images --case reproducibility
+        if: matrix.group == 'images'
       - run: node scripts/platform.mjs verify contracts --case python_routes
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify shared_client --case canonical_sources
+        if: matrix.group == 'foundation'
       - run: node scripts/platform.mjs verify shared_client --case formats_and_bundles
+        if: matrix.group == 'foundation'
+
+  platform:
+    if: always()
+    needs: platform-suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every platform group
+        env:
+          RESULT: ${{ needs.platform-suites.result }}
+        run: test "$RESULT" = success

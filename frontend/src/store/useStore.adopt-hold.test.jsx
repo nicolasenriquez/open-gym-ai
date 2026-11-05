@@ -59,7 +59,7 @@ function installFetch() {
   globalThis.fetch = window.fetch = vi.fn(async (url, init = {}) => {
     const method = (init.method || 'GET').toUpperCase()
     h.calls.push({ url: String(url), method })
-    if (String(url).startsWith(BASE)) return h.server(String(url).slice(BASE.length), method, init)
+    if (String(url).startsWith(BASE + '/')) return h.server(String(url).slice(BASE.length), method, init)
     return res(404, '{}')
   })
 }

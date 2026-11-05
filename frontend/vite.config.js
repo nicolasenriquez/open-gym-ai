@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, openSync, closeSync, fstatSync, writeSync, ftruncateSync, constants } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -70,9 +70,25 @@ const swStamp = {
   generateBundle(_, bundle) { lazy = lazyAssets(bundle) },
   closeBundle() {
     const html = join(outDir, 'index.html'), sw = join(outDir, 'sw.js')
-    if (!existsSync(html) || !existsSync(sw)) return
-    const stamp = createHash('sha256').update(readFileSync(html)).digest('hex').slice(0, 10)
-    writeFileSync(sw, stampSw(readFileSync(sw, 'utf8'), { stamp, lazy }))
+    let htmlBytes, fd
+    try {
+      htmlBytes = readFileSync(html)
+      fd = openSync(sw, constants.O_RDWR
+        | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0))
+    } catch (error) { if (error.code === 'ENOENT') return; throw error }
+    try {
+      const info = fstatSync(fd)
+      if (!info.isFile() || info.nlink !== 1) throw Error('Unsafe service worker output')
+      const stamp = createHash('sha256').update(htmlBytes).digest('hex').slice(0, 10)
+      const bytes = Buffer.from(stampSw(readFileSync(fd, 'utf8'), { stamp, lazy }))
+      let offset = 0
+      while (offset < bytes.length) {
+        const written = writeSync(fd, bytes, offset, bytes.length - offset, offset)
+        if (!written) throw Error('Incomplete service worker write')
+        offset += written
+      }
+      ftruncateSync(fd, bytes.length)
+    } finally { closeSync(fd) }
   }
 }
 

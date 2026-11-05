@@ -62,7 +62,7 @@ function installFetch() {
   globalThis.fetch = window.fetch = vi.fn(async (url, init = {}) => {
     const method = (init.method || 'GET').toUpperCase()
     h.calls.push({ url: String(url), method, auth: init.headers?.Authorization || null, body: init.body ? JSON.parse(init.body) : null })
-    if (String(url).startsWith(BASE)) return h.server(String(url).slice(BASE.length), method, init)
+    if (String(url).startsWith(BASE + '/')) return h.server(String(url).slice(BASE.length), method, init)
     // Capacitor's WebViewLocalServer: index.html and 200 for every extension-less path, any method.
     const last = String(url).split('?')[0].split('/').pop()
     return last.includes('.') ? res(404, '') : res(200, INDEX_HTML, 'text/html')
@@ -94,8 +94,8 @@ function serverWith(doc) {
 }
 
 const readFile = name => { const v = h.files.get('DATA/' + name); return v == null ? null : JSON.parse(v) }
-const serverCalls = () => h.calls.filter(c => c.url.startsWith(BASE))
-const localCalls = () => h.calls.filter(c => !c.url.startsWith(BASE))
+const serverCalls = () => h.calls.filter(c => c.url.startsWith(BASE + '/'))
+const localCalls = () => h.calls.filter(c => !c.url.startsWith(BASE + '/'))
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 const ids = xs => (xs || []).map(x => x.id)
 
@@ -380,7 +380,7 @@ describe('another account paired on a phone that still owes the first', () => {
     const prevFetch = globalThis.fetch
     globalThis.fetch = window.fetch = vi.fn(async (url, init = {}) => {
       h.calls.push({ url: String(url), method: (init.method || 'GET').toUpperCase(), auth: init.headers?.Authorization || null })
-      return String(url).startsWith(OTHER) ? h.server(String(url).slice(OTHER.length), (init.method || 'GET').toUpperCase(), init) : prevFetch(url, init)
+      return String(url).startsWith(OTHER + '/') ? h.server(String(url).slice(OTHER.length), (init.method || 'GET').toUpperCase(), init) : prevFetch(url, init)
     })
     await useStore.getState().connectToServer('other.example.com', 'ABCD2345', vi.fn(async () => false))
 
