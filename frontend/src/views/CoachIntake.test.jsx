@@ -26,6 +26,7 @@ const mocks = vi.hoisted(() => {
     S: state.S,
     user: state.user,
     config: state.config,
+    ready: true,
     coachLocal: null,
     update: mut => mut(state.S),
   })
@@ -164,7 +165,7 @@ describe('CoachIntake — the consent screen', () => {
   })
 
   it('the training line names the session notes, which the Coach reads', () => {
-    // api/coach/core/payload.js sends each recent session's note (cleanWorkout). The consent
+    // shared/coach-core/payload.js sends each recent session's note (cleanWorkout). The consent
     // screen listed weights, reps, times, effort and durations, and never said so.
     mount()
     const training = all('.ob-consent-row').find(r => r.querySelector('b').textContent === 'Your logged training')

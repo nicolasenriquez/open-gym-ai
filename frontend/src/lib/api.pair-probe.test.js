@@ -15,7 +15,7 @@ const corsOnly = (url, init) => (init && init.mode === 'no-cors' ? opaque() : fa
 
 describe('pairRedeem when the request never gets an answer', () => {
   it('server reachable without CORS: says the proxy refused the app, naming the app\'s origin', async () => {
-    const fetch = vi.fn((url, init) => (url.endsWith('/api/pair/redeem') ? failed() : corsOnly(url, init)))
+    const fetch = vi.fn((url, init) => (url.endsWith('/api/v1/pair/redeem') ? failed() : corsOnly(url, init)))
     vi.stubGlobal('fetch', fetch)
     const e = await pairRedeem('https://gym.example.com', 'ABCD2345').catch(x => x)
     expect(e.code).toBe('cors')
@@ -23,13 +23,13 @@ describe('pairRedeem when the request never gets an answer', () => {
     expect(e.message).toContain(location.origin)
     expect(e.message).toContain('SELF_HOSTING.md')
     const probe = fetch.mock.calls[1]
-    expect(probe[0]).toBe('https://gym.example.com/api/health')
+    expect(probe[0]).toBe('https://gym.example.com/api/v1/health')
     expect(probe[1]).toMatchObject({ mode: 'no-cors', cache: 'no-store' })
   })
 
   it('openGym behind a proxy that refuses the app: its health answer read, still the CORS message', async () => {
     const health = () => Promise.resolve(new Response(JSON.stringify({ ok: true, users: 2 }), { status: 200, headers: { 'content-type': 'application/json' } }))
-    vi.stubGlobal('fetch', vi.fn((url, init) => (url.endsWith('/api/pair/redeem') ? failed() : init && init.mode === 'no-cors' ? opaque() : health())))
+    vi.stubGlobal('fetch', vi.fn((url, init) => (url.endsWith('/api/v1/pair/redeem') ? failed() : init && init.mode === 'no-cors' ? opaque() : health())))
     const e = await pairRedeem('https://gym.example.com', 'ABCD2345').catch(x => x)
     expect(e.code).toBe('cors')
   })
@@ -45,7 +45,7 @@ describe('pairRedeem when the request never gets an answer', () => {
     ['an HTML page with no content type', () => new Response('  <html><body>Authelia</body></html>', { status: 200 })],
     ['an HTML 404 page', () => new Response('<h1>not found</h1>', { status: 404, headers: { 'content-type': 'text/html' } })],
   ])('a server that answers with %s: says something in front of openGym answered', async (_, page) => {
-    vi.stubGlobal('fetch', vi.fn((url, init) => (url.endsWith('/api/pair/redeem') ? failed() : init && init.mode === 'no-cors' ? opaque() : Promise.resolve(page()))))
+    vi.stubGlobal('fetch', vi.fn((url, init) => (url.endsWith('/api/v1/pair/redeem') ? failed() : init && init.mode === 'no-cors' ? opaque() : Promise.resolve(page()))))
     const e = await pairRedeem('https://gym.example.com', 'ABCD2345').catch(x => x)
     expect(e.code).toBe('proxy-answered')
     expect(e.message).toBe(PROXY_MSG)
@@ -57,7 +57,7 @@ describe('pairRedeem when the request never gets an answer', () => {
     ['a plain-text 404 from a proxy with no route', () => new Response('404 page not found\n', { status: 404, headers: { 'content-type': 'text/plain' } })],
     ['JSON that is not openGym\'s health', () => new Response(JSON.stringify({ ok: false }), { status: 200, headers: { 'content-type': 'application/json' } })],
   ])('a server that answers with %s: says it is not an openGym server', async (_, page) => {
-    vi.stubGlobal('fetch', vi.fn((url, init) => (url.endsWith('/api/pair/redeem') ? failed() : init && init.mode === 'no-cors' ? opaque() : Promise.resolve(page()))))
+    vi.stubGlobal('fetch', vi.fn((url, init) => (url.endsWith('/api/v1/pair/redeem') ? failed() : init && init.mode === 'no-cors' ? opaque() : Promise.resolve(page()))))
     const e = await pairRedeem('https://gym.example.com', 'ABCD2345').catch(x => x)
     expect(e.code).toBe('not-opengym')
     expect(e.message).toBe('That address answers, but it isn’t an openGym server. Check the URL.')
@@ -77,7 +77,7 @@ describe('pairRedeem when the request never gets an answer', () => {
   })
 
   it('a probe that hangs counts as not reachable', async () => {
-    vi.stubGlobal('fetch', vi.fn((url) => (url.endsWith('/api/pair/redeem') ? failed() : new Promise(() => {}))))
+    vi.stubGlobal('fetch', vi.fn((url) => (url.endsWith('/api/v1/pair/redeem') ? failed() : new Promise(() => {}))))
     const e = await pairRedeem('https://gym.example.com', 'ABCD2345', { probeMs: 20 }).catch(x => x)
     expect(e.code).toBe('unreachable')
   })

@@ -22,7 +22,7 @@ describe('apiBlob', () => {
     const fetchImpl = vi.fn(async () => answer(200, { length: 6, body: stream([new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]) }))
     const b = await apiBlob('/api/media/abc', { expectSize: 6, fetchImpl })
     expect(new Uint8Array(await b.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3, 4, 5, 6]))
-    expect(fetchImpl.mock.calls[0][0]).toBe('https://gym.example.com/api/media/abc')
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://gym.example.com/api/v1/media/abc')
     expect(fetchImpl.mock.calls[0][1].headers).toEqual({ Authorization: 'Bearer TOKEN' })
   })
 
@@ -67,7 +67,7 @@ describe('apiUpload', () => {
     const { X, made } = fakeXHR(reply(201, JSON.stringify({ ok: true, existed: false })))
     const blob = new Blob(['bytes'], { type: 'application/octet-stream' })
     await expect(apiUpload('/api/media/abc', blob, 'video/quicktime', { XHR: X })).resolves.toEqual({ ok: true, existed: false })
-    expect(made[0]).toMatchObject({ method: 'PUT', url: 'https://gym.example.com/api/media/abc', body: blob })
+    expect(made[0]).toMatchObject({ method: 'PUT', url: 'https://gym.example.com/api/v1/media/abc', body: blob })
     expect(made[0].headers).toEqual({ 'Content-Type': 'video/quicktime', Authorization: 'Bearer TOKEN' })
   })
 

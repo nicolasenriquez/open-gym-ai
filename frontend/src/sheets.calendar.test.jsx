@@ -34,6 +34,16 @@ describe('Calendar canonical workout days', () => {
     useStore.setState({ S: original })
   })
 
+  it.each([
+    ['2026-09-01', 'September 2026'],
+    ['2026-01-01', 'January 2026'],
+  ])('opens the local month of %s without shifting the month or year', (day, heading) => {
+    calendarSheet(day)
+    const host = renderTop()
+    expect(host.querySelector('h3').textContent).toBe(heading)
+    expect(host.querySelectorAll('.cal-d')).toHaveLength(day.includes('-09-') ? 30 : 31)
+  })
+
   it('keeps multiple legacy sessions on the heatmap fallback day clickable in Calendar', () => {
     const day = todayISO()
     const start = new Date(day + 'T09:00:00').getTime()

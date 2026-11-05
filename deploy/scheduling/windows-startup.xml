@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template only. Replace paths and OPERATOR_ACCOUNT; do not import without authorization. -->
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo><Description>openGym startup; private explicit configuration; inspect LastTaskResult.</Description></RegistrationInfo>
+  <Triggers><BootTrigger><Enabled>true</Enabled></BootTrigger></Triggers>
+  <Principals><Principal id="Operator"><UserId>OPERATOR_ACCOUNT</UserId><LogonType>Password</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+    <Enabled>true</Enabled>
+  </Settings>
+  <Actions Context="Operator"><Exec>
+    <Command>C:\ABS\node.exe</Command>
+    <Arguments>&quot;C:\ABS\REPO\scripts\platform.mjs&quot; operate backup --config &quot;C:\PRIVATE\backup.json&quot; --reason startup</Arguments>
+    <WorkingDirectory>C:\ABS\REPO</WorkingDirectory>
+  </Exec></Actions>
+</Task>

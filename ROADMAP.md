@@ -1,9 +1,40 @@
 # Roadmap
 
-Where openGym is going, in the order it is likely to land. Each block is a GitHub milestone; the
+## OpenGym Evolution — local delivery priority
+
+**The isolated Python Foundation is in development; the normal application remains Node/JSON.** The local
+Evolution direction is separate from the upstream milestones preserved below:
+
+1. Complete and accept the **Python/FastAPI/PostgreSQL platform**, with existing capabilities,
+   data migration, consumer parity, reproducible container development/deployment, recovery and
+   retirement of the replaced backend/storage. Keep the current frontend and Training offline.
+2. Implement **Recovery**, after platform acceptance, with its complete responsive web workflow;
+   then evaluate usefulness in the three real sessions defined by its PRD.
+3. Define and implement **Garmin Connect**, with verified data access, scope and provenance.
+4. Add **expanded AI capabilities**, with explicit use cases, consent and evaluation.
+
+Sources of truth: [Evolution PRD](docs/open-gym-evolution.prd.md),
+[architecture and acceptance gates](docs/open-gym-evolution.architecture.md#12-gates-y-experimentos-antes-de-producción)
+and [Recovery PRD](docs/open-gym-recovery.prd.md). No dates are committed for this local sequence.
+The archived Node PostgreSQL Foundation is synthetic evidence; it does not complete the Python
+platform or migrate the running app. Subsequent feature implementation waits for platform closure.
+
+## Upstream roadmap — retained context
+
+The following release cadence, dates, milestones and database options describe the upstream plan,
+not the local Evolution implementation order or delivery promises. In particular, “Later: database
+storage” and its embedded-default/startup-migration proposal do not override the local decision
+to deliver Python/FastAPI/PostgreSQL first with a controlled migration.
+
+Where upstream openGym is going, in the order it is likely to land. Each block is a GitHub milestone; the
 issues and pull requests attached to it are the plan, this file is the readable summary.
 
-**A release every two weeks, on a Sunday.** Each one is small on purpose: a handful of issues, one
+Historical milestones and their version assignments below are retained upstream context,
+not a current schedule. Future releases follow the
+[SemVer policy](CONTRIBUTING.md#versioning-and-changelog); published versions in
+[CHANGELOG.md](CHANGELOG.md) are not reused for future milestones.
+
+**Historical cadence: a release every two weeks, on a Sunday.** Each one is small on purpose: a handful of issues, one
 theme, so a version is out before the branch has drifted and every fix reaches phones within a
 fortnight. Whatever is not merged and tested on gym-test by the Friday before rolls into the next
 block, the date does not move. Version numbers follow the release rule, not the size of the change:

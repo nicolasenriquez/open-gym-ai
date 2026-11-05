@@ -44,7 +44,7 @@ function fmtIn(sec) {
 }
 
 // The server's answer in the UI language. Every password route sends a stable `code` beside its
-// English message (api/openapi.yaml, Error.code); an answer without one is shown as it came.
+// English message (backend/openapi.yaml, Error.code); an answer without one is shown as it came.
 export function passwordError(e) {
   const code = e?.data?.code
   if (e?.status === 429 || code === 'locked') return t('Too many attempts. Try again {0}.', fmtIn(e?.data?.retryAfter || 60))

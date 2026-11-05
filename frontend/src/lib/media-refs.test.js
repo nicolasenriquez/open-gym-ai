@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
 import { normalizeMediaRef, referencedHashes, referencedFiles, cleanUrl, linkKind, mediaOf, fmtClip, HASH_RE } from './media-refs.js'
 
 const A = 'a'.repeat(64)
@@ -58,15 +57,12 @@ describe('normalizeMediaRef', () => {
 })
 
 describe('referencedHashes', () => {
-  // The same answers as api/media.js referencedHashes: the server keeps and the client keeps the
-  // same set. The fixture is the api tests' own.
-  const fixture = JSON.parse(readFileSync(new URL('../../../api/test/fixtures/media-refs.json', import.meta.url), 'utf8'))
-  for (const c of fixture.referencedHashes) {
-    it(`parity: ${c.name}`, () => {
-      expect([...referencedHashes(c.state)].sort()).toEqual([...c.expect].sort())
-    })
-  }
-
+  it('keeps valid main/poster hashes from both media locations, deduplicates and ignores junk', () => {
+    const state = { customEx: [{ media: ref() }, { media: { hash: 'invalid' } }],
+      workouts: [{ media: [ref({ hash: C }), null, { hash: A.toUpperCase() }] }] }
+    expect([...referencedHashes(state)].sort()).toEqual([A, B, C])
+    for (const state of [null, {}, { customEx: null, workouts: [] }]) expect([...referencedHashes(state)]).toEqual([])
+  })
   it('lists the files posters first, each once, with what the state says of them', () => {
     const S = { customEx: [
       { id: 'x', media: ref() },

@@ -1,0 +1,18 @@
+FROM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
+FROM python:3.14.9-slim-bookworm@sha256:945c2676dc2b18e0c1f16879244122c57c0ffede60006bf3df159c507a31bcae AS resolver
+COPY --from=uv /uv /usr/local/bin/uv
+ENV UV_PYTHON_DOWNLOADS=never UV_NO_CONFIG=1 UV_SYSTEM_CERTS=true UV_LINK_MODE=copy HOME=/tmp
+WORKDIR /tools
+COPY backend/security/pyproject.toml ./
+USER 1000:1000
+
+FROM resolver
+COPY backend/security/uv.lock ./
+USER root
+RUN uv sync --locked --no-install-project
+USER 1000:1000
+WORKDIR /app
+COPY backend/pyproject.toml backend/uv.lock ./
+COPY backend/src/ ./src/
+COPY .github/workflows/ ./.github/workflows/
+ENV PATH=/tools/.venv/bin:$PATH

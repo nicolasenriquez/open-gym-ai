@@ -1,0 +1,531 @@
+{
+  "gates": [{
+    "id": "authorized_cutover",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "--test-name-pattern=authorized_cutover", "scripts/platform-gates.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / New writes followed by rollback request",
+    "proof": "Synthetic CLI evidence inspection reuses pre-cutover coverage and safe files; requires candidate-bound explicit approval, maintenance window, single authority, equivalent import, protected originals and rollback-before-writes or preservation after forward repair",
+    "checkpoint": "Inspector only, never operates on an instance or grants permission. Always requires manual review and reports cutoverAuthorized/realGateCompleted false; 11.2 records deferral; real authorized execution remains a later operational intervention."
+  }, {
+    "id": "node_capture_recovery",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-node-recovery.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / Node origin needs a representative Python rehearsal",
+    "proof": "Independent frozen legacy files -> stopped-source capture -> existing PostgreSQL importer -> real host maintenance wrapper/age verified bundle -> separate quarantined restore, SQL/files/roles observer, original Node cutoff retained, corruption/key/target/interruption negatives",
+    "checkpoint": "11.1 synthetic chain only; scoped temporary runtime checks inside fixtures, no real instance, operational gate, access acceptance, physical disk or RPO/RTO claim"
+  }, {
+    "id": "node_capture_import",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-node-import.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / Node origin needs a representative Python rehearsal",
+    "proof": "Independent legacy documents/media -> frozen-source capture -> read-only owned volume -> existing importer on fresh PostgreSQL; independent SQL/files observer, denied runtime CONNECT, immutable source, occupied target and unrepresentable captured JSON blocked",
+    "checkpoint": "11.1 synthetic chain only; no real topology/data/permission or operational gate, no target promotion, backup, restore or RPO/RTO acceptance"
+  }, {
+    "id": "node_capture",
+    "target": "platform-client",
+    "entrypoint": "node",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-node-capture.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / Node origin needs a representative Python rehearsal",
+    "proof": "Disposable protocol fixtures verify stopped-source capture and drain proof; preserved-release runtime behavior remains historical evidence, not a second active API; identity/external-writer preflight, timeout refusal, bounded exclusive copy and source/destination hashes; active writers, changed sources, unsafe paths and killed controller cannot publish success or restart services",
+    "checkpoint": "Synthetic frozen-source capture/drain adapter only; no real topology, custody, data, backup disk, permission or operational gate. Caller supplies approved external-writer custody and explicit recovery; no operate command or automatic cutover."
+  }, {
+    "id": "pre_cutover",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "--test-name-pattern=pre_cutover", "scripts/platform-gates.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / pre-cutover evidence inspection",
+    "proof": "Synthetic CLI indexes: G0/G1/GP/GO coverage, complete release manifest, original provenance and applicability references, Node data-cutoff versus Python snapshot and full RPO/RTO chronology, checksums and human references; missing/failed/skipped/mismatched/escaped/linked/oversized evidence fails without Docker or command execution",
+    "checkpoint": "Validator fixtures only; no real gate completion, authenticity proof, operational permission or cutover. Explicit --evidence performs bounded structural inspection and always requires manual review. Task 11.1 is administratively closed."
+  }],
+  "repair": [{
+    "id": "acknowledged_writes",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-repair.test.mjs"],
+    "requirement": "Single-authority cutover and verified retirement / New writes followed by rollback request; Forward repair cannot preserve new writes",
+    "proof": "Surviving PostgreSQL, independent W1/W2 HTTP receipts and media, bad API image, transactional DDL failure and uncertain reply; compatible immutable release preserves bytes and admits W3; missing writes or incompatible release hold maintenance",
+    "checkpoint": "10.6 synthetic surviving-destination repair only; no destination-loss guarantee, zero RPO, real cutover or corrective business DDL"
+  }],
+  "restore": [{
+    "id": "full_timing",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-rehearsal.test.mjs"],
+    "proof": "Real host monthly rehearsal from a coherent verified bundle through private review, temporary runtime-only HTTP/RLS/media/Coach verification, actual frontend dirty/lineage/lost-reply reconciliation and independent PostgreSQL persistence before closing CONNECT; unknown peer, missing review, unresolved access, stale client proof, incident age/RTO breach and killed host stay incomplete or fail",
+    "checkpoint": "10.7 measured synthetic scope only; normal admission stays blocked, operator client evidence is explicit and operation-bound; no real identity/client, physical disk, operational acceptance, scheduling or traffic promotion"
+  }, {
+    "id": "reviewed_access",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-restore-access.test.mjs"],
+    "proof": "Real isolated bundle restore then local account-bound private recovery; rejects wrong binding, incomplete review, disabled/deleted/unverified accounts, unsafe permissions and output reuse; HTTP new login, old cookie/bearer rejection, private files, Coach decrypt, link/reset/job invalidation and unchanged Training",
+    "checkpoint": "10.5 synthetic new-password path only; actual restore gate/CONNECT stay closed, test-only private HTTP container with runtime-only secret/data mounts; no historical credential continuity, traffic admission, full recovery/RPO/RTO or real identity acceptance"
+  }, {
+    "id": "isolated_target",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-restore.test.mjs"],
+    "proof": "Real 10.3 bundle to new isolated PostgreSQL/files target; independent all-table digests, sequences, owner/grants/FORCE RLS and real runtime A/B; corrupt/unsafe/missing-secret bundles, foreign/exposed/nonempty/busy targets, mutex, real extraction ENOSPC and actual decrypt interruption stay quarantined",
+    "checkpoint": "10.4 only: no traffic/egress/bootstrap in API; no Q1 access review/signature rotation, full recovery/RPO/RTO or real instance acceptance"
+  }],
+  "backup": [{
+    "id": "capture_quiescence",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-capture.test.mjs"],
+    "proof": "Real host capture with the configured server probe held outside the target; forged probe on target still blocks. Concurrent unrelated removal between real ps/inspect succeeds only with confirmed absence; inspection failure for a still-present container blocks without losing data",
+    "checkpoint": "Capture regression only; no SQL guard relaxation, retry, production operation or S11 acceptance"
+  }, {
+    "id": "scheduling_and_age",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-scheduling.test.mjs", "scripts/diagnostic-collector.test.mjs"],
+    "proof": "Public startup CLI under the existing mutex: current, overdue, invalid/foreign/missing evidence, unresolved journal and occupied lock; explicit Windows/Linux templates and real owned collector retention with API absent, stopped collector failure and foreign sentinel preservation",
+    "checkpoint": "10.9 templates only, no host job installation; monthly rehearsal still needs a fresh target and private review, pre-migration remains held without DDL, scheduling does not credit RPO/RTO"
+  }, {
+    "id": "verified_bundle",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-bundle.test.mjs"],
+    "proof": "Actual host/ops age bundle, independent decrypt/tar/SQL/files readback and key exclusion, EOF authentication, corruption/unsafe entries/ENOSPC/wrong key, private status and interrupted encryption preserve last valid point",
+    "checkpoint": "10.3 synthetic encrypted publication only; no full restore, physical independent-disk acceptance, scheduling or retention"
+  }, {
+    "id": "writer_shutdown",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],
+    "proof": "Actual host wrapper, clean API stop, live PostgreSQL, all-owner SQL dump readback, exclusive private journal and conservative external-client rejection",
+    "checkpoint": "10.2 writer shutdown, with 10.8 SQL/files and 10.10 interruption regressions; no verified encrypted recovery point"
+  }, {
+    "id": "sql_files_coherence",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],
+    "proof": "Actual host/ops capture, independent SQL readback and exact media/GC/Coach/runtime-secret/config bytes and SHA-256, measured pause, protected staging, unknown early/late file writers and host-file mutation rejected",
+    "checkpoint": "10.8 capture plus 10.10 regression; operator controls Docker and host files during pause; no arbitrary host-writer barrier, encryption, verified backup or restore"
+  }, {
+    "id": "interrupted_capture",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/platform-maintenance.test.mjs"],
+    "proof": "Actual wrapper and recovery death, live controller/concurrent recovery rejection, owned capture/check process termination, persisted API startup admission, incompatible schema and failed restart blocked, initially stopped API preserved and pre-migration held without DDL or recursive startup backup",
+    "checkpoint": "10.10 explicit recovery only; no TTL release, automatic takeover with missing process proof, physical power-loss rehearsal, encrypted backup, restore or migration delivery"
+  }],
+  "import": [
+    {
+      "id": "faithful_or_blocked",
+      "requirement": "Faithful import and retirement parity / Unrepresentable legacy data; Explicitly bounded coach delivery / Imported deferred provider remains unavailable",
+      "setup": "Frozen read-only legacy files, actual private operator command, isolated PostgreSQL and independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_import.py"],
+      "proof": "Equivalent IDs, full documents, counters, secrets and Q6; incompatible data blocks without changing source or target",
+      "checkpoint": "10.1 only; no cutover, backup or restore acceptance"
+    }
+  ],
+  "diagnostics": [{
+    "id": "retention_and_failure",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/diagnostic-collector.test.mjs", "scripts/platform-images.test.mjs"],
+    "proof": "Persistent active/archive expiry and restart, hourly retention with stopped API, real nginx/API/PG/provider privacy, Docker copies and full/stopped sinks preserving HTTP commits",
+    "checkpoint": "9.4 synthetic Linux/amd64 acceptance; no real instance or host scheduler"
+  }, {
+    "id": "correlation",
+    "target": "platform-test",
+    "command": ["tests/platform/test_correlation.py"],
+    "proof": "Internal request_id across real HTTP, restricted PostgreSQL and private asynchronous provider; safe outcomes and durations without exported trace context",
+    "checkpoint": "9.3 synthetic correlation; extended retention/failure uses retention_and_failure"
+  }, {
+    "id": "operator_status",
+    "target": "platform-test",
+    "command": ["tests/platform/test_diagnostics.py"],
+    "proof": "Private live pool/DB/schema/audit/backup state; HTTP commits and bounded shutdown with missing/full logging socket, plus quota status",
+    "checkpoint": "9.2; backup absent is degraded until S10 supplies verified evidence"
+  }, {
+    "id": "collector_retention",
+    "target": "host",
+    "command": ["--test", "--test-reporter=tap", "scripts/diagnostic-collector.test.mjs"],
+    "proof": "Unix and Docker native transport without durable cache or published ports; privacy, all-source quota/age and stopped collector",
+    "checkpoint": "9.2 baseline selection/configuration; extended matrix uses retention_and_failure"
+  }],
+  "shared_client": [{
+    "id": "canonical_sources",
+    "requirement": "Faithful import and retirement parity / Parity after removing the replaced backend",
+    "setup": "Pinned Node/client test image; canonical shared JS, generated assets and private provider fixtures",
+    "target": "platform-client",
+    "entrypoint": "node",
+    "command": ["--test", "scripts/shared-client.test.mjs"],
+    "proof": "Single neutral source, current generated assets, plain Node loading and local coach/payload/validator parity",
+    "checkpoint": "8.1 only; formats, web/mobile bundle acceptance and OpenAPI authority remain 8.2/8.3"
+  }, {
+    "id": "formats_and_bundles",
+    "requirement": "Faithful import and retirement parity / Parity after removing the replaced backend",
+    "setup": "Pinned Node/client image, synthetic format fixtures and disposable web/mobile build workspace",
+    "target": "platform-client",
+    "entrypoint": "node",
+    "command": ["--test", "scripts/formats-and-bundles.test.mjs"],
+    "proof": "CSV/JSON/media backup/FIT hostile cases, catalogue continuity, web API prefixes and mobile assets copied intact to Android/iOS without Node API sources",
+    "checkpoint": "8.2 only; bundle/copy proof, not native compilation, device execution or shell publication; OpenAPI remains 8.3"
+  }],
+  "admin_delete": [{
+    "id": "external_retry",
+    "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+    "setup": "Restricted real HTTP/PostgreSQL and private filesystem, independent observer and operator commands",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_cleanup.py"],
+    "proof": "Idempotent owner-only cleanup, durable bounded retries, pending/done status and private operator recovery",
+    "checkpoint": "6.3 synthetic only; no operational acceptance"
+  }, {
+    "id": "atomic_delete",
+    "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+    "setup": "Real restricted HTTP/PostgreSQL and independent observer, synthetic owners and external references",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_delete.py"],
+    "proof": "Atomic account cascades, coach disconnection and durable pending cleanup; immediate denial and preserved history",
+    "checkpoint": "6.2 only; external executor and retries remain 6.3"
+  }],
+  "admin_audit": [{
+    "id": "failure_and_retention",
+    "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+    "setup": "Restricted HTTP/PostgreSQL, independent observer and synthetic events",
+    "target": "platform-test",
+    "command": ["tests/platform/test_audit.py"],
+    "proof": "Admin read/clear, retention, persistent sequence, IP policy and postcommit failure isolation",
+    "checkpoint": "6.5 synthetic only; operational diagnostics remain S9"
+  }],
+  "admin_invites": [{
+    "id": "consumed_history",
+    "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Recoverable deletion and compatible audit",
+    "setup": "Real restricted HTTP/PostgreSQL with independently observed synthetic accounts and invitation history",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_invites.py"],
+    "proof": "Current admin authority, one-use invitations preserved after deletion and atomic 24-hour reset issuance",
+    "checkpoint": "6.4 only; administrative audit remains 6.5"
+  }],
+  "admin_users": [{
+    "id": "actor_target",
+    "requirement": "Executable schema and privileged functions / Existing administrative Training projection is preserved; Authenticated session to RLS ownership / Concurrent revocation is serialized with protected work",
+    "setup": "Real restricted HTTP/PostgreSQL and independent observer with synthetic accounts",
+    "target": "platform-test",
+    "command": ["tests/platform/test_admin_users.py"],
+    "proof": "Actor-target permissions, bounded Training projections, hasPush and ordered disable/revocation",
+    "checkpoint": "6.1 only; deletion, invitations and audit remain later slices"
+  }],
+  "notifications": [{
+    "id": "device_isolation",
+    "requirement": "Compatible notification and coach state / Notification ownership and local dates",
+    "setup": "Restricted HTTP/PostgreSQL, process-local activity/timers and private fake push",
+    "target": "platform-test",
+    "command": ["tests/platform/test_notification_activity.py"],
+    "proof": "Owner/device alert selection, cancellation, ephemeral presence and restart",
+    "checkpoint": "7.3 synthetic only; no real device delivery"
+  }, {
+    "id": "local_dates",
+    "requirement": "Compatible notification and coach state / Notification ownership and local dates",
+    "setup": "Restricted PostgreSQL, internal scheduler, fixed clocks and private fake transport",
+    "target": "platform-test",
+    "command": ["tests/platform/test_notification_delivery.py", "tests/platform/test_notification_authorization.py"],
+    "proof": "Local dates, Training preferences, authorized candidates and failed/dead push semantics",
+    "checkpoint": "7.2 synthetic only; activity and timers remain 7.3, not real device delivery"
+  }, {
+    "id": "subscription",
+    "requirement": "Compatible notification and coach state / Notification ownership and local dates",
+    "setup": "Real restricted HTTP/PostgreSQL, synthetic endpoints and independent observer; no external delivery",
+    "target": "platform-test",
+    "command": ["tests/platform/test_notifications.py"],
+    "proof": "Endpoint transfer, date/device preservation, cap, SSRF validation and owner isolation",
+    "checkpoint": "7.1 only; delivery, scheduler and timers remain 7.2/7.3"
+  }],
+  "coach_client": [{
+    "id": "consent_and_availability",
+    "requirement": "Compatible notification and coach state; Explicitly bounded coach delivery",
+    "setup": "Restricted HTTP/PostgreSQL, private providers and synthetic participants",
+    "target": "platform-test",
+    "command": ["tests/platform/test_coach_client.py"],
+    "proof": "Consent, private cohort/payload, cadence, restricted SQL and upgrade; UI evidence separately",
+    "checkpoint": "5.6; synthetic verification only"
+  }],
+  "coach_admin": [
+    {
+      "id": "credentials",
+      "requirement": "Explicitly bounded coach delivery / Imported deferred provider remains unavailable; Least-privilege access / Preauthentication and pool reuse",
+      "setup": "Real HTTP and restricted PostgreSQL, private provider and external encrypted secret fixtures; independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_admin.py"],
+      "proof": "Admin configuration, models/test, connect/disconnect and profile account; isolation, decrypt failure and no deferred work",
+      "checkpoint": "5.5 only; no real providers or operational acceptance"
+    }
+  ],
+  "coach_http": [
+    {
+      "id": "validated_proposal",
+      "requirement": "Explicitly bounded coach delivery; Compatible notification and coach state",
+      "setup": "Restricted real HTTP/PostgreSQL and private HTTP provider fixtures; no real credentials or provider",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_http.py", "tests/platform/test_coach_vectors.py"],
+      "proof": "Consent before quota, allowlisted payload, four transports and validated pending proposals without automatic application",
+      "checkpoint": "5.3 only; resolve/forget, credentials administration and scheduling remain later slices"
+    }
+  ],
+  "coach_state": [
+    {
+      "id": "late_result",
+      "requirement": "Compatible notification and coach state / Forget and late provider response; Atomic limits and repeated job events",
+      "setup": "Restricted real HTTP/PostgreSQL and private provider fixtures; no real credentials or account data",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_lifecycle.py"],
+      "proof": "Repeated decisions, expiry, twenty-event history, atomic forgetting and UTC usage retention; HTTP cancellation, queued work and late completion after forget/deletion",
+      "checkpoint": "5.4 only; administrative deletion, credentials, cohort and scheduling remain later slices"
+    },
+    {
+      "id": "atomic_enqueue",
+      "requirement": "Compatible notification and coach state / Atomic limits and repeated job events",
+      "setup": "Real restricted HTTP/PostgreSQL, private deterministic execution seam, no real provider",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_jobs.py"],
+      "proof": "Atomic UTC caps, single-flight, two executions and restart without replay",
+      "checkpoint": "5.2 only; HTTP provider pipeline and proposals remain 5.3"
+    },
+    {
+      "id": "deferred_provider",
+      "requirement": "Explicitly bounded coach delivery / Imported deferred provider remains unavailable; Accepted delivery excludes agent infrastructure",
+      "setup": "Real restricted HTTP/PostgreSQL with synthetic imported settings, no credential mount or provider runtime",
+      "target": "platform-test",
+      "command": ["tests/platform/test_coach_state.py"],
+      "proof": "Preserved deferred selection and non-secret configuration, public availability and authenticated 503/off before any work",
+      "checkpoint": "5.1 only; job persistence, HTTP transports, administration and client UX remain 5.2–5.6"
+    }
+  ],
+  "media_gc": [
+    {
+      "id": "fail_safe",
+      "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+      "setup": "Real restricted HTTP/PostgreSQL and disposable private filesystem with independent sentinels",
+      "target": "platform-test",
+      "command": ["tests/platform/test_media_gc.py"],
+      "proof": "Own reference-based collection, safe failures and concurrent upload preservation",
+      "checkpoint": "4.3 GC only; no administrative account deletion or operational acceptance"
+    }
+  ],
+  "media": [
+    {
+      "id": "roundtrip",
+      "requirement": "Phase-bounded compatible capability port / Least-privilege access / Recoverable deletion and compatible audit",
+      "setup": "Real restricted HTTP/PostgreSQL and disposable private media filesystem",
+      "target": "platform-test",
+      "command": ["tests/platform/test_media.py"],
+      "proof": "Own byte/hash/type roundtrip, private headers and foreign 404; public Training references",
+      "checkpoint": "4.1 roundtrip regression; quota_and_missing covers 4.2; general GC remains later"
+    },
+    {
+      "id": "quota_and_missing",
+      "requirement": "Recoverable deletion and compatible audit / External cleanup or audit failure",
+      "setup": "Restricted real HTTP/PostgreSQL, disposable filesystem, concurrent streams and independent sentinels",
+      "target": "platform-test",
+      "command": ["tests/platform/test_media_limits.py"],
+      "proof": "Owner-only missing/usage, quota reservations and pressure, upload/disk limits, temporary cleanup and safe failure",
+      "checkpoint": "4.2 regression; client queue is covered by training_browser; GC by media_gc"
+    }
+  ],
+  "identity_links": [
+    {
+      "id": "redeem",
+      "requirement": "Legacy-compatible identity namespace and credentials / Credential and account access continuity",
+      "setup": "Real restricted HTTP/PostgreSQL, synthetic pairing and independent WebAuthn vectors/observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_links.py"],
+      "proof": "One-use replacement, expiry and revocation; code-bound registration and atomic passkey persistence",
+      "checkpoint": "2.8 synthetic only; no native-device or physical-authenticator acceptance"
+    }
+  ],
+  "identity_reset": [
+    {
+      "id": "single_use",
+      "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry",
+      "setup": "Real restricted HTTP/PostgreSQL, synthetic 24-hour reset and independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_reset.py"],
+      "proof": "One-use reset, atomic password/alias/version and rollback/expiry/concurrent redemption",
+      "checkpoint": "2.7 only; administrative issuance remains 6.4"
+    }
+  ],
+  "training_browser": [
+    {
+      "id": "offline_sync",
+      "requirement": "Canonical compatible Training persistence / First write and competing revision; No document and legacy metadata",
+      "setup": "Compiled frontend, pinned Chromium, real Python HTTP with restricted runtime and separate PostgreSQL observer/fault fixture",
+      "target": "platform-browser",
+      "command": ["tests/platform/test_training_browser.py"],
+      "proof": "Admin invitation create/revoke and reset issuance persist across reload with independent SQL proof; UI reset commits empty Training then collects only own bytes; real picker, pending upload/reload/retry and offline photo; device links, password reset, passkeys, 401/two 409s, lost reply and restored lineage",
+      "checkpoint": "6.4, 4.1–4.3, 3.4 and 2.6–2.8 synthetic browser only; no physical authenticator, native devices or operational restore acceptance"
+    }
+  ],
+  "training_write": [
+    {
+      "id": "lineage_retry",
+      "requirement": "Canonical compatible Training persistence / First write and competing revision; No document and legacy metadata",
+      "setup": "Independent Node stamp vectors, real HTTP and restricted PostgreSQL with separate observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_training_stamps.py", "tests/platform/test_training_lineage.py"],
+      "proof": "Stamps, legacy replacements, reset, lineage and lost response retries preserve canonical state",
+      "checkpoint": "3.3 only; browser reconciliation remains 3.4"
+    },
+    {
+      "id": "first_write",
+      "requirement": "Canonical compatible Training persistence / First write and competing revision",
+      "setup": "Real HTTP and restricted PostgreSQL with verified accounts and independent persistence observation",
+      "target": "platform-test",
+      "command": ["tests/platform/test_training_write.py"],
+      "proof": "Concurrent conditional saves, owner isolation, strict conflicts, persisted revision correction and postcommit failure independent of SQL success",
+      "checkpoint": "3.2 first-write regression; lineage_retry covers 3.3; the media adapter remains S4"
+    }
+  ],
+  "training_read": [
+    {
+      "id": "owner_and_types",
+      "requirement": "Canonical compatible Training persistence / No document and legacy metadata; Authenticated session to RLS ownership / Verified session controls owner context despite client forgery",
+      "setup": "Real HTTP and restricted PostgreSQL, independently seeded accounts and observed canonical documents",
+      "target": "platform-test",
+      "command": ["tests/platform/test_training_read.py"],
+      "proof": "Own/empty reads, canonical metadata, strict generated projections and actor/RLS isolation",
+      "checkpoint": "3.1 only; no PUT, stamps or browser acceptance"
+    }
+  ],
+  "identity_account": [
+    {
+      "id": "passkey_management",
+      "requirement": "Legacy-compatible identity namespace and credentials / Credential and account access continuity",
+      "setup": "Real restricted HTTP/PostgreSQL and independent WebAuthn vectors with separate observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_passkey_management.py"],
+      "proof": "Owner-only list/add/rename/remove, fresh proof, cap 20, last-way-in and stale ceremony rejection",
+      "checkpoint": "2.6 synthetic management only; no physical authenticator or device-link redemption"
+    },
+    {
+      "id": "password_email",
+      "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Credential and account access continuity",
+      "setup": "Real restricted HTTP/PostgreSQL, independent Node expectations and observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_account.py"],
+      "proof": "Own password/email and logout-all, fresh proof, atomic claims and revocation, last-way-in",
+      "checkpoint": "2.5 only; no passkey management, reset redemption or pairing"
+    }
+  ],
+  "identity_passkey": [
+    {
+      "id": "interoperability",
+      "requirement": "Legacy-compatible identity namespace and credentials / Credential and account access continuity; Executable schema and privileged functions / Migration failure and function grants",
+      "setup": "Independent Node WebAuthn vectors, real Uvicorn and restricted PostgreSQL with independent observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_passkey.py"],
+      "proof": "Passkey registration/login, signature/counter/backup validation, replay and concurrent revocation",
+      "checkpoint": "2.4 only; no account management or physical authenticator acceptance"
+    }
+  ],
+  "identity_register": [
+    {
+      "id": "concurrent_claim",
+      "requirement": "Legacy-compatible identity namespace and credentials / Concurrent alias reservation and reset expiry; Executable schema and privileged functions / Migration failure and function grants",
+      "setup": "Real HTTP, restricted PostgreSQL and independent observer with synthetic accounts/invitations",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_register.py"],
+      "proof": "Password signup, Unicode claims, one-use invitations and first-admin serialization",
+      "checkpoint": "2.3 only; no WebAuthn or account management"
+    }
+  ],
+  "identity_password": [
+    {
+      "id": "login",
+      "requirement": "Legacy-compatible identity namespace and credentials / Credential and account access continuity",
+      "setup": "Independent Node scrypt/NFKC vectors, real Uvicorn and restricted PostgreSQL with separate setup/observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_password.py"],
+      "proof": "Compatible login, dummy work, bounded attempts, cookie and lock-time credential/version revalidation",
+      "checkpoint": "2.2 only; no registration or account management"
+    }
+  ],
+  "identity_session": [
+    {
+      "id": "restricted_pool",
+      "requirement": "Least-privilege access / Preauthentication and pool reuse",
+      "setup": "Real Uvicorn, one-slot restricted runtime pool and independent PostgreSQL observer; synthetic faults only",
+      "target": "platform-test",
+      "command": ["tests/core/test_database.py", "tests/platform/test_identity_restricted_pool.py"],
+      "proof": "Final identity SQL catalog, ACL/FORCE RLS and clean reuse across commit, rollback, error, timeout and cancellation",
+      "checkpoint": "2.9 synthetic identity checkpoint; no operational or native-device acceptance"
+    },
+    {
+      "id": "actor",
+      "requirement": "Authenticated session to RLS ownership / Mixed credentials and duplicate cookies resolve one actor; Invalid sessions never establish protected ownership; Session expires while waiting for protected work; Concurrent revocation is serialized with protected work",
+      "setup": "Independent signed vectors, real Uvicorn and disposable PostgreSQL; restricted runtime, separate setup/observer",
+      "target": "platform-test",
+      "command": ["tests/platform/test_identity_session.py"],
+      "proof": "One selected verified actor, lock-time expiry/version checks, RLS ownership and concurrent revocation ordering",
+      "checkpoint": "2.1 only; no password login, Training or full pool acceptance"
+    }
+  ],
+  "lifecycle": [
+    {
+      "id": "readiness",
+      "requirement": "Controlled images migrations and lifecycle / Incompatible schema or failed migration; Isolated local Compose operation / Resolved topology and environment isolation; Exclusive Python HTTP API v1 / Versioned Python request and removed previous URL",
+      "setup": "Disposable PostgreSQL, private file secrets, real Uvicorn HTTP with restricted runtime and separate migration setup",
+      "target": "platform-test",
+      "command": ["tests/platform/test_lifecycle.py"],
+      "proof": "Versioned health/config, live vs ready, removed unversioned routes and preflight, no startup migration or unknown-history repair, bounded recovery and shutdown",
+      "checkpoint": "1.3 only; no identity, business DDL or operational acceptance"
+    }
+  ],
+  "images": [
+    {
+      "id": "reproducibility",
+      "target": "host",
+      "command": ["--test", "--test-reporter=tap", "scripts/platform-reproducibility.test.mjs"],
+      "proof": "Clean HEAD worktree: real dev/ops targets, isolated cold/repeat/source/test/metadata/lock matrix and HTTP DB loss/reconnection",
+      "checkpoint": "9.1 only; retention selection still blocks 9.2–9.4"
+    },
+    {
+      "id": "isolation",
+      "requirement": "Isolated local Compose operation / Resolved topology and environment isolation; Controlled images migrations and lifecycle / Deferred coach runtimes do not expand operation",
+      "setup": "Owned images and explicit disposable dev/ops Compose configuration, no instance settings or secrets",
+      "target": "host",
+      "command": ["--test", "scripts/platform-images.test.mjs"],
+      "proof": "Pinned targets, no-root runtime without test/Node/SDK/CLI tooling; separate networks/data and file secrets",
+      "checkpoint": "1.5 only; HTTP readiness remains 1.3"
+    }
+  ],
+  "harness": [
+    {
+      "id": "ownership",
+      "requirement": "Bounded legacy and temporary artifact cleanup / Cleanup preserves recovery and foreign artifacts; Isolated local Compose operation / Resolved topology and environment isolation",
+      "setup": "Unique synthetic Docker resources and foreign sentinel; no instance config or data",
+      "target": "host",
+      "command": ["--test", "scripts/platform.test.mjs", "scripts/platform-ownership.test.mjs", "scripts/synthetic-harness.test.mjs"],
+      "proof": "Foreign labels, config, namespace and shared images rejected; owned cleanup only; missing suites exit 2",
+      "checkpoint": "1.2; retained pool and required-proof coverage runs in database/checks"
+    }
+  ],
+  "schema": [
+    {
+      "id": "history_lock",
+      "requirement": "compatible-platform-persistence / Executable schema and privileged functions / Migration failure and function grants; local-platform-operation / Controlled images migrations and lifecycle / Incompatible schema or failed migration",
+      "setup": "Fresh disposable PostgreSQL, pinned Python image, no instance config or data",
+      "target": "platform-test",
+      "command": ["tests/platform/test_schema.py"],
+      "proof": "Empty and genuine previous revisions reach p000 under one lock; interrupted/failed runs never advance head; bootstrap roles are least privilege, runtime reads history but has no DDL or role elevation",
+      "checkpoint": "1.4 only; no business DDL, HTTP API or operational gate"
+    }
+  ],
+  "contracts": [
+    {
+      "id": "python_routes",
+      "target": "platform-test",
+      "command": ["tests/platform/test_openapi.py"],
+      "proof": "Canonical YAML covers Python methods and public HTTP responses; internal probes and framework endpoints stay private",
+      "checkpoint": "8.3 synthetic contract verification"
+    }
+  ],
+  "database": [
+    {
+      "id": "pool",
+      "target": "platform-test",
+      "command": ["tests/core/test_database.py"],
+      "proof": "Retained pool, transaction rollback, owner isolation, cancellation and commit uncertainty on the current disposable Platform database"
+    }
+  ],
+  "checks": [
+    {
+      "id": "toolchain",
+      "target": "platform-test",
+      "command": ["tests/platform/test_toolchain.py", "tests/platform/test_proof_policy.py"],
+      "proof": "Locked dependencies, lint, formatting and types in the current test target"
+    }
+  ]
+}

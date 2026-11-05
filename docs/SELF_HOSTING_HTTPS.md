@@ -1,3 +1,8 @@
+---
+type: Guide
+title: HTTPS at home without exposing your server
+description: HTTPS on a home network without exposing the instance publicly.
+---
 # HTTPS at home without exposing your server
 
 This is a rather complex topic of its own, so it lives apart from the [SELF_HOSTING.md](./SELF_HOSTING.md) which focuses on how to run openGym.

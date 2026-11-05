@@ -59,14 +59,12 @@ describe('muscleBalanceWindow dates its cutoff the same way', () => {
 })
 
 /* Several call sites had their own copy of the rule: Stats.jsx twice, recovery.js, effort.js,
-   coach-demo.js, coach-insights.js, muscles.js, strength-exercises.js and the MCP server's
-   muscle_balance. A grep is the only guard that would have caught that, so here it is. */
+   coach-demo.js, coach-insights.js, muscles.js and strength-exercises.js. A grep is the only guard that would have caught that, so here it is. */
 describe('nothing re-implements the rule', () => {
   it('no source file dates a workout by hand', async () => {
     const fs = await import('node:fs')
     const path = await import('node:path')
     const root = path.resolve(import.meta.dirname, '..')
-    const mcp = path.resolve(root, '../../mcp/src')   // imports these helpers too
     const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => {
       const p = path.join(dir, e.name)
       if (e.isDirectory()) return e.name === 'locales' ? [] : walk(p)
@@ -74,7 +72,7 @@ describe('nothing re-implements the rule', () => {
     })
     // `w.start || new Date(w.d)` and its spellings. history.js itself is where the rule lives.
     const handRolled = /\bstart\s*(\|\||\?\?)\s*(Number\()?new Date\s*\(/
-    const offenders = [...walk(root), ...walk(mcp)]
+    const offenders = walk(root)
       .filter(p => !p.endsWith(path.join('lib', 'history.js')))
       .filter(p => handRolled.test(fs.readFileSync(p, 'utf8')))
       .map(p => path.relative(root, p))

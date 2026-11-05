@@ -1,0 +1,9 @@
+# Template only: replace absolute paths and run as the private operator account.
+# No implicit .env, shell profiles, installation or automatic migration.
+# Cron does not replay missed runs; @reboot checks the last verified snapshot once.
+0 */3 * * * /ABS/NODE /ABS/REPO/scripts/platform.mjs operate backup --config /ABS/PRIVATE/backup.json --reason scheduled
+@reboot /ABS/NODE /ABS/REPO/scripts/platform.mjs operate backup --config /ABS/PRIVATE/backup.json --reason startup
+0 2 1 * * /ABS/NODE /ABS/REPO/scripts/platform.mjs operate restore-rehearse --config /ABS/PRIVATE/monthly-new-target.json
+0 * * * * /ABS/NODE /ABS/REPO/scripts/platform.mjs operate diagnostics-retain --config /ABS/PRIVATE/backup.json
+# Before migration, invoke manually; nonzero/held must stop the migration:
+# /ABS/NODE /ABS/REPO/scripts/platform.mjs operate backup --config /ABS/PRIVATE/backup.json --reason pre-migration

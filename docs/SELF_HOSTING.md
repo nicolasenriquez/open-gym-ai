@@ -1,7 +1,25 @@
+---
+type: Guide
+title: Self-hosting openGym
+description: Current deployment, passkeys, backups and troubleshooting.
+---
 # Self-hosting openGym
 
-openGym is two small containers (a web server and an API) plus a folder of your data.
-This guide takes you from "just cloned it" to "using it from my phone over the internet".
+> **Current repository:** Python/FastAPI/PostgreSQL replaces the Node backend.
+> Use [backend/README.md](../backend/README.md) for current Compose, secrets,
+> configuration, backup and restore. There is no root Compose or Node image/chart.
+> Updating the checkout does not migrate an existing instance; real migration is
+> deferred and needs separate scoped authorization. Preserve its original release,
+> configuration, secrets and data.
+>
+> The remaining Node-specific configuration below is a **historical reference for
+> preserved older releases**, not executable setup/update guidance for this tree.
+> It will be consolidated during repository closeout; it cannot authorize operation.
+
+## Historical Node release reference
+
+The preserved Node release used two containers and file-backed application data.
+The sections below describe that release, not installation of the current checkout.
 
 **On this page**
 
@@ -24,18 +42,19 @@ HTTPS on a LAN without a public domain has [its own guide](SELF_HOSTING_HTTPS.md
 
 Requirements: [Docker](https://docs.docker.com/get-docker/) with the Compose plugin.
 
-```bash
-git clone https://github.com/DuarteSantos8/openGym   # or https://gitlab.com/DuarteSantos8/opengym — same repo
-cd openGym
-cp .env.example .env
-docker compose pull   # prebuilt images from ghcr.io (amd64 + arm64; the same images are on GitLab's registry) — or skip and build from source
-docker compose up -d
-```
+For an existing Node instance, use the deployment instructions and Compose files
+from its preserved release. Do not clone the current branch over that deployment
+or substitute its images, secrets or data paths.
+
+For a new, independent Python environment, follow
+[the current platform guide](../backend/README.md#platform-images-and-compose).
+The current checkout has no root Compose entrypoint.
 
 - The exercise stills and animations (180 px, ~80 MB) ship inside the web image; nothing is downloaded on first start. An old `media/` folder and its two volume lines from before v1.4.0 are no longer used: harmless if you keep them, safe to delete.
 - Open **http://localhost:8080** and create a profile with a passkey.
-- Rather build from source than pull prebuilt images? Skip `docker compose pull` and run
-  `docker compose up -d --build` instead — no Node needed locally either way.
+- To use published upstream images instead of this checkout, run `docker compose pull`
+  followed by `docker compose up -d`. Those images are maintained by upstream; this
+  repository does not publish images. No Node installation is needed on the host.
 
 Check it's healthy:
 
@@ -45,6 +64,30 @@ curl http://localhost:8080/api/health      # {"ok":true,...}
 ```
 
 Logs: `docker compose logs -f`. Stop: `docker compose down`.
+
+With `just` installed, run `just` to list commands, `just up` to build/start this
+local instance, `just logs` for logs and `just stop` to stop without removing
+containers or data. These shortcuts explicitly target the local project `opengym`;
+custom project names should keep their existing Compose commands.
+
+The root `docker-compose.yml` mentioned by this historical guide belongs to the
+preserved Node release; it is absent from the current checkout. Current Python
+definitions live under `deploy/`; see
+[backend deployment guidance](../backend/README.md#platform-images-and-compose).
+They do not migrate or replace an existing instance.
+`just status` lists all Compose projects on the Docker host, including stopped
+projects and unrelated applications. The platform verifier creates temporary
+projects; a visible project may still be active. After confirming its execution has
+ended, clean only its exact identifier with `node scripts/platform.mjs cleanup <project>`.
+These commands validate resource ownership; do not substitute global pruning.
+
+The Node API drains on SIGTERM/SIGINT: it closes HTTP admission and scheduled
+writers, waits for admitted requests and Coach/push/warmup work, then emits
+`NODE_DRAINED` and exits 0. `NODE_DRAIN_TIMEOUT_MS` sets its deadline (default
+30000 ms, clamped to 50–1800000 ms); timeout/failure exits 1 without that proof.
+The default Docker stop grace can be shorter than this deadline. A killed process
+or closed port alone does not prove a successful drain. The scoped capture adapter
+and operational permissions are described in the [S11 capture procedure](../openspec/changes/archive/2026-11-04-port-compatible-platform/design.md#procedimiento-ensayado-de-captura-node-detenida).
 
 ## 2. Understand the passkey requirement (important)
 
@@ -349,7 +392,7 @@ to anyone; it is only a second name that points at the account, and the password
   so switching between the two does not get around the pause.
 - Only the owner (in Settings) and admins (the user list and the user's page in the admin
   dashboard) ever see the address. It is not written to the activity log (entries show it masked,
-  `a…@e…`) or the container log, is not part of what the Coach, the MCP server or plan sharing
+  `a…@e…`) or the container log, is not part of what the Coach or plan sharing
   see, and is not in `/api/me`. It is stored in `db.json` as `email` on the user, lower-cased.
 - With `PASSWORD_LOGIN` off, the row and the field are hidden and the address is not used; it
   stays in `db.json` for when the flag comes back.
@@ -529,7 +572,7 @@ set in `.env`:
 | `MEDIA_GC_GRACE_DAYS` | `14` | how long a file nobody uses any more is kept |
 | `MEDIA_UPLOADS_PER_HOUR` | `600` | uploads per profile per hour; at most two run at once |
 | `MEDIA_MIN_FREE_MB` | `512` | uploads are refused while the disk under `./data` has less free; `0` = no floor |
-| `MEDIA_UPLOAD_MAX` | `48m` | the web container's body limit on `/api/media/` (nginx syntax); keep it above `MEDIA_VIDEO_MAX_MB` |
+| `MEDIA_UPLOAD_MAX` | `48m` | the web container's body limit on `/api/media/` and `/api/v1/media/` (nginx syntax); keep it above `MEDIA_VIDEO_MAX_MB` |
 
 Every MB here is 1024 × 1024 bytes. The API reads the `MEDIA_*` caps; the app gets them from
 `/api/config` and refuses a file the server would refuse before uploading it.
@@ -541,8 +584,9 @@ full disk is also a state save that cannot land, for everybody.
 **A reverse proxy in front** has to let the uploads through, or they fail with a 413 or a
 timeout the app can only report as "The server refused the file as too large":
 
-- **Body size**: at least `MEDIA_VIDEO_MAX_MB` on `/api/media/`. nginx allows 1 MiB unless told
-  otherwise (`client_max_body_size`); Cloudflare's free plan caps a request at 100 MB.
+- **Body size**: at least `MEDIA_VIDEO_MAX_MB` on `/api/media/` and `/api/v1/media/`. nginx
+  allows 1 MiB unless told otherwise (`client_max_body_size`); Cloudflare's free plan caps a
+  request at 100 MB.
 - **Timeouts**: a 40 MB video over a slow mobile uplink takes minutes. Traefik v3 cuts a request
   whose body is still arriving after its entryPoint's `readTimeout`, 60 s by default — raise
   `entryPoints.<name>.transport.respondingTimeouts.readTimeout` (`600s`, say). nginx's
@@ -817,5 +861,5 @@ the shipped JavaScript bundle. Setting them in the `.env` next to `docker compos
 effect on an already-built image — the bundle has already made up its mind.
 
 They are only useful if you build the frontend yourself (`docker compose up -d --build`, or a
-`npm run build` with the variables exported). If you need to redirect media on a prebuilt
+`pnpm run build` with the variables exported). If you need to redirect media on a prebuilt
 image, do it in your reverse proxy instead.

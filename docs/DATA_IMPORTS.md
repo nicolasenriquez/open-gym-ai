@@ -1,3 +1,8 @@
+---
+type: Guide
+title: Importing and exporting data
+description: Supported import, export and sharing workflows for existing data.
+---
 # Importing and exporting data
 
 Everything here lives in the app under **Settings → Data & backup**, except plan sharing, which is on the

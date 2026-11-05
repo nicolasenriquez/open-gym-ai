@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => {
     S: state.S,
     user: { id: 'u1' },
     ready: true,
-    config: { coach: { enabled: true, ...(state.community ? { community: true } : {}) } },
+    config: state.deferred ? { coach: { enabled: false, provider: 'codex', providerLabel: 'Codex (OpenAI)' } } : { coach: { enabled: true, ...(state.community ? { community: true } : {}) } },
     coachLocal: null,
     update: mut => mut(state.S),
   })
@@ -89,7 +89,8 @@ function installDom() {
   root = createRoot(container)
 }
 
-async function mount(pending, job = null, { community = false, S = state() } = {}) {
+async function mount(pending, job = null, { community = false, deferred = false, S = state() } = {}) {
+  mocks.deferred = deferred
   mocks.S = S
   mocks.pending = pending
   mocks.job = job
@@ -237,4 +238,12 @@ describe('the Coach chat', () => {
     await mount(null, null, { community: true })
     expect(byText(/^Compare$/)).toBeTruthy()
   })
+})
+
+it('explains a deferred provider without redirecting or offering execution', async () => {
+  await mount(null, null, { deferred: true })
+  expect(container.textContent).toContain('Codex (OpenAI)')
+  expect(container.textContent).toContain('Not available right now.')
+  expect(container.querySelector('.composer')).toBeNull()
+  expect(mocks.nav).not.toHaveBeenCalled()
 })

@@ -13,7 +13,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import { modeOf as uiModeOf, isBw as uiIsBw, isPerSide as uiIsPerSide } from './history.js'
-import { modeOf as srvModeOf, isBw as srvIsBw, isPerSide as srvIsPerSide } from '../../../api/coach/core/payload.js'
+import { modeOf as srvModeOf, isBw as srvIsBw, isPerSide as srvIsPerSide } from '../../../shared/coach-core/payload.js'
 import { exOr } from './exercises.js'
 
 // Real ids from the catalogue, so `eq`/`bp` are whatever the dataset actually says rather than
@@ -74,7 +74,7 @@ describe('server/client reading rules agree', () => {
 // and the server does not know would be reset by every plan.
 import { GLYPHS, KNOWN_GLYPHS, glyphOf } from './glyphs.js'
 import { ICON_NAMES } from '../components/Icon.jsx'
-import { ROUTINE_GLYPHS, LEGACY_ROUTINE_GLYPHS, glyphStr } from '../../../api/coach/core/glyphs.js'
+import { ROUTINE_GLYPHS, LEGACY_ROUTINE_GLYPHS, glyphStr } from '../../../shared/coach-core/glyphs.js'
 
 describe('routine glyphs', () => {
   it('the server offers exactly the glyphs the picker offers, each a real icon', () => {

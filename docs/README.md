@@ -1,55 +1,60 @@
+---
+type: Guide
+title: openGym documentation
+description: Documentation entry point and ownership of guidance, requirements and supporting research.
+---
 # openGym documentation
 
-Pick the part that matches what you're doing. If you just have a question, try the
-[FAQ](FAQ.md) first.
+Start at the [documentation index](index.md), grouped by use, current operation,
+development and planned evolution. For a quick product question, try the [FAQ](FAQ.md).
 
 ## Using the app
 
-| Guide | Read it when |
-|---|---|
-| [FAQ](FAQ.md) | You have a quick question: iPhone, cost, where your data goes, AI, the exercise media |
-| [Phone app](MOBILE.md) | You want the Android APK or the iPhone options, or to connect the app to your own server |
-| [Importing data](DATA_IMPORTS.md) | You're coming from FitNotes, Strong, Hevy or Apple Health, or sharing a plan with someone |
-| [AI coach](AI_COACH.md) | Your instance has the coach switched on and you want to know what it sees and can change |
-
-The [live demo](https://opengym.ch/demo/) is the real app with example data, nothing
-to install.
+The index links the current phone, import and coach guides. The
+[live demo](https://opengym.ch/demo/) runs with example data.
 
 ## Hosting it
 
-| Guide | Read it when |
-|---|---|
-| [Self-hosting](SELF_HOSTING.md) | You're setting up an instance. Start here: running it, passkeys and HTTPS, users, backups, updates, troubleshooting |
-| [HTTPS at home](SELF_HOSTING_HTTPS.md) | You want valid certificates on your LAN without exposing the server to the internet |
-| [Kubernetes](SELF_HOSTING_KUBERNETES.md) | You run a cluster instead of Docker Compose |
-| [AI coach](AI_COACH.md) | You're deciding whether to turn the coach on, and with which provider |
-| [MCP server](../mcp/README.md) | You want Claude Desktop, Cursor or another AI client to read your training history |
-| [NixOS](NIX.md) | You run NixOS and want openGym native — flake packages and a NixOS module, no Docker |
-| [Security](../SECURITY.md) | You host it for other people, or want to report a vulnerability |
-
-All settings live in `.env`; [`.env.example`](../.env.example) explains each one, and the
-[README](../README.md#quick-start) has the full table.
+Read [self-hosting](SELF_HOSTING.md) before operating an instance. Deployment
+settings remain documented in [the environment example](../.env.example).
 
 ## Working on the code
 
-| Guide | Read it when |
-|---|---|
-| [Contributing](../CONTRIBUTING.md) | Before your first pull request: setup, guidelines, what CI checks |
-| [CLAUDE.md](../CLAUDE.md) | You want the architecture in one page (written for Claude Code, useful for people too) |
-| [HTTP API](API.md) | You're touching routes; the OpenAPI spec is the source of truth |
-| [Roadmap](../ROADMAP.md) | You want to know what's planned and where your idea fits |
-| [Changelog](../CHANGELOG.md) | You want to know what changed in a release |
+Read [contributing](../CONTRIBUTING.md) and [AGENTS.md](../AGENTS.md).
+For documentation changes, follow the [authoring guide](operations/okf-authoring-guide.md).
 
-Design notes for specific features, kept next to the code they describe:
+## Documentation authority
 
-| Note | Covers |
-|---|---|
-| [Set types](dev/SET_TYPES.md) | Drop sets and rest-pause: the set-row model and how totals are counted |
-| [Workout views](dev/LIST_VIEW.md) | The cards, list and compact layouts of the workout screen |
-| [Combine routines](dev/COMBINE_ROUTINES.md) | Spec for running more than one routine in a session |
+| Question | Source of truth |
+| --- | --- |
+| Shared repository rules | [AGENTS.md](../AGENTS.md) |
+| Where to find a document | [Documentation index](index.md) |
+| Current runtime and hosting | [Root README](../README.md), [self-hosting](SELF_HOSTING.md) and current source |
+| HTTP API documentation | [OpenAPI](../backend/openapi.yaml); [API guide](API.md) explains it; current handlers and behavioral tests establish implemented behavior |
+| Python development and synthetic verification | [Backend guide](../backend/README.md); delivery state and evidence remain in OpenSpec |
+| Platform outcomes and priority | [Evolution PRD](open-gym-evolution.prd.md) |
+| Transition, mechanisms and technical gates | [Architecture](open-gym-evolution.architecture.md) and its linked references |
+| Approved platform tables, relationships, constraints and indexes | [Compatible SQL schema](reference/platform-schema.md); current Alembic migrations and PostgreSQL tests establish implementation |
+| Target personal local operation, backup and recovery | [Local platform operation](reference/platform-operations.md); current hosting remains in SELF_HOSTING |
+| Module ownership, vertical slices and frontend placement | [Platform modularity](reference/platform-modularity.md); current modules implement the port while preserving the frontend |
+| Recovery functional requirements | [Recovery PRD](open-gym-recovery.prd.md) |
+| Product evidence and decision sources | [Discovery](dev/personal-recovery-discovery.md) and [research](research/index.md), only within their stated scope |
+| A selected change and its tasks | [OpenSpec artifacts](../openspec/changes/); archives preserve their original scope |
+| Documentation rules and maintenance | [Local OKF profile](standards/okf-profile.md) and [authoring guide](operations/okf-authoring-guide.md) |
+
+The repository runtime is Python/FastAPI/PostgreSQL with React/Vite/Zustand.
+The Node API and transition contracts are retired; Node remains a host/build tool.
+Existing instances have not been migrated by that retirement. The Evolution PRD
+governs later delivery; [repository acceptance and operational deferral](reference/platform-operations.md#evidencia-de-aceptación-y-límites-de-esta-revisión)
+distinguish verified synthetic results from real-instance acceptance.
+The [roadmap](../ROADMAP.md) summarizes direction and preserves upstream context;
+it does not override the PRDs or architecture. Research supports decisions; it is not current implementation guidance or proof of acceptance.
+
+Keep reusable knowledge in its owning page. Git/PRs preserve change history;
+execution logs and screenshots remain temporary artifacts. Follow the
+[retention policy](operations/okf-authoring-guide.md#qué-pertenece-a-docs) before adding or retiring a document.
 
 ## Still stuck?
 
-Ask on the [Discord](https://discord.gg/e62jY6fwVb) or in
-[Discussions](https://github.com/DuarteSantos8/openGym/discussions). If something in these docs was
-wrong or missing, that's worth an issue too.
+Ask in [Discussions](https://github.com/DuarteSantos8/openGym/discussions)
+or [Discord](https://discord.gg/e62jY6fwVb).

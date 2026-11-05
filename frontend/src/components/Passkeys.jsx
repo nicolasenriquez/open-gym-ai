@@ -40,7 +40,7 @@ const label = (p, i) => p.name || t('Passkey {0}', i + 1)
 const meta = p => [p.created && t('Added {0}', when(p.created)), p.lastUsed && t('Last used {0}', when(p.lastUsed))].filter(Boolean).join(' · ')
 
 // The server's refusal in the UI language. The proof codes are the password sheet's; the rest
-// are this feature's own (api/openapi.yaml, tag passkeys).
+// are this feature's own (backend/openapi.yaml, tag passkeys).
 export function passkeyError(e) {
   // The authenticator already holds one of this profile's passkeys (excludeCredentials).
   if (e?.name === 'InvalidStateError') return t('This device already has a passkey for this profile.')

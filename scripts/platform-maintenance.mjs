@@ -1,0 +1,776 @@
+import { spawn, spawnSync } from 'node:child_process';
+import { createHash, randomBytes } from 'node:crypto';
+import { constants, closeSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readSync, readdirSync, realpathSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { hostname } from 'node:os';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
+
+// Never inherit implicit Compose selection or a personal .env.
+const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toUpperCase().startsWith('COMPOSE_')));
+environment.COMPOSE_DISABLE_ENV_FILE = 'true';
+
+function docker(args, cwd, timeout = 15_000, proof) {
+  return new Promise((accept, reject) => {
+    if (proof) {
+      proof.journal.client = 'pending';
+      journalWrite(proof.root, proof.journal);
+    }
+    const child = spawn('docker', args, { cwd, env: environment, shell: false, windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe'], signal: AbortSignal.timeout(timeout) });
+    const chunks = [];
+    let size = 0;
+    child.stdout.on('data', data => {
+      size += data.length;
+      if (size > 4 * 1024 * 1024) child.kill();
+      else chunks.push(data);
+    });
+    // Docker diagnostics can contain private paths or provider data.
+    child.stderr.resume();
+    child.on('error', () => reject(new Error('MAINTENANCE_DOCKER_UNAVAILABLE_OR_TIMEOUT')));
+    child.on('close', code => code === 0 && size <= 4 * 1024 * 1024
+      ? accept(Buffer.concat(chunks).toString('utf8')) : reject(new Error('MAINTENANCE_DOCKER_FAILED')));
+    try {
+      if (proof) {
+        const start = processStart(child.pid);
+        proof.journal.client = start === null ? null : { host: hostname(), pid: child.pid, start };
+        journalWrite(proof.root, proof.journal);
+      }
+    } catch (error) { child.kill(); reject(error); }
+  });
+}
+
+const canonical = value => process.platform === 'win32' ? resolve(value).toLowerCase() : resolve(value);
+
+async function inspectContainer(id, cwd) {
+  try {
+    const item = JSON.parse(await docker(['inspect', id], cwd))[0];
+    if (!item) throw new Error('MAINTENANCE_DOCKER_FAILED');
+    return item;
+  }
+  catch (error) {
+    // A concurrent removal is safe only after a healthy listing proves absence.
+    if ((await docker(['ps', '--all', '--quiet', '--no-trunc', '--filter', `id=${id}`], cwd)).trim()) throw error;
+    return null;
+  }
+}
+
+function safePath(path, directory = false) {
+  const info = lstatSync(path);
+  if (info.isSymbolicLink() || (directory ? !info.isDirectory() : !info.isFile() || info.nlink !== 1)
+    || canonical(realpathSync(path)) !== canonical(path)) throw new Error('MAINTENANCE_PATH_UNSAFE');
+}
+
+function readCheckedFile(path, maxBytes, sizeError) {
+  safePath(path);
+  const expected = lstatSync(path, { bigint: true });
+  const identity = info => [info.dev, info.ino, info.size, info.mtimeNs, info.ctimeNs].join(':');
+  const fd = openSync(path, constants.O_RDONLY
+    | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+  try {
+    const before = fstatSync(fd, { bigint: true });
+    if (!before.isFile() || before.nlink !== 1n
+      || identity(before) !== identity(expected)) throw new Error('MAINTENANCE_FILE_CHANGED');
+    if (before.size > BigInt(maxBytes)) throw new Error(sizeError);
+    const bytes = Buffer.alloc(Number(before.size) + 1);
+    let size = 0;
+    while (size < bytes.length) {
+      const count = readSync(fd, bytes, size, bytes.length - size, null);
+      if (!count) break;
+      size += count;
+    }
+    const after = fstatSync(fd, { bigint: true });
+    if (after.nlink !== 1n || size !== Number(before.size)
+      || identity(before) !== identity(after)
+      || identity(lstatSync(path, { bigint: true })) !== identity(after)) {
+      throw new Error('MAINTENANCE_FILE_CHANGED');
+    }
+    return { bytes: bytes.subarray(0, size), identity: identity(after) };
+  } finally {
+    closeSync(fd);
+  }
+}
+
+function fileProof(path) {
+  const { bytes, identity } = readCheckedFile(path, 16 * 1024 * 1024, 'MAINTENANCE_CONFIG_TOO_LARGE');
+  return { sha256: createHash('sha256').update(bytes).digest('hex'), identity };
+}
+
+// Docker paths are daemon paths, not necessarily host paths on Docker Desktop.
+const mountPath = path => {
+  const normalized = path.replaceAll('\\', '/').replace(/\/$/, '');
+  return process.platform === 'win32'
+    ? normalized.replace(/^\/(?:run\/desktop\/mnt\/host|host_mnt)\/([a-z])\//i, '$1:/').toLowerCase()
+    : normalized;
+};
+const overlaps = (a, b) => a === b || a.startsWith(`${b}/`) || b.startsWith(`${a}/`);
+
+function privateJson(path, maxBytes = 65536) {
+  return JSON.parse(readCheckedFile(path, maxBytes, 'MAINTENANCE_PROOF_INVALID').bytes.toString('utf8'));
+}
+
+// PID plus OS start identity: reuse/reboot never identifies an old controller.
+function processStart(pid) {
+  if (!Number.isSafeInteger(pid) || pid < 1) throw new Error('MAINTENANCE_PROCESS_INVALID');
+  if (process.platform === 'win32') {
+    const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      "$ErrorActionPreference='Stop'; $p=Get-Process -Id $env:OPENGYM_PROCESS_ID -ErrorAction SilentlyContinue; "
+      + "if($null -eq $p){'absent'}else{$p.StartTime.ToUniversalTime().Ticks.ToString()}"],
+    { env: { ...environment, OPENGYM_PROCESS_ID: String(pid) }, encoding: 'utf8', windowsHide: true, timeout: 5000 });
+    if (result.status !== 0) throw new Error('MAINTENANCE_PROCESS_UNPROVEN');
+    const token = result.stdout.trim();
+    if (token === 'absent') return null;
+    if (!/^\d+$/.test(token)) throw new Error('MAINTENANCE_PROCESS_UNPROVEN');
+    return token;
+  }
+  if (process.platform !== 'linux') throw new Error('MAINTENANCE_HOST_UNSUPPORTED');
+  try {
+    const value = readFileSync(`/proc/${pid}/stat`, 'utf8');
+    return `${readFileSync('/proc/sys/kernel/random/boot_id', 'utf8').trim()}:${value.slice(value.lastIndexOf(')') + 2).split(' ')[19]}`;
+  } catch (error) {
+    if (error.code === 'ENOENT') return null;
+    throw new Error('MAINTENANCE_PROCESS_UNPROVEN');
+  }
+}
+
+const controller = () => ({ host: hostname(), pid: process.pid, start: processStart(process.pid) });
+function alive(owner) {
+  if (!owner || owner.host !== hostname() || typeof owner.start !== 'string' || !owner.start) {
+    throw new Error('MAINTENANCE_PROCESS_UNPROVEN');
+  }
+  return processStart(owner.pid) === owner.start;
+}
+
+function claimRecovery(lock, operation) {
+  let leaf = lock;
+  // Immutable successors give concurrent recoverers an atomic mkdir winner;
+  // an interrupted recovery can itself be recovered without deleting a live lock.
+  for (let depth = 0; depth < 64; depth++) {
+    safePath(leaf, true);
+    const owner = privateJson(join(leaf, 'controller.json'));
+    if (owner.operation !== operation) throw new Error('MAINTENANCE_OPERATION_MISMATCH');
+    if (alive(owner)) throw new Error('MAINTENANCE_CONTROLLER_ACTIVE');
+    const next = join(leaf, 'recovery');
+    if (existsSync(next)) { leaf = next; continue; }
+    try { mkdirSync(next, { mode: 0o700 }); }
+    catch { throw new Error('MAINTENANCE_LOCKED'); }
+    journalWrite(next, { ...controller(), operation }, 'controller.json');
+    return;
+  }
+  throw new Error('MAINTENANCE_RECOVERY_LIMIT');
+}
+
+function unlock(lock) {
+  safePath(lock, true);
+  const entries = readdirSync(lock);
+  if (entries.some(name => !['controller.json', 'recovery'].includes(name))) throw new Error('MAINTENANCE_LOCK_INVALID');
+  if (existsSync(join(lock, 'recovery'))) unlock(join(lock, 'recovery'));
+  safePath(join(lock, 'controller.json'));
+  unlinkSync(join(lock, 'controller.json'));
+  rmdirSync(lock);
+}
+
+function journalWrite(root, journal, name = 'journal.json') {
+  const temporary = join(root, `${journal.operation}.${randomBytes(8).toString('hex')}.tmp`);
+  const fd = openSync(temporary, 'wx', 0o600);
+  try { writeFileSync(fd, JSON.stringify(journal)); fsyncSync(fd); }
+  finally { closeSync(fd); }
+  renameSync(temporary, join(root, name));
+  if (process.platform !== 'win32') {
+    const directory = openSync(root, 'r');
+    try { fsyncSync(directory); } finally { closeSync(directory); }
+  }
+}
+
+function currentBackup(config) {
+  // Receipt age is evidence of a completed verification, not a live backup-disk probe.
+  try {
+    const gate = join(config.state_root, 'gate');
+    safePath(gate, true);
+    const admission = privateJson(join(gate, 'admission.json'));
+    if (admission.instance_id !== config.instance_id || admission.allowed !== true
+      || typeof admission.operation !== 'string' || !/^[a-f0-9]{32}$/.test(admission.operation)) return false;
+    const receipt = privateJson(join(gate, 'backup.json'));
+    const snapshot = Date.parse(receipt.snapshot_at), verified = Date.parse(receipt.verified_at), now = Date.now();
+    const utc = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)$/;
+    return receipt.version === 1 && receipt.verified === true && receipt.instance_id === config.instance_id
+      && typeof receipt.operation === 'string' && /^[a-f0-9]{32}$/.test(receipt.operation)
+      && receipt.ciphertext?.path === `${receipt.operation}.age`
+      && typeof receipt.ciphertext.sha256 === 'string' && /^[a-f0-9]{64}$/.test(receipt.ciphertext.sha256)
+      && Number.isSafeInteger(receipt.ciphertext.size) && receipt.ciphertext.size > 0
+      && typeof receipt.snapshot_at === 'string' && utc.test(receipt.snapshot_at)
+      && typeof receipt.verified_at === 'string' && utc.test(receipt.verified_at)
+      && new Date(snapshot).toISOString().slice(0, 19) === receipt.snapshot_at.slice(0, 19)
+      && new Date(verified).toISOString().slice(0, 19) === receipt.verified_at.slice(0, 19)
+      && snapshot <= verified && verified <= now && now - snapshot < 3 * 3600_000;
+  } catch { return false; }
+}
+
+function admission(config, journal, allowed) {
+  const root = join(config.state_root, 'gate');
+  safePath(root, true);
+  const previous = privateJson(join(root, 'admission.json'));
+  if (previous.instance_id !== config.instance_id || typeof previous.allowed !== 'boolean'
+    || !/^[a-f0-9]{32}$/.test(previous.operation)) throw new Error('MAINTENANCE_GATE_INVALID');
+  journalWrite(root, { instance_id: config.instance_id, operation: journal.operation, allowed }, 'admission.json');
+}
+
+function writerGate(config, item) {
+  if (!item.Config.Env.includes(`PLATFORM_INSTANCE_ID=${config.instance_id}`)
+    || !item.Config.Env.includes('PLATFORM_MAINTENANCE_GATE_DIR=/run/maintenance-gate')
+    || !item.Mounts.some(mount => mount.Type === 'bind' && !mount.RW && mount.Destination === '/run/maintenance-gate'
+      && mountPath(mount.Source) === mountPath(join(config.state_root, 'gate')))) throw new Error('MAINTENANCE_GATE_REQUIRED');
+}
+
+async function restartWriters(config, journal, run, inspect, track) {
+  journal.phase = 'restarting';
+  journalWrite(config.state_root, journal);
+  admission(config, journal, true);
+  try {
+    for (const service of journal.previously_running) {
+      const writer = journal.writers.find(writer => writer.service === service);
+      await docker(['start', writer.id], config.project_directory, 15_000, track);
+      const deadline = performance.now() + 30_000;
+      while (true) {
+        const item = await inspect(writer.id);
+        if (!item.State.Running || item.State.Restarting || item.Image !== writer.image) throw new Error('MAINTENANCE_RESTART_FAILED');
+        if (service !== 'api') break;
+        try {
+          await docker(['exec', writer.id, 'python', '-c',
+            "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:3000/api/v1/health/ready',timeout=1).status==200"],
+          config.project_directory, 3000);
+          break;
+        } catch {
+          if (performance.now() > deadline) throw new Error('MAINTENANCE_RESTART_FAILED');
+          await sleep(100);
+        }
+      }
+    }
+  } catch (error) {
+    try { admission(config, journal, false); }
+    finally { await run(['stop', '--timeout', '30', ...config.writers], 40_000, track); }
+    throw error;
+  }
+}
+
+async function recover(config, operation, run, inspect, lock) {
+  const journal = privateJson(join(config.state_root, 'journal.json'));
+  const identity = privateJson(join(config.state_root, 'owner.json'));
+  if (identity.instance_id !== config.instance_id || identity.project !== config.project
+    || journal.instance_id !== config.instance_id || journal.project !== config.project
+    || journal.operation !== operation || journal.version !== 1
+    || (journal.verified !== false && !(journal.verified === true && journal.phase === 'verified'))
+    || !['scheduled', 'startup', 'pre-migration'].includes(journal.reason)
+    || !['stopping', 'stopped', 'capturing', 'checking', 'restarting', 'recovering', 'migration_held',
+      'captured_unverified', 'recovered_unverified', 'bundling', 'verified'].includes(journal.phase)
+    || !Array.isArray(journal.writers) || journal.writers.length !== config.writers.length
+    || !Array.isArray(journal.previously_running)
+    || new Set(journal.previously_running).size !== journal.previously_running.length
+    || journal.previously_running.some(service => !config.writers.includes(service))
+    || new Set(journal.writers.map(writer => writer.service)).size !== config.writers.length
+    || journal.writers.some(writer => !config.writers.includes(writer.service) || !/^[a-f0-9]{64}$/.test(writer.id)
+      || !/^sha256:[a-f0-9]{64}$/.test(writer.image))
+    || journal.capture_container !== `${config.project}-ops-run-${operation.slice(0, 12)}`
+    || !Array.isArray(journal.check_containers) || journal.check_containers.length > 64
+    || journal.check_containers.some(name => !new RegExp(`^${config.project}-ops-run-[a-f0-9]{12}$`).test(name)
+      || name === journal.capture_container)) throw new Error('MAINTENANCE_PROOF_INVALID');
+  claimRecovery(lock, operation);
+  admission(config, journal, false);
+  const track = { root: config.state_root, journal };
+  const model = JSON.parse(await run(['--profile', 'tools', 'config', '--format', 'json']));
+  const ids = (await docker(['ps', '-aq', '--no-trunc', '--filter', `label=com.docker.compose.project=${config.project}`], config.project_directory))
+    .trim().split(/\s+/).filter(Boolean);
+  const containers = await Promise.all(ids.map(inspect));
+  const db = containers.find(item => item.Id === journal.database?.id && item.Image === journal.database.image);
+  if (!db?.State.Running || db.State.Health?.Status !== 'healthy'
+    || db.Config.Labels['com.docker.compose.service'] !== 'db'
+    || db.Config.Labels['org.opengym.maintenance.instance'] !== config.instance_id
+    || canonical(db.Config.Labels['org.opengym.maintenance.state'] ?? '') !== canonical(config.state_root)
+    || Object.keys(db.HostConfig.PortBindings ?? {}).length
+    || (await inspect(model.services.ops.image)).Id !== journal.ops_image) throw new Error('MAINTENANCE_STATE_OWNERSHIP');
+  for (const writer of journal.writers) {
+    const item = containers.find(item => item.Id === writer.id);
+    const selected = model.services[writer.service];
+    if (!item || item.Image !== writer.image || item.Config.Labels['com.docker.compose.service'] !== writer.service
+      || (await inspect(selected.image)).Id !== writer.image
+      || (selected.command && JSON.stringify(selected.command) !== JSON.stringify(item.Config.Cmd))
+      || Object.entries(selected.environment ?? {}).some(([key, value]) => !item.Config.Env.includes(`${key}=${value}`))) {
+      throw new Error('MAINTENANCE_WRITER_CHANGED');
+    }
+    writerGate(config, item);
+  }
+  if (containers.some(item => config.writers.includes(item.Config.Labels['com.docker.compose.service'])
+    && !journal.writers.some(writer => writer.id === item.Id))) throw new Error('MAINTENANCE_MULTIPLE_WRITERS');
+  if (journal.bundle_container && !new RegExp(`^${config.project}-ops-run-[a-f0-9]{12}$`).test(journal.bundle_container)) {
+    throw new Error('MAINTENANCE_CAPTURE_OWNERSHIP');
+  }
+  const names = [journal.capture_container, ...journal.check_containers, ...(journal.bundle_container ? [journal.bundle_container] : [])];
+  if (journal.phase === 'capturing' && !containers.some(item => item.Name === `/${journal.capture_container}`)) {
+    throw new Error('MAINTENANCE_CAPTURE_UNCERTAIN');
+  }
+  for (const item of containers) {
+    const service = item.Config.Labels['com.docker.compose.service'];
+    if (names.includes(item.Name.slice(1))) {
+      if (service !== 'ops' || item.Image !== journal.ops_image || item.HostConfig.RestartPolicy.Name !== 'no') {
+        throw new Error('MAINTENANCE_CAPTURE_OWNERSHIP');
+      }
+      if (item.State.Running) await docker(['stop', '--time', '5', item.Id], config.project_directory, 15_000);
+      if ((await inspect(item.Id)).State.Running) throw new Error('MAINTENANCE_CAPTURE_NOT_STOPPED');
+    } else if (item.State.Running && !['db', 'web', 'diagnostics', ...config.writers].includes(service)) {
+      throw new Error('MAINTENANCE_UNKNOWN_WRITER');
+    }
+  }
+  if (!Object.hasOwn(journal, 'client')) throw new Error('MAINTENANCE_PROCESS_UNPROVEN');
+  for (let attempt = 0; journal.client && alive(journal.client); attempt++) {
+    if (attempt === 50) throw new Error('MAINTENANCE_CLIENT_ACTIVE');
+    await sleep(100);
+  }
+  journal.phase = 'recovering';
+  journal.verified = false;
+  journalWrite(config.state_root, journal);
+  await run(['stop', '--timeout', '30', ...config.writers], 40_000, track);
+  for (const writer of journal.writers) {
+    if ((await inspect(writer.id)).State.Running) throw new Error('MAINTENANCE_WRITER_CHANGED');
+  }
+  for (const network of Object.keys(db.NetworkSettings.Networks)) {
+    const meta = JSON.parse(await docker(['network', 'inspect', network], config.project_directory))[0];
+    if (Object.keys(meta.Containers ?? {}).some(id => !ids.includes(id))) throw new Error('MAINTENANCE_EXTERNAL_WRITER');
+  }
+  const running = (await docker(['ps', '-q', '--no-trunc'], config.project_directory)).trim().split(/\s+/).filter(Boolean);
+  const protectedSources = [config.state_root, ...(journal.capture_sources ?? []).map(source => source.origin),
+    ...containers.filter(item => journal.writers.some(writer => writer.id === item.Id)).flatMap(item =>
+      item.Mounts.filter(mount => mount.Destination !== '/run/diagnostics').map(mount => mount.Source))];
+  for (const id of running) {
+    if (id === db.Id) continue;
+    const item = await inspectContainer(id, config.project_directory);
+    if (!item) continue;
+    if (item.Mounts.some(mount => mount.RW && protectedSources.some(source =>
+      overlaps(mountPath(mount.Source), mountPath(source)) || (mount.Type === 'volume' && mount.Name === source)))) {
+      throw new Error('MAINTENANCE_EXTERNAL_FILE_WRITER');
+    }
+  }
+  journal.phase = 'checking';
+  const checker = `${config.project}-ops-run-${randomBytes(6).toString('hex')}`;
+  journal.check_containers.push(checker);
+  journalWrite(config.state_root, journal);
+  const output = await run(['run', '--no-deps', '--name', checker, 'ops', '-m', 'opengym_platform.operations',
+    'capture-sql', '--config', '/run/operator/config.json', '--check-only'], 15_000, track);
+  const check = await inspect(checker);
+  if (check.State.Running || check.State.ExitCode !== 0 || JSON.parse(output.trim()).code !== 'BACKUP_SCHEMA_COMPATIBLE') {
+    throw new Error('MAINTENANCE_SCHEMA_INCOMPATIBLE');
+  }
+  if (journal.reason === 'pre-migration') {
+    journal.phase = 'migration_held';
+    journalWrite(config.state_root, journal);
+    throw new Error('MAINTENANCE_MIGRATION_HELD');
+  }
+  await restartWriters(config, journal, run, inspect, track);
+  journal.phase = 'recovered_unverified';
+  journalWrite(config.state_root, journal);
+  unlock(lock);
+  console.log(JSON.stringify({ code: 'MAINTENANCE_RECOVERED', operation, verified: false }));
+}
+
+export { docker, safePath, fileProof, journalWrite };
+
+export function operatorPrivate(privatePath) {
+  if (process.platform === 'win32') {
+    // chmod does not restrict NTFS access. Check the inherited ACL too; never
+    // silently rewrite an operator's permissions or echo their private path.
+    const acl = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      "$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:OPENGYM_PRIVATE_STATE; "
+      + "$u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; "
+      + "$allowed=@($u,'S-1-5-18','S-1-5-32-544'); "
+      + "if($a.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $u){exit 1}; "
+      + "foreach($r in $a.Access){if($r.AccessControlType -eq 'Allow' -and "
+      + "$r.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -notin $allowed){exit 1}}"],
+    { env: { ...environment, OPENGYM_PRIVATE_STATE: privatePath }, stdio: 'ignore', timeout: 5000, windowsHide: true });
+    if (acl.status !== 0) throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
+  } else if (lstatSync(privatePath).mode & 0o077) {
+    throw new Error('MAINTENANCE_STATE_NOT_PRIVATE');
+  }
+}
+
+export async function operate(command, options) {
+  const recovering = command === 'maintenance-recover', retaining = command === 'diagnostics-retain';
+  const repairing = command === 'forward-repair';
+  if (options[0] !== '--config' || (repairing ? options.length !== 6 || options[2] !== '--incident'
+    || !/^[a-z][a-z0-9-]{1,63}$/.test(options[3]) || options[4] !== '--release' || !/^sha256:[a-f0-9]{64}$/.test(options[5])
+    : retaining ? options.length !== 2 : options.length !== 4 || (recovering
+    ? options[2] !== '--operation' || !/^[a-f0-9]{32}$/.test(options[3])
+    : command !== 'backup' || options[2] !== '--reason' || !['scheduled', 'startup', 'pre-migration'].includes(options[3])))) {
+    process.exitCode = 2;
+    throw new Error('MAINTENANCE_ARGUMENTS_INVALID');
+  }
+  let config;
+  try {
+    if (!isAbsolute(options[1])) throw new Error();
+    config = privateJson(options[1], 16 * 1024 * 1024);
+    const keys = ['instance_id', 'project', 'project_directory', 'compose_files', 'env_file', 'state_root', 'writers'];
+    if (!config || Object.keys(config).some(key => ![...keys, 'bundle', 'repair'].includes(key)) || keys.some(key => !Object.hasOwn(config, key))
+      || !/^[a-z][a-z0-9-]{1,63}$/.test(config.instance_id)
+      || !/^[a-z][a-z0-9-]{1,63}$/.test(config.project)
+      || !['project_directory', 'env_file', 'state_root'].every(key => typeof config[key] === 'string' && isAbsolute(config[key]))
+      || !Array.isArray(config.compose_files) || !config.compose_files.length
+      || !config.compose_files.every(path => typeof path === 'string' && isAbsolute(path))
+      || !Array.isArray(config.writers) || !config.writers.includes('api')
+      || config.writers.some(service => !/^[a-z][a-z0-9-]{0,63}$/.test(service))
+      || new Set(config.writers).size !== config.writers.length) throw new Error();
+  } catch {
+    process.exitCode = 2;
+    throw new Error('MAINTENANCE_CONFIG_INVALID');
+  }
+  let witness;
+  if (repairing) {
+    if (!config.repair || Object.keys(config.repair).join(',') !== 'witness_file'
+      || !isAbsolute(config.repair.witness_file)) throw new Error('REPAIR_CONFIG_INVALID');
+    operatorPrivate(config.repair.witness_file);
+    witness = privateJson(config.repair.witness_file, 16 * 1024 * 1024);
+    if (witness.instance_id !== config.instance_id || witness.incident !== options[3]
+      || !Array.isArray(witness.writes)) throw new Error('REPAIR_WITNESS_INVALID');
+  }
+  if (Object.hasOwn(config, 'bundle') && (!config.bundle || typeof config.bundle !== 'object')) {
+    process.exitCode = 2;
+    throw new Error('MAINTENANCE_BUNDLE_CONFIG_INVALID');
+  }
+  if (config.bundle && !retaining) {
+    const bundle = config.bundle;
+    if (Object.keys(bundle).sort().join(',') !== 'destination,identity_file,recipient'
+      || ![bundle.destination, bundle.identity_file].every(path => typeof path === 'string' && isAbsolute(path))
+      || !/^age1[0-9a-z]{58}$/.test(bundle.recipient)) {
+      process.exitCode = 2;
+      throw new Error('MAINTENANCE_BUNDLE_CONFIG_INVALID');
+    }
+    safePath(bundle.destination, true);
+    safePath(bundle.identity_file);
+    if (overlaps(canonical(bundle.destination), canonical(config.state_root))
+      || overlaps(canonical(bundle.identity_file), canonical(config.state_root))
+      || overlaps(canonical(bundle.identity_file), canonical(bundle.destination))) throw new Error('MAINTENANCE_PATH_OVERLAP');
+  }
+  for (const path of [config.project_directory, config.state_root]) safePath(path, true);
+  for (const path of [options[1], config.env_file, ...config.compose_files]) safePath(path);
+  for (const privatePath of [config.state_root, ...(!retaining && config.bundle ? [config.bundle.destination, config.bundle.identity_file] : [])]) {
+    operatorPrivate(privatePath);
+  }
+  const prefix = ['compose', '--project-directory', config.project_directory, '--env-file', config.env_file,
+    '-p', config.project, ...config.compose_files.flatMap(path => ['-f', path])];
+  const run = (args, timeout, proof) => docker([...prefix, ...args], config.project_directory, timeout, proof);
+  const inspect = async id => JSON.parse(await docker(['inspect', id], config.project_directory))[0];
+  if (retaining) {
+    const model = JSON.parse(await run(['config', '--format', 'json']));
+    const image = model.services?.diagnostics?.image;
+    if (!/^sha256:[a-f0-9]{64}$/.test(image ?? '')) throw new Error('MAINTENANCE_DIAGNOSTICS_IMAGE_REQUIRED');
+    const id = (await run(['ps', '--all', '--quiet', 'diagnostics'])).trim();
+    if (!/^[a-f0-9]{64}$/.test(id)) throw new Error('MAINTENANCE_DIAGNOSTICS_UNAVAILABLE');
+    const item = await inspect(id);
+    const logs = item.Mounts.find(mount => mount.Destination === '/logs');
+    if (!item.State.Running || item.Image !== image || item.Config.User !== '1000:1000'
+      || !item.HostConfig.ReadonlyRootfs || item.HostConfig.Privileged || item.HostConfig.CapAdd?.length
+      || !item.HostConfig.CapDrop?.includes('ALL')
+      || item.Config.Labels['com.docker.compose.project'] !== config.project
+      || item.Config.Labels['com.docker.compose.service'] !== 'diagnostics'
+      || logs?.Type !== 'volume' || logs.Name !== model.volumes?.['diagnostic-logs']?.name
+      || !model.services.diagnostics.volumes?.some(mount => mount.target === '/logs' && mount.source === 'diagnostic-logs')) {
+      throw new Error('MAINTENANCE_DIAGNOSTICS_UNAVAILABLE');
+    }
+    const volume = JSON.parse(await docker(['volume', 'inspect', logs.Name], config.project_directory))[0];
+    if (volume.Labels?.['com.docker.compose.project'] !== config.project
+      || volume.Labels?.['com.docker.compose.volume'] !== 'diagnostic-logs') throw new Error('MAINTENANCE_DIAGNOSTICS_OWNERSHIP');
+    // Use the live collector's existing flock and /state; never start or recreate it.
+    await docker(['exec', id, 'rotate'], config.project_directory, 60_000);
+    console.log(JSON.stringify({ code: 'DIAGNOSTICS_RETAINED' }));
+    return;
+  }
+  const lock = join(config.state_root, 'exclusive');
+  if (recovering) return recover(config, options[3], run, inspect, lock);
+  try { mkdirSync(lock, { mode: 0o700 }); }
+  catch { throw new Error('MAINTENANCE_LOCKED'); }
+  let safeToUnlock = true;
+  const operation = randomBytes(16).toString('hex');
+  journalWrite(lock, { ...controller(), operation }, 'controller.json');
+  const journal = { version: 1, instance_id: config.instance_id, project: config.project, operation,
+    reason: repairing ? 'repair' : options[3], phase: 'preflight', host_platform: process.platform, previously_running: [], verified: false,
+    ...(repairing ? { incident: options[3], release: options[5] } : {}) };
+  try {
+    const owner = join(config.state_root, 'owner.json');
+    const identity = JSON.stringify({ instance_id: config.instance_id, project: config.project });
+    if (existsSync(owner)) {
+      if (readCheckedFile(owner, 65536, 'MAINTENANCE_PROOF_INVALID').bytes.toString('utf8') !== identity) {
+        throw new Error('MAINTENANCE_OWNER_MISMATCH');
+      }
+    } else writeFileSync(owner, identity, { flag: 'wx', mode: 0o600 });
+    const prior = join(config.state_root, 'journal.json');
+    if (existsSync(prior)) {
+      const previous = privateJson(prior);
+      if (previous.instance_id !== config.instance_id || previous.project !== config.project
+        || !['captured_unverified', 'recovered_unverified', 'verified', 'repaired'].includes(previous.phase)) throw new Error('MAINTENANCE_UNRESOLVED_JOURNAL');
+    }
+    if (options[3] === 'startup' && config.bundle && currentBackup(config)) {
+      console.log(JSON.stringify({ code: 'BACKUP_NOT_DUE', verified: false }));
+      return;
+    }
+    const model = JSON.parse(await run(['--profile', 'tools', 'config', '--format', 'json']));
+    if (!model.services?.db || !model.services?.ops || !model.services?.api
+      || config.writers.some(name => !model.services[name] || ['db', 'ops', 'migrate', 'bootstrap', 'diagnostics', 'web'].includes(name))) {
+      throw new Error('MAINTENANCE_WRITER_INVENTORY_INVALID');
+    }
+    const ids = (await docker(['ps', '-aq', '--no-trunc', '--filter', `label=com.docker.compose.project=${config.project}`], config.project_directory))
+      .trim().split(/\s+/).filter(Boolean);
+    const containers = await Promise.all(ids.map(inspect));
+    const db = containers.filter(item => item.Config.Labels['com.docker.compose.service'] === 'db' && item.State.Running);
+    if (db.length !== 1 || db[0].State.Health?.Status !== 'healthy') throw new Error('MAINTENANCE_DATABASE_UNAVAILABLE');
+    const ownership = db[0].Config.Labels;
+    const registeredState = ownership['org.opengym.maintenance.state'];
+    if (ownership['org.opengym.maintenance.instance'] !== config.instance_id
+      || typeof registeredState !== 'string' || !isAbsolute(registeredState)
+      || canonical(registeredState) !== canonical(config.state_root)) throw new Error('MAINTENANCE_STATE_OWNERSHIP');
+    if (Object.keys(db[0].HostConfig.PortBindings ?? {}).length) throw new Error('MAINTENANCE_DATABASE_EXPOSED');
+    const knownReaders = ['db', 'web', 'diagnostics'];
+    for (const item of containers) {
+      const service = item.Config.Labels['com.docker.compose.service'];
+      if (item.State.Running && ![...knownReaders, ...config.writers].includes(service)) throw new Error('MAINTENANCE_UNKNOWN_WRITER');
+      if (config.writers.includes(service)) {
+        writerGate(config, item);
+        const selected = await inspect(model.services[service].image);
+        if (selected.Id !== item.Image) throw new Error('MAINTENANCE_WRITER_IMAGE_MISMATCH');
+        if (item.State.Running) journal.previously_running.push(service);
+      }
+    }
+    if (new Set(journal.previously_running).size !== journal.previously_running.length) throw new Error('MAINTENANCE_MULTIPLE_WRITERS');
+    // Unknown database-network peers cannot silently become uncoordinated writers.
+    for (const network of Object.keys(db[0].NetworkSettings.Networks)) {
+      const meta = JSON.parse(await docker(['network', 'inspect', network], config.project_directory))[0];
+      if (Object.keys(meta.Containers ?? {}).some(id => !ids.includes(id))) throw new Error('MAINTENANCE_EXTERNAL_WRITER');
+    }
+    journal.writers = containers.filter(item => config.writers.includes(item.Config.Labels['com.docker.compose.service']))
+      .map(item => ({ service: item.Config.Labels['com.docker.compose.service'], id: item.Id, image: item.Image }));
+    const api = containers.filter(item => item.Config.Labels['com.docker.compose.service'] === 'api');
+    if (api.length !== 1) throw new Error('MAINTENANCE_MULTIPLE_WRITERS');
+    const actualEnvironment = Object.fromEntries(api[0].Config.Env.map(value => {
+      const split = value.indexOf('=');
+      return [value.slice(0, split), value.slice(split + 1)];
+    }));
+    if (Object.entries(model.services.api.environment ?? {}).some(([key, value]) => actualEnvironment[key] !== String(value))
+      || (model.services.api.command && JSON.stringify(model.services.api.command) !== JSON.stringify(api[0].Config.Cmd))) {
+      throw new Error('MAINTENANCE_RUNTIME_CONFIG_MISMATCH');
+    }
+    for (const key of ['PLATFORM_DB_PASSWORD_FILE', 'PLATFORM_SESSION_SECRET_FILE', 'PLATFORM_COACH_SECRET_FILE']) {
+      const path = actualEnvironment[key];
+      if (path && (!/^\/run\/secrets\/[A-Za-z0-9_-]+$/.test(path)
+        || !api[0].Mounts.some(mount => mount.Destination === path))) throw new Error('MAINTENANCE_SECRET_MOUNT_INVALID');
+    }
+    const dataDirectory = actualEnvironment.DATA_DIR ?? '/data';
+    const dataMount = api[0].Mounts.find(mount => mount.Destination === dataDirectory);
+    if (!dataMount || !['bind', 'volume'].includes(dataMount.Type)
+      || api[0].Mounts.some(mount => mount.Destination.startsWith(`${dataDirectory}/`))) {
+      throw new Error('MAINTENANCE_DATA_MOUNT_REQUIRED');
+    }
+    const selectedData = model.services.api.volumes?.find(item => item.target === dataDirectory);
+    if (!selectedData || selectedData.type !== dataMount.Type) throw new Error('MAINTENANCE_DATA_OWNERSHIP');
+    if (dataMount.Type === 'volume') {
+      const volume = JSON.parse(await docker(['volume', 'inspect', dataMount.Name], config.project_directory))[0];
+      if (model.volumes?.[selectedData.source]?.name !== dataMount.Name
+        || volume.Labels?.['com.docker.compose.project'] !== config.project
+        || volume.Labels?.['com.docker.compose.volume'] !== selectedData.source) throw new Error('MAINTENANCE_DATA_OWNERSHIP');
+    } else {
+      safePath(selectedData.source, true);
+      if (mountPath(selectedData.source) !== mountPath(dataMount.Source)) throw new Error('MAINTENANCE_DATA_OWNERSHIP');
+    }
+    const selection = join(config.state_root, `${operation}.selection.json`);
+    writeFileSync(selection, JSON.stringify({ compose: model, api: { image: api[0].Image, config: api[0].Config },
+      database_image: db[0].Image }), { flag: 'wx', mode: 0o600 });
+    const files = [options[1], config.env_file, ...config.compose_files, selection,
+      ...Object.values(model.configs ?? {}).map(item => item.file),
+      ...Object.values(model.secrets ?? {}).map(item => item.file),
+      ...Object.values(model.services).flatMap(service => (service.volumes ?? [])
+        .filter(item => item.type === 'bind' && /^\/run\/(secrets|operator)\//.test(item.target)).map(item => item.source))];
+    if (files.some(path => typeof path !== 'string' || !isAbsolute(path))) throw new Error('MAINTENANCE_FILE_SOURCE_REQUIRED');
+    const sourceFiles = [...new Set(files)];
+    if (config.bundle && [dataMount.Source, ...sourceFiles].some(source =>
+      overlaps(mountPath(source), mountPath(config.bundle.identity_file))
+      || overlaps(mountPath(source), mountPath(config.bundle.destination)))) throw new Error('MAINTENANCE_PATH_OVERLAP');
+    const fingerprints = sourceFiles.map(fileProof);
+    const sources = [{ source: dataMount.Type === 'volume' ? dataMount.Name : dataMount.Source,
+      target: 'data' }];
+    // Include actual runtime secret mounts as well as the selected Compose inputs.
+    for (const mount of api[0].Mounts.filter(item => item.Destination.startsWith('/run/secrets/'))) {
+      const name = mount.Destination.slice('/run/secrets/'.length);
+      if (mount.Type !== 'bind' || !/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('MAINTENANCE_SECRET_MOUNT_INVALID');
+      const reference = model.services.api.secrets?.find(item => (item.target ?? item.source) === name);
+      const selectedFile = reference ? model.secrets?.[reference.source]?.file
+        : model.services.api.volumes?.find(item => item.target === mount.Destination)?.source;
+      const index = sourceFiles.indexOf(selectedFile);
+      if (index < 0) throw new Error('MAINTENANCE_SECRET_MOUNT_INVALID');
+      sources.push({ source: mount.Source, target: `runtime-secrets/${name}`, sha256: fingerprints[index].sha256 });
+    }
+    sourceFiles.forEach((source, index) => sources.push({ source, target: `configuration/${index}`,
+      sha256: fingerprints[index].sha256 }));
+    if (sources.some(item => /[:,\n\r]/.test(item.source.replace(/^[a-zA-Z]:/, '')))) throw new Error('MAINTENANCE_MOUNT_PATH_INVALID');
+    if (dataMount.Type === 'bind' && overlaps(mountPath(dataMount.Source), mountPath(config.state_root))) {
+      throw new Error('MAINTENANCE_PATH_OVERLAP');
+    }
+    journal.capture_sources = sources.map((item, index) => ({ path: `/run/capture/${index}`,
+      target: item.target, origin: item.source, ...(item.sha256 ? { sha256: item.sha256 } : {}) }));
+    const volumeArgs = sources.flatMap((item, index) => ['--volume', `${item.source}:/run/capture/${index}:ro`]);
+    const protectedMounts = [dataMount, ...containers.flatMap(item => item.Mounts.filter(mount =>
+      mount.Destination.startsWith('/run/secrets/') || mount.Destination.startsWith('/run/operator/'))),
+    ...sourceFiles.map(Source => ({ Type: 'bind', Source })), { Type: 'bind', Source: config.state_root }];
+    const checkExternalWriters = async () => {
+      const running = (await docker(['ps', '-q', '--no-trunc'], config.project_directory)).trim().split(/\s+/).filter(Boolean);
+      for (const id of running) {
+        if (journal.writers.some(writer => writer.id === id) || id === db[0].Id) continue;
+        const item = await inspectContainer(id, config.project_directory);
+        if (!item) continue;
+        if (item.Mounts.some(mount => mount.RW && protectedMounts.some(protectedMount =>
+          (mount.Type === 'volume' && protectedMount.Type === 'volume' && mount.Name === protectedMount.Name)
+          || overlaps(mountPath(mount.Source), mountPath(protectedMount.Source))))) {
+          throw new Error('MAINTENANCE_EXTERNAL_FILE_WRITER');
+        }
+      }
+    };
+    await checkExternalWriters();
+    journal.database = { id: db[0].Id, image: db[0].Image };
+    journal.ops_image = (await inspect(model.services.ops.image)).Id;
+    journal.check_containers = [];
+    const track = { root: config.state_root, journal };
+    journal.capture_container = `${config.project}-ops-run-${operation.slice(0, 12)}`;
+    journal.phase = 'stopping';
+    journalWrite(config.state_root, journal);
+    safeToUnlock = false;
+    admission(config, journal, false);
+    const paused = performance.now();
+    journal.pause_started_at = new Date().toISOString();
+    journal.capture_budget_ms = 120_000;
+    journalWrite(config.state_root, journal);
+    await run(['stop', '--timeout', '30', ...config.writers], 40_000, track);
+    for (const writer of journal.writers) {
+      const item = await inspect(writer.id);
+      if (item.State.Running || item.State.OOMKilled
+        || (journal.previously_running.includes(writer.service) && item.State.ExitCode !== 0)) {
+        throw new Error('MAINTENANCE_UNCLEAN_SHUTDOWN');
+      }
+    }
+    await checkExternalWriters();
+    journal.phase = 'stopped';
+    journalWrite(config.state_root, journal);
+    // Keep the named container for independent exit verification; never --rm a
+    // capture process before proving it has stopped.
+    journal.phase = 'capturing';
+    journalWrite(config.state_root, journal);
+    const output = await run(['run', '--no-deps', '--name', journal.capture_container, ...volumeArgs, 'ops',
+      '-m', 'opengym_platform.operations', 'capture-sql', '--config', '/run/operator/config.json'], 130_000, track);
+    const capture = await inspect(journal.capture_container);
+    journal.capture_image = capture.Image;
+    if (capture.State.Running || capture.State.ExitCode !== 0) throw new Error('MAINTENANCE_CAPTURE_NOT_STOPPED');
+    const result = JSON.parse(output.trim());
+    if (result.code !== 'BACKUP_SET_CAPTURED' || result.operation !== operation) throw new Error('MAINTENANCE_CAPTURE_INVALID');
+    await checkExternalWriters();
+    for (let index = 0; index < sourceFiles.length; index++) {
+      if (JSON.stringify(fileProof(sourceFiles[index])) !== JSON.stringify(fingerprints[index])) {
+        throw new Error('MAINTENANCE_FILE_CHANGED');
+      }
+    }
+    journal.phase = 'checking';
+    journalWrite(config.state_root, journal);
+    const checker = `${config.project}-ops-run-${randomBytes(6).toString('hex')}`;
+    journal.check_containers.push(checker);
+    journalWrite(config.state_root, journal);
+    await run(['run', '--no-deps', '--name', checker, 'ops', '-m', 'opengym_platform.operations', 'capture-sql',
+      '--config', '/run/operator/config.json', '--check-only'], 15_000, track);
+    for (const writer of journal.writers) {
+      const item = await inspect(writer.id);
+      if (item.State.Running || item.Image !== writer.image) throw new Error('MAINTENANCE_WRITER_CHANGED');
+    }
+    if (repairing) {
+      const receiptFile = `${operation}.repair.json`;
+      journalWrite(config.state_root, { ...witness, operation }, receiptFile);
+      const checker = `${config.project}-ops-run-${randomBytes(6).toString('hex')}`;
+      journal.check_containers.push(checker);
+      journalWrite(config.state_root, journal);
+      const preserved = JSON.parse(await run(['run', '--no-deps', '--name', checker, 'ops',
+        '-m', 'opengym_platform.operations', 'repair-check', '--config', `/run/maintenance/${receiptFile}`], 15_000, track));
+      if (preserved.code !== 'REPAIR_WRITES_PRESERVED') throw new Error('REPAIR_PRESERVATION_UNPROVEN');
+      // The selected immutable release must support the actual captured schema.
+      const selectedRelease = await inspect(options[5]);
+      if (!selectedRelease.Config.User || /^(?:0|root)(?::|$)/.test(selectedRelease.Config.User)) throw new Error('REPAIR_RELEASE_UNSAFE');
+      const releaseCheck = `${config.project}-ops-run-${randomBytes(6).toString('hex')}`;
+      journal.check_containers.push(releaseCheck);
+      journalWrite(config.state_root, journal);
+      const schema = (await docker(['run', '--name', releaseCheck, '--network', 'none', '--read-only', '--cap-drop', 'ALL',
+        '--label', `com.docker.compose.project=${config.project}`, '--label', 'com.docker.compose.service=ops',
+        ...(ownership['org.opengym.platform'] === 'synthetic' ? ['--label', 'org.opengym.platform=synthetic'] : []),
+        '--security-opt', 'no-new-privileges:true', '--entrypoint', 'python', options[5], '-c',
+        'from opengym_platform.application import SCHEMA_REVISION; print(SCHEMA_REVISION)'], config.project_directory)).trim();
+      const captureManifest = privateJson(join(config.state_root, operation, 'capture.json'), 16 * 1024 * 1024);
+      if (schema !== captureManifest.schema) throw new Error('REPAIR_RELEASE_INCOMPATIBLE');
+      const overlay = join(config.state_root, `${operation}.repair.compose.json`);
+      writeFileSync(overlay, JSON.stringify({ services: { api: { image: options[5] } } }), { flag: 'wx', mode: 0o600 });
+      await run(['-f', overlay, 'up', '--no-start', '--no-deps', '--force-recreate', 'api'], 30_000, track);
+      const id = (await run(['ps', '--all', '--quiet', 'api'])).trim();
+      const api = await inspect(id);
+      writerGate(config, api);
+      if (api.Image !== options[5] || api.State.Running) throw new Error('REPAIR_REPLACEMENT_INVALID');
+      journal.writers = journal.writers.map(writer => writer.service === 'api' ? { service: 'api', id, image: api.Image } : writer);
+      if (!journal.previously_running.includes('api')) journal.previously_running.push('api');
+      journalWrite(config.state_root, journal);
+      // Persist the tested selection so later Compose commands cannot revert it.
+      journalWrite(dirname(options[1]), { ...config, compose_files: [...config.compose_files, overlay] }, basename(options[1]));
+      await restartWriters(config, journal, run, inspect, track);
+      journal.phase = 'repaired';
+      journal.preservation_verified = true;
+      journalWrite(config.state_root, journal);
+      safeToUnlock = true;
+      console.log(JSON.stringify({ code: 'FORWARD_REPAIR_VERIFIED', operation, incident: journal.incident,
+        release: journal.release, backup_verified: false }));
+      return;
+    }
+    // Pre-migration must never reopen traffic between capture and future DDL.
+    if (journal.reason === 'pre-migration') throw new Error('MAINTENANCE_MIGRATION_NOT_IMPLEMENTED');
+    // start, not up: never recreate an image or launch dependencies here.
+    await restartWriters(config, journal, run, inspect, track);
+    journal.pause_ms = Math.round(performance.now() - paused);
+    journal.snapshot_at = result.snapshot_at;
+    journal.capture_ms = result.capture_ms;
+    journal.phase = 'captured_unverified';
+    journalWrite(config.state_root, journal);
+    writeFileSync(join(config.state_root, operation, 'host-journal.json'), JSON.stringify(journal), { flag: 'wx', mode: 0o600 });
+    if (config.bundle) {
+      // Key is mounted only here, never a Compose secret or capture source.
+      const bundleConfig = `${operation}.bundle.json`;
+      journalWrite(config.state_root, { instance_id: config.instance_id, project: config.project,
+        operation, staging_root: '/run/maintenance', destination: '/run/bundles',
+        identity_file: '/run/bundle-key', recipient: config.bundle.recipient }, bundleConfig);
+      const bundleCompose = join(config.state_root, `${operation}.bundle.compose.json`);
+      writeFileSync(bundleCompose, JSON.stringify({ services: { ops: { image: journal.ops_image } } }), { flag: 'wx', mode: 0o600 });
+      journal.phase = 'bundling';
+      journal.bundle_container = `${config.project}-ops-run-${randomBytes(6).toString('hex')}`;
+      journalWrite(config.state_root, journal);
+      const packed = await run(['-f', bundleCompose, 'run', '--no-deps', '--name', journal.bundle_container,
+        '--volume', `${config.bundle.destination}:/run/bundles`,
+        '--volume', `${config.bundle.identity_file}:/run/bundle-key:ro`,
+        'ops', '-m', 'opengym_platform.operations', 'backup', '--reason', journal.reason, '--config', `/run/maintenance/${bundleConfig}`], 330_000, track);
+      const container = await inspect(journal.bundle_container);
+      const result = JSON.parse(packed.trim());
+      if (container.State.Running || container.State.ExitCode !== 0 || container.Image !== journal.ops_image || result.code !== 'BACKUP_VERIFIED'
+        || result.operation !== operation || result.verified !== true) throw new Error('MAINTENANCE_BUNDLE_INVALID');
+      journal.phase = 'verified';
+      journal.verified = true;
+      journalWrite(config.state_root, journal);
+      safeToUnlock = true;
+      console.log(JSON.stringify({ ...result, pause_ms: journal.pause_ms }));
+    } else {
+      safeToUnlock = true;
+      console.log(JSON.stringify({ code: 'BACKUP_CAPTURED_UNVERIFIED', operation, pause_ms: journal.pause_ms, verified: false }));
+      process.exitCode = 1;
+    }
+  } catch (error) {
+    if (repairing && !safeToUnlock) {
+      try { admission(config, journal, false); }
+      finally { await run(['stop', '--timeout', '30', ...config.writers], 40_000); }
+    }
+    throw error;
+  } finally {
+    // Interrupted/uncertain shutdown, capture or restart remains explicitly locked.
+    // Only an explicit owned recovery can take over an interrupted operation.
+    if (safeToUnlock) unlock(lock);
+  }
+}

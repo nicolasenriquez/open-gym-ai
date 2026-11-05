@@ -1,0 +1,90 @@
+# Standalone; never merge with the active instance or use its project name/volumes.
+name: opengym-restore-${PLATFORM_RESTORE_TARGET:?set a new target ID}
+x-tool: &tool
+  user: "1000:1000"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: "no"
+  logging: {driver: none}
+  tmpfs: ["/tmp:rw,noexec,nosuid,nodev,mode=1777,size=67108864"]
+  networks: [private]
+x-database: &database
+  PLATFORM_ENV: ops
+  PLATFORM_DB_MODE: local_compose
+  PLATFORM_DB_HOST: db
+  PLATFORM_DB_PORT: "5432"
+  PLATFORM_DB_NAME: opengym
+  PLATFORM_DB_TLS: disable
+  PLATFORM_DB_PASSWORD_FILE: /run/secrets/bootstrap
+  PLATFORM_MIGRATOR_PASSWORD_FILE: /run/secrets/migrator
+  PLATFORM_RUNTIME_PASSWORD_FILE: /run/secrets/runtime
+services:
+  db:
+    <<: *tool
+    image: postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+    command: [postgres, -c, log_statement=none, -c, log_min_error_statement=panic]
+    environment:
+      POSTGRES_USER: opengym_platform_bootstrap
+      POSTGRES_DB: opengym
+      POSTGRES_PASSWORD_FILE: /run/secrets/bootstrap
+    secrets: [bootstrap]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,mode=1777,size=67108864
+      - /var/run/postgresql:rw,noexec,nosuid,nodev,mode=1777,size=16777216
+    volumes: [postgres-data:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, postgres]
+      interval: 1s
+      timeout: 3s
+      retries: 40
+  bootstrap:
+    <<: *tool
+    image: sha256:${PLATFORM_MIGRATE_DIGEST:?select the compatible migrate image}
+    profiles: [tools]
+    command: [--deployment, bootstrap]
+    environment: *database
+    secrets: [bootstrap, migrator, runtime]
+  migrate:
+    <<: *tool
+    image: sha256:${PLATFORM_MIGRATE_DIGEST:?select the compatible migrate image}
+    profiles: [tools]
+    command: [--deployment, up]
+    environment:
+      <<: *database
+      PLATFORM_DB_PASSWORD_FILE: /run/secrets/migrator
+    secrets: [migrator]
+  ops:
+    <<: *tool
+    image: sha256:${PLATFORM_OPS_DIGEST:?select the restore-capable ops image}
+    profiles: [tools]
+    environment: *database
+    secrets: [bootstrap, migrator, runtime]
+    volumes:
+      - restore-data:/data
+      - type: bind
+        source: ${PLATFORM_RESTORE_BUNDLES:?select the protected bundle directory}
+        target: /bundles
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${PLATFORM_RESTORE_IDENTITY:?select the separate age identity}
+        target: /identity
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${PLATFORM_RESTORE_CONFIG:?select private restore JSON}
+        target: /run/operator/restore.json
+        read_only: true
+        bind: {create_host_path: false}
+networks:
+  private: {internal: true}
+volumes:
+  postgres-data:
+    name: ${COMPOSE_PROJECT_NAME}_restore-postgres-data
+  restore-data:
+    name: ${COMPOSE_PROJECT_NAME}_restore-data
+secrets:
+  bootstrap: {file: "${PLATFORM_RESTORE_SECRETS_DIR:?set a fresh private secret directory}/bootstrap"}
+  migrator: {file: "${PLATFORM_RESTORE_SECRETS_DIR:?set a fresh private secret directory}/migrator"}
+  runtime: {file: "${PLATFORM_RESTORE_SECRETS_DIR:?set a fresh private secret directory}/runtime"}

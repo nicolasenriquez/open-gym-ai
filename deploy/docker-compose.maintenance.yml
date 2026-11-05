@@ -1,0 +1,40 @@
+# Capture/recovery overlay; host config can opt into verified encrypted publication.
+# Never declare the age identity here: selected Compose secrets/configs are captured.
+# Add after docker-compose.prod.yml, with private absolute file/directory refs.
+services:
+  api:
+    environment:
+      PLATFORM_INSTANCE_ID: "${PLATFORM_INSTANCE_ID:?set the registered instance ID}"
+      PLATFORM_MAINTENANCE_GATE_DIR: /run/maintenance-gate
+    volumes:
+      - type: bind
+        source: "${PLATFORM_MAINTENANCE_STATE_DIR:?set the private absolute state directory}/gate"
+        target: /run/maintenance-gate
+        read_only: true
+        bind: {create_host_path: false}
+  db:
+    labels:
+      org.opengym.maintenance.instance: "${PLATFORM_INSTANCE_ID:?set the registered instance ID}"
+      org.opengym.maintenance.state: "${PLATFORM_MAINTENANCE_STATE_DIR:?set the private absolute state directory}"
+  ops:
+    environment:
+      PLATFORM_ENV: ops
+      PLATFORM_DB_MODE: local_compose
+      PLATFORM_DB_HOST: db
+      PLATFORM_DB_PORT: "5432"
+      PLATFORM_DB_NAME: opengym
+      PLATFORM_DB_TLS: disable
+      PLATFORM_DB_PASSWORD_FILE: /run/secrets/backup_password
+    secrets:
+      - backup_password
+    volumes:
+      - type: bind
+        source: "${PLATFORM_MAINTENANCE_STATE_DIR}"
+        target: /run/maintenance
+        bind: {create_host_path: false}
+configs:
+  operator_config:
+    file: "${PLATFORM_BACKUP_CONFIG_FILE:?set the private absolute capture configuration}"
+secrets:
+  backup_password:
+    file: "${PLATFORM_SECRETS_DIR}/backup_password"

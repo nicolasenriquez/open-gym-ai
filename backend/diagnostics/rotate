@@ -1,0 +1,2 @@
+#!/bin/sh
+exec python /usr/local/bin/diagnostics.py --retain

@@ -1,5 +1,165 @@
 # Changelog
 
+Future releases follow [Semantic Versioning](https://semver.org/).
+Entries are curated using [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+principles. Published entries below are preserved; see the
+[release policy](CONTRIBUTING.md#versioning-and-changelog) for compatibility rules.
+
+## Unreleased
+
+### Removed
+
+- Removed the optional MCP server and Nix packaging from this fork. Docker remains
+  the supported deployment path; the web application and Coach remain available.
+
+### Added
+
+- Host-coordinated monthly isolated restore rehearsal with incident-to-verification
+  RPO/RTO measurement, private reviewed access, bounded runtime-only probes and
+  operation-bound client evidence checked against PostgreSQL. Partial, interrupted
+  or overdue results cannot pass; normal traffic stays blocked and no jobs are installed.
+
+- Local ops-only access recovery on an isolated restored target, with account-bound
+  private review and new-password delivery. Historical doubtful credentials stay
+  blocked, session signing rotates without losing Coach decryption material, and
+  restored links/resets/jobs cannot replay. Recovery does not open traffic or claim
+  complete RPO/RTO; identity and roles are unchanged.
+
+- Ops-only isolated data restore from verified age bundles, with trusted fresh
+  roles/schema, exact sequence state, strict archive and post-extraction checksums,
+  separate Compose topology and persistent quarantine. Corruption, full staging or
+  interruption cannot open traffic; reviewed access and full recovery remain separate.
+
+- Optional verified age 1.3.2 encrypted backup publication after coordinated capture,
+  with streaming versioned manifest, destination EOF/checksum/identity verification,
+  atomic publication and private last-verification age. Wrong keys, corruption,
+  bounded disk failures and interrupted encryption preserve the previous point.
+  Bundle keys stay out of capture and API; full restore and scheduling remain separate.
+
+- Explicit owned-operation maintenance recovery after wrapper/capture/restart
+  interruption, with OS process identity, persisted read-only API startup admission,
+  schema verification and actual readiness before crediting service restoration.
+  Live controllers and uncertain ownership stay blocked; previously stopped services
+  and pre-migration holds are preserved. Recovery does not verify a backup or run DDL.
+
+- Coordinated host/ops SQL and file capture with stopped application writers,
+  protected staging, exact media/GC/configuration/secret inventories and measured
+  pause. External shared-volume writers and changed host files block capture.
+  Operator custody of Docker/host sources is required; without configured encrypted
+  publication, captured sets alone are not verified recovery points or a restore facility.
+
+- A separate Python operations importer for frozen Node data and empty quarantined
+  PostgreSQL targets, with per-capability equivalence, external encrypted secrets,
+  transactional sequence continuation and protected failure reports. Incompatible
+  legacy data blocks without silent correction; no cutover or restore is implied.
+
+- Internal request correlation across Python HTTP, PostgreSQL adapter operations
+  and Coach HTTP providers, including asynchronous completion and safe failure
+  codes. Trace context stays local and logs exclude request/provider contents.
+
+- Private Python diagnostics for live database/schema, pool, audit and logging
+  state, with an isolated rsyslog/logrotate Compose collector. Native nginx and
+  PostgreSQL logging uses non-blocking Docker syslog without durable caches;
+  synthetic acceptance covers persistent age/space retention, restart, stopped-API
+  sweeps, full/stopped sinks and privacy across real nginx/API/PG and Docker copies.
+
+- Integrated Python image reproducibility verification from a clean checkout,
+  reusing target isolation, cold/warm cache probes and HTTP database recovery tests.
+
+- Python administrative user listing, workout/bodyweight inspection without media,
+  and disable/enable safeguards with ordered authorization locks. Subscription
+  presence and pull-only last-sync timestamps are preserved. Requires
+  `p004_admin_users`. Account deletion now requires `p004_deletion_tasks` and
+  atomically disconnects bound Coach credentials, cascades operational SQL data
+  and records pending external cleanup references without deleting consumed
+  invitations or historical audit. Access ends at commit. External cleanup now
+  requires `p004_external_cleanup`: owner-only no-follow unlinks, durable bounded
+  retries and private operator status/retry, without reopening deleted access or
+  deleting still-referenced Coach keys. `p004_admin_invites` adds compatible
+  invitation listing/create/revoke and admin-issued one-use 24-hour password resets,
+  preserving consumed history after deletion and revalidating current admin authority.
+  Reset revokes old access atomically while retaining email/passkeys/disabled state.
+  `p004_audit` adds compatible administrative activity-log read/clear, retention,
+  persistent event IDs and IP-off defaults. Historical events survive account
+  deletion. Audit appends use separate best-effort transactions: failure cannot
+  undo a confirmed business operation or change its successful response.
+- Python owner-scoped Web Push subscriptions with atomic endpoint transfer,
+  a twenty-device cap, private-address validation and persistent VAPID material.
+  Requires `p005_subscriptions`. Internal local-date reminders and evening nudges
+  now require `p005_delivery`, preserving Training preferences, queue/pins and
+  back-off. HTTPS sends pin validated DNS addresses with original-host TLS and
+  no redirects; verification uses private fixtures, not physical devices.
+  Dates are claimed before sending without guaranteed retries or exactly-once
+  delivery. Owner/device rest timers, test pushes and live-workout heartbeats now
+  use the same restricted API and transport. Presence drives the admin list and
+  nudge suppression; presence/timers are process-local and lost on API restart.
+- Python Coach consent disclosure, opt-in cohort medians and scheduled reviews,
+  including restart protection and timezone handling. Deferred SDK/CLI providers
+  remain identifiable and unavailable in web/mobile setup and administration.
+  Requires `p003_coach_client`.
+- Python Coach administration, HTTP model/test checks and encrypted external
+  credentials with profile ownership and separate decryption material.
+- Python Coach proposal resolution and lazy expiry with bounded event history;
+  owner-scoped forgetting, current-day usage retention and HTTP cancellation.
+  Training opt-out/reset clears Coach atomically, and late results cannot restore
+  forgotten or deleted content. Requires `p003_coach_lifecycle`.
+- Python private media upload/download with compatible hash, format, duration and
+  response headers, session revalidation before publication, public Training
+  references and separate persistent media volumes. Browser proof displays a
+  downloaded progress photo offline. The partial port also supports private missing
+  queries, quota reservations and safe pressure reclamation, upload budgets, disk
+  floor and temporary cleanup. Its existing client upload queue is verified across
+  a failed upload, reload and manual retry. Explicit and periodic garbage collection
+  now preserve bytes on reference-read failure and protect foreign files from
+  restored links. A bounded internal identity function supports collection without
+  a user session; it requires the new `p002_media_gc` migration.
+- A final Python identity security checkpoint with real HTTP/PostgreSQL, exact SQL
+  function and column privileges, forced row security, and a one-slot runtime pool
+  checked after commits, rollbacks, errors, timeouts and request cancellation.
+- Python mobile pairing and passkey device links for the existing Settings UI,
+  with one-use codes, replacement, expiry and revocation checks. Browser proof
+  covers a second virtual-authenticator browser and bearer transport; native
+  device acceptance remains separate.
+- Python password-reset redemption with compatible one-use codes, atomic password
+  and session revocation, and preserved passkeys. Administrative code issuance
+  remains pending; the default application remains Node/JSON.
+- Python platform passkey management for the existing Settings UI: owner-only
+  listing, verified additions/removals, renaming, a 20-key cap and last-way-in
+  protection. Synthetic HTTP/PostgreSQL and virtual-authenticator browser checks
+  cover persistence and session revocation; the default application remains Node/JSON.
+- Separate platform dev/ops Compose definitions, file-backed database credentials,
+  and non-root runtime, migration and operations image targets. The bootstrap HTTP
+  factory provides public health/config and internal live/ready probes without
+  startup migrations; identity and business routes remain pending.
+- An isolated platform schema verifier and synthetic migration bootstrap: one
+  Alembic history under a single migrator lock, a least-privilege role baseline and
+  a runtime login that reads history without DDL or owner elevation. Business DDL
+  and the API remain undelivered; the product still runs Node/JSON.
+- An incremental platform verification runner with frozen compatibility expectations
+  and shared, ownership-checked synthetic Docker tooling. The application still uses Node/JSON.
+- A complete isolated Python Foundation verifier within the consolidated CI workflow,
+  lock/static checks, real PostgreSQL/Docker negatives and cache-aware test builds.
+  It does not change the Node/JSON product or establish production platform gates.
+
+### Changed
+
+- Moved runtime-neutral Coach JavaScript and editable prompts to `shared/coach-core/`.
+  The local phone Coach and Node use one source; generated Python assets and the
+  generator's `--check` alias are preserved. Node image builds now use the repository
+  root: `docker build -f api/Dockerfile .`.
+
+- Migrated JavaScript installs to frozen pnpm locks; retained isolated uv-based Python tooling.
+  Added correctness, workflow, dependency and source security checks, plus a packaged
+  web/API smoke. Updated affected dependencies and retired the vulnerable legacy icon generator.
+
+- Consolidated GitHub CI for every pull request and removed inherited GitLab,
+  Gitea, mirror, publication and deployment workflows, plus the GitLab-only
+  Renovate and merge-request policy config. Documentation distinguishes
+  this fork from upstream; existing published history and artifacts are preserved.
+- Clarified documentation ownership and current development guidance, retired
+  instructions for missing translation tools, and added documentation validation
+  in CI. The normal Node/JSON application and published release history are unchanged.
+
 ## v1.4.1 (2026-10-10)
 
 Bug fixes for v1.4.0, mostly the things you told us about on Discord and GitHub.

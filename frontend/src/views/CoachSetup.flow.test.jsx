@@ -17,8 +17,8 @@ import CoachSetup from './CoachSetup.jsx'
 import { getApiKey, setApiKey, clearApiKey } from '../lib/coach-secrets.js'
 import { localModels, localForget } from '../lib/coach-local.js'
 import { CATEGORY_TEXT } from '../lib/coach.js'
-import { HTTP_PROVIDERS } from '../../../api/coach/core/providers.js'
-import { DATA_CATEGORIES } from '../../../api/coach/core/categories.js'
+import { HTTP_PROVIDERS } from '../../../shared/coach-core/providers.js'
+import { DATA_CATEGORIES } from '../../../shared/coach-core/categories.js'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
@@ -452,4 +452,15 @@ describe('CoachSetup — turning it off', () => {
     expect(chip('OpenAI API').classList.contains('on')).toBe(true)
     expect(field('password').getAttribute('placeholder')).toBe('sk-…')
   })
+})
+
+it('keeps phone HTTP available when a paired server imports a deferred provider', async () => {
+  mocks.config = { coach: { enabled: false, provider: 'claude', providerLabel: 'Claude (Anthropic)' } }
+  await mount()
+  expect(rowTitled('Use my self-hosted openGym').textContent).toContain('Not available right now.')
+  expect(rowTitled('Use my self-hosted openGym').textContent).toContain('Claude (Anthropic)')
+  await click(rowTitled('Use my self-hosted openGym'))
+  expect(mocks.setCoachLocal).not.toHaveBeenCalled()
+  await click(rowTitled('Bring my own API key'))
+  expect(host.textContent).toContain('What leaves this phone')
 })

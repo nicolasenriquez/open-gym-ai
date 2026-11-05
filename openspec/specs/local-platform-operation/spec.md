@@ -1,0 +1,169 @@
+# Local platform operation
+
+## Purpose
+
+Define the accepted local Compose operation for one personal instance: images, roles and migrations, encrypted recovery, isolated restore, private diagnostics, cutover rehearsal and verified retirement of the replaced backend. Delivery remains synthetic and does not authorize real cutover, platform acceptance or Recovery implementation.
+
+## Requirements
+
+### Requirement: Isolated local Compose operation
+The initial accepted operation SHALL be one personal instance with Linux/amd64 containers, one API worker, permanent web/api/db services and point-in-time migration/operations tooling. It SHALL bind web to host loopback port 8080, use internal web 80/API 3000/PostgreSQL 5432, keep API/DB unpublished, separate app and internal DB networks and preserve authorized push/coach egress. Dev/CI/operations configuration, volumes and credentials SHALL be explicitly separated. Remote/LAN authentication and arm64 SHALL require their own configuration/evidence without silently withdrawing existing client support.
+
+#### Scenario: Resolved topology and environment isolation
+- **WHEN** dev and operations Compose combinations are inspected and executed on synthetic fixtures
+- **THEN** only the intended loopback entry is published, web cannot directly reach DB, API retains required egress and unrelated/legacy data is not mounted
+- **AND** operation uses identified images without source/dependency host binds while dev retains its explicit reload behavior
+
+### Requirement: Controlled images migrations and lifecycle
+Test/runtime/migrate images SHALL use the same revision/lock with immutable delivery references and no package installation at runtime. Runtime SHALL exclude development/test/Node harness dependencies. A separate least-privilege migrator SHALL hold the dedicated history lock through schema execution and finish before compatible traffic. API SHALL NOT migrate at startup. Bounded pool/timeouts, live/ready and dependency recovery SHALL be tested; no transaction SHALL wait on provider/network/file transfer work.
+
+Runtime API SHALL run without root privileges, added coach capabilities, a Docker socket or privileged containers. The first delivery SHALL NOT install SDK/CLI runtimes, mount their credential caches or require a custom seccomp profile for deferred providers. Diagnostic Q4/Q5 feasibility SHALL NOT imply acceptance or delivery of those mechanisms.
+
+#### Scenario: Deferred coach runtimes do not expand operation
+- **WHEN** the runtime image and resolved dev/ops combinations are inspected
+- **THEN** no claude/codex executable runtime, SDK launcher, coach credential-cache mount or custom coach seccomp override is required
+- **AND** admitted HTTP coach operation remains available under the non-root runtime without installing optional agent dependencies at startup
+
+#### Scenario: Incompatible schema or failed migration
+- **WHEN** migration fails or DB/schema becomes unavailable or incompatible
+- **THEN** traffic is not falsely declared ready, failures remain bounded and no JSON fallback or fake migration history is used
+- **AND** recovery and shutdown are observable using internal probes without publishing diagnostic data
+
+### Requirement: Coordinated encrypted recovery points
+Operation SHALL provide backup every three hours, startup catch-up when overdue, pre-migration backup and monthly isolated restore rehearsal. Retention SHALL be 30 days on storage independent of the instance disk, with bundle key separate. PostgreSQL/media/configuration/required secrets SHALL form a verified coherent recovery point. A host wrapper SHALL exclusively coordinate clean shutdown of the API and every application writer before capture, keep PostgreSQL available, and restore only previously running services after capture processes have stopped and schema compatibility is established. Encryption/transfer SHALL occur outside that pause. No application lease protocol, maintenance control socket or container Docker socket SHALL be introduced. RPO six hours/RTO 24 hours SHALL remain accepted objectives until measured, not guarantees or claims of PITR/off-host disaster coverage.
+
+The operator SHALL maintain exclusive control of Docker and host capture sources throughout the pause. Tooling SHALL reject observed external containers with writable overlapping capture mounts and source inventory/content/identity changes. These checks and read-only bind mounts SHALL NOT be represented as freezing arbitrary host processes or excluding transient containers between inspections. Without that operational custody, coherent capture SHALL remain uncredited.
+
+#### Scenario: Capture with internal writers and failed transfer
+- **WHEN** clients, coach or internal metadata writers compete with backup capture and transfer later fails
+- **THEN** clean writer shutdown establishes a coherent SQL/files recovery set, client pending work is preserved and pause duration/deadlines are recorded
+- **AND** incomplete/corrupt/untransferred artifacts are not credited as verified recovery points and degradation is visible locally
+
+#### Scenario: Encrypted publication authenticates the destination through EOF
+- **WHEN** a coherently captured SQL/files set is encrypted and copied outside the capture pause
+- **THEN** the encrypted versioned manifest records release/schema/tools/coverage/sizes/checksums, the destination partial is reread/decrypted through authenticated EOF, and only a complete verified artifact is atomically published before updating last-verification evidence
+- **AND** the bundle identity remains separate from capture sources, Compose secrets/configs and API; wrong identity, truncation, unsafe/duplicate entries, changed ciphertext including after decrypt completion, full destination or occupied mutex do not displace the prior valid point
+- **AND** the private diagnostic reads snapshot-based age from bounded local verification evidence, rejects missing/invalid/foreign evidence, and does not claim current physical disk availability or a complete restore
+
+#### Scenario: Interrupted capture remains controlled
+- **WHEN** shutdown/capture/restart fails, the host wrapper dies or the capture budget expires
+- **THEN** incomplete captures never become recovery points and a private operation journal prevents unsafe startup until capture termination and compatibility are verified
+- **AND** explicit owned-operation recovery takes exclusive ownership, verifies process termination and restores only previously running services; no TTL-only release, recursive startup backup or global cleanup is allowed
+- **AND** a new API process checks persisted local startup admission before opening database/filesystem/background writers; missing, invalid, foreign or blocked admission fails closed without receiving backup credentials or staging contents
+- **AND** recovery of an interrupted recovery remains exclusive, actual API readiness precedes successful service restoration, failed restart reblocks/stops writers, and pre-migration recovery does not run DDL or reopen traffic before coordinated migration
+- **AND** missing controller/process proof or uncertain capture creation remains blocked for explicit forensic review, never treated as a successful recovery
+
+#### Scenario: Scheduled failures do not satisfy recovery objectives
+- **WHEN** scheduled/startup/pre-migration backup or monthly rehearsal is overdue, fails or has no valid verified bundle
+- **THEN** the local operator surface distinguishes warning at three hours and RPO breach beyond six hours using the verified bundle's snapshot time
+- **AND** delivered Windows/Linux scheduler templates use isolated explicit configuration, bounded mutual exclusion and exit status, without installing real host jobs during specification or synthetic verification
+
+#### Scenario: Monthly complete recovery rehearsal
+- **WHEN** a representative bundle is restored in isolation
+- **THEN** measured results verify required secrets, credentials, roles/RLS, documents, external media, lineage and client reconciliation within the stated scope
+- **AND** evidence reports whether the accepted RPO/RTO objectives were met without inventing guarantees from scheduling alone
+- **AND** host-coordinated timing starts at the declared incident and includes bundle selection/preparation, authorized account review, private verification/client reconciliation and closure; omitted or unresolved coverage never credits a full rehearsal even when the measured SQL load is short
+- **AND** temporary runtime verification uses only an internal no-egress/no-published-port container with runtime data/keys, never bootstrap/bundles/review; normal target admission stays blocked, an independent bounded guardian revokes temporary CONNECT, and interruption or unverifiable closure remains incomplete
+- **AND** private explicit operator client evidence binds the current operation/target/bundle and artifact hashes, with independent PostgreSQL revision/write-id/content readback; stale or contradictory evidence is rejected, objective failure is distinguished from incomplete coverage, and neither synthetic completion nor the monthly command installs jobs or establishes operational acceptance
+
+#### Scenario: Isolated data restore does not activate access
+- **WHEN** a protected encrypted bundle is restored into an explicitly owned fresh isolated target with separately bootstrapped roles and compatible migrated schema
+- **THEN** authenticated EOF, safe bounded extraction, capture coverage and reread destination checksums precede SQL loading; data/media/sequences and runtime ownership/grants/FORCE RLS match the independently observed recovery set without importing old-cluster DDL/ACL/passwords
+- **AND** source/bundle remain unchanged, target has no traffic or egress, API receives no bootstrap credential, runtime CONNECT remains revoked and persisted startup admission remains blocked pending Q1
+- **AND** wrong keys, unsafe/corrupt/incompatible or incomplete archives, full destination, unowned/exposed/nonempty/busy targets and interruption do not overwrite or activate an existing target; uncertain partials remain quarantined without automatic reuse
+
+### Requirement: Restore preserves later security decisions
+Restore SHALL remain isolated with external effects disabled, invalidate restored sessions/pairings and reconcile subsequent deletions/revocations including passkeys using sufficiently protected later information. A snapshot SHALL NOT be treated as proof of current authorization. The initial procedure SHALL require explicit manual operator review for each restored access, identifying the account/credential, snapshot, protected later evidence, coverage, decision and verification result without recording secrets. A snapshot, successful login or deletable best-effort audit alone SHALL NOT establish sufficient evidence. Unverifiable historical credentials SHALL remain blocked; operator review alone SHALL NOT override missing evidence. An explicitly authorized local access-recovery procedure MAY establish a new access path for a selected, verified account on the isolated restored target without reactivating doubtful historical credentials, changing account identity/roles or introducing public recovery endpoints or automatic administrator creation. Authorization and private delivery of the new path SHALL be specified and tested before implementing that procedure. A new persistent security ledger or automated reconciliation store SHALL require separate promoter approval. The full review and verification time SHALL be included in measured RTO. Stale clients SHALL NOT silently overwrite restored Training or lose pending work.
+
+#### Scenario: Session invalidation does not destroy coach decryption
+- **WHEN** an isolated restore invalidates sessions issued before or after the snapshot
+- **THEN** a new session-signing key rejects old cookie/bearer tokens even if session versions collide, while separately retained original decryption material still permits authorized coach secret recovery
+- **AND** all restored access starts blocked, later decisions are reviewed per credential and the normal compatible port does not silently rotate the original session key
+
+#### Scenario: Deleted account or revoked credential exists in snapshot
+- **WHEN** a restored snapshot contains an account/credential later deleted or revoked and the later information is missing or incomplete
+- **THEN** restored access remains blocked pending reconciliation/review rather than automatically reactivating it
+- **AND** invalidating session tokens alone is not credited as resolving resurrected passkeys or missing deletion evidence
+
+#### Scenario: Manual review with partial evidence
+- **WHEN** later evidence verifies one restored access but cannot establish whether another credential was revoked or its WebAuthn counter remains safe
+- **THEN** the operator records the scope and result of each review in protected recovery evidence and enables only the verified access after isolated checks
+- **AND** the unresolved access remains blocked, no new security ledger is introduced implicitly and measured recovery time includes review and verification
+
+#### Scenario: Historical access cannot be established
+- **WHEN** restored data is valid but sufficient evidence for a historical credential is unavailable
+- **THEN** that credential remains blocked and local access recovery requires an explicit operator decision for a verified account on the isolated target
+- **AND** a new path does not reactivate other credentials, revive deleted/disabled accounts automatically or elevate roles; account identity and business data are preserved
+- **AND** authorization, private credential delivery and negative cases must pass before traffic is enabled; otherwise recovery remains blocked and RTO is not credited
+
+#### Scenario: Local recovery authorization and private delivery
+- **WHEN** the local operator supplies a private review bound to exact target, instance_id, bundle and snapshot with complete account/credential coverage
+- **THEN** only explicitly selected, identity-verified active accounts receive a fresh random password through exclusive private files (0700 directory, 0600 files); deleted, disabled or unknown accounts remain blocked and all doubtful historical credentials stay inactive
+- **AND** identity and roles remain unchanged, no public endpoint or automatic admin is created, secrets never enter argv/environment/stdout/logs, and a new signing key is kept separate from original Coach decryption material
+- **AND** wrong binding, incomplete coverage, missing identity evidence, unsafe review/output permissions, existing output or uncertain completion fail closed without opening runtime CONNECT or startup admission
+
+### Requirement: Private bounded diagnostic operation
+Operation SHALL provide private diagnosis using standard structured logging, internal request_id correlation and point-in-time status for DB/schema, pool, audit degradation and verified-backup age. Logs SHALL be bounded to 256 MiB/seven days with standard rotation/retention tooling selected and pinned before the diagnostic slice. Credentials, notes, prompts, personal history and SQL values SHALL be excluded. No OpenTelemetry, custom exporter, span store, sampling or metric snapshot subsystem SHALL be delivered in this change. Audit remains separately governed.
+
+Age/space enforcement SHALL cover every durable copy, active/rotated files, startup and stopped-API retention tasks. Sink failure SHALL NOT change committed results or block requests indefinitely. Diagnostic interfaces SHALL remain private. Physical deletion while the host is off SHALL NOT be promised; expiry cleanup SHALL precede resumed diagnostic access.
+
+#### Scenario: Local diagnosis has fixed tools and limits
+- **WHEN** the operator diagnoses a known synthetic HTTP/DB/provider operation
+- **THEN** private CLI reports differentiated health, pool status, audit degradation and verified-backup age without public endpoints or an exporter
+- **AND** sanitized records correlate HTTP, DB and simulated dependency by request_id, result and duration; no external service or accidental Docker log copy bypasses retention
+
+#### Scenario: Age expiry sensitive fixture and unavailable sink
+- **WHEN** logs exceed age/space limits, contain synthetic sensitive markers or the sink is full/unavailable
+- **THEN** retention and bounded-failure behavior are verified and no sensitive marker appears in diagnostics
+- **AND** size-only Docker rotation is not credited as age deletion; passing health alone does not prove correlated diagnosis or retention
+
+### Requirement: Single-authority cutover and verified retirement
+This change SHALL deliver and accept the repository: functional Python port, recoverable local tooling and synthetic cutover/retirement rehearsals. By explicit promoter decision, S11 task 11.2 SHALL record deferral of actual migration/cutover and real-instance acceptance to a later separately authorized operational intervention. Tasks 11.3–11.5 SHALL retire replaced repository code/contracts, verify the retired tree and consolidate repository acceptance before archive. Real migration SHALL NOT block repository closeout; its deferral SHALL NOT waive operational prerequisites or establish actual G0/G2/G3, operational access or Recovery permission.
+
+Real cutover SHALL require G0 inventory/backups and prior G1/GP/GO evidence, an agreed rehearsed maintenance window, all writers paused and equivalent import before enabling PostgreSQL as the only authority. Origin/release/configuration/secrets SHALL remain frozen/protected for at least 30 days after accepted cutover without automatic deletion. Before new writes rollback SHALL use validated origin; after new writes the baseline SHALL be rehearsed forward repair of Python/PostgreSQL preserving new writes, never automatic return to the frozen Node origin or silent loss. Reverse export to Node SHALL be excluded unless separately approved by the promoter. If forward repair cannot preserve required writes in the agreed failure scenario, cutover SHALL remain blocked pending an explicit decision; periodic backups SHALL NOT be presented as zero RPO. G3/GO SHALL be demonstrated again after removing replaced dependencies before Recovery implementation begins.
+
+#### Scenario: New writes followed by rollback request
+- **WHEN** the new backend has accepted writes and an operator requests rollback
+- **THEN** the operator uses the rehearsed forward-repair procedure with independently verified preservation of the new writes, without automatic fallback, old-backup data loss or an unapproved reverse exporter
+- **AND** preserved original artifacts are not an active second authority or permission to delete them after the retention minimum
+
+#### Scenario: Forward repair cannot preserve new writes
+- **WHEN** a pre-cutover rehearsal cannot recover required acknowledged writes under the agreed failure scenario
+- **THEN** the rehearsal fails and real cutover remains blocked pending promoter resolution rather than silently accepting data loss or implementing reverse export
+- **AND** results distinguish repair of the surviving destination from recovery after destination loss within the accepted RPO scope
+
+#### Scenario: Post-retirement acceptance
+- **WHEN** repository closeout is considered after legacy source removal, with actual cutover deferred
+- **THEN** capability/security parity, operation/diagnosis/restore and absence of active retired storage readers are evidenced again
+- **AND** clean-tree evidence supports repository acceptance only; documentation validation or synthetic results cannot establish real-instance acceptance or authorize Recovery start
+
+#### Scenario: Synthetic evidence is available but real inventory is unknown
+- **WHEN** existing synthetic suites report passing results and the real clients, devices or later-access coverage have not been verified
+- **THEN** their guarantees are referenced without inventing operational results; an explicitly promoter-approved administrative closure of preparation task 11.1 MAY be recorded without establishing operational readiness
+- **AND** administrative closure and deferral of 11.2 SHALL NOT authorize cutover, waive existing G0/G1/GP/GO requirements or establish real-instance acceptance; those future cutover conditions remain unchanged
+
+#### Scenario: Evidence requires privileged or state-changing collection
+- **WHEN** a missing proof requires reading private configuration, using keys, pausing writers, capturing data or restoring a real snapshot into isolation
+- **THEN** the exact resources, operator, destination, effects and window require explicit applicable permission before collection
+- **AND** real data and secrets remain in protected private storage outside tracked artifacts
+
+#### Scenario: Inspection can trigger synchronization
+- **WHEN** an inspection method can start synchronization, refresh credentials, write presence, create an export or otherwise change application state
+- **THEN** read-only inspection permission does not authorize that method, and the exact action requires prior applicable state-changing permission or remains pending
+- **AND** source-copy checks and missing runtime suites are executed only after that permission, not during documentary candidate review
+
+#### Scenario: Node origin needs a representative Python rehearsal
+- **WHEN** the current source is Node/JSON and representative recovery evidence is required
+- **THEN** a reviewed and rehearsed coherent Node capture procedure precedes real capture under explicit permission, followed by equivalent import of the frozen protected copy into a new isolated PostgreSQL target
+- **AND** Python backup/restore tools are used only on the resulting Python target, never as an assumed Node source backup or an import into the active instance
+- **AND** source capture/data-cutoff, import and Python snapshot times remain distinct; a newly generated bundle does not reset the effective data age of the imported source or establish freshness of client-local pending work
+
+#### Scenario: Candidate or inventory changes after review
+- **WHEN** the candidate, image manifest, clients, origins, configuration, security decisions or backup validity changes before cutover
+- **THEN** affected evidence and pre-cutover review are reopened before proceeding
+- **AND** the release manifest identifies all used images and SQL head, while historical evidence retains original identity plus a separate applicability decision rather than being relabeled with the candidate identity
+
+#### Scenario: Cutover permission exists without retirement permission
+- **WHEN** cutover is authorized but exact obsolete paths and consumers have not received explicit retirement authorization
+- **THEN** removal remains blocked and protected recovery material is not deleted
+- **AND** any replacement for an undelivered verification command must supply the required executable behavioral and negative proofs, not documentation-only acceptance

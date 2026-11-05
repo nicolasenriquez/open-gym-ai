@@ -45,13 +45,10 @@ import { isoOf, weekKey, weekStartOf } from './format.js'
 const routineIdsOf = w => (Array.isArray(w.routineIds) ? w.routineIds : (w.routineId ? [w.routineId] : []))
 const nameParts = w => String(w.name || '').split(' + ')
 
-// Tolerant reader: whole-state sync is last-writer-wins, so a half-written or older-shaped
-// queue can arrive from another client. A bad shape reads as "no queue" rather than taking
-// Home down with it. A session whose routine no longer exists (deleted in the editor — a
-// planner's queue is never rewritten by the app; a rotation-managed one is, by lib/rotation.js)
-// is dropped from the week: it could never be started or logged,
-// and keeping it would pin the whole week on it; a queue left with no session at all reads as
-// no queue. A missing startsOn means active since the day of the apply.
+// Older clients or external planners can supply malformed queues: read them as no queue.
+// Drop missing routines so they cannot block the week; an empty result means no queue.
+// Missing startsOn falls back to the apply date. Reading never rewrites the stored queue;
+// rotation.js owns rotation-managed updates, while external planners own their queues.
 export const queueOf = S => {
   const q = S?.queue
   if (!q || typeof q !== 'object' || !Array.isArray(q.ids)) return null

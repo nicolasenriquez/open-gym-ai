@@ -62,7 +62,7 @@ function installFetch() {
   globalThis.fetch = window.fetch = vi.fn(async (url, init = {}) => {
     const method = (init.method || 'GET').toUpperCase()
     h.calls.push({ url: String(url), method, auth: init.headers?.Authorization || null, body: init.body ? JSON.parse(init.body) : null })
-    if (String(url).startsWith(BASE)) return h.server(String(url).slice(BASE.length), method, init)
+    if (String(url).startsWith(BASE + '/')) return h.server(String(url).slice(BASE.length), method, init)
     // Capacitor's WebViewLocalServer: index.html and 200 for every extension-less path, any method.
     const last = String(url).split('?')[0].split('/').pop()
     return last.includes('.') ? res(404, '') : res(200, INDEX_HTML, 'text/html')
@@ -73,12 +73,12 @@ const refusing = () => json(401, { error: 'not signed in' })
 function serverWith(doc) {
   const srv = { doc: clone(doc), puts: [] }
   srv.handle = (path, method, init) => {
-    if (path === '/api/me') return json(200, { user: USER })
-    if (path === '/api/config') return json(200, { invite_only: false, allow_guest: true })
-    if (path === '/api/pair/redeem') return json(200, { token: 'TOKEN-NEW', user: USER })
-    if (path === '/api/data/rev') return json(200, { rev: srv.doc._rev })
-    if (path === '/api/data' && method === 'GET') return json(200, { state: clone(srv.doc), rev: srv.doc._rev })
-    if (path === '/api/data' && method === 'PUT') {
+    if (path === '/api/v1/me') return json(200, { user: USER })
+    if (path === '/api/v1/config') return json(200, { invite_only: false, allow_guest: true })
+    if (path === '/api/v1/pair/redeem') return json(200, { token: 'TOKEN-NEW', user: USER })
+    if (path === '/api/v1/data/rev') return json(200, { rev: srv.doc._rev })
+    if (path === '/api/v1/data' && method === 'GET') return json(200, { state: clone(srv.doc), rev: srv.doc._rev })
+    if (path === '/api/v1/data' && method === 'PUT') {
       const body = JSON.parse(init.body)
       srv.puts.push(body)
       if (body.baseRev != null && body.baseRev !== srv.doc._rev) return json(409, { error: 'conflict', rev: srv.doc._rev, state: clone(srv.doc) })
@@ -86,7 +86,7 @@ function serverWith(doc) {
       delete srv.doc.active
       return json(200, { ok: true, rev: srv.doc._rev })
     }
-    if (path === '/api/logout') return json(200, { ok: true })
+    if (path === '/api/v1/logout') return json(200, { ok: true })
     return json(404, { error: 'not found' })
   }
   h.server = srv.handle
@@ -94,9 +94,9 @@ function serverWith(doc) {
 }
 
 const readFile = name => { const v = h.files.get('DATA/' + name); return v == null ? null : JSON.parse(v) }
-const serverCalls = () => h.calls.filter(c => c.url.startsWith(BASE))
-const localCalls = () => h.calls.filter(c => !c.url.startsWith(BASE))
-const sleep = ms => new Promise(r => setTimeout(r, ms))
+const serverCalls = () => h.calls.filter(c => c.url.startsWith(BASE + '/'))
+const localCalls = () => h.calls.filter(c => !c.url.startsWith(BASE + '/'))
+const sleep = ms => vi.advanceTimersByTimeAsync(ms)
 const ids = xs => (xs || []).map(x => x.id)
 
 // Server rev 5 holds w1 and the push-day routine at 10 reps; the phone is paired and in step.
@@ -144,13 +144,26 @@ async function freshStore() {
   return useStore
 }
 
-beforeEach(() => { installFetch(); h.refuse.clear() })
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  installFetch()
+  h.refuse.clear()
+})
 afterEach(async () => {
-  window.dispatchEvent(new Event('pagehide'))
-  await sleep(20)
-  for (const s of stores) s.setState({ user: null, ready: false })
-  stores = []
-  localStorage.clear()
+  try {
+    window.dispatchEvent(new Event('pagehide'))
+    await sleep(20)
+  } finally {
+    for (const s of stores) s.setState({ user: null, ready: false })
+    stores = []
+    try {
+      await vi.runOnlyPendingTimersAsync()
+    } finally {
+      vi.clearAllTimers()
+      vi.useRealTimers()
+      localStorage.clear()
+    }
+  }
 })
 
 describe('boot when the server refuses the pairing token', () => {
@@ -178,7 +191,7 @@ describe('boot when the server refuses the pairing token', () => {
     await useStore.getState().pushState()
 
     expect(localCalls()).toHaveLength(0)
-    expect(serverCalls()).toEqual([expect.objectContaining({ url: BASE + '/api/data', method: 'PUT', auth: 'Bearer TOKEN-OLD' })])
+    expect(serverCalls()).toEqual([expect.objectContaining({ url: BASE + '/api/v1/data', method: 'PUT', auth: 'Bearer TOKEN-OLD' })])
     expect(localStorage.getItem('gym_dirty')).toBe('1')
     expect(useStore.getState().sync).toMatchObject({ status: 'auth', pending: true, lastSynced: 0 })
     expect(useStore.getState().unsyncedChanges()).toEqual({ owed: true, count: 1 })
@@ -357,7 +370,7 @@ describe('Disconnect anyway keeps the owed changes for the next pairing', () => 
     await useStore.getState().disconnectServer({ force: true })
 
     const srv = serverWith(SERVER_STATE)
-    h.server = (path, method, init) => (path === '/api/pair/redeem' ? json(200, { token: 'T2', user: { id: 'u2', name: 'bea' } }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/pair/redeem' ? json(200, { token: 'T2', user: { id: 'u2', name: 'bea' } }) : srv.handle(path, method, init))
     await useStore.getState().connectToServer('gym.example.com', 'ABCD2345', vi.fn(async () => false))
     expect(ids(useStore.getState().S.workouts)).toEqual(['w1'])
     expect(Object.keys(readFile('opengym-stash.json'))).toEqual([BASE + '|u1'])
@@ -376,11 +389,11 @@ describe('another account paired on a phone that still owes the first', () => {
     const srv = serverWith(SERVER_STATE)
     const OTHER = 'https://other.example.com'
     const bea = { id: 'u2', name: 'bea' }
-    h.server = (path, method, init) => (path === '/api/pair/redeem' ? json(200, { token: 'T2', user: bea }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/pair/redeem' ? json(200, { token: 'T2', user: bea }) : srv.handle(path, method, init))
     const prevFetch = globalThis.fetch
     globalThis.fetch = window.fetch = vi.fn(async (url, init = {}) => {
       h.calls.push({ url: String(url), method: (init.method || 'GET').toUpperCase(), auth: init.headers?.Authorization || null })
-      return String(url).startsWith(OTHER) ? h.server(String(url).slice(OTHER.length), (init.method || 'GET').toUpperCase(), init) : prevFetch(url, init)
+      return String(url).startsWith(OTHER + '/') ? h.server(String(url).slice(OTHER.length), (init.method || 'GET').toUpperCase(), init) : prevFetch(url, init)
     })
     await useStore.getState().connectToServer('other.example.com', 'ABCD2345', vi.fn(async () => false))
 
@@ -449,7 +462,7 @@ describe('the file mirror never brings back a copy that is not this account\'s l
   // Bea's account on the same server: her own document, and the pairing code that is hers.
   const beaServer = () => {
     const srv = serverWith({ _ts: 500, _rev: 3, unit: 'kg', workouts: [workout('b1', '2026-09-01')], routines: [], bodyweight: [] })
-    h.server = (path, method, init) => (path === '/api/me' || path === '/api/pair/redeem' ? json(200, { token: 'T2', user: BEA }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/me' || path === '/api/v1/pair/redeem' ? json(200, { token: 'T2', user: BEA }) : srv.handle(path, method, init))
     return srv
   }
   // Andi logs a workout on the paired phone; it reaches his server and the file.
@@ -557,7 +570,7 @@ describe('a token the server renews', () => {
   it('is saved to the pairing file at boot and carried by every request after it', async () => {
     pairedPhone()
     const srv = serverWith(SERVER_STATE)
-    h.server = (path, method, init) => (path === '/api/me' ? json(200, { user: USER, token: 'TOKEN-RENEWED' }) : srv.handle(path, method, init))
+    h.server = (path, method, init) => (path === '/api/v1/me' ? json(200, { user: USER, token: 'TOKEN-RENEWED' }) : srv.handle(path, method, init))
     const useStore = await freshStore()
     await useStore.getState().boot()
 
@@ -584,20 +597,17 @@ describe('a request that never answers', () => {
     const srv = serverWith(SERVER_STATE)
     const useStore = await freshStore()
     await useStore.getState().boot()
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    try {
-      h.server = () => new Promise(() => {})   // a black-holed connection: no answer, no error
-      useStore.getState().update(s => { s.workouts.push(workout('w2', '2026-09-15')) }, false)
-      const push = useStore.getState().pushState()
-      await vi.advanceTimersByTimeAsync(61000)
-      await push
-      expect(useStore.getState().sync).toMatchObject({ status: 'offline', pending: true, lastError: { status: 0, code: 'timeout' } })
-      expect(localStorage.getItem('gym_dirty')).toBe('1')
+    h.server = () => new Promise(() => {})   // a black-holed connection: no answer, no error
+    useStore.getState().update(s => { s.workouts.push(workout('w2', '2026-09-15')) }, false)
+    const push = useStore.getState().pushState()
+    await vi.advanceTimersByTimeAsync(61000)
+    await push
+    expect(useStore.getState().sync).toMatchObject({ status: 'offline', pending: true, lastError: { status: 0, code: 'timeout' } })
+    expect(localStorage.getItem('gym_dirty')).toBe('1')
 
-      h.server = srv.handle
-      await useStore.getState().pushState()
-      expect(ids(srv.doc.workouts)).toEqual(['w1', 'w2'])
-      expect(useStore.getState().sync.status).toBe('ok')
-    } finally { vi.useRealTimers() }
+    h.server = srv.handle
+    await useStore.getState().pushState()
+    expect(ids(srv.doc.workouts)).toEqual(['w1', 'w2'])
+    expect(useStore.getState().sync.status).toBe('ok')
   })
 })

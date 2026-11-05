@@ -1,0 +1,49 @@
+name: opengym-dev
+services:
+  diagnostics:
+    image: opengym-platform-diagnostics:dev
+    build: {context: ./backend/diagnostics}
+  web:
+    image: opengym-platform-web:dev
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      args: {VITE_API_PREFIX: /api/v1}
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      interval: 2s
+      timeout: 3s
+      start_period: 5s
+      retries: 30
+  api:
+    image: opengym-platform-runtime:dev
+    build: {context: ./backend, target: dev}
+    command: ["-m", "uvicorn", "opengym_platform.application:create_app", "--factory", "--host", "0.0.0.0", "--port", "3000", "--reload", "--no-access-log", "--no-proxy-headers"]
+    environment: {PLATFORM_ENV: dev, PLATFORM_DB_NAME: opengym_dev}
+    volumes:
+      - {type: bind, source: ./backend/src, target: /app/src, read_only: true}
+  db:
+    environment: {POSTGRES_DB: opengym_dev}
+    healthcheck:
+      test: [CMD, pg_isready, -U, opengym_platform_bootstrap, -d, postgres]
+  bootstrap:
+    image: opengym-platform-migrate:dev
+    build: {context: ./backend, target: migrate}
+    environment: {PLATFORM_ENV: dev, PLATFORM_DB_NAME: opengym_dev}
+  migrate:
+    image: opengym-platform-migrate:dev
+    build: {context: ./backend, target: migrate}
+    environment: {PLATFORM_ENV: dev, PLATFORM_DB_NAME: opengym_dev}
+  ops:
+    image: opengym-platform-ops:dev
+    build: {context: ./backend, target: ops}
+volumes:
+  diagnostic-logs:
+    name: ${COMPOSE_PROJECT_NAME}_dev-diagnostic-logs
+  diagnostic-socket:
+    name: ${COMPOSE_PROJECT_NAME}_dev-diagnostic-socket
+  media-data:
+    name: ${COMPOSE_PROJECT_NAME}_dev-media-data
+  postgres-data:
+    name: ${COMPOSE_PROJECT_NAME}_dev-postgres-data

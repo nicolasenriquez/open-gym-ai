@@ -1,7 +1,7 @@
 # opengym.ch
 
-Source of the project website — plain hand-written HTML/CSS/JS, no build step,
-served by nginx.
+Source of the upstream project website — plain hand-written HTML/CSS/JS, no build
+step, served by nginx. This fork retains the sources and has no automated deployment.
 
 Not in this folder (added at deploy time):
 
@@ -14,7 +14,7 @@ Not in this folder (added at deploy time):
 - `demo/` — the browser-only demo build of the app, embedded in the `#demo` section and
   reachable on its own at `/demo/`. Built from `../frontend` with `VITE_DEMO=1`, with the
   180 px exercise media from `../catalogue/media` staged into `demo/exercise-media/` by
-  `../scripts/catalogue/stage-media.mjs` (see the `pages` job in `../.gitlab-ci.yml`).
+  `../scripts/catalogue/stage-media.mjs`.
   Never put larger media here (see `../catalogue/media/NOTICE.md`). It has to live on
   this host: the site frames it, and `X-Frame-Options: SAMEORIGIN` would block it from
   anywhere else.
@@ -38,7 +38,7 @@ targets `<main id="main">`. Screenshots change under the same file name, and ngi
 caches images for seven days — bump the name if a new one must show up at once.
 
 `api.html` is the one **generated** file in here: `node scripts/build-api-docs.mjs`
-rewrites it from `../api/openapi.yaml`. Edit the spec, re-run the script, commit both —
+rewrites it from `../backend/openapi.yaml`. Edit the spec, re-run the script, commit both —
 never hand-edit `api.html`, the next run overwrites it. The page is static HTML in this
 site's own design (no Swagger UI, nothing rendered at view time); the only script of its
 own it carries is the contents drawer and the card expand/collapse.

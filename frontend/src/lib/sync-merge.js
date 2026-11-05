@@ -1,77 +1,25 @@
-/* Two copies of the account state, one merged copy.
+/* Merge account copies after a stale baseRev (HTTP 409), preserving independent edits.
  *
- * The server refuses a push over a document the device never saw (PUT /api/data with a stale
- * `baseRev` answers 409 and hands back the current document). Before revisions the newer `_ts`
- * simply replaced the other copy wholesale — which is exactly how a desktop tab that sat open
- * all day dropped the workout the phone logged in the meantime. The merge keeps both sides'
- * entries and lets the newer copy decide everything that has no natural union.
+ * Precedence and exceptions (details beside each helper):
+ * - Settings and plan keys: per-key edited stamps, falling back to the newer copy's _ts.
+ * - Workouts, routines, customEx, equipProfiles and gymCards: union by id, then mergeEntry
+ *   resolves fields by _f with entry _ts fallback. Workout media union by hash even with prefer.
+ * - Routines follow edited.routineOrder; older-only entries stay beside their neighbours.
+ * - Bodyweight and measurements: union by day, later t wins. favEx: newer-first set union.
+ * - exWeights: best load (assistance reverses comparison); corrected/deleted workout sets
+ *   recompute records from merged history and the editing/deleting copy, preventing typo revival.
+ * - exNotes/barWeights: key union plus edited stamps. STAMPED_MAPS: per-key _ts, including clears;
+ *   plate/dumbbell inventories are whole choices per unit.
+ * - Units normalize before comparison using unitSet.at (prefer wins); convert:false relabels.
+ * - A reset seen by one side removes resetIds, preserving unrelated entries; old resets fall
+ *   back to time. Reset settings/plan win. resetAt moves forward; equal resets union their ids.
+ * - Deletions beat older edits; later edits/add-backs survive. Undo markers participate in
+ *   field/setting conflict resolution (mergeEntry, applyEdits).
+ * - prefer is the sign-in path: preferred settings, plan, unit, reset and removals win;
+ *   the other copy still contributes entries and workout media.
+ * - _ts is the maximum; server revision/writer metadata is removed. active is caller-owned.
  *
- * Rules, by field:
- *   - scalars and settings, `week`, `dayPlan`, `wc`, `reminder`, `queue`, `rotation`, …: each from
- *     the copy that changed it last by its own stamp in `edited` (stampEdits; `week`, `dayPlan`,
- *     exNotes and barWeights per day or per exercise), from the copy with the newer `_ts` when
- *     neither side stamped it or on a tie
- *   - equipProfiles, gymCards: union by id; of an id that both have, field by field as below
- *   - workouts, routines, customEx, equipProfiles, gymCards: of an id that both have, each field
- *     from the side that changed it last by its own stamp (`_f`, stampEntry / mergeEntry), the
- *     version edited last for every field neither side stamped
- *   - customEx: union by id; of an id that both have, the version edited last by its own `_ts`
- *     (stampCustomEx), the newer copy's on a tie — a photo or link added on one device must not
- *     be lost to the other's copy just because that one logged a set since
- *   - workouts: union by id; of an id that both have, the version edited last by its own `_ts`
- *     (stampWorkout — a workout changed after it was logged: its sets edited, moved to another
- *     day, its length or note corrected), the newer copy's on a tie; sorted by day and start
- *     like every other writer. Its `media` list is the exception: the union by hash of both
- *     copies' lists (the kept version's in its order, then the other's extras), so a photo added
- *     on one device survives the other's edit of the same workout — or its own photo
- *     (mergeWorkoutMedia)
- *   - routines: union by id in the newer copy's order, a routine only the older copy has next to
- *     its neighbour there (unionByNeighbours); of an id that both have, the version
- *     edited last by its own `_ts` (stampRoutines), the newer copy's on a tie
- *   - bodyweight, measurements: union by day, the later-edited (`t`) entry of a day that both have
- *   - favEx: ordered set union, the newer copy first
- *   - exWeights: union by exercise, the better `w` for that exercise — larger for an ordinary
- *     lift, smaller on an assistance machine (a PR logged on the other device must not be
- *     forgotten, whichever way it runs). An exercise in a workout whose edited version was kept
- *     is the exception: the edit may have taken away the set the kept weight came from, so it
- *     is the best of the merged history and of the editing copy's own, and the other copy's
- *     can no longer bring a corrected typo back. exNotes, barWeights: key union
- *   - balanceOverrides, loadKind, plates, dbLoad, dumbbells, dayNotes: key union; of a key both
- *     have, the entry set last by its own `_ts`, a clear included (mergeStampedMap), the newer
- *     copy's on a tie. For plates and dumbbells the key is the unit, so the inventory of one unit
- *     is kept whole, as last edited; for dayNotes the key is the date, so each day's note is its own
- *   - `_ts`: the later of the two; `_rev` dropped (the server sets it); `active` left to the caller
- *
- * Two rules come before all of these:
- *
- *   - Units. Every weight in a copy is in its `unit`, so two copies in different units are never
- *     merged number by number: one is brought into the other's unit first (sameUnit). The unit
- *     that stays is the one chosen last — `unitSet.at`, stamped by a unit switch — or, with no
- *     stamp to tell, the newer copy's; with `prefer`, the preferred side's. A switch that only
- *     changed the label (`unitSet.convert === false`: the numbers were in the new unit all along)
- *     relabels the other copy instead of converting it. A copy converted to lb on one device used
- *     to meet the other device's kg copy and come back as kg with lb numbers under it.
- *   - Reset. "Reset everything" stamps the empty copy with `resetAt` and with `resetIds`: the keys
- *     of every entry it wiped — workouts, routines, custom exercises, weigh-ins (day and entry
- *     time), gym cards, equipment profiles, favourites, notes, bar weights and the stamped
- *     settings maps — of this device's copy and of the server's (resetIdsOf). A copy that has not
- *     seen that reset (an older or no `resetAt`) loses exactly those entries and keeps everything
- *     else, whatever its dates say: a CSV or Apple Health import of old sessions, a device whose
- *     clock runs behind, an entry with no date at all (sinceReset). Only a reset stamped before
- *     `resetIds` existed falls back to judging by time. The reset copy's settings and plan win
- *     whatever the `_ts`. `resetAt` only ever moves forward: the merge keeps the later one (with
- *     its ids; the union of both for the same reset; with `prefer`, the preferred side's), and so do a replace in
- *     the store and the server's PUT — a restored backup that carried no stamp would otherwise be
- *     taken for a copy older than the reset and wiped again. Before, a device with an unsent
- *     change got the 409, merged, and its union brought the whole wiped profile back. Not with
- *     `prefer`: a sign-in adds what a device logged signed out, which is not a copy of this
- *     account's history.
- *
- * After all of these, removals: an entry either copy records in `deleted` (stampDeletions) as
- * removed after it was last edited is left out, whatever the other copy still holds. With
- * `prefer` the reset stamp and the removals are the preferred side's only. Without it a
- * device that came back online after any time away brought back every workout, routine, custom
- * exercise, weigh-in or favourite the other device had removed meanwhile.
+ * api/sync-stamps.js mirrors the stamp rules; sync-stamps-parity.test.js checks agreement.
  */
 import { beatsWeight } from './exercises.js'
 import { bestWeightForEntry } from './history.js'

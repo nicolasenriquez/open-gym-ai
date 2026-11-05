@@ -3,7 +3,7 @@
 /* QA, v1.3.9: the phone's auto-backup is written when a workout is finished — before the finish
    screen offers to add its photos and videos, so the day's backup never had them. A change to a
    workout's media now writes it again, once for a batch picked together. */
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const h = vi.hoisted(() => {
   vi.stubEnv('VITE_MOBILE', '1')
@@ -34,19 +34,33 @@ import { DEF, useStore } from './useStore.js'
 import { addWorkoutMedia, removeWorkoutMedia } from '../lib/workout-media.js'
 
 const clone = v => JSON.parse(JSON.stringify(v))
-const sleep = ms => new Promise(r => setTimeout(r, ms))
 const W = { id: 'w1', d: '2026-09-27', start: 1, end: 2, entries: [] }
 const ref = c => ({ kind: 'image', hash: c.repeat(64), mime: 'image/webp', size: 3, width: 8, height: 6, at: 1 })
 const backups = () => [...h.files].filter(([k]) => k.startsWith('DOCUMENTS/')).map(([, v]) => JSON.parse(v))
 
-afterEach(() => { h.files.clear(); useStore.setState({ S: clone(DEF), user: null, ready: false }) })
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+})
+afterEach(async () => {
+  try {
+    useStore.setState({ S: clone(DEF), user: null, ready: false })
+    await vi.runOnlyPendingTimersAsync()
+  } finally {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+    h.files.clear()
+  }
+})
 
 describe('auto-backup and a workout\'s photos and videos', () => {
   it('a photo added after finishing is in the day\'s backup, one write for two picked together', async () => {
     useStore.setState({ S: { ...clone(DEF), autoBackup: true, workouts: [clone(W)] }, ready: true })
     useStore.getState().update(s => { addWorkoutMedia(s, W, ref('a')) })
     useStore.getState().update(s => { addWorkoutMedia(s, W, ref('b')) })
-    await sleep(2300)
+    await vi.advanceTimersByTimeAsync(1999)
+    expect(backups()).toHaveLength(0)
+    await vi.advanceTimersByTimeAsync(1)
+    await vi.waitFor(() => expect(backups()).toHaveLength(1))
     const all = backups()
     expect(all).toHaveLength(1)
     expect(all[0].workouts[0].media.map(m => m.hash)).toEqual(['a'.repeat(64), 'b'.repeat(64)])
@@ -58,7 +72,7 @@ describe('auto-backup and a workout\'s photos and videos', () => {
     useStore.setState({ S: { ...clone(DEF), autoBackup: true, workouts: [{ ...clone(W), media: [ref('a'), ref('b')] }] }, ready: true })
     useStore.getState().update(s => { removeWorkoutMedia(s, W, 'a'.repeat(64)) })
     useStore.getState().update(s => { s.workouts = [] })
-    await sleep(2300)
+    await vi.advanceTimersByTimeAsync(2300)
     expect(backups()).toHaveLength(0)
   })
 
@@ -67,7 +81,7 @@ describe('auto-backup and a workout\'s photos and videos', () => {
     useStore.getState().update(s => { s.restSec = 60 })
     useStore.setState({ S: { ...clone(DEF), autoBackup: false, workouts: [clone(W)] } })
     useStore.getState().update(s => { addWorkoutMedia(s, W, ref('a')) })
-    await sleep(2300)
+    await vi.advanceTimersByTimeAsync(2300)
     expect(backups()).toHaveLength(0)
   })
 })

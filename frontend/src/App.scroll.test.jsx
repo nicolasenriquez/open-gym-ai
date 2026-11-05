@@ -17,9 +17,9 @@ vi.mock('./lib/api.js', async importOriginal => {
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
-let host, root, originalS, scrolls, frames
+let host, root, originalState, scrolls, frames
 beforeEach(() => {
-  originalS = useStore.getState().S
+  originalState = useStore.getState()
   host = document.createElement('div')
   document.body.appendChild(host)
   root = createRoot(host)
@@ -32,7 +32,26 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount())
   host.remove()
-  useStore.setState({ S: originalS })
+  useStore.setState(originalState, true)
+})
+
+describe('onboarding navigation', () => {
+  it('renders tabs only after onboarding ends', async () => {
+    useStore.setState({
+      S: JSON.parse(JSON.stringify(DEF)),
+      user: { id: 'A', name: 'Alice', admin: false },
+      ready: true,
+      needsMobileOnboarding: true,
+      boot: async () => {},
+    })
+    await act(async () => { root.render(<App />) })
+    expect(host.querySelector('#tabbar')).toBeNull()
+
+    await act(async () => {
+      useStore.setState({ needsMobileOnboarding: false })
+    })
+    expect(host.querySelector('#tabbar')).not.toBeNull()
+  })
 })
 
 describe('the first load', () => {

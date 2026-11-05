@@ -1,33 +1,12 @@
-// Dumbbells and kettlebells: what a logged weight means (issue #474).
-//
-// A dumbbell bench press logged at 20 kg can mean one 20 kg bell in each hand or two 10s. The
-// app never asked, and everything that reads weights took the number at face value: volume is
-// weight × reps, the 1RM is estimated from it, records and progression compare it as it stands.
-// So the default, 'as', is exactly that and nothing more: "as entered", counted once, the way
-// every set logged before this file existed was counted. Nothing in history is reinterpreted.
-//
-// An exercise can say what it means instead:
-//   'each'  — the weight of one bell. Volume counts both (× 2), unless the exercise is done one
-//             arm at a time (per side, or "one arm" / "single arm" in its name): then one bell
-//             is all there is, and it counts once.
-//   'total' — both bells together. Counted once, as today; the label says so.
-// The choice lives on the routine's exercise (cfg.dbLoad, routine-specific) or as the exercise's
-// own default (S.dbLoad[exId] = { mode, _ts }, stamped like S.loadKind so a sync keeps the last
-// choice). A session stamps the meaning it was logged with on the entry's target, so changing
-// the setting later applies from then on and never rewrites what a past set meant.
-//
-// Records, the 1RM and progression compare like with like: a session logged as 'total' read by
-// an exercise that is now 'each' is halved first (and the other way round). Sets logged as
-// entered are never converted — nothing says which they meant — so they compare as they always
-// did.
-//
-// The dumbbell inventory (issue #376) is here too: the weights you own, per unit like the plate
-// inventory (S.dumbbells[unit] = { weights, _ts }). With one, a dumbbell exercise's progression,
-// deloads, warm-ups, drops and stepper land on bells you have instead of on the increment's grid;
-// without one nothing changes.
-//
-// Only lib/exercises.js is imported, so history.js, progression.js and plates.js can all use
-// this file without a cycle.
+// Dumbbell/kettlebell load semantics (#474), preserved on each logged entry's target:
+// - 'as': as entered, counted once; never reinterpret or convert old ambiguous weights.
+// - 'each': one bell; volume doubles except for per-side/one-arm/single-arm exercises.
+// - 'total': both bells together, counted once.
+// cfg.dbLoad overrides S.dbLoad[exId] = { mode, _ts }. Future setting changes leave history intact.
+// Records, 1RM and progression convert each/total to compare like with like; 'as' stays unchanged.
+// S.dumbbells[unit] = { weights, _ts } (#376) snaps progression, deloads, warm-ups, drops and
+// steppers to owned bells; without an inventory they use the increment grid.
+// Only exercises.js is imported, avoiding cycles with history, progression and plates.
 
 import { EXIDX, isBodyweightEq } from './exercises.js'
 

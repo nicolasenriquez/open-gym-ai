@@ -1,3 +1,8 @@
+---
+type: Guide
+title: The phone app (Android and iOS)
+description: Current Android and iOS installation options and server connectivity.
+---
 # The phone app (Android and iOS)
 
 **Just want the app?** Download the APK from the
@@ -220,7 +225,7 @@ in openGym removes it there; turning it off with "remove" leaves no openGym reco
 
 ## Prerequisites
 
-- Node 20+
+- Node 22.12+ (CI uses Node 22; Vite's exact requirement is in `frontend/pnpm-lock.yaml`)
 - **Android:** Android Studio (bundles the SDK). Java 21 for Gradle.
 - **iOS:** a Mac with Xcode 15+ and CocoaPods (`brew install cocoapods`). A free Apple ID
   is enough to run the app on your own iPhone (see below); paid membership is only needed
@@ -230,31 +235,29 @@ in openGym removes it there; turning it off with "remove" leaves no openGym reco
 
 ```sh
 cd frontend
-npm install
-npm run build:mobile        # VITE_MOBILE build + `cap sync` into android/ and ios/
+pnpm install --frozen-lockfile
+pnpm run build:mobile        # VITE_MOBILE build + `cap sync` into android/ and ios/
 
-npx cap open android        # opens Android Studio → run on emulator or device
-npx cap open ios            # opens Xcode (Mac only) → set your signing team, then run
+pnpm exec cap open android        # opens Android Studio → run on emulator or device
+pnpm exec cap open ios            # opens Xcode (Mac only) → set your signing team, then run
 ```
 
-`npm run build:mobile` bakes the CDN media base into the bundle and copies the web build
-into both native projects — re-run it after every web-code change before building natively.
+`pnpm run build:mobile` builds the mobile frontend, stages exercise media from
+`catalogue/media/` into `dist/exercise-media/`, syncs both native projects and checks the
+synced bundle. Release builds can supply larger animations through `APP_MEDIA_DIR`;
+see [the staging script](../scripts/catalogue/stage-media.mjs). Re-run after every
+web-code change before building natively.
 
 > **Heads-up:** after `build:mobile`, `frontend/dist` contains the *mobile* bundle.
-> Run a plain `npm run build` again before deploying `dist` to a server.
+> Run a plain `pnpm run build` again before deploying `dist` to a server.
 
 ## App icons & splash screens
 
 `frontend/resources/icon.svg` is the 1024×1024 source (the app's dumbbell glyph on the
-app background). Generate all platform assets from it on a machine with the tooling:
-
-```sh
-cd frontend
-npx @capacitor/assets generate --iconBackgroundColor '#0c0e12' --splashBackgroundColor '#0c0e12'
-```
-
-(If the generator won't take the SVG directly, export it to `resources/icon.png` at
-1024×1024 first — any image tool can do it.)
+app background). Generated Android/iOS assets remain committed. The legacy
+`@capacitor/assets` generator was removed because it pins vulnerable dependencies;
+no icon-generation tool is installed by this project. Review replacement tooling
+before regenerating icons or splash screens.
 
 ## Distribution — deliberately no app stores
 
@@ -263,7 +266,8 @@ accounts, no store rules, no yearly fees between you and an open-source app.
 
 ### Android — sideload the APK
 
-The official signed APK is in four places, all the same file:
+This fork builds mobile packages locally and has no automated signing or publication.
+For upstream packages, consult these upstream distribution locations:
 
 - **[opengym.ch](https://opengym.ch)** — the download page.
 - **[GitLab's package registry](https://gitlab.com/DuarteSantos8/opengym/-/packages)** — every
@@ -271,22 +275,15 @@ The official signed APK is in four places, all the same file:
   `https://gitlab.com/api/v4/projects/85678327/packages/generic/opengym-android/<version>/openGym-<version>.apk`
 - **[The GitHub release](https://github.com/DuarteSantos8/openGym/releases)** for that version,
   with the APK and its `.sha256` attached as release assets.
-- **[The GitLab release](https://gitlab.com/DuarteSantos8/opengym/-/releases)** on the mirror,
-  where the file is built; it links to the package registry above.
+- **[The upstream GitLab releases](https://gitlab.com/DuarteSantos8/opengym/-/releases)**
+  retain upstream release and package references.
 
 Android asks you to allow installs from the browser the first time — that's standard for any
 app outside the Play Store. Check the `.sha256` if you got the file from anywhere else.
 
-Both come out of CI: the `build:apk` job in [`.gitlab-ci.yml`](../.gitlab-ci.yml) runs
-`npm run build:mobile` and `./gradlew assembleRelease`, then `zipalign`s and signs the result
-with the release key. The job runs on every push to `main` too, so the newest unreleased
-build is always one click away (signed with the same key, installs over a release):
-`https://gitlab.com/DuarteSantos8/opengym/-/jobs/artifacts/main/browse?job=build:apk`
-— a 30-day job artifact, not a package, and not what the in-app updater offers. The key lives in *protected* CI variables (`ANDROID_KEYSTORE_B64`,
-`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`), so it only exists on `main` and on `v*`
-tags — a merge request from a fork can build an APK, but gets an unsigned one and never sees
-the key. On a `v*` tag the signed APK is also pushed to the generic package registry, which is
-what the release links to.
+These links refer to upstream artifacts, not builds of this checkout. This fork
+does not produce CI APK artifacts. To build and sign this code, use the local
+commands below and keep the signing key private.
 
 The release APK carries native code for ARM only (`arm64-v8a`, `armeabi-v7a`), which is every
 phone; the x86 builds of the barcode scanner's library would add about 12 MB for emulators
@@ -296,7 +293,7 @@ emulator.
 To build and sign your own:
 
 ```sh
-cd frontend && npm run build:mobile
+cd frontend && pnpm run build:mobile
 cd android && ./gradlew assembleRelease            # → app/build/outputs/apk/release/app-release-unsigned.apk
 
 # one-time: create a keystore. KEEP IT — updates must be signed with the same key,
@@ -319,18 +316,9 @@ that would simply install. Your free options:
   onto your own iPhone. Apple expires the signature after 7 days; re-run from Xcode to renew.
 - **AltStore:** automates that 7-day re-signing over Wi-Fi via a Mac companion app.
 
-There is a `build:ios` job in [`.gitlab-ci.yml`](../.gitlab-ci.yml) for exactly that path: the
-same mobile bundle, `xcodebuild archive` without a signing identity, and an *unsigned* `.ipa`
-(plus `.sha256`) as job artifact — on a tag also under `opengym-ios/<version>/` in the package
-registry — for AltStore/Sideloadly users to sign with their own Apple ID. It needs a Mac: Xcode
-does not run on the Linux project runner, and gitlab.com's hosted macOS runners are not on the
-free tier. To switch it on, register a Mac as a project runner (shell executor; Xcode, CocoaPods
-and Node installed; give it a tag such as `macos`) and set the CI/CD variable `IOS_RUNNER_TAG`
-to that tag — the job then appears in every `main` and tag pipeline. Until that variable exists
-the job is not part of any pipeline, and it has not run yet, so expect a first round of fixes.
-A signed build (TestFlight, App Store) would additionally need an Apple Developer Program
-membership, the distribution certificate and profile as protected file variables, and an
-`-exportArchive` step — none of that is set up.
+This fork has no iOS CI packaging or signing job. Use the local Xcode workflow
+above. Signed distribution requires the applicable Apple account and signing
+credentials; this repository does not configure automated distribution.
 
 ### Release notes for maintainers
 

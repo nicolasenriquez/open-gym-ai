@@ -1,0 +1,315 @@
+"""Platform HTTP composition and lifecycle."""
+
+import asyncio
+import math
+import os
+import time
+from contextlib import asynccontextmanager, suppress
+
+from fastapi import APIRouter, FastAPI, Request
+from fastapi.responses import JSONResponse, Response
+from starlette.exceptions import HTTPException
+
+from opengym_platform.administration.cleanup import Cleanup
+from opengym_platform.administration.router import (
+    create_router as administration_router,
+)
+from opengym_platform.audit.router import create_router as audit_router
+from opengym_platform.audit.service import Audit
+from opengym_platform.coach.admin import Admin
+from opengym_platform.coach.jobs import Jobs
+from opengym_platform.coach.pipeline import Pipeline
+from opengym_platform.coach.router import create_router as coach_router
+from opengym_platform.coach.secrets import SecretFiles
+from opengym_platform.coach.service import public_config as coach_config
+from opengym_platform.core.database import Database, DatabaseError
+from opengym_platform.core.diagnostics import Diagnostics
+from opengym_platform.core.maintenance import check_startup
+from opengym_platform.core.platform_settings import (
+    load_public_config,
+    load_session_secret,
+)
+from opengym_platform.identity.passwords import Passwords
+from opengym_platform.identity.router import create_router
+from opengym_platform.identity.throttle import Throttle
+from opengym_platform.media.router import create_router as media_router
+from opengym_platform.media.service import Media
+from opengym_platform.notifications.router import create_router as notifications_router
+from opengym_platform.training.router import create_router as training_router
+
+SCHEMA_REVISION = "p004_audit"
+
+
+async def recover_coach(database):
+    try:
+        installed = await database.fetch(
+            "SELECT to_regclass('public.alembic_version') IS NOT NULL AS installed"
+        )
+        if not installed[0]["installed"]:
+            return False
+        rows = await database.fetch(
+            "SELECT version_num, current_setting('transaction_read_only')='off' "
+            "AND NOT pg_is_in_recovery() AS writable FROM public.alembic_version LIMIT 2"
+        )
+    except DatabaseError:
+        # An unmigrated instance must remain live, but cannot become ready.
+        return False
+    if [row["version_num"] for row in rows] != [SCHEMA_REVISION] or not rows[0][
+        "writable"
+    ]:
+        return False
+    await database.fetch("SELECT coach.fail_interrupted_jobs()")
+    return True
+
+
+def create_app(*, training_note_state=None, coach_execute=None, coach_credentials=None):
+    check_startup()
+    public_config = load_public_config()
+    secret = load_session_secret()
+    coach_secrets = SecretFiles()
+    secure = os.environ.get("ORIGIN", "http://localhost:8080").startswith("https://")
+    try:
+        session_days = max(1.0, float(os.environ.get("SESSION_DAYS", "90")) or 90)
+        if not math.isfinite(session_days):
+            session_days = 90.0
+    except ValueError:
+        session_days = 90.0
+
+    passwords = Passwords()
+    diagnostics = Diagnostics()
+    throttle = Throttle()
+
+    @asynccontextmanager
+    async def lifespan(app):
+        if public_config.get("password_login"):
+            await passwords.warm_up()
+        database = await Database.open_platform()
+        app.state.database = database
+        app.state.audit = Audit(database)
+        app.state.coach_admin = Admin(database, coach_secrets)
+        maintenance = []
+        if media is not None:
+            media.clean_temporaries()
+            maintenance = [
+                asyncio.create_task(media.maintain_temporaries()),
+                asyncio.create_task(media.maintain_gc(database)),
+            ]
+        try:
+            app.state.coach_recovered = await recover_coach(database)
+            app.state.coach_recovery_lock = asyncio.Lock()
+            maintenance.append(
+                asyncio.create_task(Cleanup(database, coach_secrets).maintain())
+            )
+            app.state.coach_jobs = Jobs(
+                database,
+                coach_execute,
+                pipeline=Pipeline(
+                    secret, coach_credentials, secrets=app.state.coach_admin.secrets
+                )
+                if coach_execute is None
+                else None,
+            )
+            from opengym_platform.coach.cadence import maintain
+
+            maintenance.append(asyncio.create_task(maintain(app.state.coach_jobs)))
+            from opengym_platform.notifications.scheduler import Notifications
+            from opengym_platform.notifications.transport import send
+
+            app.state.notifications = Notifications(database, send)
+            maintenance.append(asyncio.create_task(app.state.notifications.maintain()))
+            from opengym_platform.operations import serve_status
+
+            async with serve_status(
+                database, app.state.audit, SCHEMA_REVISION, diagnostics
+            ):
+                yield
+        finally:
+            for task in maintenance:
+                task.cancel()
+            for task in maintenance:
+                with suppress(asyncio.CancelledError):
+                    await task
+            if getattr(app.state, "notifications", None) is not None:
+                await app.state.notifications.close()
+            if getattr(app.state, "coach_jobs", None) is not None:
+                await app.state.coach_jobs.close()
+            await database.close()
+            diagnostics.close()
+
+    app = FastAPI(
+        lifespan=lifespan,
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+        redirect_slashes=False,
+    )
+
+    app.state.audit = Audit(None)
+    app.state.diagnostics = diagnostics
+    public_api = APIRouter(prefix="/api/v1")
+    public_api.include_router(audit_router(secret=secret, secure=secure))
+
+    @app.exception_handler(404)
+    @app.exception_handler(405)
+    async def not_found(request: Request, error: HTTPException):
+        return JSONResponse(
+            {"error": "not found"},
+            status_code=404,
+            headers={"Cache-Control": "no-store"},
+        )
+
+    @app.middleware("http")
+    async def public_headers(request: Request, call_next):
+        with diagnostics.request():
+            started = time.monotonic()
+            result = 500
+            try:
+                response = await respond(request, call_next)
+                result = response.status_code
+                return response
+            finally:
+                route = request.scope.get("route")
+                path = getattr(route, "path", "unmatched")
+                # Included FastAPI routers retain their local template in scope.
+                if path.startswith("/") and not path.startswith("/api/v1/"):
+                    path = "/api/v1" + path
+                diagnostics.emit(path, result, time.monotonic() - started)
+
+    async def respond(request, call_next):
+        origin = request.headers.get("origin")
+        if request.method == "OPTIONS" and request.url.path.startswith("/api/v1/"):
+            response = Response(
+                status_code=204,
+                headers={
+                    "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, CF-Access-Client-Id, CF-Access-Client-Secret",
+                    "Access-Control-Max-Age": "86400",
+                },
+            )
+            if (
+                origin
+                in {"https://localhost", "capacitor://localhost", "http://localhost"}
+                and request.headers.get(
+                    "access-control-request-private-network", ""
+                ).lower()
+                == "true"
+            ):
+                response.headers["Access-Control-Allow-Private-Network"] = "true"
+        else:
+            response = await call_next(request)
+        if origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Vary"] = "Origin"
+        return response
+
+    @public_api.get("/health/live")
+    async def live():
+        return {"code": "PLATFORM_LIVE_OK"}
+
+    @public_api.get("/health/ready")
+    async def ready(request: Request):
+        try:
+            revisions = await request.app.state.database.fetch(
+                "SELECT version_num, current_setting('transaction_read_only') = 'off' "
+                "AND NOT pg_is_in_recovery() AS writable "
+                "FROM public.alembic_version LIMIT 2"
+            )
+        except DatabaseError:
+            return JSONResponse(
+                {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
+            )
+        if [row["version_num"] for row in revisions] != [SCHEMA_REVISION]:
+            return JSONResponse(
+                {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
+            )
+        if not revisions[0]["writable"]:
+            return JSONResponse(
+                {"code": "PLATFORM_DATABASE_READ_ONLY"}, status_code=503
+            )
+        if not request.app.state.coach_recovered:
+            async with request.app.state.coach_recovery_lock:
+                if not request.app.state.coach_recovered:
+                    try:
+                        request.app.state.coach_recovered = await recover_coach(
+                            request.app.state.database
+                        )
+                    except DatabaseError:
+                        return JSONResponse(
+                            {"code": "PLATFORM_DATABASE_UNAVAILABLE"}, status_code=503
+                        )
+                    if not request.app.state.coach_recovered:
+                        return JSONResponse(
+                            {"code": "PLATFORM_SCHEMA_INCOMPATIBLE"}, status_code=503
+                        )
+        return JSONResponse({"code": "PLATFORM_READY_OK"})
+
+    @public_api.get("/health")
+    async def health(request: Request):
+        status = await ready(request)
+        if status.status_code != 200:
+            return JSONResponse(
+                {"ok": False, "writable": False},
+                status_code=503,
+                headers={"Cache-Control": "no-store"},
+            )
+        try:
+            rows = await request.app.state.database.fetch(
+                "SELECT identity.public_user_count() AS count"
+            )
+        except DatabaseError:
+            return JSONResponse(
+                {"ok": False, "writable": False},
+                status_code=503,
+                headers={"Cache-Control": "no-store"},
+            )
+        return JSONResponse(
+            {"ok": True, "users": rows[0]["count"], "writable": True},
+            headers={"Cache-Control": "no-store"},
+        )
+
+    public_api.include_router(
+        create_router(
+            secret=secret,
+            secure=secure,
+            session_days=session_days,
+            passwords=passwords,
+            throttle=throttle,
+            password_login_enabled=bool(public_config.get("password_login")),
+        )
+    )
+    media = Media(public_config["media"]) if "media" in public_config else None
+    if training_note_state is None and media is not None:
+        training_note_state = media.note_state
+    public_api.include_router(
+        training_router(
+            secret=secret,
+            secure=secure,
+            note_state=training_note_state,
+        )
+    )
+    if media is not None:
+        public_api.include_router(
+            media_router(secret=secret, secure=secure, media=media)
+        )
+
+    public_api.include_router(coach_router(secret=secret, secure=secure))
+    public_api.include_router(notifications_router(secret=secret, secure=secure))
+    public_api.include_router(
+        administration_router(secret=secret, secure=secure, config=public_config)
+    )
+
+    @public_api.get("/config")
+    async def config(request: Request):
+        headers = {"Cache-Control": "no-store"}
+        try:
+            coach = await coach_config(request.app.state.database)
+        except DatabaseError:
+            return JSONResponse(
+                {"error": "server error"}, status_code=500, headers=headers
+            )
+        return JSONResponse(
+            {**public_config, **({"coach": coach} if coach else {})}, headers=headers
+        )
+
+    app.include_router(public_api)
+    return app
