@@ -5,8 +5,8 @@ description = "OpenGym Python platform"
 requires-python = ">=3.14,<3.15"
 license = "AGPL-3.0-or-later"
 dependencies = [
-  "fastapi==0.161.1",
-  "pydantic==2.14.1",
+  "fastapi==0.162.0",
+  "pydantic==2.14.2",
   "uvicorn==0.54.0",
   "asyncpg==0.32.0",
   "httpx==0.28.1",
@@ -18,10 +18,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-  "pytest==9.1.1",
-  "pytest-asyncio==1.4.0",
-  "ruff==0.17.2",
-  "mypy==2.4.0",
+  "pytest==9.2.0",
+  "pytest-asyncio==1.4.1.post1",
+  "ruff==0.17.3",
+  "mypy==2.4.1",
 ]
 
 # asyncpg ships no typing marker; keep the exception local to that driver.
