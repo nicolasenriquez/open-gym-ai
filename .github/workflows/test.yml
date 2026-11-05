@@ -201,8 +201,6 @@ jobs:
     if: needs.changes.outputs.platform == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.minutes }}
-    env:
-      TMPDIR: ${{ runner.temp }}
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -218,6 +216,8 @@ jobs:
           - { group: restore, minutes: 40 }
           - { group: images, minutes: 75 }
     steps:
+      - name: Use runner temporary directory for verification evidence
+        run: echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
