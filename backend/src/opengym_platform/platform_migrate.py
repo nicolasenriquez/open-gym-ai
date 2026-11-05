@@ -61,7 +61,9 @@ async def _bootstrap(target):
                     [MIGRATOR, RUNTIME],
                 )
             }
-            await connection.execute(f"""
+            # Roles are module constants; load_database restricts database names.
+            await connection.execute(
+                f"""
                 DO $$ BEGIN
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{SCHEMA_OWNER}') THEN
                         CREATE ROLE {SCHEMA_OWNER} NOLOGIN;
@@ -117,7 +119,8 @@ async def _bootstrap(target):
                         GRANT SELECT ON TABLE public.alembic_version TO {RUNTIME};
                     END IF;
                 END $$;
-            """)
+            """  # nosec B608
+            )
             for role, password in (
                 (MIGRATOR, target.migrator_password),
                 (RUNTIME, target.runtime_password),

@@ -714,12 +714,18 @@ async def insert_compare(connection, rows):
     for table, fields in TABLES.items():
         columns = fields.split()
         if table in {"coach.settings", "coach.provider_settings"}:
-            await connection.execute(f"DELETE FROM {table}")
+            await connection.execute(
+                {
+                    "coach.settings": "DELETE FROM coach.settings",
+                    "coach.provider_settings": "DELETE FROM coach.provider_settings",
+                }[table]
+            )
         identity = " OVERRIDING SYSTEM VALUE" if table in SEQUENCES else ""
         placeholders = ",".join(f"${index + 1}" for index in range(len(columns)))
         for row in rows[table]:
             await connection.execute(
-                f"INSERT INTO {table} ({','.join(columns)}){identity} VALUES ({placeholders})",
+                # Identifiers come only from TABLES/SEQUENCES above; row values are bound.
+                f"INSERT INTO {table} ({','.join(columns)}){identity} VALUES ({placeholders})",  # nosec B608
                 *sql_values(columns, row),
             )
     for table, fields in TABLES.items():

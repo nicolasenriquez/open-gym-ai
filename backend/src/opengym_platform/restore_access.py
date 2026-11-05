@@ -281,13 +281,13 @@ async def recover(config, target, review_path):
                 "LOCK TABLE identity.users IN ACCESS EXCLUSIVE MODE"
             )
             await connection.execute("UPDATE identity.users SET disabled=true")
-            for table in (
-                "device_links",
-                "password_resets",
-                "password_credentials",
-                "passkeys",
+            for statement in (
+                "DELETE FROM identity.device_links",
+                "DELETE FROM identity.password_resets",
+                "DELETE FROM identity.password_credentials",
+                "DELETE FROM identity.passkeys",
             ):
-                await connection.execute(f"DELETE FROM identity.{table}")
+                await connection.execute(statement)
             await connection.execute(
                 "DELETE FROM identity.login_aliases WHERE NOT email_claim"
             )

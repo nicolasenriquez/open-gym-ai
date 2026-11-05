@@ -303,8 +303,12 @@ class Jobs:
             SET sharing=false,forget_generation=coach.profile_state.forget_generation+1""",
             owner,
         )
-        for table in ("jobs", "pending_proposals", "history_events"):
-            await handle.execute(f"DELETE FROM coach.{table}")
+        for statement in (
+            "DELETE FROM coach.jobs",
+            "DELETE FROM coach.pending_proposals",
+            "DELETE FROM coach.history_events",
+        ):
+            await handle.execute(statement)
         await handle.execute(
             "DELETE FROM coach.daily_usage WHERE day<>$1", datetime.now(UTC).date()
         )
