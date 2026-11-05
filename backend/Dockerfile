@@ -1,5 +1,5 @@
 FROM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
-FROM postgres:18.6-trixie@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6 AS pg-tools
+FROM postgres:18.6-trixie@sha256:3a4264520e121176619f54ff867d12774bc81e95e7b84db58d63bccdb6144b81 AS pg-tools
 # Keep the pinned tools' loader/libs separate from the Bookworm Python runtime.
 RUN mkdir -p /tools/lib && cp /usr/lib/postgresql/18/bin/pg_dump /usr/lib/postgresql/18/bin/pg_restore /tools/ && \
     ldd /tools/pg_dump /tools/pg_restore | awk '/=> \/.* / {print $3} /^\s*\/.*ld-linux/ {print $1}' | sort -u | xargs -I '{}' cp -L '{}' /tools/lib/ && \
