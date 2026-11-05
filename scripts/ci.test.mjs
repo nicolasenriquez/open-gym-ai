@@ -82,6 +82,12 @@ test('documentation classifier runs platform for empty, mixed and unknown paths'
   for (const [files, expected] of [
     [['README.md', 'docs/guide.md', 'docs/reference/api.md'], false],
     [['CONTRIBUTING.md', 'CHANGELOG.md'], false],
+    [['openspec/changes/example/proposal.md'], false],
+    [['openspec/specs/example/spec.md'], false],
+    [['openspec/changes/example/tasks.md', 'backend/src/example.py'], true],
+    [['openspec/config.yaml'], true],
+    [['openspec/example.py'], true],
+    [['openspec/name\nwith newline.md'], true],
     [[], true],
     [['docs/guide.md', 'scripts/ci.test.mjs'], true],
     [['.github/workflows/test.yml'], true],
@@ -138,4 +144,45 @@ test('platform matrix conditions reference declared groups', () => {
     step => step.run === 'node scripts/platform.mjs verify identity_account',
   );
   assert.equal(identityAccount?.if, "matrix.group == 'identity-account'");
+});
+
+test('service proofs run in exactly one domain group without increasing concurrency', () => {
+  const platform = jobs['platform-suites'];
+  assert.equal(platform.strategy['max-parallel'], 3);
+  assert.equal(platform.strategy.matrix.include.some(entry => entry.group === 'services'), false);
+  const assignments = {
+    coach: ['coach_state', 'coach_client', 'coach_http --case validated_proposal', 'coach_admin --case credentials'],
+    administration: ['admin_audit --case failure_and_retention', 'admin_invites --case consumed_history', 'admin_users --case actor_target', 'admin_delete'],
+    notifications: ['notifications'],
+  };
+  for (const [group, proofs] of Object.entries(assignments)) {
+    assert.equal(platform.strategy.matrix.include.filter(entry => entry.group === group).length, 1);
+    for (const proof of proofs) {
+      const steps = platform.steps.filter(step => step.run === `node scripts/platform.mjs verify ${proof}`);
+      assert.equal(steps.length, 1, proof);
+      assert.equal(steps[0].if, `matrix.group == '${group}'`, proof);
+    }
+  }
+});
+
+test('batchable Python proofs declare paths rather than process-wide pytest options', () => {
+  for (const [suite, entries] of Object.entries(manifest)) {
+    for (const entry of entries.filter(entry => entry.target === 'platform-test')) {
+      assert.ok(entry.command.length, `${suite}/${entry.id}`);
+      for (const path of entry.command) assert.match(path, /^tests\/[\w/.-]+\.py$/, `${suite}/${entry.id}`);
+    }
+  }
+});
+
+test('test containers report slow cases and CI exports only owned host-proof evidence', () => {
+  const compose = yaml.load(readFileSync('deploy/docker-compose.test.yml', 'utf8'));
+  const entrypoint = compose.services['platform-test'].entrypoint;
+  assert.ok(entrypoint.includes('--durations=20'));
+  assert.ok(entrypoint.includes('--durations-min=0.1'));
+  const dockerfile = readFileSync('backend/Dockerfile', 'utf8');
+  assert.ok(dockerfile.includes(`ENTRYPOINT ${JSON.stringify(entrypoint).replaceAll(',', ', ')}`));
+  const evidence = jobs['platform-suites'].steps.find(step => step.name === 'Preserve synthetic verification evidence');
+  assert.ok(evidence.with.path.split('\n').includes('${{ runner.temp }}/opengym-platform-proof-*/*.log'));
+  assert.ok(evidence.with.path.split('\n').includes('${{ runner.temp }}/opengym-platform-proof-*/result.json'));
+  assert.doesNotMatch(evidence.with.path, /(?:^|\n)(?:\/tmp|\$\{\{ runner.temp \}\})\/\*\*?\s*(?:\n|$)/);
 });

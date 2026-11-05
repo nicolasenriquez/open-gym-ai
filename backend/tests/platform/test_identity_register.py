@@ -3,12 +3,15 @@
 import asyncio
 import shutil
 from pathlib import Path
+from unittest.mock import patch
 
+import httpx
 import pytest
 import pytest_asyncio
 from test_lifecycle import deployment as deployment  # noqa: PLC0414
 from test_lifecycle import migration, server
 
+from opengym_platform.application import create_app
 from opengym_platform.core.database import Database, DatabaseError
 from opengym_platform.identity.registration import normalize_email, password_problem
 
@@ -153,10 +156,37 @@ async def registration(deployment):
     return observer, environment
 
 
+@pytest_asyncio.fixture
+async def registration_client(registration):
+    observer, environment = registration
+    runtime = {
+        **environment,
+        "PLATFORM_DB_PASSWORD_FILE": environment["PLATFORM_RUNTIME_PASSWORD_FILE"],
+    }
+    runtime.pop("PLATFORM_DB_PASSWORD", None)
+    runtime.pop("PLATFORM_MIGRATOR_PASSWORD_FILE", None)
+    runtime.pop("PLATFORM_RUNTIME_PASSWORD_FILE", None)
+    with patch.dict("os.environ", runtime, clear=True):
+        app = create_app()
+        async with app.router.lifespan_context(app):
+            rows = await app.state.database.fetch("SELECT current_user AS role")
+            assert rows[0]["role"] == "opengym_api_runtime"
+            async with httpx.AsyncClient(
+                transport=httpx.ASGITransport(
+                    app=app,
+                    raise_app_exceptions=False,
+                    client=("127.0.0.1", 12345),
+                ),
+                base_url="http://127.0.0.1",
+            ) as client:
+                yield observer, client
+
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "body,code",
-    [
+async def test_registration_rejects_invalid_input_without_creating_accounts(
+    registration_client, subtests
+):
+    cases = [
         ({}, "missing"),
         ({"name": "Alice"}, "too-short"),
         ({"name": "Alice", "password": "short"}, "too-short"),
@@ -167,20 +197,18 @@ async def registration(deployment):
             {"name": "Alice", "password": "violet river stones", "email": "bad"},
             "email-invalid",
         ),
-    ],
-)
-async def test_registration_rejects_invalid_input_without_creating_accounts(
-    deployment, body, code
-):
-    observer, environment = deployment
-    environment["PASSWORD_LOGIN"] = "1"
-    await migration(environment, "up")
-    async with server(environment) as client:
-        response = await client.post("/api/v1/register/password", json=body)
-        assert response.status_code == 400
-        assert response.json()["code"] == code
-        assert "set-cookie" not in response.headers
-        assert await observer.fetchval("SELECT count(*) FROM identity.users") == 0
+    ]
+    observer, client = registration_client
+    for index, (body, code) in enumerate(cases):
+        with subtests.test(case=index, expected=code):
+            async with asyncio.timeout(15):
+                response = await client.post("/api/v1/register/password", json=body)
+                assert response.status_code == 400
+                assert response.json()["code"] == code
+                assert "set-cookie" not in response.headers
+                assert (
+                    await observer.fetchval("SELECT count(*) FROM identity.users") == 0
+                )
 
 
 @pytest.mark.asyncio

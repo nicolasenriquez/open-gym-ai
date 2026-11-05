@@ -79,7 +79,7 @@ COPY --chmod=0555 pg-tool.sh /usr/local/bin/pg_restore
 CMD ["-c", "import subprocess; subprocess.run(['pg_dump', '--version'], check=True)"]
 
 FROM test-base AS test
-ENTRYPOINT ["/app/.venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--tb=short"]
+ENTRYPOINT ["/app/.venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--tb=short", "--durations=20", "--durations-min=0.1"]
 
 CMD ["tests"]
 

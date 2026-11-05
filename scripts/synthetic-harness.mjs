@@ -18,8 +18,10 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
       const child = spawn(program, args, { cwd: root, env: dockerEnv, signal: AbortSignal.timeout(timeoutMs), stdio: ['ignore', 'pipe', 'pipe'] });
       activeChild = child;
       const chunks = [];
+      const diagnostics = [];
       let size = 0;
       let overflow = false;
+      let spawnError;
       child.stdout.on('data', data => {
         if (live) process.stdout.write(data);
         else if (!overflow) {
@@ -30,16 +32,26 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
       });
       child.stderr.on('data', data => {
         if (live) process.stderr.write(data);
-        else {
+        else if (!overflow) {
           size += data.length;
           if (size > 4 * 1024 * 1024) { overflow = true; child.kill('SIGTERM'); }
+          else diagnostics.push(data);
         }
       });
-      child.on('error', () => reject(new Error(program === 'docker' ? 'Docker unavailable' : `${name} harness unavailable`)));
-      child.on('close', code => {
+      child.on('error', error => { spawnError = error; });
+      child.on('close', (code, signal) => {
         activeChild = undefined;
-        if (code === 0 && !overflow) resolve(Buffer.concat(chunks).toString('utf8'));
-        else reject(new Error(program === 'docker' ? `Docker ${args[0]} failed` : `${name} proof failed; run the mapped command directly`));
+        const stdout = Buffer.concat(chunks).toString('utf8');
+        if (code === 0 && !overflow && !spawnError) resolve(stdout);
+        else reject(Object.assign(new Error(
+          spawnError
+            ? program === 'docker' ? 'Docker unavailable' : `${name} harness unavailable`
+            : program === 'docker' ? `Docker ${args[0]} failed` : `${name} proof failed; run the mapped command directly`,
+          { cause: spawnError },
+        ), {
+          stdout, stderr: Buffer.concat(diagnostics).toString('utf8'), code, signal,
+          overflow, aborted: spawnError?.name === 'AbortError',
+        }));
       });
     });
   }
@@ -100,7 +112,13 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
     const stop = () => { interrupted = true; activeChild?.kill('SIGTERM'); };
     const step = async args => {
       if (interrupted) throw new Error(`${name} interrupted`);
-      await docker([...compose(project), ...args], true);
+      const started = performance.now();
+      try {
+        await docker([...compose(project), ...args], true);
+      } finally {
+        console.log(JSON.stringify({ code: 'SYNTHETIC_STEP_TIMING', project, phase: args[0],
+          duration_ms: Math.round(performance.now() - started) }));
+      }
       if (interrupted) throw new Error(`${name} interrupted`);
     };
     process.on('SIGINT', stop);
@@ -108,8 +126,11 @@ export function syntheticHarness({ root, composeFile, emptyEnv, namespace, label
     try {
       await work(step, project);
     } finally {
+      const started = performance.now();
       try { await cleanup(project); }
       finally {
+        console.log(JSON.stringify({ code: 'SYNTHETIC_STEP_TIMING', project, phase: 'cleanup',
+          duration_ms: Math.round(performance.now() - started) }));
         process.off('SIGINT', stop);
         process.off('SIGTERM', stop);
       }

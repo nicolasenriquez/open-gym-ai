@@ -487,7 +487,7 @@
       "requirement": "Bounded legacy and temporary artifact cleanup / Cleanup preserves recovery and foreign artifacts; Isolated local Compose operation / Resolved topology and environment isolation",
       "setup": "Unique synthetic Docker resources and foreign sentinel; no instance config or data",
       "target": "host",
-      "command": ["--test", "scripts/platform.test.mjs", "scripts/platform-ownership.test.mjs"],
+      "command": ["--test", "scripts/platform.test.mjs", "scripts/platform-ownership.test.mjs", "scripts/synthetic-harness.test.mjs"],
       "proof": "Foreign labels, config, namespace and shared images rejected; owned cleanup only; missing suites exit 2",
       "checkpoint": "1.2; retained pool and required-proof coverage runs in database/checks"
     }

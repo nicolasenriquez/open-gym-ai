@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { cpSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const invoke = (...args) => spawnSync(process.execPath, ['scripts/platform.mjs', ...args], {
@@ -160,6 +161,88 @@ test('retired transition baseline cannot be invoked or credited', () => {
   assert.doesNotMatch(result.stdout, /PLATFORM_CASE_OK/);
 });
 
+async function verifyFixture(t, entries, { options = [], execute, failEvidence = false } = {}) {
+  const directory = mkdtempSync(join(tmpdir(), 'opengym-verifier-fixture-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const calls = [], steps = [], output = [], errors = [];
+  const process = { argv: ['node', 'platform.mjs', 'verify', 'harness', ...options], env: {} };
+  const source = readFileSync('scripts/platform.mjs', 'utf8')
+    .replace(/^import .*\r?\n/gm, '')
+    .replaceAll('import.meta.url', JSON.stringify(new URL('./platform.mjs', import.meta.url).href));
+  await runInNewContext(`(async () => {${source}\n})()`, {
+    process, URL, fileURLToPath, join, assert,
+    readFileSync: () => JSON.stringify({ harness: entries }),
+    mkdtempSync: failEvidence ? () => { throw new Error('unwritable evidence'); } : mkdtempSync,
+    writeFileSync, tmpdir: () => directory,
+    console: { log: value => output.push(value), error: value => errors.push(value) },
+    syntheticHarness: () => ({
+      execute: async (_program, args) => { calls.push(Array.from(args)); return execute ? execute(args) : '# tests 1\n# pass 1\n'; },
+      runProject: async work => work(async args => { steps.push(Array.from(args)); }, 'fixture'),
+    }),
+  });
+  return { directory, calls, steps, output, errors, status: process.exitCode ?? 0 };
+}
+
+test('identical host proofs run once per invocation without changing case selection', async t => {
+  const entries = [
+    { id: 'one', target: 'host', command: ['proof.mjs'] },
+    { id: 'two', target: 'host', command: ['proof.mjs'] },
+    { id: 'other', target: 'host', command: ['other.mjs'] },
+  ];
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const result = await verifyFixture(t, entries);
+    assert.equal(result.status, 0);
+    assert.deepEqual(result.calls, [['proof.mjs'], ['other.mjs']]);
+    assert.deepEqual(result.output.map(value => JSON.parse(value).case), ['one', 'two', 'other']);
+  }
+  const selected = await verifyFixture(t, entries, { options: ['--case', 'two'] });
+  assert.deepEqual(selected.calls, [['proof.mjs']]);
+  assert.deepEqual(selected.output.map(value => JSON.parse(value).case), ['two']);
+});
+
+test('host proof failures retain bounded diagnostics and never credit aliases', async t => {
+  const entries = ['one', 'two'].map(id => ({ id, target: 'host', command: ['proof.mjs'] }));
+  for (const proof of ['', '# tests 1\n# skipped 1\n', new Error('child failed')]) {
+    if (proof instanceof Error) Object.assign(proof, {
+      stdout: 'proof-stdout', stderr: 'proof-stderr', code: 7, signal: null,
+    });
+    const result = await verifyFixture(t, entries, { execute: () => {
+      if (proof instanceof Error) throw proof;
+      return proof;
+    } });
+    assert.equal(result.status, 1);
+    assert.equal(result.calls.length, 1);
+    assert.equal(result.output.length, 0);
+    const evidence = join(result.directory, readdirSync(result.directory)[0]);
+    assert.equal(readFileSync(join(evidence, 'stdout.log'), 'utf8'), proof.stdout ?? proof);
+    assert.equal(readFileSync(join(evidence, 'stderr.log'), 'utf8'), proof.stderr ?? '');
+    assert.deepEqual(JSON.parse(readFileSync(join(evidence, 'result.json'))), {
+      suite: 'harness', case: 'one', code: proof.code ?? null, signal: null,
+      overflow: false, aborted: false,
+    });
+  }
+  const result = await verifyFixture(t, entries, {
+    execute: () => { throw new Error('original failure'); }, failEvidence: true,
+  });
+  assert.equal(result.status, 1);
+  assert.equal(result.output.length, 0);
+  assert.deepEqual(result.errors, ['PLATFORM_FAILURE_LOG_UNAVAILABLE', 'original failure']);
+});
+
+test('Python batches use one pytest process with all declared paths in order', async t => {
+  const result = await verifyFixture(t, [
+    { id: 'one', target: 'platform-test', command: ['tests/one.py'] },
+    { id: 'two', target: 'platform-test', command: ['tests/two.py', 'tests/three.py'] },
+  ]);
+  assert.equal(result.status, 0);
+  assert.deepEqual(result.steps, [
+    ['config', '--quiet'], ['build', 'platform-test'],
+    ['up', '--detach', '--wait', '--wait-timeout', '60', 'platform-db'],
+    ['run', '--rm', '--no-deps', 'platform-test', 'tests/one.py', 'tests/two.py', 'tests/three.py'],
+  ]);
+  assert.equal(result.output.length, 2);
+});
+
 test('empty output, skipped proofs and failed commands never receive a passing case marker', t => {
   const root = mkdtempSync(join(tmpdir(), 'opengym-platform-proof-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -175,6 +258,7 @@ test('empty output, skipped proofs and failed commands never receive a passing c
     }));
     const result = spawnSync(process.execPath, ['scripts/platform.mjs', 'verify', 'harness'], {
       cwd: root, encoding: 'utf8', timeout: 10_000,
+      env: { ...process.env, TMPDIR: root, TEMP: root, TMP: root },
     });
     assert.equal(result.status, 1);
     assert.doesNotMatch(result.stdout, /PLATFORM_CASE_OK/);

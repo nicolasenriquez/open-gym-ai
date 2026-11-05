@@ -44,7 +44,7 @@ services:
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     entrypoint:
-      ["/app/.venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--tb=short"]
+      ["/app/.venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "--tb=short", "--durations=20", "--durations-min=0.1"]
     environment:
       PLATFORM_DB_HOST: platform-db
       PLATFORM_DB_PORT: "5432"

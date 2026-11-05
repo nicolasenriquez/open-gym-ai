@@ -38,7 +38,7 @@ jobs:
             node --input-type=module -e '
               import { readFileSync } from "node:fs";
               const files = readFileSync(0, "utf8").split("\0").filter(Boolean);
-              const docs = /^(?:docs\/.*\.md|README\.md|CONTRIBUTING\.md|CHANGELOG\.md)$/;
+              const docs = /^(?:(?:docs|openspec)\/.*\.md|README\.md|CONTRIBUTING\.md|CHANGELOG\.md)$/;
               console.log(`platform=${files.length === 0 || files.some(file => !docs.test(file))}`);
             ' >> "$GITHUB_OUTPUT"
 
@@ -210,7 +210,9 @@ jobs:
           - { group: identity, minutes: 40 }
           - { group: identity-account, minutes: 40 }
           - { group: training, minutes: 40 }
-          - { group: services, minutes: 40 }
+          - { group: coach, minutes: 40 }
+          - { group: administration, minutes: 40 }
+          - { group: notifications, minutes: 40 }
           - { group: backup, minutes: 40 }
           - { group: cutover, minutes: 40 }
           - { group: restore, minutes: 40 }
@@ -289,23 +291,23 @@ jobs:
       - run: node scripts/platform.mjs verify media_gc --case fail_safe
         if: matrix.group == 'training'
       - run: node scripts/platform.mjs verify coach_state
-        if: matrix.group == 'services'
+        if: matrix.group == 'coach'
       - run: node scripts/platform.mjs verify coach_client
-        if: matrix.group == 'services'
+        if: matrix.group == 'coach'
       - run: node scripts/platform.mjs verify coach_http --case validated_proposal
-        if: matrix.group == 'services'
+        if: matrix.group == 'coach'
       - run: node scripts/platform.mjs verify coach_admin --case credentials
-        if: matrix.group == 'services'
+        if: matrix.group == 'coach'
       - run: node scripts/platform.mjs verify admin_audit --case failure_and_retention
-        if: matrix.group == 'services'
+        if: matrix.group == 'administration'
       - run: node scripts/platform.mjs verify admin_invites --case consumed_history
-        if: matrix.group == 'services'
+        if: matrix.group == 'administration'
       - run: node scripts/platform.mjs verify admin_users --case actor_target
-        if: matrix.group == 'services'
+        if: matrix.group == 'administration'
       - run: node scripts/platform.mjs verify admin_delete
-        if: matrix.group == 'services'
+        if: matrix.group == 'administration'
       - run: node scripts/platform.mjs verify notifications
-        if: matrix.group == 'services'
+        if: matrix.group == 'notifications'
       - run: node scripts/platform.mjs verify diagnostics
         if: matrix.group == 'backup'
       - run: node scripts/platform.mjs verify import
@@ -349,6 +351,8 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
           path: |
+            ${{ runner.temp }}/opengym-platform-proof-*/*.log
+            ${{ runner.temp }}/opengym-platform-proof-*/result.json
             ${{ runner.temp }}/opengym-platform-browser-*/*.png
             ${{ runner.temp }}/opengym-platform-browser-*/result.json
             ${{ runner.temp }}/opengym-reproducibility-*/*.log

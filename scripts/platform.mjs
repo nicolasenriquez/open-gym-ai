@@ -62,13 +62,35 @@ try {
     const batches = selected.every(entry => entry.target === 'platform-test')
       ? [selected]
       : selected.map(entry => [entry]);
+    const hostProofs = new Set();
     for (const batch of batches) {
       const entry = batch[0];
       if (entry.target === 'host') {
-        const output = await execute(process.execPath, entry.command, false,
-          suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' || suite === 'repair'
-            || (suite === 'restore' && entry.id === 'full_timing') || (suite === 'gates' && entry.id === 'node_capture_recovery') ? 600_000 : 300_000);
-        requireProof(output);
+        const commandKey = JSON.stringify(entry.command);
+        if (!hostProofs.has(commandKey)) {
+          let output = '';
+          try {
+            output = await execute(process.execPath, entry.command, false,
+              suite === 'images' && entry.id === 'reproducibility' ? 3_600_000 : suite === 'backup' || suite === 'repair'
+                || (suite === 'restore' && entry.id === 'full_timing') || (suite === 'gates' && entry.id === 'node_capture_recovery') ? 600_000 : 300_000);
+            requireProof(output);
+            hostProofs.add(commandKey);
+          } catch (error) {
+            try {
+              const evidence = mkdtempSync(join(tmpdir(), 'opengym-platform-proof-'));
+              writeFileSync(join(evidence, 'stdout.log'), error.stdout ?? output, { mode: 0o600 });
+              writeFileSync(join(evidence, 'stderr.log'), error.stderr ?? '', { mode: 0o600 });
+              writeFileSync(join(evidence, 'result.json'), JSON.stringify({
+                suite, case: entry.id, code: error.code ?? null, signal: error.signal ?? null,
+                overflow: error.overflow ?? false, aborted: error.aborted ?? false,
+              }), { mode: 0o600 });
+              console.error(`Platform failure evidence: ${evidence}`);
+            } catch {
+              console.error('PLATFORM_FAILURE_LOG_UNAVAILABLE');
+            }
+            throw error;
+          }
+        }
       } else if (entry.target === 'platform-browser') {
         await runProject(async (step, project) => {
           await step(['config', '--quiet']);
@@ -106,9 +128,7 @@ try {
           await step(['config', '--quiet']);
           await step(build(entry.target));
           await step(['up', '--detach', '--wait', '--wait-timeout', '60', 'platform-db']);
-          for (const current of batch) {
-            await step(['run', '--rm', '--no-deps', current.target, ...current.command]);
-          }
+          await step(['run', '--rm', '--no-deps', entry.target, ...batch.flatMap(current => current.command)]);
         });
       } else if (entry.target === 'platform-client') {
         await runProject(async (step, project) => {

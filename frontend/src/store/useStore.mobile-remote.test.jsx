@@ -96,7 +96,7 @@ function serverWith(doc) {
 const readFile = name => { const v = h.files.get('DATA/' + name); return v == null ? null : JSON.parse(v) }
 const serverCalls = () => h.calls.filter(c => c.url.startsWith(BASE + '/'))
 const localCalls = () => h.calls.filter(c => !c.url.startsWith(BASE + '/'))
-const sleep = ms => new Promise(r => setTimeout(r, ms))
+const sleep = ms => vi.advanceTimersByTimeAsync(ms)
 const ids = xs => (xs || []).map(x => x.id)
 
 // Server rev 5 holds w1 and the push-day routine at 10 reps; the phone is paired and in step.
@@ -144,13 +144,26 @@ async function freshStore() {
   return useStore
 }
 
-beforeEach(() => { installFetch(); h.refuse.clear() })
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  installFetch()
+  h.refuse.clear()
+})
 afterEach(async () => {
-  window.dispatchEvent(new Event('pagehide'))
-  await sleep(20)
-  for (const s of stores) s.setState({ user: null, ready: false })
-  stores = []
-  localStorage.clear()
+  try {
+    window.dispatchEvent(new Event('pagehide'))
+    await sleep(20)
+  } finally {
+    for (const s of stores) s.setState({ user: null, ready: false })
+    stores = []
+    try {
+      await vi.runOnlyPendingTimersAsync()
+    } finally {
+      vi.clearAllTimers()
+      vi.useRealTimers()
+      localStorage.clear()
+    }
+  }
 })
 
 describe('boot when the server refuses the pairing token', () => {
@@ -584,20 +597,17 @@ describe('a request that never answers', () => {
     const srv = serverWith(SERVER_STATE)
     const useStore = await freshStore()
     await useStore.getState().boot()
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    try {
-      h.server = () => new Promise(() => {})   // a black-holed connection: no answer, no error
-      useStore.getState().update(s => { s.workouts.push(workout('w2', '2026-09-15')) }, false)
-      const push = useStore.getState().pushState()
-      await vi.advanceTimersByTimeAsync(61000)
-      await push
-      expect(useStore.getState().sync).toMatchObject({ status: 'offline', pending: true, lastError: { status: 0, code: 'timeout' } })
-      expect(localStorage.getItem('gym_dirty')).toBe('1')
+    h.server = () => new Promise(() => {})   // a black-holed connection: no answer, no error
+    useStore.getState().update(s => { s.workouts.push(workout('w2', '2026-09-15')) }, false)
+    const push = useStore.getState().pushState()
+    await vi.advanceTimersByTimeAsync(61000)
+    await push
+    expect(useStore.getState().sync).toMatchObject({ status: 'offline', pending: true, lastError: { status: 0, code: 'timeout' } })
+    expect(localStorage.getItem('gym_dirty')).toBe('1')
 
-      h.server = srv.handle
-      await useStore.getState().pushState()
-      expect(ids(srv.doc.workouts)).toEqual(['w1', 'w2'])
-      expect(useStore.getState().sync.status).toBe('ok')
-    } finally { vi.useRealTimers() }
+    h.server = srv.handle
+    await useStore.getState().pushState()
+    expect(ids(srv.doc.workouts)).toEqual(['w1', 'w2'])
+    expect(useStore.getState().sync.status).toBe('ok')
   })
 })
